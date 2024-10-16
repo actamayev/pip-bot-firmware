@@ -8,8 +8,8 @@
 const byte DNS_PORT = 53;
 
 // Define your Access Point SSID and Password
-const char* ap_ssid = "ESP32_Provision";
-const char* ap_password = "12345678";
+const char* ap_ssid = "pip_1";
+const char* ap_password = "thisispip";
 
 // Create a web server on port 80
 IPAddress apIP(192, 168, 4, 1);
@@ -130,7 +130,6 @@ void setup() {
     }
   }
 }
-
 
 void loop() {
   // Nothing in the loop, as everything is handled in event-driven handlers
