@@ -44,7 +44,11 @@ void handleConnect() {
   preferences.begin("wifi-credentials", false);
   preferences.putString("ssid", ssid);
   preferences.putString("password", password);
+  stored_ssid = preferences.getString("ssid", "");
+  stored_password = preferences.getString("password", "");
   preferences.end();
+  Serial.println("In handle connect: stored_ssid: " + stored_ssid);
+  Serial.println("In handle connect: stored_password: " + stored_password);
 
   // Try to connect to the new Wi-Fi credentials
   WiFi.begin(ssid.c_str(), password.c_str());
@@ -53,12 +57,12 @@ void handleConnect() {
   int retries = 0;
   while (WiFi.status() != WL_CONNECTED && retries < 20) {
     delay(500);
-    Serial.print(".");
+    Serial.print("waiting.");
     retries++;
   }
 
   if (WiFi.status() == WL_CONNECTED) {
-    Serial.println("\nConnected to Wi-Fi!");
+    Serial.println("Connected to Wi-Fi!");
     digitalWrite(LED_PIN, HIGH); // Turn on LED to show success
     isConnected = true;
 
@@ -83,7 +87,7 @@ void startAccessPoint() {
   server.on("/connect", handleConnect);
   server.begin();
 
-  Serial.println("Access Point started. Connect to 'ESP32_Device'.");
+  Serial.println("Access Point started. Connect to " + String(ap_ssid));
   Serial.println("IP Address: 192.168.4.1");
 
   while (!isConnected) {
@@ -94,6 +98,7 @@ void startAccessPoint() {
 
 void setup() {
   Serial.begin(115200);
+  Serial.println("here");
 
   // Setup onboard LED
   pinMode(LED_PIN, OUTPUT);
@@ -104,6 +109,9 @@ void setup() {
   stored_ssid = preferences.getString("ssid", "");
   stored_password = preferences.getString("password", "");
   preferences.end();
+
+  Serial.println("stored_ssid: " + stored_ssid);
+  Serial.println("stored_password: " + stored_password);
 
   if (stored_ssid == "" || stored_password == "") {
     Serial.println("No stored credentials found. Starting AP mode...");
@@ -121,11 +129,11 @@ void setup() {
     }
 
     if (WiFi.status() == WL_CONNECTED) {
-      Serial.println("\nConnected to Wi-Fi!");
+      Serial.println("Connected to Wi-Fi!");
       digitalWrite(LED_PIN, HIGH);  // Turn on LED to show success
       isConnected = true;
     } else {
-      Serial.println("\nFailed to connect to saved Wi-Fi. Starting AP mode...");
+      Serial.println("Failed to connect to saved Wi-Fi. Starting AP mode...");
       startAccessPoint();
     }
   }
