@@ -40,6 +40,10 @@ void handleConnect() {
   String ssid = server.arg("ssid");
   String password = server.arg("password");
 
+
+  Serial.println("In handle connect: receied ssid: " + ssid);
+  Serial.println("In handle connect: recevied pw: " + password);
+
   // Store credentials in Preferences
   preferences.begin("wifi-credentials", false);
   preferences.putString("ssid", ssid);
@@ -98,6 +102,7 @@ void startAccessPoint() {
 
 void setup() {
   Serial.begin(115200);
+  delay(5000); // Add this to ensure time for Serial Monitor to connect
   Serial.println("here");
 
   // Setup onboard LED
