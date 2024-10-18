@@ -12,7 +12,7 @@ const char* ap_ssid = "pip_1";
 const char* ap_password = "thisispip";
 
 // Create a web server on port 80
-IPAddress apIP(192, 168, 4, 1)
+IPAddress apIP(192, 168, 4, 1);
 DNSServer dnsServer;
 WebServer server(80);
 
