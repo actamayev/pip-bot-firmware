@@ -51,11 +51,7 @@ void handleConnect() {
   preferences.begin("wifi-creds", false);
   preferences.putString("ssid", ssid);
   preferences.putString("password", password);
-  stored_ssid = preferences.getString("ssid", "");
-  stored_password = preferences.getString("password", "");
   preferences.end();
-  Serial.println("In handle connect: stored_ssid: " + stored_ssid);
-  Serial.println("In handle connect: stored_password: " + stored_password);
 
   // Try to connect to the new Wi-Fi credentials
   WiFi.begin(ssid.c_str(), password.c_str());
@@ -69,13 +65,11 @@ void handleConnect() {
   }
 
   if (WiFi.status() == WL_CONNECTED) {
-    Serial.println("Connected to Wi-Fi!");
+    Serial.println("\nConnected to Wi-Fi!");
     digitalWrite(LED_PIN, HIGH); // Turn on LED to show success
-    isConnected = true;
-
     server.send(200, "text/html", "Connected! ESP will reboot.");
     delay(2000);
-    ESP.restart();
+    ESP.restart(); // TODO: Might not be needed
   } else {
     server.send(200, "text/html", "Failed to connect. Please try again.");
   }
@@ -110,7 +104,6 @@ void startAccessPoint() {
 void setup() {
   Serial.begin(115200);
   delay(5000); // Add this to ensure time for Serial Monitor to connect
-  Serial.println("here");
 
   // Setup onboard LED
   pinMode(LED_PIN, OUTPUT);
