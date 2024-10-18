@@ -19,7 +19,6 @@ WebServer server(80);
 // Preferences to store Wi-Fi credentials
 Preferences preferences;
 
-// Variables to store credentials
 String stored_ssid;
 String stored_password;
 
