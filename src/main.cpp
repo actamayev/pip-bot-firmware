@@ -2,6 +2,9 @@
 #include <WebServer.h>
 #include <Preferences.h> // For storing Wi-Fi credentials persistently
 #include <DNSServer.h>
+#include <ArduinoWebsockets.h>
+
+using namespace websockets;
 
 // Define your LED pin
 #define LED_PIN 2
@@ -10,6 +13,10 @@ const byte DNS_PORT = 53;
 // Define your Access Point SSID and Password
 const char* ap_ssid = "pip_1";
 const char* ap_password = "thisispip";
+
+const char* ws_server_url = "ws://10.45.21.99:8080";
+
+WebsocketsClient wsClient;
 
 // Create a web server on port 80
 IPAddress apIP(192, 168, 4, 1);
@@ -32,6 +39,11 @@ void handleRoot() {
                 "<input type=\"submit\" value=\"Connect\">"
                 "</form></body></html>";
   server.send(200, "text/html", html);
+}
+
+void onMessageCallback(WebsocketsMessage message) {
+  Serial.print("Received message: ");
+  Serial.println(message.data());
 }
 
 void handleNotFound() {
@@ -136,6 +148,17 @@ void setup() {
       Serial.println("Connected to Wi-Fi!");
       digitalWrite(LED_PIN, HIGH);  // Turn on LED to show success
       isConnected = true;
+
+      // Setup WebSocket event handlers
+      wsClient.onMessage(onMessageCallback);
+
+      // Connect to WebSocket server
+      Serial.println("Connecting to WebSocket server...");
+      wsClient.connect(ws_server_url);
+
+      // Send a message to the server
+      wsClient.send("Hello from ESP32!");
+
     } else {
       Serial.println("Failed to connect to saved Wi-Fi. Starting AP mode...");
       startAccessPoint();
@@ -144,5 +167,6 @@ void setup() {
 }
 
 void loop() {
+  wsClient.poll();
   // Nothing in the loop, as everything is handled in event-driven handlers
 }
