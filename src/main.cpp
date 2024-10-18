@@ -29,10 +29,14 @@ void handleRoot() {
   String html = "<html><body><h1>Wi-Fi Configuration</h1>"
                 "<form action=\"/connect\" method=\"POST\">"
                 "SSID: <input type=\"text\" name=\"ssid\"><br>"
-                "Password: <input type=\"password\" name=\"password\"><br>"
+                "Password: <input type=\"text\" name=\"password\"><br>"
                 "<input type=\"submit\" value=\"Connect\">"
                 "</form></body></html>";
   server.send(200, "text/html", html);
+}
+
+void handleNotFound() {
+  server.send(404, "text/plain", "Not Found");
 }
 
 void handleConnect() {
@@ -40,12 +44,11 @@ void handleConnect() {
   String ssid = server.arg("ssid");
   String password = server.arg("password");
 
-
   Serial.println("In handle connect: receied ssid: " + ssid);
   Serial.println("In handle connect: recevied pw: " + password);
 
   // Store credentials in Preferences
-  preferences.begin("wifi-credentials", false);
+  preferences.begin("wifi-creds", false);
   preferences.putString("ssid", ssid);
   preferences.putString("password", password);
   stored_ssid = preferences.getString("ssid", "");
@@ -89,6 +92,7 @@ void startAccessPoint() {
   // Start Web Server to handle Wi-Fi credentials input
   server.on("/", handleRoot);
   server.on("/connect", handleConnect);
+  server.onNotFound(handleNotFound); // Handle undefined routes
   server.begin();
 
   Serial.println("Access Point started. Connect to " + String(ap_ssid));
@@ -110,7 +114,7 @@ void setup() {
   digitalWrite(LED_PIN, LOW); // Turn off LED initially
 
   // Load Wi-Fi credentials from memory
-  preferences.begin("wifi-credentials", false);  // Namespace: "wifi-credentials"
+  preferences.begin("wifi-creds", false);  // Namespace: "wifi-creds"
   stored_ssid = preferences.getString("ssid", "");
   stored_password = preferences.getString("password", "");
   preferences.end();
