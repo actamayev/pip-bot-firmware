@@ -83,6 +83,9 @@ void handleConnect() {
 
 void startAccessPoint() {
   // Create Access Point
+  WiFi.disconnect(true);  // Disconnect from any station mode connection
+  WiFi.mode(WIFI_AP);     // Force Wi-Fi into Access Point mode
+
   WiFi.softAP(ap_ssid, ap_password);
   WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
 
