@@ -4,23 +4,36 @@
 
 Preferences preferences;
 
-bool WiFiManager::connectToStoredWiFi() {
-  // Load Wi-Fi credentials from memory
-  preferences.begin("wifi-creds", false);
-  String stored_ssid = preferences.getString("ssid", "");
-  String stored_password = preferences.getString("password", "");
-  preferences.end();
-
-  Serial.println("In connect to stored wifi: stored_ssid: " + stored_ssid);
-  Serial.println("In connect to stored wifi: stored_password: " + stored_password);
+WiFiCredentials WiFiManager::getStoredWiFiCredentials() {
+    // Create an instance of WiFiCredentials to hold the values
+    WiFiCredentials creds;
     
-  if (stored_ssid == "" || stored_password == "") {
+    // Start the preferences with the namespace "wifi-creds"
+    preferences.begin("wifi-creds", false);
+    
+    // Retrieve stored SSID and password
+    creds.ssid = preferences.getString("ssid", "");
+    creds.password = preferences.getString("password", "");
+    
+    // End preferences access
+    preferences.end();
+
+    return creds;  // Return the credentials struct
+}
+
+bool WiFiManager::connectToStoredWiFi() {
+  WiFiCredentials creds = getStoredWiFiCredentials();
+
+  Serial.println("In connect to stored wifi: stored_ssid: " + creds.ssid);
+  Serial.println("In connect to stored wifi: stored_password: " + creds.password);
+    
+  if (creds.ssid == "" || creds.password == "") {
     Serial.println("No stored credentials found.");
     return false;
   }
 
   // Try to connect to the saved Wi-Fi credentials
-  WiFi.begin(stored_ssid.c_str(), stored_password.c_str());
+  WiFi.begin(creds.ssid.c_str(), creds.password.c_str());
   Serial.println("Attempting to connect to saved Wi-Fi...");
 
   int retries = 0;
@@ -49,6 +62,25 @@ void WiFiManager::startAccessPoint() {
   IPAddress apIP(192, 168, 4, 1);
   WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
   webserverManager.startWebServer();
+}
+
+void WiFiManager::reconnectWiFi() {
+    WiFiCredentials creds = getStoredWiFiCredentials();
+
+    int retries = 0;
+    WiFi.begin(creds.ssid.c_str(), creds.password.c_str());
+    while (WiFi.status() != WL_CONNECTED && retries < 10) {
+        delay(500);
+        Serial.print(".");
+        retries++;
+    }
+
+    if (WiFi.status() == WL_CONNECTED) {
+        Serial.println("Reconnected to Wi-Fi!");
+        digitalWrite(LED_PIN, HIGH);  // Turn on LED to indicate success
+    } else {
+        Serial.println("Failed to reconnect to Wi-Fi.");
+    }
 }
 
 WiFiManager wifiManager;  // Create global instance

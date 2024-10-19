@@ -22,7 +22,24 @@ void setup() {
 }
 
 void loop() {
-  websocketManager.pollWebSocket();
-  // Handle client requests in Access Point mode
-  webserverManager.handleClientRequests();
+    // Periodically handle DNS and web server requests (non-blocking)
+    webserverManager.handleClientRequests();
+
+    // Periodically check WebSocket connection
+    websocketManager.pollWebSocket();
+
+    // Check if Wi-Fi is still connected
+    if (WiFi.status() != WL_CONNECTED) {
+        Serial.println("Lost Wi-Fi connection. Reconnecting...");
+        digitalWrite(LED_PIN, LOW);  // Turn off LED to indicate failure
+        wifiManager.reconnectWiFi();
+    }
+
+    // Check if WebSocket is still connected, if not, try to reconnect
+    if (!wsClient.available()) {
+        Serial.println("WebSocket connection lost. Reconnecting...");
+        websocketManager.reconnectWebSocket();
+    }
+
+    delay(100);  // Short delay to prevent tight looping
 }
