@@ -6,8 +6,8 @@
 
 class WebServerManager {
 public:
-  void startWebServer();
-  void handleClientRequests();
+	void startWebServer();
+	void handleClientRequests();
 };
 
 extern WebServerManager webserverManager;

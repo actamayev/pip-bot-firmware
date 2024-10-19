@@ -7,8 +7,8 @@ using namespace websockets;
 
 class WebSocketManager {
 public:
-  void connectToWebSocket();
-  void pollWebSocket();
+	void connectToWebSocket();
+	void pollWebSocket();
 };
 
 extern WebSocketManager websocketManager;

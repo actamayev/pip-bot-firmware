@@ -5,16 +5,16 @@
 #include <Preferences.h>
 
 struct WiFiCredentials {
-  String ssid;
-  String password;
+	String ssid;
+	String password;
 };
 
 class WiFiManager {
 public:
-  bool connectToStoredWiFi();
-  void startAccessPoint();
-  void reconnectWiFi();
-  WiFiCredentials getStoredWiFiCredentials();  // Utility function declaration
+	bool connectToStoredWiFi();
+	void startAccessPoint();
+	void reconnectWiFi();
+	WiFiCredentials getStoredWiFiCredentials();  // Utility function declaration
 };
 
 extern WiFiManager wifiManager;
