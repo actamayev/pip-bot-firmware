@@ -3,13 +3,18 @@
 #include <Preferences.h> // For storing Wi-Fi credentials persistently
 #include <DNSServer.h>
 #include <ArduinoWebsockets.h>
-#include "config.h"
 
 using namespace websockets;
 
 // Define your LED pin
 #define LED_PIN 2
 const byte DNS_PORT = 53;
+
+// Define your Access Point SSID and Password
+const char* ap_ssid = "pip_1";
+const char* ap_password = "thisispip";
+
+const char* ws_server_url = "ws://192.168.1.201:8080";
 
 WebsocketsClient wsClient;
 
