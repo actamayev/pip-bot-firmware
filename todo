@@ -3,7 +3,14 @@ Features:
 
 Optimizations:
 	- After successful connection to a WS, the connection fizzles out ()
-	- Understand the loop code - I do not understand why certain things happen/why they happen in the order they do
+	-Dig into the loop function.
+        1. Go through all teh cases - what should be happening if:
+            1. The user has no saved wifi
+            2. The user has a saved wifi:
+                1. That connects successfully
+                    1. And then disconnects
+                    2. But the socket can’t connect
+                2. That can’t connect
 
 Bugs:
 	-
