@@ -1,0 +1,8 @@
+Features:
+	- Save multiple wifi networks to preferences. After turning on, the ESP should cycle through the networks until it has established a connection
+
+Optimizations:
+	- After successful connection to a WS, the connection fizzles out ()
+
+Bugs:
+	-

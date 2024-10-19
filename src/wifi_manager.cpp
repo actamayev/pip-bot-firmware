@@ -5,20 +5,19 @@
 Preferences preferences;
 
 WiFiCredentials WiFiManager::getStoredWiFiCredentials() {
-    // Create an instance of WiFiCredentials to hold the values
-    WiFiCredentials creds;
-    
-    // Start the preferences with the namespace "wifi-creds"
-    preferences.begin("wifi-creds", false);
-    
-    // Retrieve stored SSID and password
-    creds.ssid = preferences.getString("ssid", "");
-    creds.password = preferences.getString("password", "");
-    
-    // End preferences access
-    preferences.end();
+  WiFiCredentials creds;
 
-    return creds;  // Return the credentials struct
+  // Start the preferences with the namespace "wifi-creds"
+  preferences.begin("wifi-creds", false);
+  
+  // Retrieve stored SSID and password
+  creds.ssid = preferences.getString("ssid", "");
+  creds.password = preferences.getString("password", "");
+  
+  // End preferences access
+  preferences.end();
+
+  return creds;  // Return the credentials struct
 }
 
 bool WiFiManager::connectToStoredWiFi() {

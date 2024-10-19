@@ -19,13 +19,6 @@ void WebSocketManager::connectToWebSocket() {
     }
 }
 
-void WebSocketManager::reconnectWebSocket() {
-    if (!wsClient.available()) {
-        Serial.println("Reconnecting WebSocket...");
-        connectToWebSocket();
-    }
-}
-
 void WebSocketManager::pollWebSocket() {
     if (wsClient.available()) {
         wsClient.poll();  // Only poll if connected
