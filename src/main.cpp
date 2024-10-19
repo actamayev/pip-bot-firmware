@@ -3,18 +3,13 @@
 #include <Preferences.h> // For storing Wi-Fi credentials persistently
 #include <DNSServer.h>
 #include <ArduinoWebsockets.h>
+#include "config.h"
 
 using namespace websockets;
 
 // Define your LED pin
 #define LED_PIN 2
 const byte DNS_PORT = 53;
-
-// Define your Access Point SSID and Password
-const char* ap_ssid = "pip_1";
-const char* ap_password = "thisispip";
-
-const char* ws_server_url = "ws://10.45.21.99:8080";
 
 WebsocketsClient wsClient;
 
@@ -126,9 +121,6 @@ void setup() {
   stored_password = preferences.getString("password", "");
   preferences.end();
 
-  Serial.println("stored_ssid: " + stored_ssid);
-  Serial.println("stored_password: " + stored_password);
-
   if (stored_ssid == "" || stored_password == "") {
     Serial.println("No stored credentials found. Starting AP mode...");
     startAccessPoint();
@@ -158,7 +150,6 @@ void setup() {
 
       // Send a message to the server
       wsClient.send("Hello from ESP32!");
-
     } else {
       Serial.println("Failed to connect to saved Wi-Fi. Starting AP mode...");
       startAccessPoint();
