@@ -7,32 +7,27 @@ Preferences preferences;
 WiFiCredentials WiFiManager::getStoredWiFiCredentials() {
 	WiFiCredentials creds;
 
-	// Start the preferences with the namespace "wifi-creds"
 	preferences.begin("wifi-creds", false);
-
-	// Retrieve stored SSID and password
 	creds.ssid = preferences.getString("ssid", "");
 	creds.password = preferences.getString("password", "");
-
-	// End preferences access
 	preferences.end();
 
-	return creds;  // Return the credentials struct
+	return creds;
 }
 
 bool WiFiManager::connectToStoredWiFi() {
-	WiFiCredentials creds = getStoredWiFiCredentials();
+	WiFiCredentials storedCreds = getStoredWiFiCredentials();
 
-	Serial.println("In connect to stored wifi: stored_ssid: " + creds.ssid);
-	Serial.println("In connect to stored wifi: stored_password: " + creds.password);
+	Serial.println("In connect to stored wifi: stored_ssid: " + storedCreds.ssid);
+	Serial.println("In connect to stored wifi: stored_password: " + storedCreds.password);
 
-	if (creds.ssid == "" || creds.password == "") {
+	if (storedCreds.ssid == "" || storedCreds.password == "") {
 		Serial.println("No stored credentials found.");
 		return false;
 	}
 
 	// Try to connect to the saved Wi-Fi credentials
-	WiFi.begin(creds.ssid.c_str(), creds.password.c_str());
+	WiFi.begin(storedCreds.ssid.c_str(), storedCreds.password.c_str());
 	Serial.println("Attempting to connect to saved Wi-Fi...");
 
 	int retries = 0;

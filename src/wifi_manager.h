@@ -14,7 +14,7 @@ public:
 	bool connectToStoredWiFi();
 	void startAccessPoint();
 	void reconnectWiFi();
-	WiFiCredentials getStoredWiFiCredentials();  // Utility function declaration
+	WiFiCredentials getStoredWiFiCredentials();
 };
 
 extern WiFiManager wifiManager;
