@@ -3,6 +3,7 @@ Features:
 
 Optimizations:
 	- After successful connection to a WS, the connection fizzles out ()
+	- Understand the loop code - I do not understand why certain things happen/why they happen in the order they do
 
 Bugs:
 	-
