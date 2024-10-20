@@ -31,10 +31,17 @@ void WebServerManager::startWebServer() {
 		preferences.putString("password", password);
 		preferences.end();
 
-		wifiManager.connectToStoredWiFi();
-		server.send(200, "text/html", "Connecting... ESP will reboot.");
-		delay(2000);
-		ESP.restart();
+		bool connectionStatus = wifiManager.connectToStoredWiFi();
+
+		if (connectionStatus) {
+			server.send(200, "text/html", "Connected successfully! ESP will reboot.");
+			Serial.println("Wi-Fi connected. ESP will reboot in 2 seconds...");
+			delay(2000);
+			ESP.restart();
+		} else {
+			server.send(500, "text/html", "Failed to connect to Wi-Fi.");
+			Serial.println("Failed to connect to Wi-Fi. No reboot.");
+		}
 	});
 
 	server.onNotFound([]() {

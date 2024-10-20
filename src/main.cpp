@@ -34,8 +34,10 @@ void loop() {
 		delay(1000);
 	}
 
+	const bool wifiStatus = WiFi.status();
+	Serial.println("wifiStatus" + wifiStatus);
 	// Check if WebSocket is still connected, if not, try to reconnect
-	if (!wsClient.available()) {
+	if (!wsClient.available() && wifiStatus == WL_CONNECTED) {
 		Serial.println("WebSocket connection lost. Reconnecting...");
 		websocketManager.connectToWebSocket();
 	}
