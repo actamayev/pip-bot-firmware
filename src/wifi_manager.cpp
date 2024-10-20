@@ -37,8 +37,9 @@ bool WiFiManager::connectToStoredWiFi() {
 		retries++;
 	}
 
-	if (WiFi.status() == WL_CONNECTED) {
-	Serial.println("Connected to Wi-Fi!");
+	const bool wifiStatus = WiFi.status();
+	if (wifiStatus == WL_CONNECTED) {
+		Serial.println("Connected to Wi-Fi!");
 		digitalWrite(LED_PIN, HIGH);  // Turn on LED to show success
 		return true;
 	} else {
@@ -59,22 +60,24 @@ void WiFiManager::startAccessPoint() {
 }
 
 void WiFiManager::reconnectWiFi() {
-    WiFiCredentials creds = getStoredWiFiCredentials();
+	WiFiCredentials creds = getStoredWiFiCredentials();
 
-    int retries = 0;
-    WiFi.begin(creds.ssid.c_str(), creds.password.c_str());
-    while (WiFi.status() != WL_CONNECTED && retries < 10) {
-        delay(500);
-        Serial.print(".");
-        retries++;
+	int retries = 0;
+	WiFi.begin(creds.ssid.c_str(), creds.password.c_str());
+	bool wifiStatus = WiFi.status();
+	while (wifiStatus != WL_CONNECTED && retries < 10) {
+		delay(500);
+		Serial.print(".");
+		retries++;
     }
 
-    if (WiFi.status() == WL_CONNECTED) {
-        Serial.println("Reconnected to Wi-Fi!");
-        digitalWrite(LED_PIN, HIGH);  // Turn on LED to indicate success
-    } else {
-        Serial.println("Failed to reconnect to Wi-Fi.");
-    }
+	wifiStatus = WiFi.status();
+	if (wifiStatus == WL_CONNECTED) {
+		Serial.println("Reconnected to Wi-Fi!");
+		digitalWrite(LED_PIN, HIGH);  // Turn on LED to indicate success
+	} else {
+		Serial.println("Failed to reconnect to Wi-Fi.");
+	}
 }
 
 WiFiManager wifiManager;  // Create global instance

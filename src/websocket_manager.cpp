@@ -12,7 +12,8 @@ void WebSocketManager::connectToWebSocket() {
     });
 
     Serial.println("Connecting to WebSocket server...");
-    if (wsClient.connect(ws_server_url)) {
+    const bool connectedToWS = wsClient.connect(ws_server_url);
+    if (connectedToWS) {
         wsClient.send("Hello from ESP32!");
     } else {
         Serial.println("Failed to connect to WebSocket server.");
@@ -21,7 +22,7 @@ void WebSocketManager::connectToWebSocket() {
 
 void WebSocketManager::pollWebSocket() {
     if (wsClient.available()) {
-        wsClient.poll();  // Only poll if connected
+        wsClient.poll();
     }
 }
 
