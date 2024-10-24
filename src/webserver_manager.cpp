@@ -23,9 +23,6 @@ void WebServerManager::startWebServer() {
 		String ssid = server.arg("ssid");
 		String password = server.arg("password");
 
-		Serial.println("In handle connect: receied ssid: " + ssid);
-		Serial.println("In handle connect: recevied pw: " + password);
-
 		preferences.begin("wifi-creds", false);
 		preferences.putString("ssid", ssid);
 		preferences.putString("password", password);
@@ -33,15 +30,19 @@ void WebServerManager::startWebServer() {
 
 		bool connectionStatus = wifiManager.connectToStoredWiFi();
 
-		if (connectionStatus) {
-			server.send(200, "text/html", "Connected successfully! ESP will reboot.");
-			Serial.println("Wi-Fi connected. ESP will reboot in 2 seconds...");
-			delay(2000);
-			ESP.restart();
-		} else {
-			server.send(500, "text/html", "Failed to connect to Wi-Fi.");
-			Serial.println("Failed to connect to Wi-Fi. No reboot.");
-		}
+       if (connectionStatus) {
+            String successHtml = "<html><body><h1>Connected successfully!</h1>"
+                                 "<p>ESP will reboot in 2 seconds...</p></body></html>";
+            server.send(200, "text/html", successHtml);
+            Serial.println("Wi-Fi connected. ESP will reboot in 2 seconds...");
+            delay(2000);
+            ESP.restart();
+        } else {
+            String errorHtml = "<html><body><h1>Failed to connect to Wi-Fi</h1>"
+                               "<p>Please try again.</p></body></html>";
+            server.send(500, "text/html", errorHtml);
+            Serial.println("Failed to connect to Wi-Fi. No reboot.");
+        }
 	});
 
 	server.onNotFound([]() {
