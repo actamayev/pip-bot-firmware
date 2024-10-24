@@ -14,7 +14,6 @@ public:
 	void initializeWiFi();
 	bool connectToStoredWiFi();
 	void startAccessPoint();
-	void reconnectWiFi();
 	WiFiCredentials getStoredWiFiCredentials();
 private:
     static void onWiFiEvent(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data);
