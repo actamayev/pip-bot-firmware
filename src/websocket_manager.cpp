@@ -33,7 +33,6 @@ void WebSocketManager::connectToWebSocket() {
 
     if (connectedToWS) {
         wsClient.send("Hello from ESP32!");
-        Serial.println("WebSocket connected.");
     } else {
         Serial.println("Failed to connect to WebSocket server.");
     }
