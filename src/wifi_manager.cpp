@@ -5,6 +5,7 @@
 #include "esp32_api_client.h"
 
 Preferences preferences;
+WiFiManager wifiManager;  // Create global instance
 
 void WiFiManager::initializeWiFi() {
     // Set WiFi mode to Station (client mode)
@@ -97,5 +98,3 @@ void WiFiManager::startAccessPoint() {
 	Serial.println("Access Point started.");
 	webServerManager.startWebServer();
 }
-
-// WiFiManager wifiManager;  // Create global instance

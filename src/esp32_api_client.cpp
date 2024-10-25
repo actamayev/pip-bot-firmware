@@ -1,6 +1,8 @@
 #include "esp32_api_client.h"
 #include "config.h"
 
+ESP32ApiClient apiClient;
+
 // Constructor implementation
 ESP32ApiClient::ESP32ApiClient()
     : httpClient(rootCACertificate),   // Use global cert from config.h
@@ -16,4 +18,3 @@ void ESP32ApiClient::pollWebSocket() {
     wsManager.pollWebSocket();
 }
 
-ESP32ApiClient apiClient;
