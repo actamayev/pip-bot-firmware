@@ -1,11 +1,16 @@
+#include <WiFiClientSecure.h>
+#include <ArduinoWebsockets.h>
 #include "websocket_manager.h"
 #include "config.h"
-#include <ArduinoWebsockets.h>
+
 using namespace websockets;
 
 WebsocketsClient wsClient;
 
 void WebSocketManager::connectToWebSocket() {
+    WiFiClientSecure secureClient;
+    secureClient.setCACert(rootCACertificate);  // Set the CA certificate
+
     wsClient.onMessage([](WebsocketsMessage message) {
         Serial.print("Received message: ");
         Serial.println(message.data());
@@ -28,13 +33,42 @@ void WebSocketManager::connectToWebSocket() {
         }
     });
 
-    Serial.println("Connecting to WebSocket server...");
+
+    Serial.println("Attempting to connect to WebSocket Secure (WSS)...");
     const bool connectedToWS = wsClient.connect(ws_server_url);
 
     if (connectedToWS) {
         wsClient.send("Hello from ESP32!");
     } else {
-        Serial.println("Failed to connect to WebSocket server.");
+       Serial.println("Failed to connect to WebSocket server.");
+        
+        // Perform HTTPS health check ping using WiFiClientSecure
+        WiFiClientSecure secureClient;
+        secureClient.setCACert(rootCACertificate);  // Set the CA certificate
+
+        if (!secureClient.connect("dev-api.bluedotrobots.com", 443)) {  // Connect to HTTPS server
+            Serial.println("HTTPS connection failed.");
+        } else {
+            Serial.println("Connected to server");
+            secureClient.println("GET /health HTTP/1.1");
+            secureClient.println("Host: dev-api.bluedotrobots.com");
+            secureClient.println("Connection: close");
+            secureClient.println();  // Empty line to end the headers
+
+            // Wait for the response
+            while (secureClient.connected()) {
+                String line = secureClient.readStringUntil('\n');
+                if (line == "\r") {
+                    Serial.println("Headers received");
+                    break;
+                }
+            }
+
+            // Read the response body
+            String responseBody = secureClient.readString();
+            Serial.println("Response: " + responseBody);
+        }
+        secureClient.stop();  // Close the connection
     }
 }
 
