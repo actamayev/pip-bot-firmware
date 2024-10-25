@@ -9,6 +9,7 @@ class WebSocketManager {
 public:
 	void connectToWebSocket();
 	void pollWebSocket();
+	void reconnectWebSocket();
 };
 
 extern WebSocketManager websocketManager;
