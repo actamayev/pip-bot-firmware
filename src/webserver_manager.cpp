@@ -60,4 +60,4 @@ void WebServerManager::handleClientRequests() {
 	server.handleClient();
 }
 
-WebServerManager webserverManager;  // Create global instance
+WebServerManager webServerManager;  // Create global instance

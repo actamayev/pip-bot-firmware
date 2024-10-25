@@ -15,3 +15,5 @@ void ESP32ApiClient::connectWebSocket() {
 void ESP32ApiClient::pollWebSocket() {
     wsManager.pollWebSocket();
 }
+
+ESP32ApiClient apiClient;

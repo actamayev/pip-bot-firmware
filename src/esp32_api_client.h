@@ -19,4 +19,6 @@ class ESP32ApiClient {
         void pollWebSocket();     // Polls WebSocket for activity
 };
 
+extern ESP32ApiClient apiClient;
+
 #endif

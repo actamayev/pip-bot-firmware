@@ -61,4 +61,4 @@ void WebSocketManager::reconnectWebSocket() {
     }
 }
 
-WebSocketManager websocketManager;  // Create global instance
+// WebSocketManager websocketManager;  // Create global instance

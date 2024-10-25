@@ -16,7 +16,4 @@ class WebSocketManager {
 		void reconnectWebSocket();
 };
 
-extern WebSocketManager websocketManager;
-extern WebsocketsClient wsClient;
-
 #endif

@@ -10,6 +10,6 @@ class WebServerManager {
 		void handleClientRequests();
 };
 
-extern WebServerManager webserverManager;
+extern WebServerManager webServerManager;
 
 #endif
