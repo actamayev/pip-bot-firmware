@@ -7,8 +7,6 @@ const char* ap_password = "thisispip";
 // const char* ws_server_url = "ws://192.168.1.201:8080";
 const char* ws_server_url = "wss://dev-api.bluedotrobots.com/";
 
-// TODO: CA Certificates expire. Upon connecting to wifi, we should immediately check if the certificate is still active.
-// If not, it should hit a publicly available S3 bucket to retrieve a overwrite the CA Certifate below.
 const char* rootCACertificate = \
 "-----BEGIN CERTIFICATE-----\n"
 "MIIEkjCCA3qgAwIBAgITBn+USionzfP6wq4rAfkI7rnExjANBgkqhkiG9w0BAQsF\n"

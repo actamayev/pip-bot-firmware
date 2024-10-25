@@ -7,7 +7,7 @@ WebServer server(80);
 
 void WebServerManager::startWebServer() {
 	IPAddress apIP(192, 168, 4, 1);
-	dnsServer.start(DNS_PORT, "*", apIP); // TODO: This re-direct doesn't work (only works from HTTP URLs, not something like https://google.com)
+	dnsServer.start(DNS_PORT, "*", apIP);
 
 	server.on("/", []() {
 		String html = "<html><body><h1>Wi-Fi Configuration</h1>"
