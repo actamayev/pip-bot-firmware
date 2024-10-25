@@ -6,10 +6,10 @@
 using namespace websockets;
 
 WebsocketsClient wsClient;
+WiFiClientSecure secureClient;
 
 void WebSocketManager::connectToWebSocket() {
-    WiFiClientSecure secureClient;
-    secureClient.setCACert(rootCACertificate);  // Set the CA certificate
+    secureClient.setCACert(rootCACertificate);
 
     wsClient.onMessage([](WebsocketsMessage message) {
         Serial.print("Received message: ");
@@ -26,6 +26,7 @@ void WebSocketManager::connectToWebSocket() {
                 break;
             case WebsocketsEvent::GotPing:
                 Serial.println("WebSocket Ping received.");
+                wsClient.pong();
                 break;
             case WebsocketsEvent::GotPong:
                 Serial.println("WebSocket Pong received.");
@@ -33,18 +34,14 @@ void WebSocketManager::connectToWebSocket() {
         }
     });
 
-
     Serial.println("Attempting to connect to WebSocket Secure (WSS)...");
     const bool connectedToWS = wsClient.connect(ws_server_url);
 
     if (connectedToWS) {
         wsClient.send("Hello from ESP32!");
+        wsClient.ping();
     } else {
-       Serial.println("Failed to connect to WebSocket server.");
-        
-        // Perform HTTPS health check ping using WiFiClientSecure
-        WiFiClientSecure secureClient;
-        secureClient.setCACert(rootCACertificate);  // Set the CA certificate
+        Serial.println("Failed to connect to WebSocket server.");
 
         if (!secureClient.connect("dev-api.bluedotrobots.com", 443)) {  // Connect to HTTPS server
             Serial.println("HTTPS connection failed.");
@@ -79,6 +76,9 @@ void WebSocketManager::pollWebSocket() {
 }
 
 void WebSocketManager::reconnectWebSocket() {
+    wsClient.close();  // Properly close existing connection
+    secureClient.stop();  // Clean up secure client
+    
     // Reconnect only if WiFi is still connected
     if (WiFi.status() == WL_CONNECTED) {
         Serial.println("Reconnecting to WebSocket...");
