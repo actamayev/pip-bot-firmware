@@ -10,6 +10,7 @@ extern const char* ap_ssid;
 extern const char* ap_password;
 
 extern const char* ws_server_url;
+extern const char* server_url;
 extern const char* rootCACertificate;
 
 #endif

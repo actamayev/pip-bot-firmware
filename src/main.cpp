@@ -1,7 +1,9 @@
 #include "config.h"
 #include "wifi_manager.h"
-#include "websocket_manager.h"
+#include "esp32_api_client.h"
 #include "webserver_manager.h"
+
+ESP32ApiClient apiClient;
 
 void setup() {
 	Serial.begin(115200);
@@ -19,7 +21,7 @@ void setup() {
         wifiManager.startAccessPoint();
     } else {
         // If WiFi connection succeeds, initiate WebSocket connection
-        websocketManager.connectToWebSocket();
+        apiClient.connectWebSocket();
     }
 }
 
@@ -29,6 +31,6 @@ void loop() {
 
     // Handle WebSocket events (if connected to WiFi)
     if (WiFi.status() == WL_CONNECTED) {
-        websocketManager.pollWebSocket();
+        apiClient.pollWebSocket();
     }
 }
