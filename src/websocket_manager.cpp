@@ -10,6 +10,7 @@ WiFiClientSecure secureClient;
 
 void WebSocketManager::connectToWebSocket() {
     secureClient.setCACert(rootCACertificate);
+    wsClient.setCACert(rootCACertificate);
 
     wsClient.onMessage([](WebsocketsMessage message) {
         Serial.print("Received message: ");
