@@ -2,10 +2,27 @@
 #include "config.h"
 #include "http_client.h"
 
-// Constructor implementatioan
 HttpClient::HttpClient() {
-    // Set the CA certificate for the secure connection
     client.setCACert(rootCACertificate);
+}
+
+String HttpClient::getPathHeaderString(PathHeader pathHeader) {
+    switch (pathHeader) {
+        case PathHeader::Auth: return "/auth";
+        default: return "";
+    }
+}
+
+String HttpClient::getPathFooterString(PathFooter pathFooter) {
+    switch (pathFooter) {
+        case PathFooter::Login: return "/login";
+        case PathFooter::Logout: return "/logout";
+        default: return "";
+    }
+}
+
+const char* HttpClient::generateFullPath(PathHeader pathHeader, PathFooter pathFooter) {
+    return (getPathHeaderString(pathHeader) + getPathFooterString(pathFooter)).c_str();
 }
 
 String HttpClient::post(const char* endpoint, const String& data) {
@@ -21,7 +38,6 @@ String HttpClient::post(const char* endpoint, const String& data) {
     client.print("Connection: close\r\n\r\n");
     client.print(data);
 
-    // Capture response
     String response = "";
     while (client.connected()) {
         response += client.readString();
@@ -37,12 +53,10 @@ String HttpClient::get(const char* endpoint) {
         return "";
     }
 
-    // Send GET request
     client.print("GET " + String(endpoint) + " HTTP/1.1\r\n");
     client.print("Host: " + String(server_url) + "\r\n");
     client.print("Connection: close\r\n\r\n");
 
-    // Capture response
     String response = "";
     while (client.connected()) {
         response += client.readString();

@@ -13,4 +13,13 @@ extern const char* ws_server_url;
 extern const char* server_url;
 extern const char* rootCACertificate;
 
+enum class PathHeader {
+    Auth
+};
+
+enum class PathFooter {
+    Login,
+    Logout
+};
+
 #endif

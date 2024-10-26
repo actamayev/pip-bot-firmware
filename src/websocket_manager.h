@@ -7,13 +7,13 @@ using namespace websockets;
 
 class WebSocketManager {
 	public:
-    	WebSocketManager();  // Default constructor
+    	WebSocketManager();
 		void connectToWebSocket();
 		void pollWebSocket();
 		void reconnectWebSocket();
 	
 	private:
-		WebsocketsClient wsClient;  // The WebSocket client
+		WebsocketsClient wsClient;
 };
 
 #endif

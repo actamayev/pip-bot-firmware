@@ -6,7 +6,6 @@ using namespace websockets;
 
 WebSocketManager::WebSocketManager() {
     WebSocketManager::wsClient.setCACert(rootCACertificate);
-    // Any additional setup if needed
 };
 
 void WebSocketManager::connectToWebSocket() {
@@ -25,7 +24,6 @@ void WebSocketManager::connectToWebSocket() {
                 break;
             case WebsocketsEvent::GotPing:
                 Serial.println("WebSocket Ping received.");
-                // WebSocketManager::wsClient.pong();
                 break;
             case WebsocketsEvent::GotPong:
                 Serial.println("WebSocket Pong received.");
@@ -59,5 +57,3 @@ void WebSocketManager::reconnectWebSocket() {
         Serial.println("Cannot reconnect WebSocket, WiFi is not connected.");
     }
 }
-
-// WebSocketManager websocketManager;  // Create global instance

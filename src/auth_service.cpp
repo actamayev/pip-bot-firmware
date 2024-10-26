@@ -1,16 +1,23 @@
 #include "auth_service.h"
+#include "config.h"
 
-// Constructor implementation
 AuthService::AuthService(HttpClient& client) : httpClient(client) {}
 
-// Login method implementation
 String AuthService::login(const String& loginInformation) {
-    // Send a POST request to the /auth/login endpoint
-    return httpClient.post("/auth/login", loginInformation);
+    return httpClient.post(
+        httpClient.generateFullPath(
+            PathHeader::Auth,
+            PathFooter::Login
+        ),
+        loginInformation
+    );
 }
 
-// Logout method implementation
 String AuthService::logout() {
-    // Send a POST request to the /auth/logout endpoint
-    return httpClient.post("/auth/logout", "{}");  // Empty JSON object for logout
+    return httpClient.post(
+        httpClient.generateFullPath(
+            PathHeader::Auth,
+            PathFooter::Logout
+        )
+    );
 }
