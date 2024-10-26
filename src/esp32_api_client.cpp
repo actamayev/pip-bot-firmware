@@ -5,7 +5,7 @@ ESP32ApiClient apiClient;
 
 // Constructor implementation
 ESP32ApiClient::ESP32ApiClient()
-    : httpClient(rootCACertificate),   // Use global cert from config.h
+    : httpClient(),   // Use global cert from config.h
       wsManager(),                     // Use default constructor for WebSocketManager
       authService(httpClient) {}
 

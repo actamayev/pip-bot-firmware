@@ -10,7 +10,6 @@ WebSocketManager::WebSocketManager() {
 };
 
 void WebSocketManager::connectToWebSocket() {
-
     wsClient.onMessage([](WebsocketsMessage message) {
         Serial.print("Received message: ");
         Serial.println(message.data());

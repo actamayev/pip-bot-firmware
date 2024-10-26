@@ -6,7 +6,7 @@
 class HttpClient {
     public:
         // Constructor that takes the server URL and CA certificate
-        HttpClient(const char* ca_cert);
+        HttpClient();
 
         String post(const char* endpoint, const String& data);
 

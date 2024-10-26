@@ -3,9 +3,9 @@
 #include "http_client.h"
 
 // Constructor implementatioan
-HttpClient::HttpClient(const char* ca_cert) {
+HttpClient::HttpClient() {
     // Set the CA certificate for the secure connection
-    client.setCACert(ca_cert);
+    client.setCACert(rootCACertificate);
 }
 
 String HttpClient::post(const char* endpoint, const String& data) {

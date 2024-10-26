@@ -6,7 +6,7 @@ const char* ap_ssid = "pip_1";
 const char* ap_password = "thisispip";
 // const char* ws_server_url = "ws://192.168.1.201:8080";
 const char* ws_server_url = "wss://dev-api.bluedotrobots.com/";
-const char* server_url = "dev-api.bluedotrobots.com";
+const char* server_url = "https://dev-api.bluedotrobots.com";
 
 const char* rootCACertificate = \
 "-----BEGIN CERTIFICATE-----\n"
