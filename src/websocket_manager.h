@@ -7,7 +7,7 @@ using namespace websockets;
 
 class WebSocketManager {
 	public:
-    	WebSocketManager();
+		WebSocketManager();
 		void connectToWebSocket();
 		void pollWebSocket();
 		void reconnectWebSocket();
