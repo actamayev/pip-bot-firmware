@@ -4,6 +4,7 @@
 
 DNSServer dnsServer;
 WebServer server(80);
+WebServerManager webServerManager;  // Create global instance
 
 void WebServerManager::startWebServer() {
 	IPAddress apIP(192, 168, 4, 1);
@@ -59,5 +60,3 @@ void WebServerManager::handleClientRequests() {
     }
 	server.handleClient();
 }
-
-WebServerManager webserverManager;  // Create global instance
