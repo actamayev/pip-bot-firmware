@@ -6,14 +6,14 @@
 using namespace websockets;
 
 class WebSocketManager {
-	private:
-		WebsocketsClient wsClient;  // The WebSocket client
-
 	public:
     	WebSocketManager();  // Default constructor
 		void connectToWebSocket();
 		void pollWebSocket();
 		void reconnectWebSocket();
+	
+	private:
+		WebsocketsClient wsClient;  // The WebSocket client
 };
 
 #endif

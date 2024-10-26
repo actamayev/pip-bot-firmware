@@ -6,17 +6,17 @@
 #include "auth_service.h"  // Assuming you have an AuthService class
 
 class ESP32ApiClient {
-    private:
-        HttpClient httpClient;
-        WebSocketManager wsManager;
-        AuthService authService;
-
     public:
         // Constructor
         ESP32ApiClient();
 
         void connectWebSocket();  // Initiates WebSocket connection
         void pollWebSocket();     // Polls WebSocket for activity
+        AuthService authService;
+    
+    private:
+        HttpClient httpClient;
+        WebSocketManager wsManager;
 };
 
 extern ESP32ApiClient apiClient;

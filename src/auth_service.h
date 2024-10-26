@@ -4,9 +4,6 @@
 #include "http_client.h"  // Assuming HttpClient is already implemented
 
 class AuthService {
-    private:
-        HttpClient& httpClient;  // Reference to the HttpClient instance
-
     public:
         // Constructor
         AuthService(HttpClient& client);
@@ -14,6 +11,9 @@ class AuthService {
         // Methods for authentication-related actions
         String login(const String& loginInformation);
         String logout();
+    
+    private:
+        HttpClient& httpClient;  // Reference to the HttpClient instance
 };
 
 #endif
