@@ -5,11 +5,11 @@
 #include <WebServer.h>
 
 class WebServerManager {
-public:
-	void startWebServer();
-	void handleClientRequests();
+	public:
+		void startWebServer();
+		void handleClientRequests();
 };
 
-extern WebServerManager webserverManager;
+extern WebServerManager webServerManager;
 
 #endif

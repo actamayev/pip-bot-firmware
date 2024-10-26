@@ -6,13 +6,14 @@
 using namespace websockets;
 
 class WebSocketManager {
-public:
-	void connectToWebSocket();
-	void pollWebSocket();
-	void reconnectWebSocket();
+	public:
+		WebSocketManager();
+		void connectToWebSocket();
+		void pollWebSocket();
+		void reconnectWebSocket();
+	
+	private:
+		WebsocketsClient wsClient;
 };
-
-extern WebSocketManager websocketManager;
-extern WebsocketsClient wsClient;
 
 #endif

@@ -2,8 +2,10 @@
 #include "config.h"
 #include "webserver_manager.h"
 #include "websocket_manager.h"
+#include "esp32_api_client.h"
 
 Preferences preferences;
+WiFiManager wifiManager;  // Create global instance
 
 void WiFiManager::initializeWiFi() {
     // Set WiFi mode to Station (client mode)
@@ -43,7 +45,7 @@ void WiFiManager::onIpEvent(void* arg, esp_event_base_t event_base, int32_t even
 	digitalWrite(LED_PIN, HIGH);  // Indicate success with LED
 
 	// Now connect to the WebSocket
-	websocketManager.connectToWebSocket();  // Try connecting to WebSocket after WiFi is connected
+	apiClient.connectWebSocket();  // Try connecting to WebSocket after WiFi is connected
 }
 
 WiFiCredentials WiFiManager::getStoredWiFiCredentials() {
@@ -94,7 +96,5 @@ void WiFiManager::startAccessPoint() {
 	WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
 
 	Serial.println("Access Point started.");
-	webserverManager.startWebServer();
+	webServerManager.startWebServer();
 }
-
-WiFiManager wifiManager;  // Create global instance
