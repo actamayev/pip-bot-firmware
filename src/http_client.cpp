@@ -21,6 +21,8 @@ String HttpClient::getPathFooterString(PathFooter pathFooter) {
     }
 }
 
+// When there are multiple service pathHeaders in the future, consider moving a specified getPathFooterString into each service.
+// There, it can perform a type check on each of it's own PathFooters, and then send it over to generateFullPath
 const char* HttpClient::generateFullPath(PathHeader pathHeader, PathFooter pathFooter) {
     return (getPathHeaderString(pathHeader) + getPathFooterString(pathFooter)).c_str();
 }
