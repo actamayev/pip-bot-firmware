@@ -14,7 +14,14 @@ extern const uint8_t DIGITAL_IR_PIN_3;
 extern const uint8_t TIME_OF_FLIGHT_SDA;
 extern const uint8_t TIME_OF_FLIGHT_SCL;
 
-extern const uint8_t TIME_OF_FLIGHT_XSHUT;
+// tof:
+extern const uint8_t TIME_OF_FLIGHT_XSHUT_1;
+extern const uint8_t TIME_OF_FLIGHT_XSHUT_2;
+extern const uint8_t TIME_OF_FLIGHT_XSHUT_3;
+
+extern const uint8_t TOF_SENSOR1_ADDRESS;
+extern const uint8_t TOF_SENSOR2_ADDRESS;
+extern const uint8_t TOF_SENSOR3_ADDRESS;
 
 extern const char* ap_ssid;
 extern const char* ap_password;

@@ -5,13 +5,84 @@
 #include <Adafruit_VL53L1X.h>
 #include <Wire.h>
 
-Adafruit_VL53L1X vl53 = Adafruit_VL53L1X();
+// Create three sensor objects
+Adafruit_VL53L1X sensor1 = Adafruit_VL53L1X();
+// Adafruit_VL53L1X sensor2 = Adafruit_VL53L1X();
+// Adafruit_VL53L1X sensor3 = Adafruit_VL53L1X();
 
-void resetSensor() {
-  digitalWrite(TIME_OF_FLIGHT_XSHUT, LOW);
-  delay(10);
-  digitalWrite(TIME_OF_FLIGHT_XSHUT, HIGH);
-  delay(10);
+
+struct SensorReading {
+    int16_t distance;
+    bool valid;
+};
+
+// Function to read from a single sensor
+SensorReading readSensor(Adafruit_VL53L1X& sensor, const char* sensorName) {
+    SensorReading reading = {0, false};
+
+    if (sensor.dataReady()) {
+        reading.distance = sensor.distance();
+        reading.valid = (reading.distance != -1);
+
+        if (reading.valid) {
+            Serial.print(sensorName);
+            Serial.print(": ");
+            Serial.print(reading.distance);
+            Serial.print("mm  ");
+        } else {
+            Serial.print(sensorName);
+            Serial.print(": Error  ");
+        }
+
+        sensor.clearInterrupt();
+    }
+
+    return reading;
+}
+
+bool setupSensors() {
+    // Initialize I2C
+    Wire.begin(TIME_OF_FLIGHT_SDA, TIME_OF_FLIGHT_SCL);
+
+    // Set all XSHUT pins as outputs
+    pinMode(TIME_OF_FLIGHT_XSHUT_1, OUTPUT);
+    pinMode(TIME_OF_FLIGHT_XSHUT_2, OUTPUT);
+    pinMode(TIME_OF_FLIGHT_XSHUT_3, OUTPUT);
+
+    // Disable all sensors
+    digitalWrite(TIME_OF_FLIGHT_XSHUT_1, LOW);
+    digitalWrite(TIME_OF_FLIGHT_XSHUT_2, LOW);
+    digitalWrite(TIME_OF_FLIGHT_XSHUT_3, LOW);
+    delay(10);
+
+    // Initialize sensor 1 (keep default address)
+    digitalWrite(TIME_OF_FLIGHT_XSHUT_1, HIGH);
+    delay(10);
+    if (!sensor1.begin(TOF_SENSOR1_ADDRESS, &Wire)) {
+        Serial.println("Failed to boot first VL53L1X");
+        return false;
+    }
+    sensor1.startRanging();
+
+    // Initialize sensor 2
+    digitalWrite(TIME_OF_FLIGHT_XSHUT_2, HIGH);
+    // delay(10);
+    // if (!sensor2.begin(TOF_SENSOR2_ADDRESS, &Wire)) {
+    //     Serial.println("Failed to boot second VL53L1X");
+    //     return false;
+    // }
+    // sensor2.startRanging();
+
+    // // Initialize sensor 3
+    digitalWrite(TIME_OF_FLIGHT_XSHUT_3, HIGH);
+    // delay(10);
+    // if (!sensor3.begin(TOF_SENSOR3_ADDRESS, &Wire)) {
+    //     Serial.println("Failed to boot third VL53L1X");
+    //     return false;
+    // }
+    // sensor3.startRanging();
+
+    return true;
 }
 
 void setup() {
@@ -34,25 +105,15 @@ void setup() {
     //     apiClient.connectWebSocket();
     // }
 
-    pinMode(TIME_OF_FLIGHT_XSHUT, OUTPUT);
-    
-    resetSensor();
-
-    Wire.begin(TIME_OF_FLIGHT_SDA, TIME_OF_FLIGHT_SCL);
-    
-    Serial.println("Adafruit VL53L1X sensor test");
-
-    if (!vl53.begin(0x29, &Wire)) {
-        Serial.println("Failed to find VL53L1X chip");
-        while (1) delay(10);
+    Serial.println("Starting VL53L1X multiple sensors test...");
+  
+    if (!setupSensors()) {
+        Serial.println("Failed to initialize sensors!");
+        while (1) delay(10);  // Halt if setup failed
     }
     
-    Serial.println("VL53L1X Found!");
-
-    // Start continuous ranging
-    vl53.startRanging();
+    Serial.println("All sensors initialized successfully!");
 }
-
 
 void loop() {
     // Handle DNS and Web Server requests (non-blocking)
@@ -62,32 +123,11 @@ void loop() {
     // if (WiFi.status() == WL_CONNECTED) {
     //     apiClient.pollWebSocket();
     // }
-    if (vl53.dataReady()) {
-        // Get distance in millimeters
-        int16_t distance = vl53.distance();
-
-        if (distance == -1) {
-            // Error case
-            Serial.println("Error reading distance!");
-        } else {
-            // Print distance
-            Serial.print("Distance: ");
-            Serial.print(distance);
-            Serial.println(" mm");
-
-            // Example of using the distance for different ranges
-            if (distance < 100) {
-                Serial.println("Very close!");
-            } else if (distance < 500) {
-                Serial.println("Medium range");
-            } else {
-                Serial.println("Far away");
-            }
-        }
-
-        // Clear the interrupt to be ready for next ranging
-        vl53.clearInterrupt();
-    }
+    SensorReading reading1 = readSensor(sensor1, "Sensor 1");
+    // SensorReading reading2 = readSensor(sensor2, "Sensor 2");
+    // SensorReading reading3 = readSensor(sensor3, "Sensor 3");
     
-    delay(500);  // Wait half second between measurements
+    Serial.println(); // New line after all readings
+    
+    delay(50);  // 20Hz reading rate
 }

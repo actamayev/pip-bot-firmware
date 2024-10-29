@@ -11,7 +11,14 @@ const uint8_t DIGITAL_IR_PIN_3 = 34;
 const uint8_t TIME_OF_FLIGHT_SDA = 21;
 const uint8_t TIME_OF_FLIGHT_SCL = 22;
 
-const uint8_t TIME_OF_FLIGHT_XSHUT = 4;
+const uint8_t TIME_OF_FLIGHT_XSHUT_1 = 4;
+const uint8_t TIME_OF_FLIGHT_XSHUT_2 = 16;
+const uint8_t TIME_OF_FLIGHT_XSHUT_3 = 17;
+
+// Define unique I2C addresses for each sensor
+const uint8_t TOF_SENSOR1_ADDRESS = 0x29;  // Default address
+const uint8_t TOF_SENSOR2_ADDRESS = 0x30;  // New address for sensor 2
+const uint8_t TOF_SENSOR3_ADDRESS = 0x31;  // New address for sensor 3
 
 const char* ap_ssid = "pip_1";
 const char* ap_password = "thisispip";
