@@ -10,8 +10,8 @@ void setup() {
 	// Setup onboard LED
 	pinMode(LED_PIN, OUTPUT);
 	digitalWrite(LED_PIN, LOW); // Turn off LED initially
-    pinMode(DIGITAL_IR_PIN_3, INPUT);  // Set GPIO 34 as input
-    // pinMode(DIGITAL_IR_PIN_1, INPUT);  // Set GPIO 32 as input
+
+    pinMode(DIGITAL_IR_PIN_1, INPUT);  // Set GPIO 34 as input
 
     // wifiManager.initializeWiFi();
 
@@ -33,13 +33,16 @@ void loop() {
     // if (WiFi.status() == WL_CONNECTED) {
     //     apiClient.pollWebSocket();
     // }
-    int sensorValue = digitalRead(DIGITAL_IR_PIN_3);
+    int sensorValue = analogRead(DIGITAL_IR_PIN_1);
 
-    if (sensorValue == LOW) {
-        Serial.println("No object detected");
-    } else {
-        Serial.println("Object detected");
-    }
+    // Convert the analog reading (0 - 4095) to a voltage (0 - 3.3V)
+    float voltage = sensorValue * (3.3 / 4095.0);
 
-    delay(500);  // Delay to slow down the readings for easier monitoring
+    // Print the sensor value and voltage to the Serial Monitor
+    Serial.print("Analog reading: ");
+    Serial.print(sensorValue);
+    Serial.print(" | Voltage: ");
+    Serial.println(voltage, 2);  // Print the voltage with 2 decimal points
+
+    delay(100);  // Delay to slow down readings for easier monitoring
 }
