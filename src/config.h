@@ -10,6 +10,12 @@ extern const uint8_t DIGITAL_IR_PIN_1;
 extern const uint8_t DIGITAL_IR_PIN_2;
 extern const uint8_t DIGITAL_IR_PIN_3;
 
+//i2c:
+extern const uint8_t TIME_OF_FLIGHT_SDA;
+extern const uint8_t TIME_OF_FLIGHT_SCL;
+
+extern const uint8_t TIME_OF_FLIGHT_XSHUT;
+
 extern const char* ap_ssid;
 extern const char* ap_password;
 

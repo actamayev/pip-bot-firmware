@@ -7,6 +7,12 @@ const uint8_t DIGITAL_IR_PIN_1 = 32;
 const uint8_t DIGITAL_IR_PIN_2 = 33;
 const uint8_t DIGITAL_IR_PIN_3 = 34;
 
+//i2c (same for all i2c connections):
+const uint8_t TIME_OF_FLIGHT_SDA = 21;
+const uint8_t TIME_OF_FLIGHT_SCL = 22;
+
+const uint8_t TIME_OF_FLIGHT_XSHUT = 4;
+
 const char* ap_ssid = "pip_1";
 const char* ap_password = "thisispip";
 
