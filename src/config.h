@@ -6,6 +6,10 @@
 extern const uint8_t LED_PIN;
 extern const uint8_t DNS_PORT;
 
+extern const uint8_t DIGITAL_IR_PIN_1;
+extern const uint8_t DIGITAL_IR_PIN_2;
+extern const uint8_t DIGITAL_IR_PIN_3;
+
 extern const char* ap_ssid;
 extern const char* ap_password;
 
