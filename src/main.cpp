@@ -6,7 +6,6 @@
 
 void setup() {
 	Serial.begin(115200);
-	// delay(3000); // Ensure time for Serial Monitor to connect
     while (!Serial) delay(10);
 
     sensorSetup.sensor_setup();
