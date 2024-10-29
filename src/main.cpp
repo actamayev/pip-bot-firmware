@@ -7,6 +7,13 @@
 
 Adafruit_VL53L1X vl53 = Adafruit_VL53L1X();
 
+void resetSensor() {
+  digitalWrite(TIME_OF_FLIGHT_XSHUT, LOW);
+  delay(10);
+  digitalWrite(TIME_OF_FLIGHT_XSHUT, HIGH);
+  delay(10);
+}
+
 void setup() {
 	Serial.begin(115200);
 	// delay(3000); // Ensure time for Serial Monitor to connect
@@ -27,6 +34,10 @@ void setup() {
     //     apiClient.connectWebSocket();
     // }
 
+    pinMode(TIME_OF_FLIGHT_XSHUT, OUTPUT);
+    
+    resetSensor();
+
     Wire.begin(TIME_OF_FLIGHT_SDA, TIME_OF_FLIGHT_SCL);
     
     Serial.println("Adafruit VL53L1X sensor test");
@@ -41,6 +52,7 @@ void setup() {
     // Start continuous ranging
     vl53.startRanging();
 }
+
 
 void loop() {
     // Handle DNS and Web Server requests (non-blocking)
