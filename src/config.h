@@ -23,6 +23,12 @@ extern const uint8_t TOF_SENSOR1_ADDRESS;
 extern const uint8_t TOF_SENSOR2_ADDRESS;
 extern const uint8_t TOF_SENSOR3_ADDRESS;
 
+//IMU:
+extern const uint8_t IMU_SCL;
+extern const uint8_t IMU_MISO;
+extern const uint8_t IMU_MOSI;
+extern const uint8_t IMU_CS;
+
 extern const char* ap_ssid;
 extern const char* ap_password;
 

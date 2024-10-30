@@ -20,6 +20,12 @@ const uint8_t TOF_SENSOR1_ADDRESS = 0x29;  // Default address
 const uint8_t TOF_SENSOR2_ADDRESS = 0x30;  // New address for sensor 2
 const uint8_t TOF_SENSOR3_ADDRESS = 0x31;  // New address for sensor 3
 
+// IMU:
+const uint8_t IMU_SCL = 12;
+const uint8_t IMU_MISO = 14;
+const uint8_t IMU_MOSI = 27;
+const uint8_t IMU_CS = 26;
+
 const char* ap_ssid = "pip_1";
 const char* ap_password = "thisispip";
 

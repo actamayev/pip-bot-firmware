@@ -1,4 +1,6 @@
 To run, open in VS Code, and install the `PlatformIO` extension.
 Run `Upload and Monitor` under the esp32dev/General folders
 
-To add new libraries, add them to the `platformio.ini` file
+To add new libraries
+	Add them to the `platformio.ini` file or
+	Press the home button on the bottom of vsCode, and go to libraries
