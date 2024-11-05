@@ -1,3 +1,4 @@
+#include <string>
 #include "config.h"
 
 const uint8_t LED_PIN = 2;
@@ -26,12 +27,22 @@ const uint8_t IMU_MISO = 14;
 const uint8_t IMU_MOSI = 27;
 const uint8_t IMU_CS = 26;
 
-const char* ap_ssid = "pip_1";
-const char* ap_password = "thisispip";
+//Pip Information:
+const char* pip_uuid = "DIXiC";
+const char* hardware_version = "0.0.1";
 
+// Pip Access point:
+char ap_ssid_buffer[20];  // Adjust size as needed
+const char* ap_ssid = ap_ssid_buffer;
+const char* ap_password = "bluedotrobots";
+
+// Local dev:
+// const char* server_url = "http://192.168.1.201:8080";
 // const char* ws_server_url = "ws://192.168.1.201:8080";
-const char* ws_server_url = "wss://staging-api.bluedotrobots.com/";
+
+// Cloud dev:
 const char* server_url = "https://staging-api.bluedotrobots.com"; // This might need to not have https://
+const char* ws_server_url = "wss://staging-api.bluedotrobots.com/";
 
 const char* rootCACertificate = \
 "-----BEGIN CERTIFICATE-----\n"

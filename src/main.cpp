@@ -1,14 +1,14 @@
 #include "config.h"
 #include "wifi_manager.h"
-#include "sensor_setup.h"
+// #include "sensor_setup.h"
 #include "esp32_api_client.h"
 #include "webserver_manager.h"
 
 void setup() {
 	Serial.begin(115200);
-    while (!Serial) delay(10);
+    delay(2000);
 
-    sensorSetup.sensor_setup();
+    // sensorSetup.sensor_setup();
 
     wifiManager.initializeWiFi();
 

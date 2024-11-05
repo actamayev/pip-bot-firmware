@@ -29,11 +29,15 @@ extern const uint8_t IMU_MISO;
 extern const uint8_t IMU_MOSI;
 extern const uint8_t IMU_CS;
 
+extern const char* pip_uuid;
+extern const char* hardware_version;
+
 extern const char* ap_ssid;
 extern const char* ap_password;
 
 extern const char* ws_server_url;
 extern const char* server_url;
+
 extern const char* rootCACertificate;
 
 enum class PathHeader {

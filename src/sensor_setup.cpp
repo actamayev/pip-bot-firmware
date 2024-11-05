@@ -17,14 +17,14 @@ void SensorSetup::sensor_setup() {
     pinMode(DIGITAL_IR_PIN_1, INPUT); // GPIO 32
     pinMode(DIGITAL_IR_PIN_3, INPUT); // GPIO 34
 
-    Serial.println("Starting VL53L1X multiple sensors test...");
-  
-    if (!setupTofSensors()) {
-        Serial.println("Failed to initialize sensors!");
-        while (1) delay(10);  // Halt if setup failed
-    }
+    // Serial.println("Starting VL53L1X multiple sensors test...");
 
-    Serial.println("All sensors initialized successfully!");
+    // if (!setupTofSensors()) {
+    //     Serial.println("Failed to initialize sensors!");
+    //     while (1) delay(10);  // Halt if setup failed
+    // }
+
+    // Serial.println("All sensors initialized successfully!");
 }
 
 bool SensorSetup::setupTofSensors() {
