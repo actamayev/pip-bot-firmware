@@ -12,14 +12,7 @@ void setup() {
 
     wifiManager.initializeWiFi();
 
-    // // Try connecting to stored WiFi credentials
-    if (!wifiManager.connectToStoredWiFi()) {
-        // If WiFi connection fails, start Access Point for WiFi configuration
-        wifiManager.startAccessPoint();
-    } else {
-        // If WiFi connection succeeds, initiate WebSocket connection
-        apiClient.connectWebSocket();
-    }
+    wifiManager.connectToStoredWiFi();
 }
 
 void loop() {

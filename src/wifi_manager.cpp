@@ -8,9 +8,6 @@ Preferences preferences;
 WiFiManager wifiManager;  // Create global instance
 
 void WiFiManager::initializeWiFi() {
-    // Set WiFi mode to Station (client mode)
-    WiFi.mode(WIFI_STA);
-
     // Register event handler for WiFi events
     esp_event_handler_instance_t instance_any_id;
     esp_event_handler_instance_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &WiFiManager::onWiFiEvent, this, &instance_any_id);
@@ -57,22 +54,33 @@ WiFiCredentials WiFiManager::getStoredWiFiCredentials() {
 	return creds;
 }
 
-bool WiFiManager::connectToStoredWiFi() {
+void WiFiManager::connectToStoredWiFi() {
 	WiFiCredentials storedCreds = getStoredWiFiCredentials();
 
-	if (storedCreds.ssid.isEmpty()) {
-		Serial.println("No stored credentials found.");
+	attemptNewWifiConnection(storedCreds.ssid, storedCreds.password);
+}
+
+bool WiFiManager::attemptNewWifiConnection(String ssid, String password) {
+	// Set WiFi mode to Station (client mode)
+    WiFi.mode(WIFI_STA);
+
+	if (ssid.isEmpty()) {
+		Serial.println("No SSID supplied.");
+		startAccessPoint();
 		return false;
 	}
-
-	WiFi.begin(storedCreds.ssid.c_str(), storedCreds.password.c_str());
+	WiFi.begin(ssid, password);
 	WiFi.config(IPAddress(0, 0, 0, 0), IPAddress(8, 8, 8, 8), IPAddress(255, 255, 255, 0)); // Adding a fallback DNS server (Google DNS)
-	Serial.println("Attempting to connect to saved Wi-Fi...");
 
-    unsigned long startAttemptTime = millis();
+	Serial.println("Attempting to connect to Wi-Fi...");
+
+	unsigned long startAttemptTime = millis();
     const unsigned long timeout = 10000;  // 10-second timeout
 
-    while (WiFi.status() != WL_CONNECTED && millis() - startAttemptTime < timeout) {
+    while (
+		WiFi.status() != WL_CONNECTED &&
+		millis() - startAttemptTime < timeout
+	) {
         delay(100);
         Serial.print(".");
     }
@@ -80,9 +88,11 @@ bool WiFiManager::connectToStoredWiFi() {
 	if (WiFi.status() == WL_CONNECTED) {
 		Serial.println("Connected to Wi-Fi!");
 		digitalWrite(LED_PIN, HIGH);  // Turn on LED to show success
+		apiClient.connectWebSocket();
 		return true;
 	} else {
 		Serial.println("Failed to connect to saved Wi-Fi.");
+		startAccessPoint();
 		return false;
 	}
 }

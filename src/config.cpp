@@ -37,8 +37,8 @@ std::string ap_ssid = "pip-" + pip_uuid;
 const char* ap_password = "bluedotrobots";
 
 // Local dev:
-const char* server_url = "http://192.168.1.201:8080";
-const char* ws_server_url = "ws://192.168.1.201:8080";
+const char* server_url = "http://192.168.1.203:8080";
+const char* ws_server_url = "ws://192.168.1.203:8080";
 
 // Cloud dev:
 // const char* server_url = "https://staging-api.bluedotrobots.com"; // This might need to not have https://

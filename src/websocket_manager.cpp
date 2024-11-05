@@ -56,6 +56,7 @@ void WebSocketManager::connectToWebSocket() {
 }
 
 void WebSocketManager::pollWebSocket() {
+    if (WiFi.status() != WL_CONNECTED) { return; }
     if (wsClient.available()) {
         wsClient.poll();
     }
