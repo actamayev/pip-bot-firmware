@@ -1,8 +1,9 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#include <cstdint>
 #include <string>
+#include <cstdint>
+#pragma once
 
 extern const uint8_t LED_PIN;
 extern const uint8_t DNS_PORT;
@@ -48,5 +49,18 @@ enum class PathFooter {
     Login,
     Logout
 };
+
+enum class Environment {
+    LocalDev,
+    Staging,
+    Production
+};
+
+// Set the environment (can be set to LocalDev, Staging, etc.)
+extern const Environment environment;
+
+// Getter functions for URLs based on the environment
+const char* getServerUrl();
+const char* getWsServerUrl();
 
 #endif

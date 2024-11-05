@@ -7,7 +7,8 @@
 using namespace websockets;
 
 WebSocketManager::WebSocketManager() {
-    WebSocketManager::wsClient.setCACert(rootCACertificate);
+    if (environment == Environment::LocalDev) return;
+    wsClient.setCACert(rootCACertificate);
 };
 
 void WebSocketManager::connectToWebSocket() {
@@ -34,7 +35,7 @@ void WebSocketManager::connectToWebSocket() {
     });
 
     Serial.println("Attempting to connect to WebSocket Secure (WSS)...");
-    const bool connectedToWS = wsClient.connect(ws_server_url);
+    const bool connectedToWS = wsClient.connect(getWsServerUrl());
 
     if (connectedToWS) {
         // Send initial message after successful connection

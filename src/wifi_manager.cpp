@@ -16,7 +16,7 @@ void WiFiManager::initializeWiFi() {
 }
 
 void WiFiManager::onWiFiEvent(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data) {
-    if (event_base != WIFI_EVENT || event_id != WIFI_EVENT_STA_DISCONNECTED) {
+    if (WiFi.getMode() != WIFI_STA || event_base != WIFI_EVENT || event_id != WIFI_EVENT_STA_DISCONNECTED) {
 		return;
 	}
 	Serial.println("WiFi disconnected! Reconnecting...");
@@ -28,7 +28,7 @@ void WiFiManager::onWiFiEvent(void* arg, esp_event_base_t event_base, int32_t ev
 }
 
 void WiFiManager::onIpEvent(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data) {
-    if (event_base != IP_EVENT || event_id != IP_EVENT_STA_GOT_IP) {
+    if (WiFi.getMode() != WIFI_STA || event_base != IP_EVENT || event_id != IP_EVENT_STA_GOT_IP) {
 		return;
 	}
 	// Extract IP information from the event data
