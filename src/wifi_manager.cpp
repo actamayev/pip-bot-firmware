@@ -1,8 +1,8 @@
-#include "wifi_manager.h"
 #include "config.h"
+#include "wifi_manager.h"
+#include "esp32_api_client.h"
 #include "webserver_manager.h"
 #include "websocket_manager.h"
-#include "esp32_api_client.h"
 
 Preferences preferences;
 WiFiManager wifiManager;  // Create global instance
@@ -90,7 +90,7 @@ bool WiFiManager::connectToStoredWiFi() {
 void WiFiManager::startAccessPoint() {
 	WiFi.disconnect(true);
 	WiFi.mode(WIFI_AP);
-	WiFi.softAP(ap_ssid, ap_password);
+	WiFi.softAP(ap_ssid.c_str(), ap_password);
 
 	IPAddress apIP(192, 168, 4, 1);
 	WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));

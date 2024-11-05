@@ -1,6 +1,8 @@
+#include <string>
+#include <ArduinoJson.h>
 #include <ArduinoWebsockets.h>
-#include "websocket_manager.h"
 #include "config.h"
+#include "websocket_manager.h"
 
 using namespace websockets;
 
@@ -35,8 +37,21 @@ void WebSocketManager::connectToWebSocket() {
     const bool connectedToWS = wsClient.connect(ws_server_url);
 
     if (connectedToWS) {
-        wsClient.send("Hello from ESP32!");
-        wsClient.ping();
+        // Send initial message after successful connection
+        Serial.println("WebSocket connected. Sending initial data...");
+
+        JsonDocument jsonDoc;
+
+        jsonDoc["pipUUID"] = pip_uuid;
+
+        char jsonBuffer[200];
+        serializeJson(jsonDoc, jsonBuffer);
+
+        wsClient.send(jsonBuffer);  // Send custom JSON message
+        wsClient.send("Hello from ESP32!");  // Send additional welcome message
+        wsClient.ping();  // Optionally, send a ping
+    } else {
+        Serial.println("WebSocket connection failed.");
     }
 }
 

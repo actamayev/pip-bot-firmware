@@ -1,5 +1,4 @@
 #include "esp32_api_client.h"
-#include "config.h"
 
 ESP32ApiClient apiClient;
 
@@ -17,4 +16,3 @@ void ESP32ApiClient::connectWebSocket() {
 void ESP32ApiClient::pollWebSocket() {
     wsManager.pollWebSocket();
 }
-

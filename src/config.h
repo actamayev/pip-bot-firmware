@@ -2,6 +2,7 @@
 #define CONFIG_H
 
 #include <cstdint>
+#include <string>
 
 extern const uint8_t LED_PIN;
 extern const uint8_t DNS_PORT;
@@ -29,10 +30,9 @@ extern const uint8_t IMU_MISO;
 extern const uint8_t IMU_MOSI;
 extern const uint8_t IMU_CS;
 
-extern const char* pip_uuid;
-extern const char* hardware_version;
+extern std::string pip_uuid;   // Changed to std::string
+extern std::string ap_ssid;    // No change, but ensure it’s std::string here
 
-extern const char* ap_ssid;
 extern const char* ap_password;
 
 extern const char* ws_server_url;

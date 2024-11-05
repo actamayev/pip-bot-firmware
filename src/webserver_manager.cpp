@@ -31,19 +31,19 @@ void WebServerManager::startWebServer() {
 
 		bool connectionStatus = wifiManager.connectToStoredWiFi();
 
-       if (connectionStatus) {
-            String successHtml = "<html><body><h1>Connected successfully!</h1>"
-                                 "<p>ESP will reboot in 2 seconds...</p></body></html>";
-            server.send(200, "text/html", successHtml);
-            Serial.println("Wi-Fi connected. ESP will reboot in 2 seconds...");
-            delay(2000);
-            ESP.restart();
-        } else {
-            String errorHtml = "<html><body><h1>Failed to connect to Wi-Fi</h1>"
-                               "<p>Please try again.</p></body></html>";
-            server.send(500, "text/html", errorHtml);
-            Serial.println("Failed to connect to Wi-Fi. No reboot.");
-        }
+		if (connectionStatus) {
+			String successHtml = "<html><body><h1>Connected successfully!</h1>"
+									"<p>ESP will reboot in 2 seconds...</p></body></html>";
+			server.send(200, "text/html", successHtml);
+			Serial.println("Wi-Fi connected. ESP will reboot in 2 seconds...");
+			delay(2000);
+			ESP.restart();
+		} else {
+			String errorHtml = "<html><body><h1>Failed to connect to Wi-Fi</h1>"
+								"<p>Please try again.</p></body></html>";
+			server.send(500, "text/html", errorHtml);
+			Serial.println("Failed to connect to Wi-Fi. No reboot.");
+		}
 	});
 
 	server.onNotFound([]() {
