@@ -70,6 +70,8 @@ bool WiFiManager::attemptNewWifiConnection(String ssid, String password) {
 		return false;
 	}
 	WiFi.begin(ssid, password);
+	Serial.println(ssid);
+	Serial.println(password);
 	WiFi.config(IPAddress(0, 0, 0, 0), IPAddress(8, 8, 8, 8), IPAddress(255, 255, 255, 0)); // Adding a fallback DNS server (Google DNS)
 
 	Serial.println("Attempting to connect to Wi-Fi...");
