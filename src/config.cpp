@@ -28,7 +28,10 @@ const uint8_t IMU_MOSI = 27;
 const uint8_t IMU_CS = 26;
 
 //Pip Information:
-const char* pip_id = "DIXiC";
+const char* pip_id = "DIXiC"; // Local
+// const char* pip_id = "PtFX5"; // Staging
+// const char* pip_id = "peiLu"; // Prod
+
 const char* hardware_version = "0.0.1";
 std::string pip_uuid = std::string(pip_id) + "-" + std::string(hardware_version);
 
