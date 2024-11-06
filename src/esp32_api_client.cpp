@@ -6,7 +6,9 @@ ESP32ApiClient apiClient;
 ESP32ApiClient::ESP32ApiClient()
     : httpClient(),   // Use global cert from config.h
       wsManager(),                     // Use default constructor for WebSocketManager
-      authService(httpClient) {}
+      authService(httpClient) {
+        Serial.println("here");
+    }
 
 void ESP32ApiClient::connectWebSocket() {
     wsManager.connectToWebSocket();

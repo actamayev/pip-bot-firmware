@@ -6,8 +6,17 @@
 
 using namespace websockets;
 
+// TODO: This isn't correctly 
 WebSocketManager::WebSocketManager() {
+    // Serial.println(
+    //     environment == Environment::LocalDev ? "LocalDev" :
+    //     environment == Environment::Staging ? "Staging" :
+    //     environment == Environment::Production ? "Production" :
+    //     "Unknown"
+    // );
+    Serial.println("WebSocketManager constructor called");
     if (environment == Environment::LocalDev) return;
+    Serial.println("Setting up secure WebSocket");
     wsClient.setCACert(rootCACertificate);
 };
 
@@ -35,29 +44,30 @@ void WebSocketManager::connectToWebSocket() {
     });
 
     Serial.println("Attempting to connect to WebSocket Secure (WSS)...");
+    Serial.println(getWsServerUrl());
     const bool connectedToWS = wsClient.connect(getWsServerUrl());
 
-    if (connectedToWS) {
-        // Send initial message after successful connection
-        Serial.println("WebSocket connected. Sending initial data...");
-
-        JsonDocument jsonDoc;
-
-        jsonDoc["pipUUID"] = pip_uuid;
-
-        char jsonBuffer[200];
-        serializeJson(jsonDoc, jsonBuffer);
-
-        wsClient.send(jsonBuffer);  // Send custom JSON message
-        wsClient.send("Hello from ESP32!");  // Send additional welcome message
-        wsClient.ping();  // Optionally, send a ping
-    } else {
+    if (!connectedToWS) {
         Serial.println("WebSocket connection failed.");
+        return;
     }
+    // Send initial message after successful connection
+    Serial.println("WebSocket connected. Sending initial data...");
+
+    JsonDocument jsonDoc;
+
+    jsonDoc["pipUUID"] = pip_uuid;
+
+    char jsonBuffer[200];
+    serializeJson(jsonDoc, jsonBuffer);
+
+    wsClient.send(jsonBuffer);  // Send custom JSON message
+    wsClient.send("Hello from ESP32!");  // Send additional welcome message
+    wsClient.ping();  // Optionally, send a ping
 }
 
 void WebSocketManager::pollWebSocket() {
-    if (WiFi.status() != WL_CONNECTED) { return; }
+    if (WiFi.status() != WL_CONNECTED) return;
     if (wsClient.available()) {
         wsClient.poll();
     }

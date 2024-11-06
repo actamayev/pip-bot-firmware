@@ -36,6 +36,7 @@ std::string pip_uuid = std::string(pip_id) + "-" + std::string(hardware_version)
 std::string ap_ssid = "pip-" + pip_uuid;
 const char* ap_password = "bluedotrobots";
 
+// echo | openssl s_client -showcerts -connect staging-api.bluedotrobots.com:443
 const char* rootCACertificate = \
 "-----BEGIN CERTIFICATE-----\n"
 "MIIEkjCCA3qgAwIBAgITBn+USionzfP6wq4rAfkI7rnExjANBgkqhkiG9w0BAQsF\n"
@@ -71,12 +72,12 @@ Environment getEnvironmentFromString(const std::string& envStr) {
    return Environment::LocalDev;
 }
 
-const Environment environment = getEnvironmentFromString("LocalDev");
+const Environment environment = getEnvironmentFromString("Staging");
 
 const char* getServerUrl() {
     if (environment == Environment::LocalDev) {
         return "http://192.168.1.203:8080";
-    } else if (environment == Environment::Production) {  // Assume Staging for any other environment
+    } else if (environment == Environment::Staging) {  // Assume Staging for any other environment
         return "staging-api.bluedotrobots.com"; // HTTP/HTTPS prefix handled at usage level if needed
     }
     return "prod-api.bluedotrobots.com";
@@ -85,7 +86,7 @@ const char* getServerUrl() {
 const char* getWsServerUrl() {
     if (environment == Environment::LocalDev) {
         return "ws://192.168.1.203:8080/esp32";
-    } else if (environment == Environment::Production) {  // Assume Staging for any other environment
+    } else if (environment == Environment::Staging) {  // Assume Staging for any other environment
         return "wss://staging-api.bluedotrobots.com/esp32";
     }
     return "wss://prod-api.bluedotrobots.com/esp32";
