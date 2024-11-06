@@ -60,25 +60,25 @@ void WebServerManager::startWebServer() {
 }
 
 // TODO: Figure out if this is better:
-// void WebServerManager::handleClientRequests() {
-// 	// Only proceed if WiFi is connected or in Access Point mode
-// 	if (WiFi.status() != WL_CONNECTED && WiFi.getMode() != WIFI_AP) return;
-
-// 	if (WiFi.getMode() == WIFI_AP) {
-// 		// Only process DNS requests in AP mode
-// 		dnsServer.processNextRequest();
-// 	}
-
-// 	// Handle HTTP server requests in both Station and AP modes
-// 	server.handleClient();
-// }
-
 void WebServerManager::handleClientRequests() {
-	// TODO: Figure out if this should be added?
-	// if (WiFi.status() != WL_CONNECTED) return;
+	// Only proceed if WiFi is connected or in Access Point mode
+	if (WiFi.status() != WL_CONNECTED && WiFi.getMode() != WIFI_AP) return;
+
 	if (WiFi.getMode() == WIFI_AP) {
-        // Only process DNS requests in AP mode
-        dnsServer.processNextRequest();
-    }
+		// Only process DNS requests in AP mode
+		dnsServer.processNextRequest();
+	}
+
+	// Handle HTTP server requests in both Station and AP modes
 	server.handleClient();
 }
+
+// void WebServerManager::handleClientRequests() {
+// 	// TODO: Figure out if this should be added?
+// 	// if (WiFi.status() != WL_CONNECTED) return;
+// 	if (WiFi.getMode() == WIFI_AP) {
+//         // Only process DNS requests in AP mode
+//         dnsServer.processNextRequest();
+//     }
+// 	server.handleClient();
+// }

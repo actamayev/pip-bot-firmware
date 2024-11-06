@@ -1,12 +1,10 @@
 #include "esp32_api_client.h"
 
-ESP32ApiClient apiClient;
+ESP32ApiClient* apiClient = nullptr;  // Initialize to nullptr
 
 // Constructor implementation
 ESP32ApiClient::ESP32ApiClient()
-    : httpClient(),   // Use global cert from config.h
-      wsManager(),                     // Use default constructor for WebSocketManager
-      authService(httpClient) {
+    : httpClient(), wsManager(), authService(httpClient) {
         Serial.println("here");
     }
 

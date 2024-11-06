@@ -8,6 +8,9 @@ void setup() {
 	Serial.begin(115200);
     delay(2000);
 
+    // Force creation of apiClient
+    apiClient = new ESP32ApiClient();
+
     // sensorSetup.sensor_setup();
 
     wifiManager.initializeWiFi();
@@ -21,6 +24,6 @@ void loop() {
 
     // Handle WebSocket events (if connected to WiFi)
     if (WiFi.status() == WL_CONNECTED) {
-        apiClient.pollWebSocket();
+        apiClient->pollWebSocket();
     }
 }

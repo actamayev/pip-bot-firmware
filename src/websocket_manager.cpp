@@ -8,15 +8,7 @@ using namespace websockets;
 
 // TODO: This isn't correctly 
 WebSocketManager::WebSocketManager() {
-    // Serial.println(
-    //     environment == Environment::LocalDev ? "LocalDev" :
-    //     environment == Environment::Staging ? "Staging" :
-    //     environment == Environment::Production ? "Production" :
-    //     "Unknown"
-    // );
-    Serial.println("WebSocketManager constructor called");
     if (environment == Environment::LocalDev) return;
-    Serial.println("Setting up secure WebSocket");
     wsClient.setCACert(rootCACertificate);
 };
 

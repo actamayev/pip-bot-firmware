@@ -19,6 +19,6 @@ class ESP32ApiClient {
         HttpClient httpClient;
 };
 
-extern ESP32ApiClient apiClient;
+extern ESP32ApiClient* apiClient;  // Change to a pointer
 
 #endif
