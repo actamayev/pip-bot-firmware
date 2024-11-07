@@ -4,3 +4,8 @@ Run `Upload and Monitor` under the esp32dev/General folders
 To add new libraries
 	Add them to the `platformio.ini` file or
 	Press the home button on the bottom of vsCode, and go to libraries
+
+When doing local testing:
+	1. change the pip_id in the config.cpp to be the local pipID
+	2. Change the environment string to be LocalDev
+	3. Change the ip address in get server url and getWsServerUrl to be the ip address of the wifi network that the local computer is connected to (check by going into wifi settigns and seeing network settings [should be something like 192.168.145.40])
