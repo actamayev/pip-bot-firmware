@@ -6,7 +6,6 @@
 
 using namespace websockets;
 
-// TODO: This isn't correctly 
 WebSocketManager::WebSocketManager() {
     if (environment == Environment::LocalDev) return;
     wsClient.setCACert(rootCACertificate);
