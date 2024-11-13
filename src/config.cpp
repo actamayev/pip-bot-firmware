@@ -29,8 +29,8 @@ const uint8_t IMU_CS = 26;
 
 //Pip Information:
 const char* pip_id = "9YhsJ"; // Local
-// const char* pip_id = "PtFX5"; // Staging
-// const char* pip_id = "peiLu"; // Prod
+// const char* pip_id = "bax2P"; // Staging
+// const char* pip_id = "PmKJZ"; // Prod
 
 const char* hardware_version = "0.0.1";
 std::string pip_uuid = std::string(pip_id) + "-" + std::string(hardware_version);
@@ -75,7 +75,7 @@ Environment getEnvironmentFromString(const std::string& envStr) {
    return Environment::LocalDev;
 }
 
-const Environment environment = getEnvironmentFromString("Production");
+const Environment environment = getEnvironmentFromString("LocalDev");
 
 const char* getServerUrl() {
     if (environment == Environment::LocalDev) {
