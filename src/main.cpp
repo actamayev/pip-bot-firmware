@@ -1,6 +1,6 @@
 #include "config.h"
 #include "wifi_manager.h"
-// #include "sensor_setup.h"
+#include "sensor_setup.h"
 #include "esp32_api_client.h"
 #include "webserver_manager.h"
 
@@ -11,7 +11,7 @@ void setup() {
     // Force creation of apiClient
     apiClient = new ESP32ApiClient();
 
-    // sensorSetup.sensor_setup();
+    sensorSetup.sensor_setup();
 
     wifiManager.initializeWiFi();
 

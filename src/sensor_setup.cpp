@@ -14,8 +14,8 @@ void SensorSetup::sensor_setup() {
 	pinMode(LED_PIN, OUTPUT);
 	digitalWrite(LED_PIN, LOW); // Turn off LED initially
 
-    pinMode(DIGITAL_IR_PIN_1, INPUT); // GPIO 32
-    pinMode(DIGITAL_IR_PIN_3, INPUT); // GPIO 34
+    // pinMode(DIGITAL_IR_PIN_1, INPUT); // GPIO 32
+    // pinMode(DIGITAL_IR_PIN_3, INPUT); // GPIO 34
 
     // Serial.println("Starting VL53L1X multiple sensors test...");
 
