@@ -1,11 +1,14 @@
+#include <string>
+#include <ArduinoJson.h>
 #include <ArduinoWebsockets.h>
-#include "websocket_manager.h"
 #include "config.h"
+#include "websocket_manager.h"
 
 using namespace websockets;
 
 WebSocketManager::WebSocketManager() {
-    WebSocketManager::wsClient.setCACert(rootCACertificate);
+    if (environment == Environment::LocalDev) return;
+    wsClient.setCACert(rootCACertificate);
 };
 
 void WebSocketManager::connectToWebSocket() {
@@ -32,15 +35,30 @@ void WebSocketManager::connectToWebSocket() {
     });
 
     Serial.println("Attempting to connect to WebSocket Secure (WSS)...");
-    const bool connectedToWS = wsClient.connect(ws_server_url);
+    Serial.println(getWsServerUrl());
+    const bool connectedToWS = wsClient.connect(getWsServerUrl());
 
-    if (connectedToWS) {
-        wsClient.send("Hello from ESP32!");
-        wsClient.ping();
+    if (!connectedToWS) {
+        Serial.println("WebSocket connection failed.");
+        return;
     }
+    // Send initial message after successful connection
+    Serial.println("WebSocket connected. Sending initial data...");
+
+    JsonDocument jsonDoc;
+
+    jsonDoc["pipUUID"] = pip_uuid;
+
+    char jsonBuffer[200];
+    serializeJson(jsonDoc, jsonBuffer);
+
+    wsClient.send(jsonBuffer);  // Send custom JSON message
+    wsClient.send("Hello from ESP32!");  // Send additional welcome message
+    wsClient.ping();  // Optionally, send a ping
 }
 
 void WebSocketManager::pollWebSocket() {
+    if (WiFi.status() != WL_CONNECTED) return;
     if (wsClient.available()) {
         wsClient.poll();
     }

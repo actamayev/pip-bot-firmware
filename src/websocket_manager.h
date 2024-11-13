@@ -11,7 +11,7 @@ class WebSocketManager {
 		void connectToWebSocket();
 		void pollWebSocket();
 		void reconnectWebSocket();
-	
+
 	private:
 		WebsocketsClient wsClient;
 };

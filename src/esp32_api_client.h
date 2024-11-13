@@ -13,12 +13,12 @@ class ESP32ApiClient {
         void connectWebSocket();  // Initiates WebSocket connection
         void pollWebSocket();     // Polls WebSocket for activity
         AuthService authService;
-    
+
     private:
-        HttpClient httpClient;
         WebSocketManager wsManager;
+        HttpClient httpClient;
 };
 
-extern ESP32ApiClient apiClient;
+extern ESP32ApiClient* apiClient;  // Change to a pointer
 
 #endif
