@@ -1,16 +1,13 @@
-#include "wifi_manager.h"
 #include "config.h"
+#include "wifi_manager.h"
+#include "esp32_api_client.h"
 #include "webserver_manager.h"
 #include "websocket_manager.h"
-#include "esp32_api_client.h"
 
 Preferences preferences;
 WiFiManager wifiManager;  // Create global instance
 
 void WiFiManager::initializeWiFi() {
-    // Set WiFi mode to Station (client mode)
-    WiFi.mode(WIFI_STA);
-
     // Register event handler for WiFi events
     esp_event_handler_instance_t instance_any_id;
     esp_event_handler_instance_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &WiFiManager::onWiFiEvent, this, &instance_any_id);
@@ -19,7 +16,7 @@ void WiFiManager::initializeWiFi() {
 }
 
 void WiFiManager::onWiFiEvent(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data) {
-    if (event_base != WIFI_EVENT || event_id != WIFI_EVENT_STA_DISCONNECTED) {
+    if (WiFi.getMode() != WIFI_STA || event_base != WIFI_EVENT || event_id != WIFI_EVENT_STA_DISCONNECTED) {
 		return;
 	}
 	Serial.println("WiFi disconnected! Reconnecting...");
@@ -31,7 +28,7 @@ void WiFiManager::onWiFiEvent(void* arg, esp_event_base_t event_base, int32_t ev
 }
 
 void WiFiManager::onIpEvent(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data) {
-    if (event_base != IP_EVENT || event_id != IP_EVENT_STA_GOT_IP) {
+    if (WiFi.getMode() != WIFI_STA || event_base != IP_EVENT || event_id != IP_EVENT_STA_GOT_IP) {
 		return;
 	}
 	// Extract IP information from the event data
@@ -45,7 +42,7 @@ void WiFiManager::onIpEvent(void* arg, esp_event_base_t event_base, int32_t even
 	digitalWrite(LED_PIN, HIGH);  // Indicate success with LED
 
 	// Now connect to the WebSocket
-	apiClient.connectWebSocket();  // Try connecting to WebSocket after WiFi is connected
+	apiClient->connectWebSocket();  // Try connecting to WebSocket after WiFi is connected
 }
 
 WiFiCredentials WiFiManager::getStoredWiFiCredentials() {
@@ -57,22 +54,35 @@ WiFiCredentials WiFiManager::getStoredWiFiCredentials() {
 	return creds;
 }
 
-bool WiFiManager::connectToStoredWiFi() {
+void WiFiManager::connectToStoredWiFi() {
 	WiFiCredentials storedCreds = getStoredWiFiCredentials();
 
-	if (storedCreds.ssid.isEmpty()) {
-		Serial.println("No stored credentials found.");
+	attemptNewWifiConnection(storedCreds.ssid, storedCreds.password);
+}
+
+bool WiFiManager::attemptNewWifiConnection(String ssid, String password) {
+	// Set WiFi mode to Station (client mode)
+    WiFi.mode(WIFI_STA);
+
+	if (ssid.isEmpty()) {
+		Serial.println("No SSID supplied.");
+		startAccessPoint();
 		return false;
 	}
-
-	WiFi.begin(storedCreds.ssid.c_str(), storedCreds.password.c_str());
+	WiFi.begin(ssid, password);
+	Serial.println(ssid);
+	Serial.println(password);
 	WiFi.config(IPAddress(0, 0, 0, 0), IPAddress(8, 8, 8, 8), IPAddress(255, 255, 255, 0)); // Adding a fallback DNS server (Google DNS)
-	Serial.println("Attempting to connect to saved Wi-Fi...");
 
-    unsigned long startAttemptTime = millis();
+	Serial.println("Attempting to connect to Wi-Fi...");
+
+	unsigned long startAttemptTime = millis();
     const unsigned long timeout = 10000;  // 10-second timeout
 
-    while (WiFi.status() != WL_CONNECTED && millis() - startAttemptTime < timeout) {
+    while (
+		WiFi.status() != WL_CONNECTED &&
+		millis() - startAttemptTime < timeout
+	) {
         delay(100);
         Serial.print(".");
     }
@@ -80,9 +90,11 @@ bool WiFiManager::connectToStoredWiFi() {
 	if (WiFi.status() == WL_CONNECTED) {
 		Serial.println("Connected to Wi-Fi!");
 		digitalWrite(LED_PIN, HIGH);  // Turn on LED to show success
+		apiClient->connectWebSocket();
 		return true;
 	} else {
 		Serial.println("Failed to connect to saved Wi-Fi.");
+		startAccessPoint();
 		return false;
 	}
 }
@@ -90,7 +102,7 @@ bool WiFiManager::connectToStoredWiFi() {
 void WiFiManager::startAccessPoint() {
 	WiFi.disconnect(true);
 	WiFi.mode(WIFI_AP);
-	WiFi.softAP(ap_ssid, ap_password);
+	WiFi.softAP(ap_ssid.c_str(), ap_password);
 
 	IPAddress apIP(192, 168, 4, 1);
 	WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));

@@ -1,15 +1,45 @@
+#include <string>
 #include "config.h"
 
 const uint8_t LED_PIN = 2;
 const uint8_t DNS_PORT = 53;
 
-const char* ap_ssid = "pip_1";
-const char* ap_password = "thisispip";
+const uint8_t DIGITAL_IR_PIN_1 = 32;
+const uint8_t DIGITAL_IR_PIN_2 = 33;
+const uint8_t DIGITAL_IR_PIN_3 = 34;
 
-// const char* ws_server_url = "ws://192.168.1.201:8080";
-const char* ws_server_url = "wss://dev-api.bluedotrobots.com/";
-const char* server_url = "https://dev-api.bluedotrobots.com"; // This might need to not have https://
+//i2c (same for all i2c connections):
+const uint8_t TIME_OF_FLIGHT_SDA = 21;
+const uint8_t TIME_OF_FLIGHT_SCL = 22;
 
+const uint8_t TIME_OF_FLIGHT_XSHUT_1 = 4;
+const uint8_t TIME_OF_FLIGHT_XSHUT_2 = 16;
+const uint8_t TIME_OF_FLIGHT_XSHUT_3 = 17;
+
+// Define unique I2C addresses for each sensor
+const uint8_t TOF_SENSOR1_ADDRESS = 0x29;  // Default address
+const uint8_t TOF_SENSOR2_ADDRESS = 0x30;  // New address for sensor 2
+const uint8_t TOF_SENSOR3_ADDRESS = 0x31;  // New address for sensor 3
+
+// IMU:
+const uint8_t IMU_SCL = 12;
+const uint8_t IMU_MISO = 14;
+const uint8_t IMU_MOSI = 27;
+const uint8_t IMU_CS = 26;
+
+//Pip Information:
+const char* pip_id = "9YhsJ"; // Local
+// const char* pip_id = "bax2P"; // Staging
+// const char* pip_id = "PmKJZ"; // Prod
+
+const char* hardware_version = "0.0.1";
+std::string pip_uuid = std::string(pip_id) + "-" + std::string(hardware_version);
+
+// Pip Access point
+std::string ap_ssid = "pip-" + pip_uuid;
+const char* ap_password = "bluedotrobots";
+
+// echo | openssl s_client -showcerts -connect staging-api.bluedotrobots.com:443
 const char* rootCACertificate = \
 "-----BEGIN CERTIFICATE-----\n"
 "MIIEkjCCA3qgAwIBAgITBn+USionzfP6wq4rAfkI7rnExjANBgkqhkiG9w0BAQsF\n"
@@ -38,3 +68,29 @@ const char* rootCACertificate = \
 "0FE6/V1dN2RMfjCyVSRCnTawXZwXgWHxyvkQAiSr6w10kY17RSlQOYiypok1JR4U\n"
 "akcjMS9cmvqtmg5iUaQqqcT5NJ0hGA==\n"
 "-----END CERTIFICATE-----\n";
+
+Environment getEnvironmentFromString(const std::string& envStr) {
+    if (envStr == "Staging") return Environment::Staging;
+    else if (envStr == "Production") return Environment::Production;
+   return Environment::LocalDev;
+}
+
+const Environment environment = getEnvironmentFromString("LocalDev");
+
+const char* getServerUrl() {
+    if (environment == Environment::LocalDev) {
+        return "http://192.168.172.40:8080";
+    } else if (environment == Environment::Staging) {  // Assume Staging for any other environment
+        return "staging-api.bluedotrobots.com"; // HTTP/HTTPS prefix handled at usage level if needed
+    }
+    return "prod-api.bluedotrobots.com";
+}
+
+const char* getWsServerUrl() {
+    if (environment == Environment::LocalDev) {
+        return "ws://192.168.172.40:8080/esp32";
+    } else if (environment == Environment::Staging) {  // Assume Staging for any other environment
+        return "wss://staging-api.bluedotrobots.com/esp32";
+    }
+    return "wss://prod-api.bluedotrobots.com/esp32";
+}
