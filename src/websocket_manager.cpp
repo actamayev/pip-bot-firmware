@@ -129,7 +129,7 @@ void WebSocketManager::connectToWebSocket() {
     Serial.println("WebSocket connected. Sending initial data...");
 
     JsonDocument jsonDoc;
-    jsonDoc["pipUUID"] = pip_uuid;
+    jsonDoc["pipUUID"] = pip_id;
 
     char jsonBuffer[200];
     serializeJson(jsonDoc, jsonBuffer);

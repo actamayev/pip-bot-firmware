@@ -10,22 +10,22 @@ void setup() {
     delay(2000);
 
     // Force creation of apiClient
-    // apiClient = new ESP32ApiClient();
+    apiClient = new ESP32ApiClient();
 
     sensorSetup.sensor_setup();
-    user_code();
 
-    // wifiManager.initializeWiFi();
+    wifiManager.initializeWiFi();
 
-    // wifiManager.connectToStoredWiFi();
+    wifiManager.connectToStoredWiFi();
 }
 
 void loop() {
     // Handle DNS and Web Server requests (non-blocking)
-    // webServerManager.handleClientRequests();
+    webServerManager.handleClientRequests();
 
-    // // Handle WebSocket events (if connected to WiFi)
-    // if (WiFi.status() == WL_CONNECTED) {
-    //     apiClient->pollWebSocket();
-    // }
+    // Handle WebSocket events (if connected to WiFi)
+    if (WiFi.status() == WL_CONNECTED) {
+        apiClient->pollWebSocket();
+    }
+    user_code();
 }
