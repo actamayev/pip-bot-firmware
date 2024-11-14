@@ -1,5 +1,5 @@
 #include <string>
-#include "config.h"
+#include "./include/config.h"
 
 const uint8_t LED_PIN = 2;
 const uint8_t DNS_PORT = 53;

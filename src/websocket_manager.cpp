@@ -1,8 +1,8 @@
 #include <string>
 #include <ArduinoJson.h>
 #include <ArduinoWebsockets.h>
-#include "config.h"
-#include "websocket_manager.h"
+#include "./include/config.h"
+#include "./include/websocket_manager.h"
 
 using namespace websockets;
 

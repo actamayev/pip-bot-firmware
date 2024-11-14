@@ -1,9 +1,9 @@
-#include "config.h"
-#include "wifi_manager.h"
-#include "sensor_setup.h"
-#include "esp32_api_client.h"
-#include "webserver_manager.h"
-#include "user_code.h"
+#include "./include/config.h"
+#include "./include/wifi_manager.h"
+#include "./include/sensor_setup.h"
+#include "./include/esp32_api_client.h"
+#include "./include/webserver_manager.h"
+#include "./include/user_code.h"
 
 void setup() {
 	Serial.begin(115200);
