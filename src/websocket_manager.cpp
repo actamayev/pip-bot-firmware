@@ -1,4 +1,5 @@
-#include <string>
+#include <Arduino.h>
+#include <Update.h>
 #include <ArduinoJson.h>
 #include <ArduinoWebsockets.h>
 #include "./include/config.h"
@@ -7,6 +8,7 @@
 WebSocketManager::WebSocketManager() {
     if (environment == Environment::LocalDev) return;
     wsClient.setCACert(rootCACertificate);
+    wsClient.setInsecure(); // Add fallback for development
 }
 
 bool WebSocketManager::decodeBase64(const char* input, uint8_t* output, size_t* outputLength) {
@@ -29,36 +31,51 @@ bool WebSocketManager::decodeBase64(const char* input, uint8_t* output, size_t* 
 }
 
 void WebSocketManager::handleBinaryUpdate(const uint8_t* data, size_t len) {
-    if (!Update.begin(UPDATE_SIZE_UNKNOWN)) {
-        Serial.println("Not enough space to begin OTA");
-        return;
+    static size_t currentLength = 0;
+    static bool updateStarted = false;
+
+    if (!updateStarted) {
+        // Calculate the required size before starting
+        if (!Update.begin(len)) {
+            Serial.println("Not enough space to begin OTA");
+            return;
+        }
+        updateStarted = true;
+        currentLength = 0;
     }
 
-    // Convert const uint8_t* to uint8_t* as required by Update.write
-    uint8_t* writeData = const_cast<uint8_t*>(data);
-
     // Write data in chunks
-    size_t written = Update.write(writeData, len);
+    size_t written = Update.write(const_cast<uint8_t*>(data), len);
     if (written != len) {
         Serial.println("Error during OTA update");
         Serial.printf("Written %d bytes out of %d\n", written, len);
         Update.abort();
+        updateStarted = false;
         return;
     }
 
-    if (!Update.end()) {
-        Serial.printf("Error finishing update: %s\n", Update.errorString());
-        return;
-    }
+    currentLength += written;
+    Serial.printf("OTA Progress: %d%%\n", (currentLength * 100) / len);
 
-    Serial.println("OTA update successful, restarting...");
-    ESP.restart();
+    if (currentLength == len) {
+        if (!Update.end(true)) {
+            Serial.printf("Error finishing update: %s\n", Update.errorString());
+            updateStarted = false;
+            return;
+        }
+
+        Serial.println("OTA update successful");
+        // Add a delay before restart to ensure client receives success message
+        delay(1000);
+        ESP.restart();
+    }
 }
 
 void WebSocketManager::handleMessage(WebsocketsMessage message) {
-    if (!message.isText()) { return; }
-    Serial.print("Received message: ");
-    Serial.println(message.data());
+    if (!message.isText()) { 
+        Serial.println("Received non-text message, ignoring");
+        return; 
+    }
 
     // Parse JSON message
     JsonDocument doc;
@@ -70,28 +87,37 @@ void WebSocketManager::handleMessage(WebsocketsMessage message) {
         return;
     }
 
-    // Check if this is a firmware update message
-    if (doc["event"] != "new-user-code") { return; }
+    const char* eventType = doc["event"];
+    if (!eventType) {
+        Serial.println("No event type in message");
+        return;
+    }
+
+    if (strcmp(eventType, "new-user-code") != 0) {
+        Serial.printf("Unknown event type: %s\n", eventType);
+        return;
+    }
+
     const char* base64Data = doc["data"];
-    
-    // Calculate maximum decoded length (approximate)
+    if (!base64Data) {
+        Serial.println("No data field in message");
+        return;
+    }
+
+    // Calculate maximum decoded length
     size_t maxDecodedLength = strlen(base64Data) * 3 / 4;
-    uint8_t* decodedData = new uint8_t[maxDecodedLength];
     
-    // Actual decoded length will be stored here
+    // Use std::vector for automatic memory management
+    std::vector<uint8_t> decodedData(maxDecodedLength);
     size_t decodedLength = maxDecodedLength;
-    
+
     // Decode base64 data
-    if (decodeBase64(base64Data, decodedData, &decodedLength)) {
-        // Handle the update
-        Serial.println("Starting ");
-        handleBinaryUpdate(decodedData, decodedLength);
+    if (decodeBase64(base64Data, decodedData.data(), &decodedLength)) {
+        Serial.printf("Starting update with %d bytes\n", decodedLength);
+        handleBinaryUpdate(decodedData.data(), decodedLength);
     } else {
         Serial.println("Base64 decoding failed");
     }
-
-    // Clean up
-    delete[] decodedData;
 }
 
 void WebSocketManager::connectToWebSocket() {
@@ -102,26 +128,36 @@ void WebSocketManager::connectToWebSocket() {
     wsClient.onEvent([](WebsocketsEvent event, String data) {
         switch (event) {
             case WebsocketsEvent::ConnectionOpened:
-                Serial.println("WebSocket connected.");
+                Serial.println("WebSocket connected");
                 break;
             case WebsocketsEvent::ConnectionClosed:
-                Serial.println("WebSocket disconnected.");
+                Serial.println("WebSocket disconnected");
                 break;
             case WebsocketsEvent::GotPing:
-                Serial.println("WebSocket Ping received.");
+                Serial.println("Got ping");
                 break;
             case WebsocketsEvent::GotPong:
-                Serial.println("WebSocket Pong received.");
+                Serial.println("Got pong");
                 break;
         }
     });
 
-    Serial.println("Attempting to connect to WebSocket Secure (WSS)...");
-    Serial.println(getWsServerUrl());
-    const bool connectedToWS = wsClient.connect(getWsServerUrl());
+    Serial.println("Attempting to connect to WebSocket...");
+    bool connected = false;
+    int retries = 0;
+    const int maxRetries = 3;
 
-    if (!connectedToWS) {
-        Serial.println("WebSocket connection failed.");
+    while (!connected && retries < maxRetries) {
+        connected = wsClient.connect(getWsServerUrl());
+        if (!connected) {
+            Serial.printf("Connection attempt %d failed\n", retries + 1);
+            delay(1000);
+            retries++;
+        }
+    }
+
+    if (!connected) {
+        Serial.println("Failed to connect to WebSocket");
         return;
     }
 
@@ -130,27 +166,32 @@ void WebSocketManager::connectToWebSocket() {
     JsonDocument jsonDoc;
     jsonDoc["pipUUID"] = pip_id;
 
-    char jsonBuffer[200];
-    serializeJson(jsonDoc, jsonBuffer);
-
-    wsClient.send(jsonBuffer);
-    wsClient.ping();
+    String jsonString;
+    serializeJson(jsonDoc, jsonString);
+    wsClient.send(jsonString);
 }
 
 void WebSocketManager::pollWebSocket() {
-    if (WiFi.status() != WL_CONNECTED) return;
+    if (WiFi.status() != WL_CONNECTED) {
+        Serial.println("WiFi disconnected, cannot poll WebSocket");
+        return;
+    }
+    
     if (wsClient.available()) {
-        wsClient.poll();
+        try {
+            wsClient.poll();
+        } catch (const std::exception& e) {
+            Serial.printf("Error during WebSocket poll: %s\n", e.what());
+        }
     }
 }
 
 void WebSocketManager::reconnectWebSocket() {
     wsClient.close();
-
     if (WiFi.status() == WL_CONNECTED) {
         Serial.println("Reconnecting to WebSocket...");
         connectToWebSocket();
     } else {
-        Serial.println("Cannot reconnect WebSocket, WiFi is not connected.");
+        Serial.println("Cannot reconnect WebSocket, WiFi is not connected");
     }
 }
