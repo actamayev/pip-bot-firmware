@@ -7,6 +7,6 @@ while(true) {
     digitalWrite(LED_PIN, HIGH);
     delay(1000);
     digitalWrite(LED_PIN, LOW);
-    delay(2000);
+    delay(1000);
 }
 }
