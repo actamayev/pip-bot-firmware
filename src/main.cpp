@@ -5,27 +5,45 @@
 #include "./include/webserver_manager.h"
 #include "./include/user_code.h"
 
-void setup() {
-	Serial.begin(115200);
-    delay(2000);
-
-    // Force creation of apiClient
-    apiClient = new ESP32ApiClient();
-
-    sensorSetup.sensor_setup();
-
-    wifiManager.initializeWiFi();
-
-    wifiManager.connectToStoredWiFi();
+// This task will run user code on Core 0
+void UserCodeTask(void * parameter) {
+    for(;;) {
+        user_code();  // Your LED blinking code
+        delay(1);     // Small delay to prevent watchdog reset
+    }
 }
 
-void loop() {
-    // Handle DNS and Web Server requests (non-blocking)
-    webServerManager.handleClientRequests();
+// Main setup runs on Core 1
+void setup() {
+    Serial.begin(115200);
+    delay(2000);
 
-    // Handle WebSocket events (if connected to WiFi)
+    Serial.printf("setup() running on Core %d\n", xPortGetCoreID());
+
+    // Setup WiFi, sensors, etc.
+    apiClient = new ESP32ApiClient();
+    sensorSetup.sensor_setup();
+    wifiManager.initializeWiFi();
+    wifiManager.connectToStoredWiFi();
+
+    // Create task for user code on Core 0
+    xTaskCreatePinnedToCore(
+        UserCodeTask,  // Function to run
+        "UserCode",    // Task name
+        10000,         // Stack size
+        NULL,          // Task parameters
+        1,             // Priority
+        NULL,          // Task handle
+        0              // Run on Core 0
+    );
+}
+
+// Main loop runs on Core 1
+void loop() {
+    // Network-related tasks on Core 1
+    webServerManager.handleClientRequests();
+    
     if (WiFi.status() == WL_CONNECTED) {
         apiClient->pollWebSocket();
     }
-    user_code();
 }

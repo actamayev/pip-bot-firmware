@@ -36,7 +36,7 @@ void WebSocketManager::handleBinaryUpdate(const uint8_t* data, size_t len) {
 
     // Convert const uint8_t* to uint8_t* as required by Update.write
     uint8_t* writeData = const_cast<uint8_t*>(data);
-    
+
     // Write data in chunks
     size_t written = Update.write(writeData, len);
     if (written != len) {
@@ -56,43 +56,42 @@ void WebSocketManager::handleBinaryUpdate(const uint8_t* data, size_t len) {
 }
 
 void WebSocketManager::handleMessage(WebsocketsMessage message) {
-    if (message.isText()) {
-        Serial.print("Received message: ");
-        Serial.println(message.data());
+    if (!message.isText()) { return; }
+    Serial.print("Received message: ");
+    Serial.println(message.data());
 
-        // Parse JSON message
-        JsonDocument doc;
-        DeserializationError error = deserializeJson(doc, message.data());
+    // Parse JSON message
+    JsonDocument doc;
+    DeserializationError error = deserializeJson(doc, message.data());
 
-        if (error) {
-            Serial.print("deserializeJson() failed: ");
-            Serial.println(error.f_str());
-            return;
-        }
-
-        // Check if this is a firmware update message
-        if (doc["event"] == "new-user-code") {
-            const char* base64Data = doc["data"];
-            
-            // Calculate maximum decoded length (approximate)
-            size_t maxDecodedLength = strlen(base64Data) * 3 / 4;
-            uint8_t* decodedData = new uint8_t[maxDecodedLength];
-            
-            // Actual decoded length will be stored here
-            size_t decodedLength = maxDecodedLength;
-            
-            // Decode base64 data
-            if (decodeBase64(base64Data, decodedData, &decodedLength)) {
-                // Handle the update
-                handleBinaryUpdate(decodedData, decodedLength);
-            } else {
-                Serial.println("Base64 decoding failed");
-            }
-            
-            // Clean up
-            delete[] decodedData;
-        }
+    if (error) {
+        Serial.print("deserializeJson() failed: ");
+        Serial.println(error.f_str());
+        return;
     }
+
+    // Check if this is a firmware update message
+    if (doc["event"] != "new-user-code") { return; }
+    const char* base64Data = doc["data"];
+    
+    // Calculate maximum decoded length (approximate)
+    size_t maxDecodedLength = strlen(base64Data) * 3 / 4;
+    uint8_t* decodedData = new uint8_t[maxDecodedLength];
+    
+    // Actual decoded length will be stored here
+    size_t decodedLength = maxDecodedLength;
+    
+    // Decode base64 data
+    if (decodeBase64(base64Data, decodedData, &decodedLength)) {
+        // Handle the update
+        Serial.println("Starting ");
+        handleBinaryUpdate(decodedData, decodedLength);
+    } else {
+        Serial.println("Base64 decoding failed");
+    }
+
+    // Clean up
+    delete[] decodedData;
 }
 
 void WebSocketManager::connectToWebSocket() {
