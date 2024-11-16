@@ -11,12 +11,14 @@ WebSocketManager::WebSocketManager() {
     wsClient.setInsecure();
 
     // Pre-allocate buffer
-    if (buffer == nullptr) {
-        buffer = (uint8_t*)malloc(BUFFER_SIZE);
-        if (buffer == nullptr) {
-            Serial.println("Failed to allocate buffer");
+    if (buffer == nullptr && checkHeapSpace()) {
+            buffer = (uint8_t*)malloc(BUFFER_SIZE);
+            if (buffer == nullptr) {
+                Serial.println("Failed to allocate WebSocket buffer");
+            } else {
+                Serial.printf("Successfully allocated %u byte buffer\n", BUFFER_SIZE);
+            }
         }
-    }
 }
 
 WebSocketManager::~WebSocketManager() {
@@ -24,6 +26,17 @@ WebSocketManager::~WebSocketManager() {
         free(buffer);
         buffer = nullptr;
     }
+}
+
+bool WebSocketManager::checkHeapSpace() {
+    const size_t REQUIRED_HEAP = BUFFER_SIZE + (32 * 1024); // Buffer size plus 32KB overhead
+    size_t freeHeap = ESP.getFreeHeap();
+    if (freeHeap < REQUIRED_HEAP) {
+        Serial.printf("Insufficient heap space. Required: %u, Available: %u\n", 
+            REQUIRED_HEAP, freeHeap);
+        return false;
+    }
+    return true;
 }
 
 bool WebSocketManager::decodeBase64(const char* input, uint8_t* output, size_t* outputLength) {
@@ -45,15 +58,44 @@ bool WebSocketManager::decodeBase64(const char* input, uint8_t* output, size_t* 
     return false;
 }
 
+bool WebSocketManager::checkMemoryRequirements(size_t updateSize) const {
+    const size_t requiredHeap = BUFFER_SIZE + HEAP_OVERHEAD;
+    const size_t freeHeap = ESP.getFreeHeap();
+    
+    Serial.printf("Memory Check:\n");
+    Serial.printf("- Required heap: %u bytes\n", requiredHeap);
+    Serial.printf("- Free heap: %u bytes\n", freeHeap);
+    Serial.printf("- Update size: %u bytes\n", updateSize);
+    
+    if (freeHeap < requiredHeap) {
+        Serial.printf("Insufficient heap. Need %u more bytes\n", 
+            requiredHeap - freeHeap);
+        return false;
+    }
+    
+    return true;
+}
+
+bool WebSocketManager::initializeBuffer() {
+    if (buffer != nullptr) return true;
+    
+    buffer = (uint8_t*)malloc(BUFFER_SIZE);
+    if (buffer == nullptr) {
+        Serial.println("Failed to allocate buffer");
+        return false;
+    }
+    
+    Serial.printf("Buffer allocated: %u bytes\n", BUFFER_SIZE);
+    return true;
+}
+
 bool WebSocketManager::startUpdate(size_t size) {
     if (size == 0) return false;
 
-    const size_t REQUIRED_HEAP = BUFFER_SIZE + 32768; // Buffer size plus 32KB overhead
-    if (ESP.getFreeHeap() < REQUIRED_HEAP) {
-        Serial.printf("Not enough heap space. Required: %u, Available: %u\n", 
-            REQUIRED_HEAP, ESP.getFreeHeap());
-        return false;
-    }
+    if (!checkMemoryRequirements(size)) return false;
+
+    // Initialize buffer if needed
+    if (!initializeBuffer()) return false;
 
     Serial.printf("Starting update of %u bytes\n", size);
     if (!Update.begin(size)) {
@@ -121,101 +163,75 @@ void WebSocketManager::processChunk(const char* data, size_t chunkIndex, bool is
 void WebSocketManager::handleMessage(WebsocketsMessage message) {
     if (!message.isText()) return;
 
-    // Log memory status at start
-    Serial.printf("Free heap before processing: %u\n", ESP.getFreeHeap());
+    const String& data = message.data();
+    
+    // Debug prints
+    Serial.printf("Received message length: %u\n", data.length());
+    Serial.printf("First 100 chars: %.100s\n", data.c_str());
+    Serial.printf("Free heap before JSON: %u\n", ESP.getFreeHeap());
 
-    // Parse JSON message
-    StaticJsonDocument<2048> doc;
-    DeserializationError error = deserializeJson(doc, message.data());
+    // Use DynamicJsonDocument with precise sizing
+    DynamicJsonDocument doc(JSON_DOC_SIZE);
+    DeserializationError error = deserializeJson(doc, data);
 
     if (error) {
         Serial.printf("JSON Error: %s\n", error.c_str());
-        StaticJsonDocument<256> response;
-        response["event"] = "update_status";
-        response["status"] = "error";
-        response["error"] = "JSON parse error";
-        String jsonString;
-        serializeJson(response, jsonString);
-        wsClient.send(jsonString);
-        return;
-    }
-
-    // Check for event type
-    const char* eventType = doc["event"];
-    if (!eventType || strcmp(eventType, "new-user-code") != 0) {
-        return;
-    }
-
-    // Get all necessary data
-    size_t chunkIndex = doc["chunkIndex"] | 0;
-    size_t totalChunks = doc["totalChunks"] | 0;
-    bool isLast = doc["isLast"] | false;
-    const char* data = doc["data"];
-
-    if (!data) {
-        Serial.println("No data in chunk");
-        StaticJsonDocument<256> response;
-        response["event"] = "update_status";
-        response["status"] = "error";
-        response["error"] = "Missing data in chunk";
-        String jsonString;
-        serializeJson(response, jsonString);
-        wsClient.send(jsonString);
-        return;
-    }
-
-    // Handle first chunk and initialization
-    if (chunkIndex == 0) {
-        size_t totalSize = doc["totalSize"] | 0;
-        Serial.printf("Starting new update of size: %u\n", totalSize);
+        Serial.printf("Message length: %u\n", data.length());
         
-        // Check heap space
-        const size_t REQUIRED_HEAP = BUFFER_SIZE + 32768;
-        if (ESP.getFreeHeap() < REQUIRED_HEAP) {
-            StaticJsonDocument<256> response;
-            response["event"] = "update_status";
-            response["status"] = "error";
-            response["error"] = "Insufficient heap space";
-            String jsonString;
-            serializeJson(response, jsonString);
-            wsClient.send(jsonString);
-            return;
-        }
-
-        if (!startUpdate(totalSize)) {
-            StaticJsonDocument<256> response;
-            response["event"] = "update_status";
-            response["status"] = "error";
-            response["error"] = "Failed to initialize update";
-            String jsonString;
-            serializeJson(response, jsonString);
-            wsClient.send(jsonString);
-            return;
-        }
-
-        updateState.totalChunks = totalChunks;
-
-        // Send success status
-        StaticJsonDocument<256> response;
-        response["event"] = "update_status";
-        response["status"] = "ready";
-        String jsonString;
-        serializeJson(response, jsonString);
-        wsClient.send(jsonString);
+        // Send error back to server
+        DynamicJsonDocument errorDoc(256);
+        errorDoc["event"] = "update_status";
+        errorDoc["status"] = "error";
+        errorDoc["error"] = String("JSON parse error: ") + error.c_str();
+        
+        String errorJson;
+        serializeJson(errorDoc, errorJson);
+        wsClient.send(errorJson);
+        return;
     }
 
-    // Process chunk only if update is properly initialized
-    if (updateState.updateStarted) {
-        processChunk(data, chunkIndex, isLast);
-    } else if (chunkIndex != 0) {
-        // If we get a non-zero chunk without initialization
-        StaticJsonDocument<256> response;
-        response["event"] = "update_status";
-        response["status"] = "error";
-        response["error"] = "Update not initialized";
-        String jsonString;
-        serializeJson(response, jsonString);
-        wsClient.send(jsonString);
+    // Get event type
+    const char* eventType = doc["event"];
+    if (!eventType) {
+        Serial.println("No event type in message");
+        return;
+    }
+    Serial.printf("Event type: %s\n", eventType);
+
+    if (strcmp(eventType, "new-user-code") == 0) {
+        // Handle new user code
+        size_t chunkIndex = doc["chunkIndex"] | 0;
+        size_t totalChunks = doc["totalChunks"] | 0;
+        const char* data = doc["data"];
+        
+        if (!data) {
+            Serial.println("No data in chunk");
+            return;
+        }
+
+        Serial.printf("Processing chunk %u/%u\n", chunkIndex + 1, totalChunks);
+        
+        // First chunk initialization
+        if (chunkIndex == 0) {
+            size_t totalSize = doc["totalSize"] | 0;
+            if (!startUpdate(totalSize)) {
+                return;
+            }
+            updateState.totalChunks = totalChunks;
+            
+            // Send ready status
+            DynamicJsonDocument readyDoc(256);
+            readyDoc["event"] = "update_status";
+            readyDoc["status"] = "ready";
+            String readyJson;
+            serializeJson(readyDoc, readyJson);
+            wsClient.send(readyJson);
+        }
+
+        // Process chunk
+        if (updateState.updateStarted) {
+            processChunk(data, chunkIndex, doc["isLast"] | false);
+        }
     }
 }
 
@@ -244,7 +260,7 @@ void WebSocketManager::connectToWebSocket() {
     Serial.println("Attempting to connect to WebSocket...");
     if (wsClient.connect(getWsServerUrl())) {
         Serial.println("WebSocket connected. Sending initial data...");
-        StaticJsonDocument<256> jsonDoc;  // Small document for initial message
+        JsonDocument jsonDoc;  // Small document for initial message
         jsonDoc["pipUUID"] = pip_id;
         String jsonString;
         serializeJson(jsonDoc, jsonString);

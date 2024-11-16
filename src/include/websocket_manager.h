@@ -10,10 +10,11 @@ using namespace websockets;
 
 class WebSocketManager {
 	private:
-		websockets::WebsocketsClient wsClient;
+		static const size_t BUFFER_SIZE = 16 * 1024;       // 16KB buffer
+		static const size_t HEAP_OVERHEAD = 32 * 1024;     // 32KB overhead
+		static const size_t JSON_DOC_SIZE = 8 * 1024;      // 8KB for JSON
 
-		// Fixed buffer for decoding
-		static const size_t BUFFER_SIZE = 8192; // 8KB buffer
+		websockets::WebsocketsClient wsClient;
 		uint8_t* buffer = nullptr;
 
 		// Update state tracking
@@ -37,6 +38,9 @@ class WebSocketManager {
 		bool startUpdate(size_t size);
 		void endUpdate(bool success);
 		void processChunk(const char* data, size_t chunkIndex, bool isLast);
+		bool checkHeapSpace();
+		bool initializeBuffer();
+		bool checkMemoryRequirements(size_t updateSize) const;
 
 	public:
 		WebSocketManager();
