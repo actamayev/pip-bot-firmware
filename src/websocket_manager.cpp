@@ -30,43 +30,39 @@ bool WebSocketManager::decodeBase64(const char* input, uint8_t* output, size_t* 
     return false;
 }
 
-void WebSocketManager::handleBinaryUpdate(const uint8_t* data, size_t len) {
-    static size_t currentLength = 0;
-    static bool updateStarted = false;
-
-    if (!updateStarted) {
-        // Calculate the required size before starting
-        if (!Update.begin(len)) {
+void WebSocketManager::handleBinaryUpdate(const uint8_t* data, size_t len, bool isLastChunk) {
+    if (!updateState.updateStarted) {
+        // First chunk, start the update
+        if (!Update.begin(updateState.totalSize)) {
             Serial.println("Not enough space to begin OTA");
+            resetUpdateState();
             return;
         }
-        updateStarted = true;
-        currentLength = 0;
+        updateState.updateStarted = true;
+        Serial.printf("Starting OTA update of %d bytes\n", updateState.totalSize);
     }
 
-    // Write data in chunks
+    // Write chunk
     size_t written = Update.write(const_cast<uint8_t*>(data), len);
     if (written != len) {
-        Serial.println("Error during OTA update");
-        Serial.printf("Written %d bytes out of %d\n", written, len);
+        Serial.printf("Error writing chunk: %d/%d bytes written\n", written, len);
         Update.abort();
-        updateStarted = false;
+        resetUpdateState();
         return;
     }
 
-    currentLength += written;
-    Serial.printf("OTA Progress: %d%%\n", (currentLength * 100) / len);
+    updateState.receivedSize += written;
+    Serial.printf("OTA Progress: %d%%\n", (updateState.receivedSize * 100) / updateState.totalSize);
 
-    if (currentLength == len) {
+    if (isLastChunk) {
         if (!Update.end(true)) {
             Serial.printf("Error finishing update: %s\n", Update.errorString());
-            updateStarted = false;
+            resetUpdateState();
             return;
         }
 
         Serial.println("OTA update successful");
-        // Add a delay before restart to ensure client receives success message
-        delay(1000);
+        delay(1000);  // Give time for the success message to be sent
         ESP.restart();
     }
 }
@@ -77,7 +73,6 @@ void WebSocketManager::handleMessage(WebsocketsMessage message) {
         return; 
     }
 
-    // Parse JSON message
     JsonDocument doc;
     DeserializationError error = deserializeJson(doc, message.data());
 
@@ -88,35 +83,42 @@ void WebSocketManager::handleMessage(WebsocketsMessage message) {
     }
 
     const char* eventType = doc["event"];
-    if (!eventType) {
-        Serial.println("No event type in message");
+    if (!eventType || strcmp(eventType, "new-user-code") != 0) {
         return;
     }
 
-    if (strcmp(eventType, "new-user-code") != 0) {
-        Serial.printf("Unknown event type: %s\n", eventType);
-        return;
-    }
-
+    // Get chunk information
     const char* base64Data = doc["data"];
+    bool isLastChunk = doc["isLastChunk"] | false;
+    size_t totalChunks = doc["totalChunks"] | 0;
+    size_t chunkIndex = doc["chunkIndex"] | 0;
+    
+    if (chunkIndex == 0) {
+        // First chunk, initialize update state
+        updateState.totalSize = doc["totalSize"] | 0;
+        updateState.totalChunks = totalChunks;
+        updateState.receivedSize = 0;
+        updateState.receivedChunks = 0;
+        updateState.updateStarted = false;
+    }
+
     if (!base64Data) {
         Serial.println("No data field in message");
         return;
     }
 
-    // Calculate maximum decoded length
+    // Decode and process chunk
     size_t maxDecodedLength = strlen(base64Data) * 3 / 4;
-    
-    // Use std::vector for automatic memory management
     std::vector<uint8_t> decodedData(maxDecodedLength);
     size_t decodedLength = maxDecodedLength;
 
-    // Decode base64 data
     if (decodeBase64(base64Data, decodedData.data(), &decodedLength)) {
-        Serial.printf("Starting update with %d bytes\n", decodedLength);
-        handleBinaryUpdate(decodedData.data(), decodedLength);
+        updateState.receivedChunks++;
+        Serial.printf("Processing chunk %d/%d\n", updateState.receivedChunks, updateState.totalChunks);
+        handleBinaryUpdate(decodedData.data(), decodedLength, isLastChunk);
     } else {
         Serial.println("Base64 decoding failed");
+        resetUpdateState();
     }
 }
 
