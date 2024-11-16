@@ -70,102 +70,112 @@ void WebSocketManager::handleBinaryUpdate(const uint8_t* data, size_t len, bool 
 }
 
 void WebSocketManager::handleMessage(WebsocketsMessage message) {
-    if (!message.isText()) return;
-
-    // Print memory diagnostics
-    Serial.println("\n=== Memory Diagnostics ===");
-    Serial.printf("Total heap: %u bytes\n", ESP.getHeapSize());
-    Serial.printf("Free heap: %u bytes\n", ESP.getFreeHeap());
-    Serial.printf("Minimum free heap: %u bytes\n", ESP.getMinFreeHeap());
-    Serial.printf("Maximum allocatable heap: %u bytes\n", ESP.getMaxAllocHeap());
-
-    // Check for PSRAM
-    if (psramFound()) {
-        Serial.printf("Total PSRAM: %u bytes\n", ESP.getPsramSize());
-        Serial.printf("Free PSRAM: %u bytes\n", ESP.getFreePsram());
-    } else {
-        Serial.println("No PSRAM found");
+    if (!message.isText()) {
+        Serial.println("message not text");
+        return;
     }
 
-    // Print flash size
-    Serial.println("\n=== Flash Info ===");
-    Serial.printf("Flash chip size: %u bytes\n", ESP.getFlashChipSize());
-    Serial.printf("Available sketch space: %u bytes\n", ESP.getFreeSketchSpace());
-
+    // Use StaticJsonDocument to avoid heap fragmentation
     JsonDocument doc;
     DeserializationError error = deserializeJson(doc, message.data());
+
     if (error) {
         Serial.printf("JSON parsing failed: %s\n", error.c_str());
         return;
     }
 
-    const char* eventType = doc["event"];
-    if (!eventType || strcmp(eventType, "new-user-code") != 0) return;
-
-    const char* base64Data = doc["data"];
-    if (!base64Data) {
-        Serial.println("No base64 data found");
+    // Validate message
+    if (!doc.containsKey("event") || strcmp(doc["event"], "new-user-code") != 0) {
+        Serial.println("doc doesn't contain event");
         return;
     }
 
-    // Calculate sizes
-    size_t inputLen = strlen(base64Data);
-    size_t maxDecodedLen = (inputLen * 3) / 4;
-    
-    Serial.println("\n=== Update Size Info ===");
-    Serial.printf("Base64 input length: %u bytes\n", inputLen);
-    Serial.printf("Expected decoded length: %u bytes\n", maxDecodedLen);
-    Serial.printf("Available update space: %u bytes\n", ESP.getFreeSketchSpace());
+    static bool updateInProgress = false;
+    static size_t totalSize = 0;
+    static size_t receivedSize = 0;
+    static uint32_t lastChunkTime = 0;
 
-    // Try to allocate memory
-    Serial.println("\nAttempting memory allocation...");
-    uint8_t* decodedData = nullptr;
-    
-    if (psramFound()) {
-        Serial.println("Trying PSRAM allocation");
-        decodedData = (uint8_t*)ps_malloc(maxDecodedLen);
-    }
-    
-    if (!decodedData) {
-        Serial.println("Trying heap allocation");
-        decodedData = (uint8_t*)malloc(maxDecodedLen);
-    }
+    // Get chunk information
+    size_t chunkIndex = doc["chunkIndex"] | 0;
+    size_t totalChunks = doc["totalChunks"] | 0;
+    bool isLast = doc["isLast"] | false;
+    const char* data = doc["data"];
 
-    if (!decodedData) {
-        Serial.println("Failed to allocate memory");
+    if (!data) {
+        Serial.println("No data in chunk");
         return;
     }
 
-    Serial.println("Memory allocation successful");
-
-    size_t actualLen = maxDecodedLen;
-    if (decodeBase64(base64Data, decodedData, &actualLen)) {
-        Serial.printf("\nActual decoded length: %u bytes\n", actualLen);
-        
-        Serial.println("Attempting to begin update...");
-        if (!Update.begin(actualLen)) {
-            Serial.printf("Update begin failed. Error: %s\n", Update.errorString());
-            free(decodedData);
+    // First chunk initializes the update
+    if (chunkIndex == 0) {
+        totalSize = doc["totalSize"] | 0;
+        if (totalSize == 0) {
+            Serial.println("Invalid total size");
             return;
         }
 
-        Serial.println("Writing update...");
-        if (Update.write(decodedData, actualLen) != actualLen) {
-            Serial.printf("Update write failed. Error: %s\n", Update.errorString());
-            Update.abort();
-        } else if (!Update.end()) {
-            Serial.printf("Update end failed. Error: %s\n", Update.errorString());
-        } else {
-            Serial.println("Update successful, restarting...");
-            delay(1000);
-            ESP.restart();
+        Serial.printf("Starting update of %u bytes\n", totalSize);
+        if (!Update.begin(totalSize)) {
+            Serial.printf("Not enough space: %s\n", Update.errorString());
+            return;
         }
-    } else {
-        Serial.println("Base64 decoding failed");
+        updateInProgress = true;
+        receivedSize = 0;
     }
 
-    free(decodedData);
+    // Process chunk
+    if (updateInProgress) {
+        // Decode base64 chunk
+        size_t decodedLen = strlen(data) * 3 / 4;
+        uint8_t* decodedData = (uint8_t*)malloc(decodedLen);
+        
+        if (!decodedData) {
+            Serial.println("Failed to allocate decode buffer");
+            Update.abort();
+            updateInProgress = false;
+            return;
+        }
+
+        size_t actualLen = decodedLen;
+        if (decodeBase64(data, decodedData, &actualLen)) {
+            if (Update.write(decodedData, actualLen) != actualLen) {
+                Serial.printf("Write failed at size: %u\n", receivedSize);
+                free(decodedData);
+                Update.abort();
+                updateInProgress = false;
+                return;
+            }
+            receivedSize += actualLen;
+            Serial.printf("Progress: %d%%\n", (receivedSize * 100) / totalSize);
+        }
+
+        free(decodedData);
+        lastChunkTime = millis();
+
+        // Handle last chunk
+        if (isLast) {
+            if (Update.end(true)) {
+                Serial.println("Update complete!");
+                delay(1000);
+                ESP.restart();
+            } else {
+                Serial.printf("Update failed: %s\n", Update.errorString());
+                updateInProgress = false;
+            }
+        }
+    }
 }
+
+// void WebSocketManager::loop() {
+//     static uint32_t lastCheck = 0;
+//     const uint32_t TIMEOUT = 10000; // 10 second timeout
+
+//     if (updateInProgress && (millis() - lastChunkTime > TIMEOUT)) {
+//         Serial.println("Update timeout");
+//         Update.abort();
+//         updateInProgress = false;
+//     }
+// }
 
 void WebSocketManager::connectToWebSocket() {
     wsClient.onMessage([this](WebsocketsMessage message) {
