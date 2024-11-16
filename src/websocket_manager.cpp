@@ -1,8 +1,6 @@
 #include <Arduino.h>
 #include <Update.h>
 #include <ArduinoJson.h>
-#include <esp_ota_ops.h>
-#include <esp_partition.h>
 #include <ArduinoWebsockets.h>
 #include "./include/config.h"
 #include "./include/websocket_manager.h"
@@ -10,7 +8,22 @@
 WebSocketManager::WebSocketManager() {
     if (environment == Environment::LocalDev) return;
     wsClient.setCACert(rootCACertificate);
-    wsClient.setInsecure(); // Add fallback for development
+    wsClient.setInsecure();
+
+    // Pre-allocate buffer
+    if (buffer == nullptr) {
+        buffer = (uint8_t*)malloc(BUFFER_SIZE);
+        if (buffer == nullptr) {
+            Serial.println("Failed to allocate buffer");
+        }
+    }
+}
+
+WebSocketManager::~WebSocketManager() {
+    if (buffer != nullptr) {
+        free(buffer);
+        buffer = nullptr;
+    }
 }
 
 bool WebSocketManager::decodeBase64(const char* input, uint8_t* output, size_t* outputLength) {
@@ -32,70 +45,108 @@ bool WebSocketManager::decodeBase64(const char* input, uint8_t* output, size_t* 
     return false;
 }
 
-void WebSocketManager::handleBinaryUpdate(const uint8_t* data, size_t len, bool isLastChunk) {
-    if (!updateState.updateStarted) {
-        // First chunk, start the update
-        if (!Update.begin(updateState.totalSize)) {
-            Serial.println("Not enough space to begin OTA");
-            resetUpdateState();
-            return;
-        }
-        updateState.updateStarted = true;
-        Serial.printf("Starting OTA update of %d bytes\n", updateState.totalSize);
+bool WebSocketManager::startUpdate(size_t size) {
+    if (size == 0) return false;
+
+    const size_t REQUIRED_HEAP = BUFFER_SIZE + 32768; // Buffer size plus 32KB overhead
+    if (ESP.getFreeHeap() < REQUIRED_HEAP) {
+        Serial.printf("Not enough heap space. Required: %u, Available: %u\n", 
+            REQUIRED_HEAP, ESP.getFreeHeap());
+        return false;
     }
 
-    // Write chunk
-    size_t written = Update.write(const_cast<uint8_t*>(data), len);
-    if (written != len) {
-        Serial.printf("Error writing chunk: %d/%d bytes written\n", written, len);
+    Serial.printf("Starting update of %u bytes\n", size);
+    if (!Update.begin(size)) {
+        Serial.printf("Not enough space: %s\n", Update.errorString());
+        return false;
+    }
+
+    updateState.updateStarted = true;
+    updateState.totalSize = size;
+    updateState.receivedSize = 0;
+    updateState.lastChunkTime = millis();
+
+    Serial.printf("Update started. Size: %u bytes\n", size);
+    return true;
+}
+
+void WebSocketManager::endUpdate(bool success) {
+    if (!updateState.updateStarted) return;
+
+    if (success && Update.end()) {
+        Serial.println("Update successful!");
+        delay(1000);
+        ESP.restart();
+    } else {
+        Serial.printf("Update failed: %s\n", Update.errorString());
         Update.abort();
-        resetUpdateState();
+    }
+    resetUpdateState();
+}
+
+void WebSocketManager::processChunk(const char* data, size_t chunkIndex, bool isLast) {
+    if (!buffer || !updateState.updateStarted) {
+        Serial.println("Update not properly initialized");
         return;
     }
 
-    updateState.receivedSize += written;
-    Serial.printf("OTA Progress: %d%%\n", (updateState.receivedSize * 100) / updateState.totalSize);
-
-    if (isLastChunk) {
-        if (!Update.end(true)) {
-            Serial.printf("Error finishing update: %s\n", Update.errorString());
-            resetUpdateState();
+    size_t decodedLen = BUFFER_SIZE;
+    if (decodeBase64(data, buffer, &decodedLen)) {
+        if (Update.write(buffer, decodedLen) != decodedLen) {
+            Serial.printf("Write failed at chunk: %u\n", chunkIndex);
+            endUpdate(false);
             return;
         }
+        
+        updateState.receivedSize += decodedLen;
+        updateState.receivedChunks++;
+        updateState.lastChunkTime = millis();
+        
+        Serial.printf("Chunk %u/%u - Progress: %d%%\n", 
+            chunkIndex + 1, 
+            updateState.totalChunks,
+            (updateState.receivedSize * 100) / updateState.totalSize
+        );
 
-        Serial.println("OTA update successful");
-        delay(1000);  // Give time for the success message to be sent
-        ESP.restart();
+        if (isLast) {
+            Serial.println("Processing final chunk");
+            endUpdate(true);
+        }
+    } else {
+        Serial.println("Base64 decode failed");
+        endUpdate(false);
     }
 }
 
 void WebSocketManager::handleMessage(WebsocketsMessage message) {
-    if (!message.isText()) {
-        Serial.println("message not text");
-        return;
-    }
+    if (!message.isText()) return;
 
-    // Use StaticJsonDocument to avoid heap fragmentation
-    JsonDocument doc;
+    // Log memory status at start
+    Serial.printf("Free heap before processing: %u\n", ESP.getFreeHeap());
+
+    // Parse JSON message
+    StaticJsonDocument<2048> doc;
     DeserializationError error = deserializeJson(doc, message.data());
 
     if (error) {
-        Serial.printf("JSON parsing failed: %s\n", error.c_str());
+        Serial.printf("JSON Error: %s\n", error.c_str());
+        StaticJsonDocument<256> response;
+        response["event"] = "update_status";
+        response["status"] = "error";
+        response["error"] = "JSON parse error";
+        String jsonString;
+        serializeJson(response, jsonString);
+        wsClient.send(jsonString);
         return;
     }
 
-    // Validate message
-    if (!doc.containsKey("event") || strcmp(doc["event"], "new-user-code") != 0) {
-        Serial.println("doc doesn't contain event");
+    // Check for event type
+    const char* eventType = doc["event"];
+    if (!eventType || strcmp(eventType, "new-user-code") != 0) {
         return;
     }
 
-    static bool updateInProgress = false;
-    static size_t totalSize = 0;
-    static size_t receivedSize = 0;
-    static uint32_t lastChunkTime = 0;
-
-    // Get chunk information
+    // Get all necessary data
     size_t chunkIndex = doc["chunkIndex"] | 0;
     size_t totalChunks = doc["totalChunks"] | 0;
     bool isLast = doc["isLast"] | false;
@@ -103,79 +154,70 @@ void WebSocketManager::handleMessage(WebsocketsMessage message) {
 
     if (!data) {
         Serial.println("No data in chunk");
+        StaticJsonDocument<256> response;
+        response["event"] = "update_status";
+        response["status"] = "error";
+        response["error"] = "Missing data in chunk";
+        String jsonString;
+        serializeJson(response, jsonString);
+        wsClient.send(jsonString);
         return;
     }
 
-    // First chunk initializes the update
+    // Handle first chunk and initialization
     if (chunkIndex == 0) {
-        totalSize = doc["totalSize"] | 0;
-        if (totalSize == 0) {
-            Serial.println("Invalid total size");
+        size_t totalSize = doc["totalSize"] | 0;
+        Serial.printf("Starting new update of size: %u\n", totalSize);
+        
+        // Check heap space
+        const size_t REQUIRED_HEAP = BUFFER_SIZE + 32768;
+        if (ESP.getFreeHeap() < REQUIRED_HEAP) {
+            StaticJsonDocument<256> response;
+            response["event"] = "update_status";
+            response["status"] = "error";
+            response["error"] = "Insufficient heap space";
+            String jsonString;
+            serializeJson(response, jsonString);
+            wsClient.send(jsonString);
             return;
         }
 
-        Serial.printf("Starting update of %u bytes\n", totalSize);
-        if (!Update.begin(totalSize)) {
-            Serial.printf("Not enough space: %s\n", Update.errorString());
+        if (!startUpdate(totalSize)) {
+            StaticJsonDocument<256> response;
+            response["event"] = "update_status";
+            response["status"] = "error";
+            response["error"] = "Failed to initialize update";
+            String jsonString;
+            serializeJson(response, jsonString);
+            wsClient.send(jsonString);
             return;
         }
-        updateInProgress = true;
-        receivedSize = 0;
+
+        updateState.totalChunks = totalChunks;
+
+        // Send success status
+        StaticJsonDocument<256> response;
+        response["event"] = "update_status";
+        response["status"] = "ready";
+        String jsonString;
+        serializeJson(response, jsonString);
+        wsClient.send(jsonString);
     }
 
-    // Process chunk
-    if (updateInProgress) {
-        // Decode base64 chunk
-        size_t decodedLen = strlen(data) * 3 / 4;
-        uint8_t* decodedData = (uint8_t*)malloc(decodedLen);
-        
-        if (!decodedData) {
-            Serial.println("Failed to allocate decode buffer");
-            Update.abort();
-            updateInProgress = false;
-            return;
-        }
-
-        size_t actualLen = decodedLen;
-        if (decodeBase64(data, decodedData, &actualLen)) {
-            if (Update.write(decodedData, actualLen) != actualLen) {
-                Serial.printf("Write failed at size: %u\n", receivedSize);
-                free(decodedData);
-                Update.abort();
-                updateInProgress = false;
-                return;
-            }
-            receivedSize += actualLen;
-            Serial.printf("Progress: %d%%\n", (receivedSize * 100) / totalSize);
-        }
-
-        free(decodedData);
-        lastChunkTime = millis();
-
-        // Handle last chunk
-        if (isLast) {
-            if (Update.end(true)) {
-                Serial.println("Update complete!");
-                delay(1000);
-                ESP.restart();
-            } else {
-                Serial.printf("Update failed: %s\n", Update.errorString());
-                updateInProgress = false;
-            }
-        }
+    // Process chunk only if update is properly initialized
+    if (updateState.updateStarted) {
+        processChunk(data, chunkIndex, isLast);
+    } else if (chunkIndex != 0) {
+        // If we get a non-zero chunk without initialization
+        StaticJsonDocument<256> response;
+        response["event"] = "update_status";
+        response["status"] = "error";
+        response["error"] = "Update not initialized";
+        String jsonString;
+        serializeJson(response, jsonString);
+        wsClient.send(jsonString);
     }
 }
-
-// void WebSocketManager::loop() {
-//     static uint32_t lastCheck = 0;
-//     const uint32_t TIMEOUT = 10000; // 10 second timeout
-
-//     if (updateInProgress && (millis() - lastChunkTime > TIMEOUT)) {
-//         Serial.println("Update timeout");
-//         Update.abort();
-//         updateInProgress = false;
-//     }
-// }
 
 void WebSocketManager::connectToWebSocket() {
     wsClient.onMessage([this](WebsocketsMessage message) {
@@ -200,32 +242,16 @@ void WebSocketManager::connectToWebSocket() {
     });
 
     Serial.println("Attempting to connect to WebSocket...");
-    bool connected = false;
-    int retries = 0;
-    const int maxRetries = 3;
-
-    while (!connected && retries < maxRetries) {
-        connected = wsClient.connect(getWsServerUrl());
-        if (!connected) {
-            Serial.printf("Connection attempt %d failed\n", retries + 1);
-            delay(1000);
-            retries++;
-        }
+    if (wsClient.connect(getWsServerUrl())) {
+        Serial.println("WebSocket connected. Sending initial data...");
+        StaticJsonDocument<256> jsonDoc;  // Small document for initial message
+        jsonDoc["pipUUID"] = pip_id;
+        String jsonString;
+        serializeJson(jsonDoc, jsonString);
+        wsClient.send(jsonString);
+    } else {
+        Serial.println("WebSocket connection failed");
     }
-
-    if (!connected) {
-        Serial.println("Failed to connect to WebSocket");
-        return;
-    }
-
-    Serial.println("WebSocket connected. Sending initial data...");
-
-    JsonDocument jsonDoc;
-    jsonDoc["pipUUID"] = pip_id;
-
-    String jsonString;
-    serializeJson(jsonDoc, jsonString);
-    wsClient.send(jsonString);
 }
 
 void WebSocketManager::pollWebSocket() {
@@ -234,6 +260,13 @@ void WebSocketManager::pollWebSocket() {
         return;
     }
     
+    // Check for update timeout
+    if (updateState.updateStarted && 
+        (millis() - updateState.lastChunkTime > 10000)) { // 10 second timeout
+        Serial.println("Update timeout");
+        endUpdate(false);
+    }
+
     if (wsClient.available()) {
         try {
             wsClient.poll();

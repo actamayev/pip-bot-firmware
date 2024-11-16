@@ -11,28 +11,41 @@ using namespace websockets;
 class WebSocketManager {
 	private:
 		websockets::WebsocketsClient wsClient;
-		void handleBinaryUpdate(const uint8_t* data, size_t len, bool isLastChunk);
-		void handleMessage(websockets::WebsocketsMessage message);
-    	bool decodeBase64(const char* input, uint8_t* output, size_t* outputLength);
+
+		// Fixed buffer for decoding
+		static const size_t BUFFER_SIZE = 8192; // 8KB buffer
+		uint8_t* buffer = nullptr;
+
+		// Update state tracking
 		struct UpdateState {
 			size_t totalSize;
 			size_t receivedSize;
 			size_t totalChunks;
 			size_t receivedChunks;
 			bool updateStarted;
-        	UpdateState() : totalSize(0), receivedSize(0), totalChunks(0), 
-                       receivedChunks(0), updateStarted(false) {}
-    	};
+			uint32_t lastChunkTime;
 
-    	UpdateState updateState;
+			UpdateState() : totalSize(0), receivedSize(0), totalChunks(0),
+						receivedChunks(0), updateStarted(false), lastChunkTime(0) {}
+		};
+
+		UpdateState updateState;
+
+		// Private methods
+		bool decodeBase64(const char* input, uint8_t* output, size_t* outputLength);
+		void handleMessage(websockets::WebsocketsMessage message);
+		bool startUpdate(size_t size);
+		void endUpdate(bool success);
+		void processChunk(const char* data, size_t chunkIndex, bool isLast);
 
 	public:
 		WebSocketManager();
+		~WebSocketManager();
 		void connectToWebSocket();
 		void pollWebSocket();
 		void reconnectWebSocket();
 		void resetUpdateState() {
-        	updateState = UpdateState();
+			updateState = UpdateState();
 		}
 };
 
