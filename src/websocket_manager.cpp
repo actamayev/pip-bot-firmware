@@ -291,13 +291,3 @@ void WebSocketManager::pollWebSocket() {
         }
     }
 }
-
-// void WebSocketManager::reconnectWebSocket() {
-//     wsClient.close();
-//     if (WiFi.status() == WL_CONNECTED) {
-//         Serial.println("Reconnecting to WebSocket...");
-//         connectToWebSocket();
-//     } else {
-//         Serial.println("Cannot reconnect WebSocket, WiFi is not connected");
-//     }
-// }

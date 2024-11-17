@@ -50,7 +50,6 @@ class WebSocketManager {
 		~WebSocketManager();
 		void connectToWebSocket();
 		void pollWebSocket();
-		// void reconnectWebSocket();
 };
 
 #endif
