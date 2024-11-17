@@ -218,7 +218,7 @@ void WebSocketManager::handleMessage(WebsocketsMessage message) {
                 return;
             }
             updateState.totalChunks = totalChunks;
-            
+    
             // Send ready status
             DynamicJsonDocument readyDoc(256);
             readyDoc["event"] = "update_status";
