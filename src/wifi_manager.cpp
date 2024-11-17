@@ -1,8 +1,8 @@
-#include "config.h"
-#include "wifi_manager.h"
-#include "esp32_api_client.h"
-#include "webserver_manager.h"
-#include "websocket_manager.h"
+#include "./include/config.h"
+#include "./include/wifi_manager.h"
+#include "./include/esp32_api_client.h"
+#include "./include/webserver_manager.h"
+#include "./include/websocket_manager.h"
 
 Preferences preferences;
 WiFiManager wifiManager;  // Create global instance

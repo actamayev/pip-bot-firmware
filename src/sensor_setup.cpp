@@ -1,7 +1,7 @@
 #include <Wire.h>
 #include <Adafruit_VL53L1X.h>
-#include "config.h"
-#include "sensor_setup.h"
+#include "./include/config.h"
+#include "./include/sensor_setup.h"
 
 SensorSetup sensorSetup;
 

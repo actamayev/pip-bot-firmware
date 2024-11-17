@@ -1,5 +1,5 @@
-#include "config.h"
-#include "read_sensors.h"
+#include "./include/config.h"
+#include "./include/read_sensors.h"
 
 ReadSensors readSensors;
 
