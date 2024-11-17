@@ -275,7 +275,7 @@ void WebSocketManager::pollWebSocket() {
         Serial.println("WiFi disconnected, cannot poll WebSocket");
         return;
     }
-    
+
     // Check for update timeout
     if (updateState.updateStarted && 
         (millis() - updateState.lastChunkTime > 10000)) { // 10 second timeout
