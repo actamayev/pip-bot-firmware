@@ -1,7 +1,7 @@
 #include <WiFi.h>
-#include "config.h"
-#include "wifi_manager.h"
-#include "webserver_manager.h"
+#include "./include/config.h"
+#include "./include/wifi_manager.h"
+#include "./include/webserver_manager.h"
 
 DNSServer dnsServer;
 WebServer server(80);

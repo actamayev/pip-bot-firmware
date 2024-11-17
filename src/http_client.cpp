@@ -1,6 +1,6 @@
 #include <WiFiClientSecure.h>
-#include "config.h"
-#include "http_client.h"
+#include "./include/config.h"
+#include "./include/http_client.h"
 
 HttpClient::HttpClient() {
     if (environment == Environment::LocalDev) return;
