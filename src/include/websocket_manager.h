@@ -41,16 +41,16 @@ class WebSocketManager {
 		bool checkHeapSpace();
 		bool initializeBuffer();
 		bool checkMemoryRequirements(size_t updateSize) const;
+		void resetUpdateState() {
+			updateState = UpdateState();
+		}
 
 	public:
 		WebSocketManager();
 		~WebSocketManager();
 		void connectToWebSocket();
 		void pollWebSocket();
-		void reconnectWebSocket();
-		void resetUpdateState() {
-			updateState = UpdateState();
-		}
+		// void reconnectWebSocket();
 };
 
 #endif

@@ -61,7 +61,7 @@ bool WebSocketManager::decodeBase64(const char* input, uint8_t* output, size_t* 
 bool WebSocketManager::checkMemoryRequirements(size_t updateSize) const {
     const size_t requiredHeap = BUFFER_SIZE + HEAP_OVERHEAD;
     const size_t freeHeap = ESP.getFreeHeap();
-    
+
     Serial.printf("Memory Check:\n");
     Serial.printf("- Required heap: %u bytes\n", requiredHeap);
     Serial.printf("- Free heap: %u bytes\n", freeHeap);
@@ -292,12 +292,12 @@ void WebSocketManager::pollWebSocket() {
     }
 }
 
-void WebSocketManager::reconnectWebSocket() {
-    wsClient.close();
-    if (WiFi.status() == WL_CONNECTED) {
-        Serial.println("Reconnecting to WebSocket...");
-        connectToWebSocket();
-    } else {
-        Serial.println("Cannot reconnect WebSocket, WiFi is not connected");
-    }
-}
+// void WebSocketManager::reconnectWebSocket() {
+//     wsClient.close();
+//     if (WiFi.status() == WL_CONNECTED) {
+//         Serial.println("Reconnecting to WebSocket...");
+//         connectToWebSocket();
+//     } else {
+//         Serial.println("Cannot reconnect WebSocket, WiFi is not connected");
+//     }
+// }
