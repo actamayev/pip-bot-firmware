@@ -27,13 +27,8 @@ const uint8_t IMU_MISO = 14;
 const uint8_t IMU_MOSI = 27;
 const uint8_t IMU_CS = 26;
 
-//Pip Information:
-const char* pip_id = "9YhsJ"; // Local
-// const char* pip_id = "bax2P"; // Staging
-// const char* pip_id = "PmKJZ"; // Prod
-
 const char* hardware_version = "0.0.1";
-std::string pip_uuid = std::string(pip_id) + "-" + std::string(hardware_version);
+std::string pip_uuid = std::string(getPipID()) + "-" + std::string(hardware_version);
 
 // Pip Access point
 std::string ap_ssid = "pip-" + pip_uuid;
@@ -79,7 +74,7 @@ const Environment environment = getEnvironmentFromString("LocalDev");
 
 const char* getServerUrl() {
     if (environment == Environment::LocalDev) {
-        return "http://192.168.1.203:8080";
+        return "http://192.168.230.40:8080";
     } else if (environment == Environment::Staging) {  // Assume Staging for any other environment
         return "staging-api.bluedotrobots.com"; // HTTP/HTTPS prefix handled at usage level if needed
     }
@@ -88,9 +83,18 @@ const char* getServerUrl() {
 
 const char* getWsServerUrl() {
     if (environment == Environment::LocalDev) {
-        return "ws://192.168.1.203:8080/esp32";
+        return "ws://192.168.230.40:8080/esp32";
     } else if (environment == Environment::Staging) {  // Assume Staging for any other environment
         return "wss://staging-api.bluedotrobots.com/esp32";
     }
     return "wss://prod-api.bluedotrobots.com/esp32";
+}
+
+const char* getPipID() {
+    if (environment == Environment::LocalDev) {
+        return "9YhsJ";
+    } else if (environment == Environment::Staging) {
+        return "bax2P";
+    }
+    return "PmKJZ";
 }

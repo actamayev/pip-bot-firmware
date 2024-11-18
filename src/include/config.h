@@ -31,8 +31,6 @@ extern const uint8_t IMU_MISO;
 extern const uint8_t IMU_MOSI;
 extern const uint8_t IMU_CS;
 
-extern const char* pip_id;
-
 // extern std::string pip_uuid;   // Changed to std::string
 extern std::string ap_ssid;    // No change, but ensure it’s std::string here
 
@@ -64,5 +62,6 @@ extern const Environment environment;
 // Getter functions for URLs based on the environment
 const char* getServerUrl();
 const char* getWsServerUrl();
+const char* getPipID();
 
 #endif
