@@ -3,5 +3,4 @@
 #include "./include/config.h"
 
 void user_code() {
-while(true) {digitalWrite(LED_PIN, LOW);    delay(1000);    digitalWrite(LED_PIN, HIGH);    delay(3000);}
 }
