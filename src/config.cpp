@@ -1,7 +1,8 @@
-#include <string>
 #include "./include/config.h"
 
-const uint8_t LED_PIN = 2;
+const uint8_t LED_PIN = 38;
+const uint8_t NUM_LEDS = 1;
+
 const uint8_t DNS_PORT = 53;
 
 const uint8_t DIGITAL_IR_PIN_1 = 32;

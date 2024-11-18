@@ -1,7 +1,3 @@
-#include <Arduino.h>
-#include <Update.h>
-#include <ArduinoJson.h>
-#include <ArduinoWebsockets.h>
 #include "./include/config.h"
 #include "./include/websocket_manager.h"
 

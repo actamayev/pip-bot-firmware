@@ -1,7 +1,7 @@
 #include "./include/config.h"
+#include "./include/rgb_led.h"
 #include "./include/user_code.h"
 #include "./include/wifi_manager.h"
-#include "./include/sensor_setup.h"
 #include "./include/show_chip_info.h"
 #include "./include/esp32_api_client.h"
 #include "./include/webserver_manager.h"
@@ -25,7 +25,8 @@ void setup() {
 
     // Setup WiFi, sensors, etc.
     apiClient = new ESP32ApiClient();
-    sensorSetup.sensor_setup();
+    rgbLed.setup_led();
+    // sensorSetup.sensor_setup();
     wifiManager.initializeWiFi();
     wifiManager.connectToStoredWiFi();
 
