@@ -8,7 +8,6 @@
 WebSocketManager::WebSocketManager() {
     if (environment == Environment::LocalDev) return;
     wsClient.setCACert(rootCACertificate);
-    wsClient.setInsecure();
 
     // Pre-allocate buffer
     if (buffer == nullptr && checkHeapSpace()) {
@@ -261,7 +260,7 @@ void WebSocketManager::connectToWebSocket() {
     if (wsClient.connect(getWsServerUrl())) {
         Serial.println("WebSocket connected. Sending initial data...");
         JsonDocument jsonDoc;  // Small document for initial message
-        jsonDoc["pipUUID"] = pip_id;
+        jsonDoc["pipUUID"] = getPipID();
         String jsonString;
         serializeJson(jsonDoc, jsonString);
         wsClient.send(jsonString);
