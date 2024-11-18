@@ -1,19 +1,19 @@
-#ifndef READ_SENSORS_H
-#define READ_SENSORS_H
-#include <Adafruit_VL53L1X.h>
+// #ifndef READ_SENSORS_H
+// #define READ_SENSORS_H
+// #include <Adafruit_VL53L1X.h>
 
-struct SensorReading {
-    int16_t distance;
-    bool valid;
-};
+// struct SensorReading {
+//     int16_t distance;
+//     bool valid;
+// };
 
-class ReadSensors {
-    public:
-        void read_digital_ir();
-        void read_analog_ir();
-        SensorReading readSensor(Adafruit_VL53L1X& sensor, const char* sensorName);
-};
+// class ReadSensors {
+//     public:
+//         void read_digital_ir();
+//         void read_analog_ir();
+//         SensorReading readSensor(Adafruit_VL53L1X& sensor, const char* sensorName);
+// };
 
-extern ReadSensors readSensors;
+// extern ReadSensors readSensors;
 
-#endif
+// #endif

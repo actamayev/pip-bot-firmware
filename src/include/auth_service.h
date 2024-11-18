@@ -1,18 +1,18 @@
-#ifndef AUTH_SERVICE_H
-#define AUTH_SERVICE_H
+// #ifndef AUTH_SERVICE_H
+// #define AUTH_SERVICE_H
 
-#include "http_client.h"
-#include "./include/config.h"
+// #include "http_client.h"
+// #include "./include/config.h"
 
-class AuthService {
-    public:
-        AuthService(HttpClient& client);
+// class AuthService {
+//     public:
+//         AuthService(HttpClient& client);
 
-        String login(const String& loginInformation);
-        String logout();
-    private:
-        HttpClient& httpClient;
-};
+//         String login(const String& loginInformation);
+//         String logout();
+//     private:
+//         HttpClient& httpClient;
+// };
 
-#endif
+// #endif
 
