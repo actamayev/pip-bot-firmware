@@ -29,8 +29,6 @@ const uint8_t IMU_MOSI = 27;
 const uint8_t IMU_CS = 26;
 
 const char* hardware_version = "0.0.1";
-// Preivously sued as the ap_ssid
-// std::string pip_uuid = std::string(getPipID()) + "-" + std::string(hardware_version);
 
 // Pip Access point
 std::string ap_ssid = "pip-" + std::string(getPipID());
