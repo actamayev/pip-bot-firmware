@@ -1,4 +1,3 @@
-#include <WiFi.h>
 #include "./include/config.h"
 #include "./include/wifi_manager.h"
 #include "./include/webserver_manager.h"

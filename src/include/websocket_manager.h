@@ -2,6 +2,7 @@
 #define WEBSOCKET_MANAGER_H
 
 #include <Update.h>
+#include <Arduino.h>
 #include <ArduinoJson.h>
 #include <mbedtls/base64.h>
 #include <ArduinoWebsockets.h>

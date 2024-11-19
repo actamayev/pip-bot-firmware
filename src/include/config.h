@@ -6,6 +6,8 @@
 #pragma once
 
 extern const uint8_t LED_PIN;
+extern const uint8_t NUM_LEDS;
+
 extern const uint8_t DNS_PORT;
 
 extern const uint8_t DIGITAL_IR_PIN_1;

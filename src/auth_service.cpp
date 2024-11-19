@@ -1,5 +1,5 @@
-#include "./include/auth_service.h"
 #include "./include/config.h"
+#include "./include/auth_service.h"
 
 AuthService::AuthService(HttpClient& client) : httpClient(client) {}
 
