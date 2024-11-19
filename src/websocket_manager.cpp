@@ -128,30 +128,31 @@ void WebSocketManager::processChunk(const char* data, size_t chunkIndex, bool is
     }
 
     size_t decodedLen = BUFFER_SIZE;
-    if (decodeBase64(data, buffer, &decodedLen)) {
-        if (Update.write(buffer, decodedLen) != decodedLen) {
-            Serial.printf("Write failed at chunk: %u\n", chunkIndex);
-            endUpdate(false);
-            return;
-        }
-        
-        updateState.receivedSize += decodedLen;
-        updateState.receivedChunks++;
-        updateState.lastChunkTime = millis();
-        
-        Serial.printf("Chunk %u/%u - Progress: %d%%\n", 
-            chunkIndex + 1, 
-            updateState.totalChunks,
-            (updateState.receivedSize * 100) / updateState.totalSize
-        );
-
-        if (isLast) {
-            Serial.println("Processing final chunk");
-            endUpdate(true);
-        }
-    } else {
+    if (!decodeBase64(data, buffer, &decodedLen)) {
         Serial.println("Base64 decode failed");
         endUpdate(false);
+        return;
+    }
+
+    if (Update.write(buffer, decodedLen) != decodedLen) {
+        Serial.printf("Write failed at chunk: %u\n", chunkIndex);
+        endUpdate(false);
+        return;
+    }
+
+    updateState.receivedSize += decodedLen;
+    updateState.receivedChunks++;
+    updateState.lastChunkTime = millis();
+    
+    Serial.printf("Chunk %u/%u - Progress: %d%%\n", 
+        chunkIndex + 1, 
+        updateState.totalChunks,
+        (updateState.receivedSize * 100) / updateState.totalSize
+    );
+
+    if (isLast) {
+        Serial.println("Processing final chunk");
+        endUpdate(true);
     }
 }
 
