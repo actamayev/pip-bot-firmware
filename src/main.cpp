@@ -1,9 +1,8 @@
 #include "./include/config.h"
-#include <Arduino.h>
 // #include "./include/rgb_led.h"
 // #include "./include/user_code.h"
 // #include "./include/wifi_manager.h"
-// #include "./include/show_chip_info.h"
+#include "./include/show_chip_info.h"
 // #include "./include/esp32_api_client.h"
 // #include "./include/webserver_manager.h"
 
@@ -16,54 +15,40 @@
 // }
 
 // Main setup runs on Core 1
-// void setup() {
-//     Serial.begin(115200);
-//     delay(2000);
-
-//     Serial.printf("setup() running on Core %d\n", xPortGetCoreID());
-
-//     printFlashInfo();
-
-//     // Setup WiFi, sensors, etc.
-//     // apiClient = new ESP32ApiClient();
-//     // rgbLed.setup_led();
-//     // // sensorSetup.sensor_setup();
-//     // wifiManager.initializeWiFi();
-//     // wifiManager.connectToStoredWiFi();
-
-//     // // Create task for user code on Core 0
-//     // xTaskCreatePinnedToCore(
-//     //     UserCodeTask,  // Function to run
-//     //     "UserCode",    // Task name
-//     //     10000,         // Stack size
-//     //     NULL,          // Task parameters
-//     //     1,             // Priority
-//     //     NULL,          // Task handle
-//     //     0              // Run on Core 0
-//     // );
-// }
-
-// // Main loop runs on Core 1
-// void loop() {
-//     // Network-related tasks on Core 1
-//     // webServerManager.handleClientRequests();
-    
-//     // if (WiFi.status() == WL_CONNECTED) {
-//     //     apiClient->pollWebSocket();
-//     // }
-// }
-
 void setup() {
-  Serial.begin(115200);
-  Serial.println("Starting color gradient...");
-//     strip.setPixelColor(0, strip.Color(0, 0, 0));
-//   strip.show(); // Initialize all pixels to 'off'
+    Serial.begin(115200);
+    delay(2000);
+
+    Serial.printf("setup() running on Core %d\n", xPortGetCoreID());
+
+    printFlashInfo();
+
+    // Setup WiFi, sensors, etc.
+    // apiClient = new ESP32ApiClient();
+    // rgbLed.setup_led();
+    // // sensorSetup.sensor_setup();
+    // wifiManager.initializeWiFi();
+    // wifiManager.connectToStoredWiFi();
+
+    // // Create task for user code on Core 0
+    // xTaskCreatePinnedToCore(
+    //     UserCodeTask,  // Function to run
+    //     "UserCode",    // Task name
+    //     10000,         // Stack size
+    //     NULL,          // Task parameters
+    //     1,             // Priority
+    //     NULL,          // Task handle
+    //     0              // Run on Core 0
+    // );
 }
 
+// // Main loop runs on Core 1
 void loop() {
-    Serial.println("hello1");
-    // strip.setPixelColor(0, strip.Color(255, 0, 255));
-    // strip.show();
-    delay(500);
+    // Network-related tasks on Core 1
+    // webServerManager.handleClientRequests();
+    
+    // if (WiFi.status() == WL_CONNECTED) {
+    //     apiClient->pollWebSocket();
+    // }
 }
 
