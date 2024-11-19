@@ -20,8 +20,12 @@ void setup() {
     delay(2000);
 
     Serial.printf("setup() running on Core %d\n", xPortGetCoreID());
+  Serial.println(ESP.getPsramSize());
+  Serial.println(ESP.getFreePsram());
 
+    Serial.println(psramFound());
     printFlashInfo();
+    testPSRAM();
 
     // Setup WiFi, sensors, etc.
     // apiClient = new ESP32ApiClient();

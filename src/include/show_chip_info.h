@@ -7,5 +7,6 @@
 #include <esp_partition.h>
 
 void printFlashInfo();
+void testPSRAM();
 
 #endif
