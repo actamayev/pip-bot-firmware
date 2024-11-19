@@ -2,18 +2,18 @@
 #include "./include/websocket_manager.h"
 
 WebSocketManager::WebSocketManager() {
-    if (environment == Environment::LocalDev) return;
-    wsClient.setCACert(rootCACertificate);
-
     // Pre-allocate buffer
     if (buffer == nullptr && checkHeapSpace()) {
-            buffer = (uint8_t*)malloc(BUFFER_SIZE);
-            if (buffer == nullptr) {
-                Serial.println("Failed to allocate WebSocket buffer");
-            } else {
-                Serial.printf("Successfully allocated %u byte buffer\n", BUFFER_SIZE);
-            }
+        buffer = (uint8_t*)ps_malloc(BUFFER_SIZE);
+        if (buffer == nullptr) {
+            Serial.println("Failed to allocate WebSocket buffer");
+        } else {
+            Serial.printf("Successfully allocated %u byte buffer\n", BUFFER_SIZE);
         }
+    }
+
+    if (environment == Environment::LocalDev) return;
+    wsClient.setCACert(rootCACertificate);
 }
 
 WebSocketManager::~WebSocketManager() {
