@@ -5,12 +5,24 @@ RgbLed rgbLed;
 
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_LEDS, LED_PIN, NEO_GRB + NEO_KHZ800);
 
-void RgbLed::setup_led() {
+void RgbLed::turn_led_off() {
     set_led_to_color(0, 0, 0);
+}
+
+void RgbLed::set_led_red() {
+    set_led_to_color(255, 0, 0);
+}
+
+void RgbLed::set_led_green() {
+    set_led_to_color(0, 255, 0);
 }
 
 void RgbLed::set_led_blue() {
     set_led_to_color(0, 0, 255);
+}
+
+void RgbLed::set_led_white() {
+    set_led_to_color(255, 255, 255);
 }
 
 void RgbLed::set_led_to_color(int red, int green, int blue) {

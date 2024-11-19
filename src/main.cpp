@@ -24,7 +24,7 @@ void setup() {
 
     // Setup WiFi, sensors, etc.
     apiClient = new ESP32ApiClient();
-    rgbLed.setup_led();
+    rgbLed.turn_led_off();
     // sensorSetup.sensor_setup();
     wifiManager.initializeWiFi();
     wifiManager.connectToStoredWiFi();

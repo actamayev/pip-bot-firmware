@@ -29,10 +29,11 @@ const uint8_t IMU_MOSI = 27;
 const uint8_t IMU_CS = 26;
 
 const char* hardware_version = "0.0.1";
-std::string pip_uuid = std::string(getPipID()) + "-" + std::string(hardware_version);
+// Preivously sued as the ap_ssid
+// std::string pip_uuid = std::string(getPipID()) + "-" + std::string(hardware_version);
 
 // Pip Access point
-std::string ap_ssid = "pip-" + pip_uuid;
+std::string ap_ssid = "pip-" + std::string(getPipID());
 const char* ap_password = "bluedotrobots";
 
 // echo | openssl s_client -showcerts -connect staging-api.bluedotrobots.com:443
@@ -75,7 +76,7 @@ const Environment environment = getEnvironmentFromString("LocalDev");
 
 const char* getServerUrl() {
     if (environment == Environment::LocalDev) {
-        return "http://192.168.230.40:8080";
+        return "http://192.168.91.40:8080";
     } else if (environment == Environment::Staging) {  // Assume Staging for any other environment
         return "staging-api.bluedotrobots.com"; // HTTP/HTTPS prefix handled at usage level if needed
     }
@@ -84,7 +85,7 @@ const char* getServerUrl() {
 
 const char* getWsServerUrl() {
     if (environment == Environment::LocalDev) {
-        return "ws://192.168.230.40:8080/esp32";
+        return "ws://192.168.91.40:8080/esp32";
     } else if (environment == Environment::Staging) {  // Assume Staging for any other environment
         return "wss://staging-api.bluedotrobots.com/esp32";
     }

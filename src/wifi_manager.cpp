@@ -21,7 +21,7 @@ void WiFiManager::onWiFiEvent(void* arg, esp_event_base_t event_base, int32_t ev
 		return;
 	}
 	Serial.println("WiFi disconnected! Reconnecting...");
-	rgbLed.setup_led();
+	rgbLed.turn_led_off();
 
 	// Reconnect to WiFi (using the WiFiManager instance)
 	WiFiManager* wifiManager = static_cast<WiFiManager*>(arg);

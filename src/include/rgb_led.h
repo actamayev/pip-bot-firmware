@@ -4,8 +4,12 @@
 
 class RgbLed {
     public:
-        void setup_led();
+        void turn_led_off();
+        void set_led_red();
+        void set_led_green();
         void set_led_blue();
+        void set_led_white();
+    private:
         void set_led_to_color(int red, int green, int blue);  
 };
 
