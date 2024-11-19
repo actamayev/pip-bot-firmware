@@ -1,5 +1,3 @@
-#include <Wire.h>
-#include <Adafruit_VL53L1X.h>
 #include "./include/config.h"
 #include "./include/sensor_setup.h"
 
@@ -10,10 +8,6 @@ Adafruit_VL53L1X sensor2 = Adafruit_VL53L1X();
 Adafruit_VL53L1X sensor3 = Adafruit_VL53L1X();
 
 void SensorSetup::sensor_setup() {
-    // Setup onboard LED
-	pinMode(LED_PIN, OUTPUT);
-	digitalWrite(LED_PIN, LOW); // Turn off LED initially
-
     // pinMode(DIGITAL_IR_PIN_1, INPUT); // GPIO 32
     // pinMode(DIGITAL_IR_PIN_3, INPUT); // GPIO 34
 

@@ -1,4 +1,3 @@
-#include <WiFiClientSecure.h>
 #include "./include/config.h"
 #include "./include/http_client.h"
 

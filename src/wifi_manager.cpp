@@ -1,4 +1,5 @@
 #include "./include/config.h"
+#include "./include/rgb_led.h"
 #include "./include/wifi_manager.h"
 #include "./include/esp32_api_client.h"
 #include "./include/webserver_manager.h"
@@ -20,7 +21,7 @@ void WiFiManager::onWiFiEvent(void* arg, esp_event_base_t event_base, int32_t ev
 		return;
 	}
 	Serial.println("WiFi disconnected! Reconnecting...");
-	digitalWrite(LED_PIN, LOW);  // Indicate failure with LED
+	rgbLed.turn_led_off();
 
 	// Reconnect to WiFi (using the WiFiManager instance)
 	WiFiManager* wifiManager = static_cast<WiFiManager*>(arg);
@@ -39,7 +40,7 @@ void WiFiManager::onIpEvent(void* arg, esp_event_base_t event_base, int32_t even
 
 	// Print the IP address using the IPAddress class
 	Serial.println("WiFi connected! IP address: " + ip.toString());
-	digitalWrite(LED_PIN, HIGH);  // Indicate success with LED
+	rgbLed.set_led_blue();
 
 	// Now connect to the WebSocket
 	apiClient->connectWebSocket();  // Try connecting to WebSocket after WiFi is connected
@@ -89,7 +90,7 @@ bool WiFiManager::attemptNewWifiConnection(String ssid, String password) {
 
 	if (WiFi.status() == WL_CONNECTED) {
 		Serial.println("Connected to Wi-Fi!");
-		digitalWrite(LED_PIN, HIGH);  // Turn on LED to show success
+		rgbLed.set_led_blue();
 		apiClient->connectWebSocket();
 		return true;
 	} else {
