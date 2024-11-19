@@ -19,12 +19,11 @@ void setup() {
     Serial.begin(115200);
     delay(2000);
 
-    Serial.println(psramFound());
     printFlashInfo();
 
+    rgbLed.turn_led_off();
     // Setup WiFi, sensors, etc.
     apiClient = new ESP32ApiClient();
-    rgbLed.turn_led_off();
     // sensorSetup.sensor_setup();
     wifiManager.initializeWiFi();
     wifiManager.connectToStoredWiFi();
