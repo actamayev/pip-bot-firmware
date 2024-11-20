@@ -26,6 +26,7 @@ class WebSocketManager {
         int64_t extractInt(const char* json, const jsmntok_t* tok);
         bool extractBool(const char* json, const jsmntok_t* tok);
         void sendJsonMessage(const char* event, const char* status, const char* extra = nullptr);
+        void processChunk(const char* chunkData, int chunkDataLength, size_t chunkIndex, size_t totalChunks, size_t totalSize, bool isLast);
 	public:
 		WebSocketManager();
 		void connectToWebSocket();
