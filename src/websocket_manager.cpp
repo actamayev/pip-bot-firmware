@@ -24,7 +24,7 @@ WebSocketManager::~WebSocketManager() {
 }
 
 bool WebSocketManager::checkHeapSpace() {
-    const size_t REQUIRED_HEAP = BUFFER_SIZE + (32 * 1024); // Buffer size plus 32KB overhead
+    const size_t REQUIRED_HEAP = BUFFER_SIZE + HEAP_OVERHEAD;
     size_t freeHeap = ESP.getFreeHeap();
     if (freeHeap < REQUIRED_HEAP) {
         Serial.printf("Insufficient heap space. Required: %u, Available: %u\n", 
@@ -74,7 +74,7 @@ bool WebSocketManager::checkMemoryRequirements(size_t updateSize) const {
 bool WebSocketManager::initializeBuffer() {
     if (buffer != nullptr) return true;
     
-    buffer = (uint8_t*)malloc(BUFFER_SIZE);
+    buffer = (uint8_t*)ps_malloc(BUFFER_SIZE);
     if (buffer == nullptr) {
         Serial.println("Failed to allocate buffer");
         return false;
@@ -162,6 +162,7 @@ void WebSocketManager::handleMessage(WebsocketsMessage message) {
     const String& data = message.data();
     
     // Debug prints
+    Serial.println("\n");
     Serial.printf("Received message length: %u\n", data.length());
     Serial.printf("First 100 chars: %.100s\n", data.c_str());
     Serial.printf("Free heap before JSON: %u\n", ESP.getFreeHeap());
@@ -173,7 +174,7 @@ void WebSocketManager::handleMessage(WebsocketsMessage message) {
     if (error) {
         Serial.printf("JSON Error: %s\n", error.c_str());
         Serial.printf("Message length: %u\n", data.length());
-        
+
         // Send error back to server
         DynamicJsonDocument errorDoc(256);
         errorDoc["event"] = "update_status";
