@@ -217,7 +217,7 @@ void FirmwareUpdater::end(bool success) {
 
 void FirmwareUpdater::checkTimeout() {
     if (state.updateStarted && 
-        (millis() - state.lastChunkTime > 10000)) { // 10 second timeout
+        (millis() - state.lastChunkTime > 15000)) { // 15 second timeout
         Serial.println("Update timeout");
         end(false);
     }
