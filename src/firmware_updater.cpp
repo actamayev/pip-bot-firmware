@@ -1,40 +1,65 @@
 #include "./include/firmware_updater.h"
 
-FirmwareUpdater::FirmwareUpdater(): buffer(nullptr) {
-    if (!checkHeapSpace()) return;
-    buffer = (uint8_t*)ps_malloc(BUFFER_SIZE);
-    if (buffer == nullptr) {
-        Serial.println("Failed to allocate update buffer");
-    } else {
-        Serial.printf("Successfully allocated %u byte buffer\n", BUFFER_SIZE);
-    }
+FirmwareUpdater::FirmwareUpdater() : transferBuffer(nullptr), workingBuffer(nullptr) {
+    initializeBuffers();
 }
 
 FirmwareUpdater::~FirmwareUpdater() {
-    if (buffer != nullptr) {
-        free(buffer);
-        buffer = nullptr;
+    if (transferBuffer != nullptr) {
+        free(transferBuffer);
+        transferBuffer = nullptr;
+    }
+    if (workingBuffer != nullptr) {
+        free(workingBuffer);
+        workingBuffer = nullptr;
     }
 }
 
+bool FirmwareUpdater::initializeBuffers() {
+    // Allocate large buffer in PSRAM
+    if (transferBuffer == nullptr) {
+        transferBuffer = (uint8_t*)ps_malloc(TRANSFER_BUFFER_SIZE);
+        if (transferBuffer == nullptr) {
+            Serial.println("Failed to allocate PSRAM transfer buffer");
+            return false;
+        }
+        Serial.printf("Allocated %u byte PSRAM transfer buffer\n", TRANSFER_BUFFER_SIZE);
+    }
+
+    // Allocate smaller buffer in RAM
+    if (workingBuffer == nullptr) {
+        workingBuffer = (uint8_t*)malloc(WORKING_BUFFER_SIZE);
+        if (workingBuffer == nullptr) {
+            Serial.println("Failed to allocate RAM working buffer");
+            return false;
+        }
+        Serial.printf("Allocated %u byte RAM working buffer\n", WORKING_BUFFER_SIZE);
+    }
+
+    return true;
+}
+
 bool FirmwareUpdater::checkHeapSpace() const {
-    const size_t REQUIRED_HEAP = BUFFER_SIZE + HEAP_OVERHEAD;
+    const size_t requiredHeap = WORKING_BUFFER_SIZE + HEAP_OVERHEAD;
     size_t freeHeap = ESP.getFreeHeap();
-    if (freeHeap < REQUIRED_HEAP) {
+    if (freeHeap < requiredHeap) {
         Serial.printf("Insufficient heap space. Required: %u, Available: %u\n", 
-            REQUIRED_HEAP, freeHeap);
+            requiredHeap, freeHeap);
         return false;
     }
     return true;
 }
 
 bool FirmwareUpdater::checkMemoryRequirements(size_t updateSize) const {
-    const size_t requiredHeap = BUFFER_SIZE + HEAP_OVERHEAD;
-    const size_t freeHeap = ESP.getFreeHeap();
+    // printMemoryStats();
 
-    Serial.printf("Memory Check:\n");
+    const size_t requiredHeap = WORKING_BUFFER_SIZE + HEAP_OVERHEAD;
+    const size_t freeHeap = ESP.getFreeHeap();
+    const size_t freePsram = ESP.getFreePsram();
+
+    Serial.printf("\nMemory Requirements:\n");
     Serial.printf("- Required heap: %u bytes\n", requiredHeap);
-    Serial.printf("- Free heap: %u bytes\n", freeHeap);
+    Serial.printf("- Required PSRAM: %u bytes\n", TRANSFER_BUFFER_SIZE);
     Serial.printf("- Update size: %u bytes\n", updateSize);
 
     if (freeHeap < requiredHeap) {
@@ -42,19 +67,13 @@ bool FirmwareUpdater::checkMemoryRequirements(size_t updateSize) const {
             requiredHeap - freeHeap);
         return false;
     }
-    return true;
-}
 
-bool FirmwareUpdater::initializeBuffer() {
-    if (buffer != nullptr) return true;
-    
-    buffer = (uint8_t*)ps_malloc(BUFFER_SIZE);
-    if (buffer == nullptr) {
-        Serial.println("Failed to allocate buffer");
+    if (freePsram < TRANSFER_BUFFER_SIZE) {
+        Serial.printf("Insufficient PSRAM. Need %u more bytes\n",
+            TRANSFER_BUFFER_SIZE - freePsram);
         return false;
     }
-    
-    Serial.printf("Buffer allocated: %u bytes\n", BUFFER_SIZE);
+
     return true;
 }
 
@@ -77,12 +96,47 @@ bool FirmwareUpdater::decodeBase64(const char* input, uint8_t* output, size_t* o
     return false;
 }
 
+bool FirmwareUpdater::canAcceptChunk(size_t chunkSize) const {
+    // Check if there's room in the transfer buffer
+    size_t availableSpace = TRANSFER_BUFFER_SIZE - state.transferBufferPos;
+    // Account for base64 decoding (output is about 3/4 of input)
+    size_t decodedSize = (chunkSize * 3) / 4;
+    return decodedSize <= availableSpace;
+}
+
+void FirmwareUpdater::processTransferBuffer() {
+    if (state.transferBufferPos == 0) return;
+
+    size_t remaining = state.transferBufferPos;
+    size_t processedBytes = 0;
+
+    while (remaining > 0) {
+        size_t chunkSize = min(remaining, WORKING_BUFFER_SIZE);
+        
+        // Copy chunk from PSRAM to RAM working buffer
+        memcpy(workingBuffer, transferBuffer + processedBytes, chunkSize);
+        
+        // Write to flash
+        if (Update.write(workingBuffer, chunkSize) != chunkSize) {
+            Serial.printf("Write failed at offset: %u\n", processedBytes);
+            end(false);
+            return;
+        }
+        
+        processedBytes += chunkSize;
+        remaining -= chunkSize;
+    }
+
+    // Reset transfer buffer position after processing
+    state.transferBufferPos = 0;
+}
+
 bool FirmwareUpdater::begin(size_t size) {
-    if (
-        size == 0 ||
-        !checkMemoryRequirements(size) ||
-        !initializeBuffer()
-    ) return false;
+    if (size == 0) return false;
+
+    if (!checkMemoryRequirements(size) || !initializeBuffers()) {
+        return false;
+    }
 
     Serial.printf("Starting update of %u bytes\n", size);
     if (!Update.begin(size)) {
@@ -93,6 +147,7 @@ bool FirmwareUpdater::begin(size_t size) {
     state.updateStarted = true;
     state.totalSize = size;
     state.receivedSize = 0;
+    state.transferBufferPos = 0;
     state.lastChunkTime = millis();
 
     Serial.printf("Update started. Size: %u bytes\n", size);
@@ -100,33 +155,40 @@ bool FirmwareUpdater::begin(size_t size) {
 }
 
 void FirmwareUpdater::processChunk(const char* data, size_t chunkIndex, bool isLast) {
-    if (!buffer || !state.updateStarted) {
+    if (!transferBuffer || !workingBuffer || !state.updateStarted) {
         Serial.println("Update not properly initialized");
         return;
     }
 
-    size_t decodedLen = BUFFER_SIZE;
-    if (!decodeBase64(data, buffer, &decodedLen)) {
+    // Check if we need to process current buffer first
+    if (!canAcceptChunk(strlen(data))) {
+        Serial.println("Processing current buffer before accepting new chunk");
+        processTransferBuffer();
+    }
+
+    // Decode base64 directly into transfer buffer at current position
+    size_t decodedLen = TRANSFER_BUFFER_SIZE - state.transferBufferPos;
+    if (!decodeBase64(data, transferBuffer + state.transferBufferPos, &decodedLen)) {
         Serial.println("Base64 decode failed");
         end(false);
         return;
     }
 
-    if (Update.write(buffer, decodedLen) != decodedLen) {
-        Serial.printf("Write failed at chunk: %u\n", chunkIndex);
-        end(false);
-        return;
-    }
-
+    state.transferBufferPos += decodedLen;
     state.receivedSize += decodedLen;
     state.receivedChunks++;
     state.lastChunkTime = millis();
-    
+
     Serial.printf("Chunk %u/%u - Progress: %d%%\n", 
         chunkIndex + 1, 
         state.totalChunks,
         (state.receivedSize * 100) / state.totalSize
     );
+
+    // Process buffer if it's getting full or this is the last chunk
+    if (isLast || state.transferBufferPos >= (TRANSFER_BUFFER_SIZE * 0.8)) {
+        processTransferBuffer();
+    }
 
     if (isLast) {
         Serial.println("Processing final chunk");
@@ -136,6 +198,11 @@ void FirmwareUpdater::processChunk(const char* data, size_t chunkIndex, bool isL
 
 void FirmwareUpdater::end(bool success) {
     if (!state.updateStarted) return;
+
+    // Process any remaining data in transfer buffer
+    if (state.transferBufferPos > 0) {
+        processTransferBuffer();
+    }
 
     if (success && Update.end()) {
         Serial.println("Update successful!");
