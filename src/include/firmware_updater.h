@@ -9,7 +9,7 @@ class FirmwareUpdater {
     private:
         static const size_t BUFFER_SIZE = 64 * 1024;       // 64KB buffer
         static const size_t HEAP_OVERHEAD = 32 * 1024;     // 32KB overhead
-        
+
         uint8_t* buffer;
         
         // Update state tracking

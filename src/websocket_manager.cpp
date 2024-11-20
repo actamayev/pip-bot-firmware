@@ -13,7 +13,7 @@ void WebSocketManager::handleMessage(WebsocketsMessage message) {
 
     Serial.println("\n");
     Serial.printf("Received message length: %u\n", data.length());
-    Serial.printf("First 100 chars: %.100s\n", data.c_str());
+    Serial.printf("First 150 chars: %.150s\n", data.c_str());
     Serial.printf("Free heap before JSON: %u\n", ESP.getFreeHeap());
 
     DynamicJsonDocument doc(JSON_DOC_SIZE);
@@ -27,7 +27,7 @@ void WebSocketManager::handleMessage(WebsocketsMessage message) {
         errorDoc["event"] = "update_status";
         errorDoc["status"] = "error";
         errorDoc["error"] = String("JSON parse error: ") + error.c_str();
-        
+
         String errorJson;
         serializeJson(errorDoc, errorJson);
         wsClient.send(errorJson);
@@ -45,14 +45,14 @@ void WebSocketManager::handleMessage(WebsocketsMessage message) {
         size_t chunkIndex = doc["chunkIndex"] | 0;
         size_t totalChunks = doc["totalChunks"] | 0;
         const char* chunkData = doc["data"];
-        
+
         if (!chunkData) {
             Serial.println("No data in chunk");
             return;
         }
 
         Serial.printf("Processing chunk %u/%u\n", chunkIndex + 1, totalChunks);
-        
+
         // First chunk initialization
         if (chunkIndex == 0) {
             size_t totalSize = doc["totalSize"] | 0;
@@ -60,7 +60,7 @@ void WebSocketManager::handleMessage(WebsocketsMessage message) {
                 return;
             }
             updater.setTotalChunks(totalChunks);
-    
+
             DynamicJsonDocument readyDoc(256);
             readyDoc["event"] = "update_status";
             readyDoc["status"] = "ready";

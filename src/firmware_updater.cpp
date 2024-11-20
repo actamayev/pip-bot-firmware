@@ -1,13 +1,12 @@
 #include "./include/firmware_updater.h"
 
 FirmwareUpdater::FirmwareUpdater(): buffer(nullptr) {
-    if (checkHeapSpace()) {
-        buffer = (uint8_t*)ps_malloc(BUFFER_SIZE);
-        if (buffer == nullptr) {
-            Serial.println("Failed to allocate update buffer");
-        } else {
-            Serial.printf("Successfully allocated %u byte buffer\n", BUFFER_SIZE);
-        }
+    if (!checkHeapSpace()) return;
+    buffer = (uint8_t*)ps_malloc(BUFFER_SIZE);
+    if (buffer == nullptr) {
+        Serial.println("Failed to allocate update buffer");
+    } else {
+        Serial.printf("Successfully allocated %u byte buffer\n", BUFFER_SIZE);
     }
 }
 
@@ -62,7 +61,7 @@ bool FirmwareUpdater::initializeBuffer() {
 bool FirmwareUpdater::decodeBase64(const char* input, uint8_t* output, size_t* outputLength) {
     size_t inputLength = strlen(input);
     size_t written = 0;
-    
+
     int result = mbedtls_base64_decode(
         output,
         *outputLength,
@@ -70,7 +69,7 @@ bool FirmwareUpdater::decodeBase64(const char* input, uint8_t* output, size_t* o
         (const unsigned char*)input,
         inputLength
     );
-    
+
     if (result == 0) {
         *outputLength = written;
         return true;
@@ -79,10 +78,11 @@ bool FirmwareUpdater::decodeBase64(const char* input, uint8_t* output, size_t* o
 }
 
 bool FirmwareUpdater::begin(size_t size) {
-    if (size == 0) return false;
-
-    if (!checkMemoryRequirements(size)) return false;
-    if (!initializeBuffer()) return false;
+    if (
+        size == 0 ||
+        !checkMemoryRequirements(size) ||
+        !initializeBuffer()
+    ) return false;
 
     Serial.printf("Starting update of %u bytes\n", size);
     if (!Update.begin(size)) {
