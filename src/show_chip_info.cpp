@@ -62,19 +62,19 @@ void printFlashInfo() {
 
 void testPSRAM() {
     Serial.println("\n=== PSRAM Test ===");
-    
+
     if (psramInit()) {
         Serial.println("PSRAM initialized successfully");
-        
+
         // Get PSRAM info
         size_t psram_size = ESP.getPsramSize();
         Serial.printf("PSRAM Size: %d bytes (%.2f MB)\n", psram_size, psram_size / 1024.0 / 1024.0);
         Serial.printf("Free PSRAM: %d bytes\n", ESP.getFreePsram());
-        
+
         // Try to allocate memory in PSRAM
         const size_t alloc_size = 1024 * 1024; // 1MB
         void* ptr = ps_malloc(alloc_size);
-        
+
         if (ptr != NULL) {
             Serial.printf("Successfully allocated %d bytes in PSRAM\n", alloc_size);
             
@@ -92,7 +92,7 @@ void testPSRAM() {
                     break;
                 }
             }
-            
+
             Serial.printf("Memory verification: %s\n", verify_ok ? "PASSED" : "FAILED");
             free(ptr);
         } else {
