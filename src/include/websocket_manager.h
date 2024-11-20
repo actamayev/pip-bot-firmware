@@ -23,8 +23,6 @@ class WebSocketManager {
 
         void handleMessage(websockets::WebsocketsMessage message);
 		void sendErrorMessage(const char* error);
-		bool jsoneq(const char* json, const jsmntok_t* tok, const char* s);
-        String extractString(const char* json, const jsmntok_t* tok);
         int64_t extractInt(const char* json, const jsmntok_t* tok);
         bool extractBool(const char* json, const jsmntok_t* tok);
         void sendJsonMessage(const char* event, const char* status, const char* extra = nullptr);

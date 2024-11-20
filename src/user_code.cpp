@@ -4,7 +4,7 @@
 
 void user_code() {
 while(true) {
-    rgbLed.set_led_white();
+    rgbLed.set_led_green();
     delay(1000);
 }
 }
