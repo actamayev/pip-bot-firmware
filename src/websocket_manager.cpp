@@ -174,4 +174,3 @@ void WebSocketManager::pollWebSocket() {
         }
     }
 }
-
