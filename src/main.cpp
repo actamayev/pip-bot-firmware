@@ -19,7 +19,7 @@ void setup() {
     Serial.begin(115200);
     delay(2000);
 
-    printFlashInfo();
+    // printFlashInfo();
 
     rgbLed.turn_led_off();
     // Setup WiFi, sensors, etc.

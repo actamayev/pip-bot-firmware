@@ -1,54 +1,34 @@
 #ifndef WEBSOCKET_MANAGER_H
 #define WEBSOCKET_MANAGER_H
 
-#include <Update.h>
 #include <Arduino.h>
 #include <ArduinoJson.h>
-#include <mbedtls/base64.h>
 #include <ArduinoWebsockets.h>
+#define JSMN_HEADER
+#include "./jsmn.h"
+#include "./firmware_updater.h"
 
 using namespace websockets;
 
 class WebSocketManager {
 	private:
-		static const size_t BUFFER_SIZE = 16 * 1024;       // 16KB buffer
-		static const size_t HEAP_OVERHEAD = 32 * 1024;     // 32KB overhead
-		static const size_t JSON_DOC_SIZE = 8 * 1024;      // 8KB for JSON
+        static const size_t MAX_TOKENS = 32;  // Maximum number of JSON tokens
+        jsmn_parser parser;
+        jsmntok_t tokens[MAX_TOKENS];
 
-		websockets::WebsocketsClient wsClient;
-		uint8_t* buffer = nullptr;
+        static const size_t SMALL_DOC_SIZE = 256;       // For small outgoing messages
 
-		// Update state tracking
-		struct UpdateState {
-			size_t totalSize;
-			size_t receivedSize;
-			size_t totalChunks;
-			size_t receivedChunks;
-			bool updateStarted;
-			uint32_t lastChunkTime;
+        websockets::WebsocketsClient wsClient;
+        FirmwareUpdater updater;
 
-			UpdateState() : totalSize(0), receivedSize(0), totalChunks(0),
-						receivedChunks(0), updateStarted(false), lastChunkTime(0) {}
-		};
-
-		UpdateState updateState;
-
-		// Private methods
-		bool decodeBase64(const char* input, uint8_t* output, size_t* outputLength);
-		void handleMessage(websockets::WebsocketsMessage message);
-		bool startUpdate(size_t size);
-		void endUpdate(bool success);
-		void processChunk(const char* data, size_t chunkIndex, bool isLast);
-		bool checkHeapSpace();
-		bool initializeBuffer();
-		bool checkMemoryRequirements(size_t updateSize) const;
-		void resetUpdateState() {
-			updateState = UpdateState();
-		}
-
+        void handleMessage(websockets::WebsocketsMessage message);
+		void sendErrorMessage(const char* error);
+        int64_t extractInt(const char* json, const jsmntok_t* tok);
+        bool extractBool(const char* json, const jsmntok_t* tok);
+        void sendJsonMessage(const char* event, const char* status, const char* extra = nullptr);
+        void processChunk(const char* chunkData, int chunkDataLength, size_t chunkIndex, size_t totalChunks, size_t totalSize, bool isLast);
 	public:
 		WebSocketManager();
-		~WebSocketManager();
 		void connectToWebSocket();
 		void pollWebSocket();
 };
