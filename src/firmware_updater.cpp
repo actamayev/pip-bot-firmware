@@ -39,20 +39,7 @@ bool FirmwareUpdater::initializeBuffers() {
     return true;
 }
 
-bool FirmwareUpdater::checkHeapSpace() const {
-    const size_t requiredHeap = WORKING_BUFFER_SIZE + HEAP_OVERHEAD;
-    size_t freeHeap = ESP.getFreeHeap();
-    if (freeHeap < requiredHeap) {
-        Serial.printf("Insufficient heap space. Required: %u, Available: %u\n", 
-            requiredHeap, freeHeap);
-        return false;
-    }
-    return true;
-}
-
 bool FirmwareUpdater::checkMemoryRequirements(size_t updateSize) const {
-    // printMemoryStats();
-
     const size_t requiredHeap = WORKING_BUFFER_SIZE + HEAP_OVERHEAD;
     const size_t freeHeap = ESP.getFreeHeap();
     const size_t freePsram = ESP.getFreePsram();
@@ -221,4 +208,8 @@ void FirmwareUpdater::checkTimeout() {
         Serial.println("Update timeout");
         end(false);
     }
+}
+
+void FirmwareUpdater::resetState() {
+    state = UpdateState();
 }

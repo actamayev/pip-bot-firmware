@@ -33,10 +33,9 @@ class FirmwareUpdater {
 
         // Private helper methods
         bool decodeBase64(const char* input, uint8_t* output, size_t* outputLength);
-        bool checkHeapSpace() const;
         bool initializeBuffers();
         bool checkMemoryRequirements(size_t updateSize) const;
-        void resetState() { state = UpdateState(); }
+        void resetState();
         void processTransferBuffer();
         bool canAcceptChunk(size_t chunkSize) const;
 
@@ -49,14 +48,9 @@ class FirmwareUpdater {
         void processChunk(const char* data, size_t chunkIndex, bool isLast);
         void end(bool success);
         void checkTimeout();
-        
+
         // Status methods
         bool isUpdateInProgress() const { return state.updateStarted; }
-        // size_t getReceivedSize() const { return state.receivedSize; }
-        // size_t getTotalSize() const { return state.totalSize; }
-        // size_t getReceivedChunks() const { return state.receivedChunks; }
-        // size_t getTotalChunks() const { return state.totalChunks; }
-        // uint32_t getLastChunkTime() const { return state.lastChunkTime; }
         void setTotalChunks(size_t chunks) { state.totalChunks = chunks; }
 };
 
