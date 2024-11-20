@@ -11,7 +11,7 @@ using namespace websockets;
 
 class WebSocketManager {
 	private:
-		static const size_t BUFFER_SIZE = 64 * 1024;       // 100KB buffer
+		static const size_t BUFFER_SIZE = 64 * 1024;       // 64KB buffer
 		static const size_t HEAP_OVERHEAD = 32 * 1024;     // 32KB overhead
 		static const size_t JSON_DOC_SIZE = 8 * 1024;      // 8KB for JSON
 

@@ -61,13 +61,13 @@ bool WebSocketManager::checkMemoryRequirements(size_t updateSize) const {
     Serial.printf("- Required heap: %u bytes\n", requiredHeap);
     Serial.printf("- Free heap: %u bytes\n", freeHeap);
     Serial.printf("- Update size: %u bytes\n", updateSize);
-    
+
     if (freeHeap < requiredHeap) {
         Serial.printf("Insufficient heap. Need %u more bytes\n", 
             requiredHeap - freeHeap);
         return false;
     }
-    
+
     return true;
 }
 
