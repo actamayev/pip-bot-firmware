@@ -32,12 +32,12 @@ class FirmwareUpdater {
         UpdateState state;
 
         // Private helper methods
-        bool decodeBase64(const char* input, uint8_t* output, size_t* outputLength);
+        // bool decodeBase64(const char* input, uint8_t* output, size_t* outputLength);
         bool initializeBuffers();
         bool checkMemoryRequirements(size_t updateSize) const;
         void resetState();
         void processTransferBuffer();
-        bool canAcceptChunk(size_t chunkSize) const;
+        // bool canAcceptChunk(size_t chunkSize) const;
 
     public:
         FirmwareUpdater();
@@ -45,7 +45,7 @@ class FirmwareUpdater {
 
         // Core update functionality
         bool begin(size_t size);
-        void processChunk(const char* data, size_t chunkIndex, bool isLast);
+        void processChunk(uint8_t* data, size_t dataLen, size_t chunkIndex, bool isLast);
         void end(bool success);
         void checkTimeout();
 

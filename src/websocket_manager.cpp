@@ -32,49 +32,133 @@ bool WebSocketManager::extractBool(const char* json, const jsmntok_t* tok) {
 }
 
 void WebSocketManager::handleMessage(WebsocketsMessage message) {
+    if (message.isBinary()) {
+        handleBinaryMessage(message);
+    } else {
+        handleJsonMessage(message);
+    }
+}
+
+void WebSocketManager::handleJsonMessage(WebsocketsMessage message) {
     const String& data = message.data();
     const char* json = data.c_str();
     
+    Serial.println("Received JSON message:");
+    Serial.println(json);
+
     jsmn_init(&parser);
     int tokenCount = jsmn_parse(&parser, json, strlen(json), tokens, MAX_TOKENS);
     
+    Serial.printf("Token count: %d\n", tokenCount);
+
     if (tokenCount < 1 || tokens[0].type != JSMN_OBJECT) {
         sendErrorMessage("Invalid JSON");
         return;
     }
 
-    // First pass: map token positions (only needed for first message)
-    if (tokenPositions.eventIndex == -1) {
-        for (int i = 1; i < tokenCount; i += 2) {
-            String key = String(json + tokens[i].start, tokens[i].end - tokens[i].start);
-            if (key == "event") tokenPositions.eventIndex = i;
-            else if (key == "chunkIndex") tokenPositions.chunkIndexIndex = i;
-            else if (key == "totalChunks") tokenPositions.totalChunksIndex = i;
-            else if (key == "totalSize") tokenPositions.totalSizeIndex = i;
-            else if (key == "isLast") tokenPositions.isLastIndex = i;
-            else if (key == "data") tokenPositions.dataIndex = i;
+    // Find the "event" field in the JSON
+    for (int i = 1; i < tokenCount; i += 2) {
+        String key = String(json + tokens[i].start, tokens[i].end - tokens[i].start);
+        if (key == "event") {
+            // Get the value of the "event" field
+            String eventType = String(json + tokens[i + 1].start, tokens[i + 1].end - tokens[i + 1].start);
+            Serial.printf("Found event type: '%s'\n", eventType.c_str());
+            
+            if (eventType == "new-user-code-meta") {
+                Serial.println("in new user code meta");
+                currentChunk.chunkIndex = 0;
+                currentChunk.totalChunks = 0;
+                currentChunk.totalSize = 0;
+                currentChunk.chunkSize = 0;  // Initialize chunk size
+                currentChunk.isLast = false;
+                currentChunk.expectingBinary = true;
+                
+                // Now extract the other fields
+                for (int j = 1; j < tokenCount; j += 2) {
+                    String fieldKey = String(json + tokens[j].start, tokens[j].end - tokens[j].start);
+                    if (fieldKey == "chunkIndex") {
+                        currentChunk.chunkIndex = extractInt(json, &tokens[j + 1]);
+                    } else if (fieldKey == "totalChunks") {
+                        currentChunk.totalChunks = extractInt(json, &tokens[j + 1]);
+                    } else if (fieldKey == "totalSize") {
+                        currentChunk.totalSize = extractInt(json, &tokens[j + 1]);
+                    } else if (fieldKey == "isLast") {
+                        currentChunk.isLast = extractBool(json, &tokens[j + 1]);
+                    } else if (fieldKey == "chunkSize") {
+                        currentChunk.chunkSize = extractInt(json, &tokens[j + 1]);
+                    }
+                }
+
+                Serial.printf("Expecting binary chunk %d/%d of size: %d bytes\n", 
+                    currentChunk.chunkIndex + 1, 
+                    currentChunk.totalChunks,
+                    currentChunk.chunkSize);
+                
+                // Initialize update if this is the first chunk
+                if (currentChunk.chunkIndex == 0) {
+                    if (!updater.begin(currentChunk.totalSize)) {
+                        sendErrorMessage("Failed to initialize update");
+                        return;
+                    }
+                    updater.setTotalChunks(currentChunk.totalChunks);
+                    sendJsonMessage("update_status", "ready");
+                }
+                break;
+            }
         }
+    }
+}
+
+void WebSocketManager::handleBinaryMessage(WebsocketsMessage message) {
+    if (!currentChunk.expectingBinary) {
+        sendErrorMessage("Unexpected binary message");
+        return;
     }
 
-    // Fast path: direct token access
-    if (tokenPositions.eventIndex != -1) {
-        String eventType = String(json + tokens[tokenPositions.eventIndex + 1].start, 
-                                tokens[tokenPositions.eventIndex + 1].end - tokens[tokenPositions.eventIndex + 1].start);
-        
-        if (eventType == "new-user-code") {
-            // Direct access to known token positions
-            size_t chunkIndex = extractInt(json, &tokens[tokenPositions.chunkIndexIndex + 1]);
-            size_t totalChunks = extractInt(json, &tokens[tokenPositions.totalChunksIndex + 1]);
-            size_t totalSize = extractInt(json, &tokens[tokenPositions.totalSizeIndex + 1]);
-            bool isLast = extractBool(json, &tokens[tokenPositions.isLastIndex + 1]);
-            
-            const char* chunkData = json + tokens[tokenPositions.dataIndex + 1].start;
-            int chunkDataLength = tokens[tokenPositions.dataIndex + 1].end - tokens[tokenPositions.dataIndex + 1].start;
-            
-            // Process chunk with optimized data access
-            processChunk(chunkData, chunkDataLength, chunkIndex, totalChunks, totalSize, isLast);
-        }
+    // Get the raw binary data
+    const char* rawData = message.c_str();  // Get raw data pointer
+    size_t dataLen = message.length();      // Get actual length
+
+    Serial.printf("Received binary chunk %d/%d, size: %d bytes\n", 
+        currentChunk.chunkIndex + 1, currentChunk.totalChunks, dataLen);
+
+    if (dataLen == 0) {
+        Serial.println("Error: Received empty chunk");
+        return;
     }
+
+    // Verify the chunk size matches what was announced in metadata
+    if (dataLen != currentChunk.chunkSize) {
+        Serial.printf("Warning: Chunk size mismatch. Expected %d, got %d bytes\n", 
+            currentChunk.chunkSize, dataLen);
+    }
+
+    if (updater.isUpdateInProgress()) {
+        // Create a properly sized buffer
+        uint8_t* buffer = (uint8_t*)ps_malloc(dataLen);
+        if (!buffer) {
+            Serial.println("Failed to allocate buffer for binary chunk");
+            return;
+        }
+
+        // Copy the data
+        memcpy(buffer, rawData, dataLen);
+
+        // Debug: Print first few bytes
+        Serial.print("First 8 bytes: ");
+        for(int i = 0; i < min(8, (int)dataLen); i++) {
+            Serial.printf("%02X ", buffer[i]);
+        }
+        Serial.println();
+
+        // Process the chunk
+        updater.processChunk(buffer, dataLen, currentChunk.chunkIndex, currentChunk.isLast);
+
+        // Clean up
+        free(buffer);
+    }
+
+    currentChunk.expectingBinary = false;
 }
 
 void WebSocketManager::sendJsonMessage(const char* event, const char* status, const char* extra) {
@@ -130,7 +214,7 @@ void WebSocketManager::connectToWebSocket() {
     }
 }
 
-void WebSocketManager::processChunk(const char* chunkData, int chunkDataLength,
+void WebSocketManager::processChunk(uint8_t* chunkData, size_t chunkDataLength,
     size_t chunkIndex, size_t totalChunks,
     size_t totalSize, bool isLast) {
     if (chunkIndex == 0) {
@@ -140,22 +224,26 @@ void WebSocketManager::processChunk(const char* chunkData, int chunkDataLength,
     }
 
     if (updater.isUpdateInProgress()) {
-        // Use stack allocation for small chunks, heap for large ones
-        if (chunkDataLength < 1024) {
-            char stackChunk[1024];
-            memcpy(stackChunk, chunkData, chunkDataLength);
-            stackChunk[chunkDataLength] = '\0';
-            updater.processChunk(stackChunk, chunkIndex, isLast);
-        } else {
-            char* heapChunk = (char*)ps_malloc(chunkDataLength + 1);
-            if (heapChunk) {
-                memcpy(heapChunk, chunkData, chunkDataLength);
-                heapChunk[chunkDataLength] = '\0';
-                updater.processChunk(heapChunk, chunkIndex, isLast);
-                free(heapChunk);
-            }
-        }
+        updater.processChunk(chunkData, chunkDataLength, chunkIndex, isLast);
     }
+
+    // if (updater.isUpdateInProgress()) {
+    //     // Use stack allocation for small chunks, heap for large ones
+    //     if (chunkDataLength < 1024) {
+    //         char stackChunk[1024];
+    //         memcpy(stackChunk, chunkData, chunkDataLength);
+    //         stackChunk[chunkDataLength] = '\0';
+    //         updater.processChunk(stackChunk, chunkIndex, isLast);
+    //     } else {
+    //         char* heapChunk = (char*)ps_malloc(chunkDataLength + 1);
+    //         if (heapChunk) {
+    //             memcpy(heapChunk, chunkData, chunkDataLength);
+    //             heapChunk[chunkDataLength] = '\0';
+    //             updater.processChunk(heapChunk, chunkIndex, isLast);
+    //             free(heapChunk);
+    //         }
+    //     }
+    // }
 }
 
 void WebSocketManager::pollWebSocket() {
