@@ -7,7 +7,7 @@
 
 class FirmwareUpdater {
     private:
-        static const size_t WORKING_BUFFER_SIZE = 64 * 1024;    // 16KB working buffer
+        static const size_t WORKING_BUFFER_SIZE = 64 * 1024;    // 64KB working buffer
         static const size_t HEAP_OVERHEAD = 32 * 1024;          // 32KB overhead
 
         // Parallel processing members
