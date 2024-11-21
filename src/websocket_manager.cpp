@@ -124,7 +124,7 @@ void WebSocketManager::handleBinaryMessage(WebsocketsMessage message) {
     }
 
     if (updater.isUpdateInProgress()) {
-        // Allocate buffer
+        // Allocate buffer for entire chunk
         uint8_t* buffer = (uint8_t*)ps_malloc(dataLen);
         if (!buffer) {
             Serial.println("Failed to allocate buffer for binary chunk");
@@ -134,7 +134,7 @@ void WebSocketManager::handleBinaryMessage(WebsocketsMessage message) {
         // Copy data
         memcpy(buffer, rawData, dataLen);
 
-        // Process chunk
+        // Process chunk (will be broken into smaller pieces internally)
         unsigned long processStart = millis();
         updater.processChunk(buffer, dataLen, currentChunk.chunkIndex, currentChunk.isLast);
         Serial.printf("Chunk processing time: %lu ms\n", millis() - processStart);

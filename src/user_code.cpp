@@ -3,8 +3,5 @@
 #include "./include/user_code.h"
 
 void user_code() {
-while(true) {
-    rgbLed.set_led_white();
-    delay(1000);
-}
+delay(1000);
 }
