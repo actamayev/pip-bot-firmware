@@ -40,19 +40,11 @@ void WebSocketManager::handleMessage(WebsocketsMessage message) {
 }
 
 void WebSocketManager::handleJsonMessage(WebsocketsMessage message) {
-    unsigned long startTime = millis();
     const String& data = message.data();
     const char* json = data.c_str();
 
-    Serial.println("Received JSON message:");
-    Serial.println(json);
-
-    unsigned long parseStart = millis();
     jsmn_init(&parser);
     int tokenCount = jsmn_parse(&parser, json, strlen(json), tokens, MAX_TOKENS);
-    Serial.printf("JSON parsing time: %lu ms\n", millis() - parseStart);
-
-    Serial.printf("Token count: %d\n", tokenCount);
 
     if (tokenCount < 1 || tokens[0].type != JSMN_OBJECT) {
         sendErrorMessage("Invalid JSON");
@@ -66,7 +58,7 @@ void WebSocketManager::handleJsonMessage(WebsocketsMessage message) {
             // Get the value of the "event" field
             String eventType = String(json + tokens[i + 1].start, tokens[i + 1].end - tokens[i + 1].start);
             Serial.printf("Found event type: '%s'\n", eventType.c_str());
-            
+
             if (eventType == "new-user-code-meta") {
                 Serial.println("in new user code meta");
                 currentChunk.chunkIndex = 0;
@@ -75,7 +67,7 @@ void WebSocketManager::handleJsonMessage(WebsocketsMessage message) {
                 currentChunk.chunkSize = 0;  // Initialize chunk size
                 currentChunk.isLast = false;
                 currentChunk.expectingBinary = true;
-                
+
                 // Now extract the other fields
                 for (int j = 1; j < tokenCount; j += 2) {
                     String fieldKey = String(json + tokens[j].start, tokens[j].end - tokens[j].start);
@@ -96,7 +88,7 @@ void WebSocketManager::handleJsonMessage(WebsocketsMessage message) {
                     currentChunk.chunkIndex + 1, 
                     currentChunk.totalChunks,
                     currentChunk.chunkSize);
-                
+
                 // Initialize update if this is the first chunk
                 if (currentChunk.chunkIndex == 0) {
                     if (!updater.begin(currentChunk.totalSize)) {
@@ -110,12 +102,10 @@ void WebSocketManager::handleJsonMessage(WebsocketsMessage message) {
             }
         }
     }
-    Serial.printf("Total JSON handling time: %lu ms\n", millis() - startTime);
 }
 
 void WebSocketManager::handleBinaryMessage(WebsocketsMessage message) {
     unsigned long startTime = millis();
-    unsigned long checkpointTime;
     
     if (!currentChunk.expectingBinary) {
         sendErrorMessage("Unexpected binary message");
@@ -124,9 +114,6 @@ void WebSocketManager::handleBinaryMessage(WebsocketsMessage message) {
 
     const char* rawData = message.c_str();
     size_t dataLen = message.length();
-
-    checkpointTime = millis();
-    Serial.printf("Time to get data: %lu ms\n", checkpointTime - startTime);
 
     Serial.printf("Received binary chunk %d/%d, size: %d bytes\n", 
         currentChunk.chunkIndex + 1, currentChunk.totalChunks, dataLen);
@@ -138,18 +125,14 @@ void WebSocketManager::handleBinaryMessage(WebsocketsMessage message) {
 
     if (updater.isUpdateInProgress()) {
         // Allocate buffer
-        unsigned long allocStart = millis();
         uint8_t* buffer = (uint8_t*)ps_malloc(dataLen);
         if (!buffer) {
             Serial.println("Failed to allocate buffer for binary chunk");
             return;
         }
-        Serial.printf("Buffer allocation time: %lu ms\n", millis() - allocStart);
 
         // Copy data
-        unsigned long copyStart = millis();
         memcpy(buffer, rawData, dataLen);
-        Serial.printf("Memory copy time: %lu ms\n", millis() - copyStart);
 
         // Process chunk
         unsigned long processStart = millis();

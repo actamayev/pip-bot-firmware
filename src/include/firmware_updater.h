@@ -7,7 +7,7 @@
 
 class FirmwareUpdater {
     private:
-        static const size_t TRANSFER_BUFFER_SIZE = 128 * 1024;  // 128KB buffer in PSRAM
+        static const size_t TRANSFER_BUFFER_SIZE = 512 * 1024;  // 128KB buffer in PSRAM
         static const size_t WORKING_BUFFER_SIZE = 16 * 1024;    // 16KB working buffer in RAM
         static const size_t HEAP_OVERHEAD = 32 * 1024;          // 32KB overhead
 
