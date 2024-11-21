@@ -64,33 +64,6 @@ bool FirmwareUpdater::checkMemoryRequirements(size_t updateSize) const {
     return true;
 }
 
-// bool FirmwareUpdater::decodeBase64(const char* input, uint8_t* output, size_t* outputLength) {
-//     size_t inputLength = strlen(input);
-//     size_t written = 0;
-
-//     int result = mbedtls_base64_decode(
-//         output,
-//         *outputLength,
-//         &written,
-//         (const unsigned char*)input,
-//         inputLength
-//     );
-
-//     if (result == 0) {
-//         *outputLength = written;
-//         return true;
-//     }
-//     return false;
-// }
-
-// bool FirmwareUpdater::canAcceptChunk(size_t chunkSize) const {
-//     // Check if there's room in the transfer buffer
-//     size_t availableSpace = TRANSFER_BUFFER_SIZE - state.transferBufferPos;
-//     // Account for base64 decoding (output is about 3/4 of input)
-//     size_t decodedSize = (chunkSize * 3) / 4;
-//     return decodedSize <= availableSpace;
-// }
-
 void FirmwareUpdater::processTransferBuffer() {
     if (state.transferBufferPos == 0) return;
 
@@ -165,39 +138,6 @@ void FirmwareUpdater::processChunk(uint8_t* data, size_t dataLen, size_t chunkIn
         Serial.println("Processing final chunk");
         end(true);
     }
-    // if (!transferBuffer || !workingBuffer || !state.updateStarted) {
-    //     Serial.println("Update not properly initialized");
-    //     return;
-    // }
-
-    // // Check if we need to process current buffer first
-    // if (!canAcceptChunk(strlen(data))) {
-    //     Serial.println("Processing current buffer before accepting new chunk");
-    //     processTransferBuffer();
-    // }
-
-    // // Decode base64 directly into transfer buffer at current position
-    // size_t decodedLen = TRANSFER_BUFFER_SIZE - state.transferBufferPos;
-    // if (!decodeBase64(data, transferBuffer + state.transferBufferPos, &decodedLen)) {
-    //     Serial.println("Base64 decode failed");
-    //     end(false);
-    //     return;
-    // }
-
-    // state.transferBufferPos += decodedLen;
-    // state.receivedSize += decodedLen;
-    // state.receivedChunks++;
-    // state.lastChunkTime = millis();
-
-    // // Process buffer if it's getting full or this is the last chunk
-    // if (isLast || state.transferBufferPos >= (TRANSFER_BUFFER_SIZE * 0.8)) {
-    //     processTransferBuffer();
-    // }
-
-    // if (isLast) {
-    //     Serial.println("Processing final chunk");
-    //     end(true);
-    // }
 }
 
 void FirmwareUpdater::end(bool success) {

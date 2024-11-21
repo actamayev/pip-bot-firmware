@@ -226,24 +226,6 @@ void WebSocketManager::processChunk(uint8_t* chunkData, size_t chunkDataLength,
     if (updater.isUpdateInProgress()) {
         updater.processChunk(chunkData, chunkDataLength, chunkIndex, isLast);
     }
-
-    // if (updater.isUpdateInProgress()) {
-    //     // Use stack allocation for small chunks, heap for large ones
-    //     if (chunkDataLength < 1024) {
-    //         char stackChunk[1024];
-    //         memcpy(stackChunk, chunkData, chunkDataLength);
-    //         stackChunk[chunkDataLength] = '\0';
-    //         updater.processChunk(stackChunk, chunkIndex, isLast);
-    //     } else {
-    //         char* heapChunk = (char*)ps_malloc(chunkDataLength + 1);
-    //         if (heapChunk) {
-    //             memcpy(heapChunk, chunkData, chunkDataLength);
-    //             heapChunk[chunkDataLength] = '\0';
-    //             updater.processChunk(heapChunk, chunkIndex, isLast);
-    //             free(heapChunk);
-    //         }
-    //     }
-    // }
 }
 
 void WebSocketManager::pollWebSocket() {
