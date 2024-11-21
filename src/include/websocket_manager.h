@@ -12,6 +12,19 @@ using namespace websockets;
 
 class WebSocketManager {
 	private:
+        struct ChunkMetadata {
+            size_t chunkIndex;
+            size_t totalChunks;
+            size_t totalSize;
+            size_t chunkSize;  // Add this
+            bool isLast;
+            bool expectingBinary;
+            
+            ChunkMetadata() : chunkIndex(0), totalChunks(0), totalSize(0), 
+                chunkSize(0), isLast(false), expectingBinary(false) {}
+        };
+        ChunkMetadata currentChunk;
+
         static const size_t MAX_TOKENS = 32;  // Maximum number of JSON tokens
         jsmn_parser parser;
         jsmntok_t tokens[MAX_TOKENS];
@@ -26,7 +39,9 @@ class WebSocketManager {
         int64_t extractInt(const char* json, const jsmntok_t* tok);
         bool extractBool(const char* json, const jsmntok_t* tok);
         void sendJsonMessage(const char* event, const char* status, const char* extra = nullptr);
-        void processChunk(const char* chunkData, int chunkDataLength, size_t chunkIndex, size_t totalChunks, size_t totalSize, bool isLast);
+        void processChunk(uint8_t* chunkData, size_t chunkDataLength, size_t chunkIndex, size_t totalChunks, size_t totalSize, bool isLast);
+        void handleJsonMessage(WebsocketsMessage message);
+        void handleBinaryMessage(WebsocketsMessage message);
 	public:
 		WebSocketManager();
 		void connectToWebSocket();
