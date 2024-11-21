@@ -74,7 +74,7 @@ const Environment environment = getEnvironmentFromString("LocalDev");
 
 const char* getServerUrl() {
     if (environment == Environment::LocalDev) {
-        return "http://192.168.108.40:8080";
+        return "http://192.168.1.99:8080";
     } else if (environment == Environment::Staging) {  // Assume Staging for any other environment
         return "staging-api.bluedotrobots.com"; // HTTP/HTTPS prefix handled at usage level if needed
     }
@@ -83,7 +83,7 @@ const char* getServerUrl() {
 
 const char* getWsServerUrl() {
     if (environment == Environment::LocalDev) {
-        return "ws://192.168.108.40:8080/esp32";
+        return "ws://192.168.1.99:8080/esp32";
     } else if (environment == Environment::Staging) {  // Assume Staging for any other environment
         return "wss://staging-api.bluedotrobots.com/esp32";
     }

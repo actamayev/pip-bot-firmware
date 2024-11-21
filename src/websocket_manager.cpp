@@ -40,15 +40,18 @@ void WebSocketManager::handleMessage(WebsocketsMessage message) {
 }
 
 void WebSocketManager::handleJsonMessage(WebsocketsMessage message) {
+    unsigned long startTime = millis();
     const String& data = message.data();
     const char* json = data.c_str();
-    
+
     Serial.println("Received JSON message:");
     Serial.println(json);
 
+    unsigned long parseStart = millis();
     jsmn_init(&parser);
     int tokenCount = jsmn_parse(&parser, json, strlen(json), tokens, MAX_TOKENS);
-    
+    Serial.printf("JSON parsing time: %lu ms\n", millis() - parseStart);
+
     Serial.printf("Token count: %d\n", tokenCount);
 
     if (tokenCount < 1 || tokens[0].type != JSMN_OBJECT) {
@@ -107,17 +110,23 @@ void WebSocketManager::handleJsonMessage(WebsocketsMessage message) {
             }
         }
     }
+    Serial.printf("Total JSON handling time: %lu ms\n", millis() - startTime);
 }
 
 void WebSocketManager::handleBinaryMessage(WebsocketsMessage message) {
+    unsigned long startTime = millis();
+    unsigned long checkpointTime;
+    
     if (!currentChunk.expectingBinary) {
         sendErrorMessage("Unexpected binary message");
         return;
     }
 
-    // Get the raw binary data
-    const char* rawData = message.c_str();  // Get raw data pointer
-    size_t dataLen = message.length();      // Get actual length
+    const char* rawData = message.c_str();
+    size_t dataLen = message.length();
+
+    checkpointTime = millis();
+    Serial.printf("Time to get data: %lu ms\n", checkpointTime - startTime);
 
     Serial.printf("Received binary chunk %d/%d, size: %d bytes\n", 
         currentChunk.chunkIndex + 1, currentChunk.totalChunks, dataLen);
@@ -127,38 +136,32 @@ void WebSocketManager::handleBinaryMessage(WebsocketsMessage message) {
         return;
     }
 
-    // Verify the chunk size matches what was announced in metadata
-    if (dataLen != currentChunk.chunkSize) {
-        Serial.printf("Warning: Chunk size mismatch. Expected %d, got %d bytes\n", 
-            currentChunk.chunkSize, dataLen);
-    }
-
     if (updater.isUpdateInProgress()) {
-        // Create a properly sized buffer
+        // Allocate buffer
+        unsigned long allocStart = millis();
         uint8_t* buffer = (uint8_t*)ps_malloc(dataLen);
         if (!buffer) {
             Serial.println("Failed to allocate buffer for binary chunk");
             return;
         }
+        Serial.printf("Buffer allocation time: %lu ms\n", millis() - allocStart);
 
-        // Copy the data
+        // Copy data
+        unsigned long copyStart = millis();
         memcpy(buffer, rawData, dataLen);
+        Serial.printf("Memory copy time: %lu ms\n", millis() - copyStart);
 
-        // Debug: Print first few bytes
-        Serial.print("First 8 bytes: ");
-        for(int i = 0; i < min(8, (int)dataLen); i++) {
-            Serial.printf("%02X ", buffer[i]);
-        }
-        Serial.println();
-
-        // Process the chunk
+        // Process chunk
+        unsigned long processStart = millis();
         updater.processChunk(buffer, dataLen, currentChunk.chunkIndex, currentChunk.isLast);
+        Serial.printf("Chunk processing time: %lu ms\n", millis() - processStart);
 
         // Clean up
         free(buffer);
     }
 
     currentChunk.expectingBinary = false;
+    Serial.printf("Total binary message handling time: %lu ms\n", millis() - startTime);
 }
 
 void WebSocketManager::sendJsonMessage(const char* event, const char* status, const char* extra) {

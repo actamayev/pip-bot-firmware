@@ -115,6 +115,8 @@ bool FirmwareUpdater::begin(size_t size) {
 }
 
 void FirmwareUpdater::processChunk(uint8_t* data, size_t dataLen, size_t chunkIndex, bool isLast) {
+    unsigned long startTime = millis();
+    
     if (!state.updateStarted) {
         Serial.println("Update not properly initialized");
         return;
@@ -122,11 +124,14 @@ void FirmwareUpdater::processChunk(uint8_t* data, size_t dataLen, size_t chunkIn
 
     Serial.printf("Writing chunk %d, size: %d bytes\n", chunkIndex, dataLen);
 
+    // Write to flash
+    unsigned long writeStart = millis();
     if (Update.write(data, dataLen) != dataLen) {
         Serial.printf("Write failed at chunk: %u\n", chunkIndex);
         end(false);
         return;
     }
+    Serial.printf("Flash write time: %lu ms\n", millis() - writeStart);
 
     state.receivedSize += dataLen;
     state.receivedChunks++;
@@ -136,8 +141,12 @@ void FirmwareUpdater::processChunk(uint8_t* data, size_t dataLen, size_t chunkIn
 
     if (isLast) {
         Serial.println("Processing final chunk");
+        unsigned long endStart = millis();
         end(true);
+        Serial.printf("End processing time: %lu ms\n", millis() - endStart);
     }
+
+    Serial.printf("Total chunk processing time: %lu ms\n", millis() - startTime);
 }
 
 void FirmwareUpdater::end(bool success) {
