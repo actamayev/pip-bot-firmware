@@ -14,7 +14,7 @@ struct MessageTokens {
 MessageTokens tokenPositions;
 
 WebSocketManager::WebSocketManager() {
-    if (environment == Environment::LocalDev) return;
+    if (environment == Environment::local) return;
     wsClient.setCACert(rootCACertificate);
 }
 

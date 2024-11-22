@@ -2,7 +2,7 @@
 #include "./include/http_client.h"
 
 HttpClient::HttpClient() {
-    if (environment == Environment::LocalDev) return;
+    if (environment == Environment::local) return;
     client.setCACert(rootCACertificate);
 }
 

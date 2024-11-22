@@ -59,41 +59,51 @@ const char* rootCACertificate = \
 "-----END CERTIFICATE-----\n";
 
 Environment getEnvironmentFromString(const std::string& envStr) {
-    if (envStr == "Staging") return Environment::Staging;
-    else if (envStr == "Production") return Environment::Production;
-    return Environment::LocalDev;
+    if (envStr == "staging") return Environment::staging;
+    else if (envStr == "production") return Environment::production;
+    return Environment::local;
 }
 
-const Environment environment = getEnvironmentFromString("Production");
+const Environment environment = getEnvironmentFromString("production");
 
 const char* getServerUrl() {
-    if (environment == Environment::LocalDev) {
+    if (environment == Environment::local) {
         return "http://192.168.99.40:8080";
-    } else if (environment == Environment::Staging) {  // Assume Staging for any other environment
+    } else if (environment == Environment::staging) {  // Assume staging for any other environment
         return "staging-api.bluedotrobots.com"; // HTTP/HTTPS prefix handled at usage level if needed
     }
     return "prod-api.bluedotrobots.com";
 }
 
 const char* getWsServerUrl() {
-    if (environment == Environment::LocalDev) {
+    if (environment == Environment::local) {
         return "ws://192.168.99.40:8080/esp32";
-    } else if (environment == Environment::Staging) {  // Assume Staging for any other environment
+    } else if (environment == Environment::staging) {  // Assume staging for any other environment
         return "wss://staging-api.bluedotrobots.com/esp32";
     }
     return "wss://prod-api.bluedotrobots.com/esp32";
 }
 
 const char* getPipID() {
-    if (environment == Environment::LocalDev) {
-        return "9YhsJ";
-    } else if (environment == Environment::Staging) {
-        return "bax2P";
+    // Tries to get PIP_ID from environment variable
+    const char* pip_id = std::getenv("PIP_ID");
+    if (pip_id != nullptr) {
+        return pip_id;
     }
-    return "PmKJZ";
-}
 
-const char* hardware_version = "0.0.1";
+    // If no environment variable, use defaults
+    const char* env = std::getenv("ENVIRONMENT");
+    if (env == nullptr || std::string(env) == "local") {
+        return "9YhsJ";  // local default
+    } else if (std::string(env) == "staging") {
+        return "bax2P";  // staging default
+    }
+    return "PmKJZ";  // production default
+}
 
 // Pip Access point
 std::string ap_ssid = "pip-" + std::string(getPipID());
+
+std::string getAPSSID() {
+    return "pip-" + std::string(getPipID());
+}
