@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - staging
     paths:
       - 'src/**'
       - 'platformio.ini'
@@ -16,6 +17,18 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+
+    - name: Set S3 Bucket Based on Branch
+      id: set-s3-bucket
+      run: |
+        if [ "${{ github.ref_name }}" = "main" ]; then
+          echo "bucket=${{ secrets.PRODUCTION_FIRMWARE_BUCKET }}" >> $GITHUB_ENV
+        elif [ "${{ github.ref_name }}" = "staging" ]; then
+          echo "bucket=${{ secrets.STAGING_FIRMWARE_BUCKET }}" >> $GITHUB_ENV
+        else
+          echo "Unsupported branch: ${{ github.ref_name }}"
+          exit 1
+        fi
 
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v4
@@ -42,22 +55,22 @@ jobs:
     - name: Upload to S3
       run: |
         # Upload the main firmware bundle
-        aws s3 cp firmware.zip "s3://${{ secrets.FIRMWARE_BUCKET }}/firmware/latest/firmware.zip"
+        aws s3 cp firmware.zip "s3://${{ env.bucket }}/firmware/latest/firmware.zip"
 
         # Also upload with timestamp for versioning
-        aws s3 cp firmware.zip "s3://${{ secrets.FIRMWARE_BUCKET }}/firmware/archives/firmware-$(date +%Y%m%d-%H%M%S).zip"
+        aws s3 cp firmware.zip "s3://${{ env.bucket }}/firmware/archives/firmware-$(date +%Y%m%d-%H%M%S).zip"
 
         echo "Uploaded firmware to:"
-        echo "  - s3://${{ secrets.FIRMWARE_BUCKET }}/firmware/latest/firmware.zip"
-        echo "  - s3://${{ secrets.FIRMWARE_BUCKET }}/firmware/archives/firmware-$(date +%Y%m%d-%H%M%S).zip"
+        echo "  - s3://${{ env.bucket }}/firmware/latest/firmware.zip"
+        echo "  - s3://${{ env.bucket }}/firmware/archives/firmware-$(date +%Y%m%d-%H%M%S).zip"
 
     - name: Verify upload
       run: |
         # List the uploaded files to verify
-        aws s3 ls "s3://${{ secrets.FIRMWARE_BUCKET }}/firmware/latest/"
+        aws s3 ls "s3://${{ env.bucket }}/firmware/latest/"
 
         # Get object info to verify size and last modified
-        aws s3api head-object --bucket ${{ secrets.FIRMWARE_BUCKET }} --key firmware/latest/firmware.zip
+        aws s3api head-object --bucket ${{ env.bucket }} --key firmware/latest/firmware.zip
 
     - name: Cleanup
       run: |
