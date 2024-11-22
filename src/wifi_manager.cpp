@@ -103,7 +103,7 @@ bool WiFiManager::attemptNewWifiConnection(String ssid, String password) {
 void WiFiManager::startAccessPoint() {
 	WiFi.disconnect(true);
 	WiFi.mode(WIFI_AP);
-	WiFi.softAP(ap_ssid.c_str(), ap_password);
+	WiFi.softAP(ap_ssid.c_str(), NULL);
 
 	IPAddress apIP(192, 168, 4, 1);
 	WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));

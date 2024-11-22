@@ -36,8 +36,6 @@ extern const uint8_t IMU_CS;
 // extern std::string pip_uuid;   // Changed to std::string
 extern std::string ap_ssid;    // No change, but ensure it’s std::string here
 
-extern const char* ap_password;
-
 extern const char* ws_server_url;
 extern const char* server_url;
 

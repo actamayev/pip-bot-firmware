@@ -28,12 +28,6 @@ const uint8_t IMU_MISO = 14;
 const uint8_t IMU_MOSI = 27;
 const uint8_t IMU_CS = 26;
 
-const char* hardware_version = "0.0.1";
-
-// Pip Access point
-std::string ap_ssid = "pip-" + std::string(getPipID());
-const char* ap_password = "bluedotrobots";
-
 // echo | openssl s_client -showcerts -connect staging-api.bluedotrobots.com:443
 const char* rootCACertificate = \
 "-----BEGIN CERTIFICATE-----\n"
@@ -67,10 +61,10 @@ const char* rootCACertificate = \
 Environment getEnvironmentFromString(const std::string& envStr) {
     if (envStr == "Staging") return Environment::Staging;
     else if (envStr == "Production") return Environment::Production;
-   return Environment::LocalDev;
+    return Environment::LocalDev;
 }
 
-const Environment environment = getEnvironmentFromString("LocalDev");
+const Environment environment = getEnvironmentFromString("Production");
 
 const char* getServerUrl() {
     if (environment == Environment::LocalDev) {
@@ -98,3 +92,8 @@ const char* getPipID() {
     }
     return "PmKJZ";
 }
+
+const char* hardware_version = "0.0.1";
+
+// Pip Access point
+std::string ap_ssid = "pip-" + std::string(getPipID());
