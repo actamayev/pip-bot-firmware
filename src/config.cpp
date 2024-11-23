@@ -58,30 +58,24 @@ const char* rootCACertificate = \
 "akcjMS9cmvqtmg5iUaQqqcT5NJ0hGA==\n"
 "-----END CERTIFICATE-----\n";
 
-Environment getEnvironmentFromString(const std::string& envStr) {
-    if (envStr == "staging") return Environment::staging;
-    else if (envStr == "production") return Environment::production;
-    return Environment::local;
-}
-
-const Environment environment = getEnvironmentFromString("production");
-
 const char* getServerUrl() {
-    if (environment == Environment::local) {
-        return "http://192.168.99.40:8080";
-    } else if (environment == Environment::staging) {  // Assume staging for any other environment
-        return "staging-api.bluedotrobots.com"; // HTTP/HTTPS prefix handled at usage level if needed
+    const char* env = std::getenv("ENVIRONMENT");
+    if (env == nullptr || std::string(env) == "local") {
+        return "http://192.168.1.99:8080";  // local default
+    } else if (std::string(env) == "staging") {
+        return "staging-api.bluedotrobots.com";  // staging default
     }
-    return "prod-api.bluedotrobots.com";
+    return "prod-api.bluedotrobots.com";  // production default
 }
 
 const char* getWsServerUrl() {
-    if (environment == Environment::local) {
-        return "ws://192.168.99.40:8080/esp32";
-    } else if (environment == Environment::staging) {  // Assume staging for any other environment
-        return "wss://staging-api.bluedotrobots.com/esp32";
+    const char* env = std::getenv("ENVIRONMENT");
+    if (env == nullptr || std::string(env) == "local") {
+        return "ws://192.168.1.99:8080/esp32";  // local default
+    } else if (std::string(env) == "staging") {
+        return "wss://staging-api.bluedotrobots.com/esp32";  // staging default
     }
-    return "wss://prod-api.bluedotrobots.com/esp32";
+    return "wss://prod-api.bluedotrobots.com/esp32";  // production default
 }
 
 const char* getPipID() {

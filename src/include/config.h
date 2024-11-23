@@ -44,22 +44,10 @@ enum class PathFooter {
     Logout
 };
 
-enum class Environment {
-    local,
-    staging,
-    production
-};
-
-// Set the environment (can be set to local, staging, etc.)
-extern const Environment environment;
-
 // Getter functions for URLs based on the environment
 const char* getServerUrl();
 const char* getWsServerUrl();
 const char* getPipID();
-
-extern const char* ws_server_url;
-extern const char* server_url;
 
 extern std::string getAPSSID(); 
 

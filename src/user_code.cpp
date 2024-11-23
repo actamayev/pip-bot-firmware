@@ -3,4 +3,5 @@
 #include "./include/user_code.h"
 
 void user_code() {
+delay(1000);
 }
