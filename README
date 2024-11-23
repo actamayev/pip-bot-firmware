@@ -6,3 +6,5 @@ To add new libraries
 	Press the home button on the bottom of vsCode, and go to libraries
 
 If getting `Linking .pio/build/local/firmware.elf` errors, run `Full Clean` in platformio
+
+To create a Pip with a new Pip_ID, change the DDEFAULT_PIP_ID in the `platformio.ini` file

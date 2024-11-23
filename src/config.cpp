@@ -58,8 +58,12 @@ const char* rootCACertificate = \
 "akcjMS9cmvqtmg5iUaQqqcT5NJ0hGA==\n"
 "-----END CERTIFICATE-----\n";
 
+const char* getEnvironment() {
+    return DEFAULT_ENVIRONMENT;  // This is set at compile time
+}
+
 const char* getServerUrl() {
-    const char* env = std::getenv("ENVIRONMENT");
+    const char* env = getEnvironment();
     if (env == nullptr || std::string(env) == "local") {
         return "http://192.168.1.99:8080";  // local default
     } else if (std::string(env) == "staging") {
@@ -69,7 +73,7 @@ const char* getServerUrl() {
 }
 
 const char* getWsServerUrl() {
-    const char* env = std::getenv("ENVIRONMENT");
+    const char* env = getEnvironment();
     if (env == nullptr || std::string(env) == "local") {
         return "ws://192.168.1.99:8080/esp32";  // local default
     } else if (std::string(env) == "staging") {
@@ -79,24 +83,8 @@ const char* getWsServerUrl() {
 }
 
 const char* getPipID() {
-    // Tries to get PIP_ID from environment variable
-    const char* pip_id = std::getenv("PIP_ID");
-    if (pip_id != nullptr) {
-        return pip_id;
-    }
-
-    // If no environment variable, use defaults
-    const char* env = std::getenv("ENVIRONMENT");
-    if (env == nullptr || std::string(env) == "local") {
-        return "9YhsJ";  // local default
-    } else if (std::string(env) == "staging") {
-        return "bax2P";  // staging default
-    }
-    return "PmKJZ";  // production default
+    return DEFAULT_PIP_ID;
 }
-
-// Pip Access point
-std::string ap_ssid = "pip-" + std::string(getPipID());
 
 std::string getAPSSID() {
     return "pip-" + std::string(getPipID());

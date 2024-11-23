@@ -45,6 +45,7 @@ enum class PathFooter {
 };
 
 // Getter functions for URLs based on the environment
+const char* getEnvironment();
 const char* getServerUrl();
 const char* getWsServerUrl();
 const char* getPipID();
