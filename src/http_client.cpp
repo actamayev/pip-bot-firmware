@@ -2,10 +2,9 @@
 #include "./include/http_client.h"
 
 HttpClient::HttpClient() {
-    const char* env = std::getenv("ENVIRONMENT");
-    if (env == nullptr || std::string(env) == "local") {
+    if (DEFAULT_ENVIRONMENT == "local") {
         return;
-    } 
+    }
     client.setCACert(rootCACertificate);
 }
 

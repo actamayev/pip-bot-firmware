@@ -14,8 +14,7 @@ struct MessageTokens {
 MessageTokens tokenPositions;
 
 WebSocketManager::WebSocketManager() {
-    const char* env = std::getenv("ENVIRONMENT");
-    if (env == nullptr || std::string(env) == "local") {
+    if (DEFAULT_ENVIRONMENT == "local") {
         return;
     }
     wsClient.setCACert(rootCACertificate);
