@@ -28,12 +28,6 @@ const uint8_t IMU_MISO = 14;
 const uint8_t IMU_MOSI = 27;
 const uint8_t IMU_CS = 26;
 
-const char* hardware_version = "0.0.1";
-
-// Pip Access point
-std::string ap_ssid = "pip-" + std::string(getPipID());
-const char* ap_password = "bluedotrobots";
-
 // echo | openssl s_client -showcerts -connect staging-api.bluedotrobots.com:443
 const char* rootCACertificate = \
 "-----BEGIN CERTIFICATE-----\n"
@@ -64,37 +58,34 @@ const char* rootCACertificate = \
 "akcjMS9cmvqtmg5iUaQqqcT5NJ0hGA==\n"
 "-----END CERTIFICATE-----\n";
 
-Environment getEnvironmentFromString(const std::string& envStr) {
-    if (envStr == "Staging") return Environment::Staging;
-    else if (envStr == "Production") return Environment::Production;
-   return Environment::LocalDev;
+const char* getEnvironment() {
+    return DEFAULT_ENVIRONMENT;  // This is set at compile time
 }
 
-const Environment environment = getEnvironmentFromString("LocalDev");
-
 const char* getServerUrl() {
-    if (environment == Environment::LocalDev) {
-        return "http://192.168.99.40:8080";
-    } else if (environment == Environment::Staging) {  // Assume Staging for any other environment
-        return "staging-api.bluedotrobots.com"; // HTTP/HTTPS prefix handled at usage level if needed
+    const char* env = getEnvironment();
+    if (env == nullptr || std::string(env) == "local") {
+        return "http://192.168.254.40:8080";  // local default
+    } else if (std::string(env) == "staging") {
+        return "staging-api.bluedotrobots.com";  // staging default
     }
-    return "prod-api.bluedotrobots.com";
+    return "prod-api.bluedotrobots.com";  // production default
 }
 
 const char* getWsServerUrl() {
-    if (environment == Environment::LocalDev) {
-        return "ws://192.168.99.40:8080/esp32";
-    } else if (environment == Environment::Staging) {  // Assume Staging for any other environment
-        return "wss://staging-api.bluedotrobots.com/esp32";
+    const char* env = getEnvironment();
+    if (env == nullptr || std::string(env) == "local") {
+        return "ws://192.168.254.40:8080/esp32";  // local default
+    } else if (std::string(env) == "staging") {
+        return "wss://staging-api.bluedotrobots.com/esp32";  // staging default
     }
-    return "wss://prod-api.bluedotrobots.com/esp32";
+    return "wss://prod-api.bluedotrobots.com/esp32";  // production default
 }
 
 const char* getPipID() {
-    if (environment == Environment::LocalDev) {
-        return "9YhsJ";
-    } else if (environment == Environment::Staging) {
-        return "bax2P";
-    }
-    return "PmKJZ";
+    return DEFAULT_PIP_ID;
+}
+
+std::string getAPSSID() {
+    return "pip-" + std::string(getPipID());
 }

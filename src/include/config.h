@@ -33,14 +33,6 @@ extern const uint8_t IMU_MISO;
 extern const uint8_t IMU_MOSI;
 extern const uint8_t IMU_CS;
 
-// extern std::string pip_uuid;   // Changed to std::string
-extern std::string ap_ssid;    // No change, but ensure it’s std::string here
-
-extern const char* ap_password;
-
-extern const char* ws_server_url;
-extern const char* server_url;
-
 extern const char* rootCACertificate;
 
 enum class PathHeader {
@@ -52,18 +44,12 @@ enum class PathFooter {
     Logout
 };
 
-enum class Environment {
-    LocalDev,
-    Staging,
-    Production
-};
-
-// Set the environment (can be set to LocalDev, Staging, etc.)
-extern const Environment environment;
-
 // Getter functions for URLs based on the environment
+const char* getEnvironment();
 const char* getServerUrl();
 const char* getWsServerUrl();
 const char* getPipID();
+
+extern std::string getAPSSID(); 
 
 #endif
