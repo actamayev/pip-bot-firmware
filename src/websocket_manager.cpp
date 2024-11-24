@@ -14,7 +14,7 @@ struct MessageTokens {
 MessageTokens tokenPositions;
 
 WebSocketManager::WebSocketManager() {
-    if (environment == Environment::LocalDev) return;
+    if (DEFAULT_ENVIRONMENT == "local") return;
     wsClient.setCACert(rootCACertificate);
 }
 
@@ -222,11 +222,10 @@ void WebSocketManager::pollWebSocket() {
 
     updater.checkTimeout();
 
-    if (wsClient.available()) {
-        try {
-            wsClient.poll();
-        } catch (const std::exception& e) {
-            Serial.printf("Error during WebSocket poll: %s\n", e.what());
-        }
+    if (!wsClient.available()) return;
+    try {
+        wsClient.poll();
+    } catch (const std::exception& e) {
+        Serial.printf("Error during WebSocket poll: %s\n", e.what());
     }
 }
