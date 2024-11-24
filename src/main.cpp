@@ -21,6 +21,8 @@ void setup() {
 
     // printFlashInfo();
 
+    Serial.println(DEFAULT_ENVIRONMENT);
+    Serial.println(DEFAULT_PIP_ID);
     rgbLed.turn_led_off();
     // Setup WiFi, sensors, etc.
     apiClient = new ESP32ApiClient();
