@@ -43,7 +43,7 @@ void WiFiManager::onIpEvent(void* arg, esp_event_base_t event_base, int32_t even
 	rgbLed.set_led_blue();
 
 	// Now connect to the WebSocket
-	apiClient->connectWebSocket();  // Try connecting to WebSocket after WiFi is connected
+    ESP32ApiClient::getInstance().connectWebSocket();
 }
 
 WiFiCredentials WiFiManager::getStoredWiFiCredentials() {
@@ -91,7 +91,7 @@ bool WiFiManager::attemptNewWifiConnection(String ssid, String password) {
 	if (WiFi.status() == WL_CONNECTED) {
 		Serial.println("Connected to Wi-Fi!");
 		rgbLed.set_led_blue();
-		apiClient->connectWebSocket();
+		ESP32ApiClient::getInstance().connectWebSocket();
 		return true;
 	} else {
 		Serial.println("Failed to connect to saved Wi-Fi.");

@@ -1,24 +1,30 @@
 #ifndef ESP32_API_CLIENT_H
 #define ESP32_API_CLIENT_H
 
-#include "http_client.h"
 #include "websocket_manager.h"
-#include "auth_service.h"  // Assuming you have an AuthService class
+
+class WebSocketManager;
 
 class ESP32ApiClient {
     public:
-        // Constructor
+        static ESP32ApiClient& getInstance() {
+            if (instance == nullptr) {
+                instance = new ESP32ApiClient();
+            }
+            return *instance;
+        }
+
+        void connectWebSocket();
+        void pollWebSocket();
+    private:
+        static ESP32ApiClient* instance;
+
+        // Private constructor
         ESP32ApiClient();
 
-        void connectWebSocket();  // Initiates WebSocket connection
-        void pollWebSocket();     // Polls WebSocket for activity
-        AuthService authService;
-
-    private:
-        WebSocketManager wsManager;
-        HttpClient httpClient;
+        // Delete copy constructor and assignment operator
+        ESP32ApiClient(const ESP32ApiClient&) = delete;
+        ESP32ApiClient& operator=(const ESP32ApiClient&) = delete;
 };
-
-extern ESP32ApiClient* apiClient;  // Change to a pointer
 
 #endif

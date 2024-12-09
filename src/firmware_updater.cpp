@@ -1,7 +1,11 @@
 #include "./include/firmware_updater.h"
+#include "./include/websocket_manager.h"  // Include this after the forward declaration
 
-FirmwareUpdater::FirmwareUpdater() : writeBuffer(nullptr), receiveBuffer(nullptr),
-    updateRunning(false), bufferReady(false), currentChunkSize(0), flashWriteTask(nullptr) {
+FirmwareUpdater::FirmwareUpdater() 
+    : writeBuffer(nullptr), receiveBuffer(nullptr),
+      updateRunning(false), bufferReady(false), currentChunkSize(0),
+      flashWriteTask(nullptr)
+{
     initializeBuffers();
 }
 
@@ -208,11 +212,13 @@ void FirmwareUpdater::end(bool success) {
 
     if (success && Update.end()) {
         Serial.println("Update successful!");
+        WebSocketManager::getInstance().sendJsonMessage("update_status", "complete");
         delay(1000);
         ESP.restart();
     } else {
         Serial.printf("Update failed: %s\n", Update.errorString());
         Update.abort();
+        WebSocketManager::getInstance().sendJsonMessage("update_status", "failed", Update.errorString());
     }
     resetState();
 }

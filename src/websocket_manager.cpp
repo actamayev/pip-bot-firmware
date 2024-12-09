@@ -13,6 +13,8 @@ struct MessageTokens {
 // Add this to WebSocketManager class
 MessageTokens tokenPositions;
 
+WebSocketManager* WebSocketManager::instance = nullptr;
+
 WebSocketManager::WebSocketManager() {
     if (DEFAULT_ENVIRONMENT == "local") return;
     wsClient.setCACert(rootCACertificate);
@@ -152,7 +154,7 @@ void WebSocketManager::sendJsonMessage(const char* event, const char* status, co
     doc["event"] = event;
     doc["status"] = status;
     if (extra) {
-        doc["error"] = extra;  // or other field depending on context
+        doc["error"] = extra;
     }
 
     String jsonString;

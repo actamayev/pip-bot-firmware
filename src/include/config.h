@@ -35,15 +35,6 @@ extern const uint8_t IMU_CS;
 
 extern const char* rootCACertificate;
 
-enum class PathHeader {
-    Auth
-};
-
-enum class PathFooter {
-    Login,
-    Logout
-};
-
 // Getter functions for URLs based on the environment
 const char* getEnvironment();
 const char* getServerUrl();

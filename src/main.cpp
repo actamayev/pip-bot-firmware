@@ -25,7 +25,7 @@ void setup() {
     Serial.println(DEFAULT_PIP_ID);
     rgbLed.turn_led_off();
     // Setup WiFi, sensors, etc.
-    apiClient = new ESP32ApiClient();
+    ESP32ApiClient::getInstance();
     // sensorSetup.sensor_setup();
     wifiManager.initializeWiFi();
     wifiManager.connectToStoredWiFi();
@@ -48,6 +48,6 @@ void loop() {
     webServerManager.handleClientRequests();
     
     if (WiFi.status() == WL_CONNECTED) {
-        apiClient->pollWebSocket();
+        ESP32ApiClient::getInstance().pollWebSocket();
     }
 }

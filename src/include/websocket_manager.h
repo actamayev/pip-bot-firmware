@@ -12,6 +12,8 @@ using namespace websockets;
 
 class WebSocketManager {
 	private:
+        static WebSocketManager* instance;
+
         struct ChunkMetadata {
             size_t chunkIndex;
             size_t totalChunks;
@@ -34,18 +36,35 @@ class WebSocketManager {
         websockets::WebsocketsClient wsClient;
         FirmwareUpdater updater;
 
+        // Make constructor private for singleton
+        WebSocketManager();
+
         void handleMessage(websockets::WebsocketsMessage message);
-		void sendErrorMessage(const char* error);
+		// void sendErrorMessage(const char* error);
         int64_t extractInt(const char* json, const jsmntok_t* tok);
         bool extractBool(const char* json, const jsmntok_t* tok);
-        void sendJsonMessage(const char* event, const char* status, const char* extra = nullptr);
+        // void sendJsonMessage(const char* event, const char* status, const char* extra = nullptr);
         void processChunk(uint8_t* chunkData, size_t chunkDataLength, size_t chunkIndex, size_t totalChunks, size_t totalSize, bool isLast);
         void handleJsonMessage(WebsocketsMessage message);
         void handleBinaryMessage(WebsocketsMessage message);
+
+        WebSocketManager(const WebSocketManager&) = delete;
+        WebSocketManager& operator=(const WebSocketManager&) = delete;
 	public:
-		WebSocketManager();
-		void connectToWebSocket();
-		void pollWebSocket();
+		// Singleton access
+        static WebSocketManager& getInstance() {
+            if (instance == nullptr) {
+                instance = new WebSocketManager();
+            }
+            return *instance;
+        }
+
+        void connectToWebSocket();
+        void pollWebSocket();
+        
+        // Make these public so they can be called from FirmwareUpdater
+        void sendErrorMessage(const char* error);
+        void sendJsonMessage(const char* event, const char* status, const char* extra = nullptr);
 };
 
 #endif

@@ -5,6 +5,8 @@
 #include <Arduino.h>
 #include <mbedtls/base64.h>
 
+class WebSocketManager;
+
 class FirmwareUpdater {
     private:
         static const size_t WORKING_BUFFER_SIZE = 64 * 1024;    // 64KB working buffer
@@ -41,6 +43,8 @@ class FirmwareUpdater {
         bool initializeBuffers();
         bool checkMemoryRequirements(size_t updateSize) const;
         void resetState();
+
+        // WebSocketManager& wsManager;
     public:
         FirmwareUpdater();
         ~FirmwareUpdater();
