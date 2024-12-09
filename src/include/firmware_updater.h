@@ -1,11 +1,23 @@
-#ifndef FIRMWARE_UPDATER_H
-#define FIRMWARE_UPDATER_H
+#pragma once
 
 #include <Update.h>
 #include <Arduino.h>
 #include <mbedtls/base64.h>
+#include "./singleton.h"
 
-class FirmwareUpdater {
+class FirmwareUpdater : public Singleton<FirmwareUpdater> {
+    friend class Singleton<FirmwareUpdater>;
+
+    public:
+        FirmwareUpdater();
+        ~FirmwareUpdater();
+        bool begin(size_t size);
+        void processChunk(uint8_t* data, size_t dataLen, size_t chunkIndex, bool isLast);
+        void end(bool success);
+        void checkTimeout();
+        bool isUpdateInProgress() const { return updateRunning; }
+        void setTotalChunks(size_t chunks) { state.totalChunks = chunks; }
+
     private:
         static const size_t WORKING_BUFFER_SIZE = 64 * 1024;    // 64KB working buffer
         static const size_t HEAP_OVERHEAD = 32 * 1024;          // 32KB overhead
@@ -41,15 +53,4 @@ class FirmwareUpdater {
         bool initializeBuffers();
         bool checkMemoryRequirements(size_t updateSize) const;
         void resetState();
-    public:
-        FirmwareUpdater();
-        ~FirmwareUpdater();
-        bool begin(size_t size);
-        void processChunk(uint8_t* data, size_t dataLen, size_t chunkIndex, bool isLast);
-        void end(bool success);
-        void checkTimeout();
-        bool isUpdateInProgress() const { return updateRunning; }
-        void setTotalChunks(size_t chunks) { state.totalChunks = chunks; }
 };
-
-#endif

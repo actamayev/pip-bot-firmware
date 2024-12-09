@@ -1,5 +1,5 @@
-#ifndef LGB_LED_H
-#define LGB_LED_H
+#pragma once
+
 #include <Adafruit_NeoPixel.h>
 
 class RgbLed {
@@ -14,5 +14,3 @@ class RgbLed {
 };
 
 extern RgbLed rgbLed;
-
-#endif
