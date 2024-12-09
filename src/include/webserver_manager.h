@@ -11,6 +11,7 @@ class WebServerManager : public Singleton<WebServerManager> {
     public:
         void startWebServer();
         void handleClientRequests();
+
     private:
         WebServerManager();
 };
