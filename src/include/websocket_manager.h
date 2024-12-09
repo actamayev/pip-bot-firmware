@@ -1,22 +1,31 @@
-#ifndef WEBSOCKET_MANAGER_H
-#define WEBSOCKET_MANAGER_H
+#pragma once
 
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include <ArduinoWebsockets.h>
 #define JSMN_HEADER
 #include "./jsmn.h"
+#include "./singleton.h"
 #include "./firmware_updater.h"
 
 using namespace websockets;
 
-class WebSocketManager {
+class WebSocketManager : public Singleton<WebSocketManager> {
+    friend class Singleton<WebSocketManager>;
+
+	public:
+        void connectToWebSocket();
+        void pollWebSocket();
+        
+        void sendErrorMessage(const char* error);
+        void sendJsonMessage(const char* event, const char* status, const char* extra = nullptr);
+
 	private:
         struct ChunkMetadata {
             size_t chunkIndex;
             size_t totalChunks;
             size_t totalSize;
-            size_t chunkSize;  // Add this
+            size_t chunkSize;
             bool isLast;
             bool expectingBinary;
             
@@ -34,18 +43,13 @@ class WebSocketManager {
         websockets::WebsocketsClient wsClient;
         FirmwareUpdater updater;
 
+        // Make constructor private for singleton
+        WebSocketManager();
+
         void handleMessage(websockets::WebsocketsMessage message);
-		void sendErrorMessage(const char* error);
         int64_t extractInt(const char* json, const jsmntok_t* tok);
         bool extractBool(const char* json, const jsmntok_t* tok);
-        void sendJsonMessage(const char* event, const char* status, const char* extra = nullptr);
         void processChunk(uint8_t* chunkData, size_t chunkDataLength, size_t chunkIndex, size_t totalChunks, size_t totalSize, bool isLast);
         void handleJsonMessage(WebsocketsMessage message);
         void handleBinaryMessage(WebsocketsMessage message);
-	public:
-		WebSocketManager();
-		void connectToWebSocket();
-		void pollWebSocket();
 };
-
-#endif

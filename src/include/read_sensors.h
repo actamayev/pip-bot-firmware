@@ -1,5 +1,5 @@
-#ifndef READ_SENSORS_H
-#define READ_SENSORS_H
+#pragma once
+
 #include <Adafruit_VL53L1X.h>
 
 struct SensorReading {
@@ -15,5 +15,3 @@ class ReadSensors {
 };
 
 extern ReadSensors readSensors;
-
-#endif

@@ -1,12 +1,14 @@
 #include "./include/config.h"
 #include "./include/rgb_led.h"
 #include "./include/wifi_manager.h"
-#include "./include/esp32_api_client.h"
 #include "./include/webserver_manager.h"
 #include "./include/websocket_manager.h"
 
 Preferences preferences;
-WiFiManager wifiManager;  // Create global instance
+
+WiFiManager::WiFiManager() {
+	initializeWiFi();
+}
 
 void WiFiManager::initializeWiFi() {
     // Register event handler for WiFi events
@@ -43,7 +45,7 @@ void WiFiManager::onIpEvent(void* arg, esp_event_base_t event_base, int32_t even
 	rgbLed.set_led_blue();
 
 	// Now connect to the WebSocket
-	apiClient->connectWebSocket();  // Try connecting to WebSocket after WiFi is connected
+    WebSocketManager::getInstance().connectToWebSocket();
 }
 
 WiFiCredentials WiFiManager::getStoredWiFiCredentials() {
@@ -91,7 +93,7 @@ bool WiFiManager::attemptNewWifiConnection(String ssid, String password) {
 	if (WiFi.status() == WL_CONNECTED) {
 		Serial.println("Connected to Wi-Fi!");
 		rgbLed.set_led_blue();
-		apiClient->connectWebSocket();
+		WebSocketManager::getInstance().connectToWebSocket();
 		return true;
 	} else {
 		Serial.println("Failed to connect to saved Wi-Fi.");
@@ -109,5 +111,5 @@ void WiFiManager::startAccessPoint() {
 	WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
 
 	Serial.println("Access Point started.");
-	webServerManager.startWebServer();
+	WebServerManager::getInstance().startWebServer();
 }

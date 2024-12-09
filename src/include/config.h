@@ -1,5 +1,4 @@
-#ifndef CONFIG_H
-#define CONFIG_H
+#pragma once
 
 #include <string>
 #include <cstdint>
@@ -35,15 +34,6 @@ extern const uint8_t IMU_CS;
 
 extern const char* rootCACertificate;
 
-enum class PathHeader {
-    Auth
-};
-
-enum class PathFooter {
-    Login,
-    Logout
-};
-
 // Getter functions for URLs based on the environment
 const char* getEnvironment();
 const char* getServerUrl();
@@ -51,5 +41,3 @@ const char* getWsServerUrl();
 const char* getPipID();
 
 extern std::string getAPSSID(); 
-
-#endif

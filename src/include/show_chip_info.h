@@ -1,5 +1,5 @@
-#ifndef SHOW_CHIP_INFO_H
-#define SHOW_CHIP_INFO_H
+#pragma once
+
 #include <Arduino.h>
 #include <esp_flash.h>
 #include <esp_system.h>
@@ -8,5 +8,3 @@
 
 void printFlashInfo();
 void testPSRAM();
-
-#endif

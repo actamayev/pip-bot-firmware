@@ -4,6 +4,7 @@ Run `Upload and Monitor` under the esp32-s3-devkitc-1/General folders
 To add new libraries
 	Add them to the `platformio.ini` file or
 	Press the home button on the bottom of vsCode, and go to libraries
+	WHEN ADDING A NEW LIBRARY, ADD IT TO THE DOCKERILE AS WELL, SO THAT IT'S CACHED IN THE BUILD
 
 If getting `Linking .pio/build/local/firmware.elf` errors, run `Full Clean` in platformio
 
