@@ -2,14 +2,14 @@
 
 void printFlashInfo() {
     delay(100);  // Give some time for initialization
-    
+
     // Flash chip info
     Serial.println("\n=== Flash Chip Info ===");
     Serial.printf("Flash Chip Size: %d bytes (%.2f MB)\n", 
-        ESP.getFlashChipSize(), 
-        ESP.getFlashChipSize() / 1024.0 / 1024.0);
+    ESP.getFlashChipSize(), 
+    ESP.getFlashChipSize() / 1024.0 / 1024.0);
     Serial.printf("Flash Chip Speed: %d Hz\n", ESP.getFlashChipSpeed());
-    
+
     // Memory info
     Serial.println("\n=== Memory Info ===");
     Serial.printf("Total Heap: %d bytes\n", ESP.getHeapSize());

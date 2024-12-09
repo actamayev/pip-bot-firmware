@@ -1,7 +1,5 @@
-#ifndef USER_CODE_H
-#define USER_CODE_H
+#pragma once
+
 #include <Arduino.h>
 
 void user_code();
-
-#endif

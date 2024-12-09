@@ -10,7 +10,6 @@ struct MessageTokens {
     int dataIndex = -1;
 };
 
-// Add this to WebSocketManager class
 MessageTokens tokenPositions;
 
 WebSocketManager::WebSocketManager() {
@@ -152,7 +151,7 @@ void WebSocketManager::sendJsonMessage(const char* event, const char* status, co
     doc["event"] = event;
     doc["status"] = status;
     if (extra) {
-        doc["error"] = extra;  // or other field depending on context
+        doc["error"] = extra;
     }
 
     String jsonString;
