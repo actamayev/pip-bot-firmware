@@ -10,10 +10,7 @@ struct MessageTokens {
     int dataIndex = -1;
 };
 
-// Add this to WebSocketManager class
 MessageTokens tokenPositions;
-
-WebSocketManager* WebSocketManager::instance = nullptr;
 
 WebSocketManager::WebSocketManager() {
     if (DEFAULT_ENVIRONMENT == "local") return;

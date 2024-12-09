@@ -6,8 +6,6 @@
 
 Preferences preferences;
 
-WiFiManager* WiFiManager::instance = nullptr;
-
 WiFiManager::WiFiManager() {
 	initializeWiFi();
 }

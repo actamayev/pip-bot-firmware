@@ -5,14 +5,15 @@
 #include <ArduinoWebsockets.h>
 #define JSMN_HEADER
 #include "./jsmn.h"
+#include "./singleton.h"
 #include "./firmware_updater.h"
 
 using namespace websockets;
 
-class WebSocketManager {
-	private:
-        static WebSocketManager* instance;
+class WebSocketManager : public Singleton<WebSocketManager> {
+    friend class Singleton<WebSocketManager>;
 
+	private:
         struct ChunkMetadata {
             size_t chunkIndex;
             size_t totalChunks;
@@ -46,18 +47,7 @@ class WebSocketManager {
         void processChunk(uint8_t* chunkData, size_t chunkDataLength, size_t chunkIndex, size_t totalChunks, size_t totalSize, bool isLast);
         void handleJsonMessage(WebsocketsMessage message);
         void handleBinaryMessage(WebsocketsMessage message);
-
-        WebSocketManager(const WebSocketManager&) = delete;
-        WebSocketManager& operator=(const WebSocketManager&) = delete;
 	public:
-		// Singleton access
-        static WebSocketManager& getInstance() {
-            if (instance == nullptr) {
-                instance = new WebSocketManager();
-            }
-            return *instance;
-        }
-
         void connectToWebSocket();
         void pollWebSocket();
         
