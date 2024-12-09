@@ -8,7 +8,7 @@ WebServer server(80);
 WebServerManager* WebServerManager::instance = nullptr;
 
 WebServerManager::WebServerManager() {
-	Serial.println("Starting Web server");
+	Serial.println("Starting Web Manager");
 }
 
 void WebServerManager::startWebServer() {

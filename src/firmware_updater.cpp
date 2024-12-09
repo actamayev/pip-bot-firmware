@@ -206,7 +206,7 @@ void FirmwareUpdater::processChunk(uint8_t* data, size_t dataLen, size_t chunkIn
 
 void FirmwareUpdater::end(bool success) {
     updateRunning = false;
-    
+
     // Wait for flash task to complete
     while (flashWriteTask != nullptr) {
         vTaskDelay(pdMS_TO_TICKS(10));
