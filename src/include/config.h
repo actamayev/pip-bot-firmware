@@ -1,5 +1,4 @@
-#ifndef CONFIG_H
-#define CONFIG_H
+#pragma once
 
 #include <string>
 #include <cstdint>
@@ -42,5 +41,3 @@ const char* getWsServerUrl();
 const char* getPipID();
 
 extern std::string getAPSSID(); 
-
-#endif

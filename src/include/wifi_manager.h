@@ -1,5 +1,4 @@
-#ifndef WIFI_MANAGER_H
-#define WIFI_MANAGER_H
+#pragma once
 
 #include <WiFi.h>
 #include <Preferences.h>
@@ -35,5 +34,3 @@ class WiFiManager {
 };
 
 extern Preferences preferences;
-
-#endif

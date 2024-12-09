@@ -1,5 +1,4 @@
-#ifndef FIRMWARE_UPDATER_H
-#define FIRMWARE_UPDATER_H
+#pragma once
 
 #include <Update.h>
 #include <Arduino.h>
@@ -62,5 +61,3 @@ class FirmwareUpdater {
         bool isUpdateInProgress() const { return updateRunning; }
         void setTotalChunks(size_t chunks) { state.totalChunks = chunks; }
 };
-
-#endif

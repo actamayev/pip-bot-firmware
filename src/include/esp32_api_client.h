@@ -1,5 +1,4 @@
-#ifndef ESP32_API_CLIENT_H
-#define ESP32_API_CLIENT_H
+#pragma once
 
 #include "websocket_manager.h"
 
@@ -26,5 +25,3 @@ class ESP32ApiClient {
         ESP32ApiClient(const ESP32ApiClient&) = delete;
         ESP32ApiClient& operator=(const ESP32ApiClient&) = delete;
 };
-
-#endif

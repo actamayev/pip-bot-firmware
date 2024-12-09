@@ -1,5 +1,4 @@
-#ifndef WEBSERVER_MANAGER_H
-#define WEBSERVER_MANAGER_H
+#pragma once
 
 #include <WiFi.h>
 #include <DNSServer.h>
@@ -23,5 +22,3 @@ class WebServerManager {
         WebServerManager(const WebServerManager&) = delete;
         WebServerManager& operator=(const WebServerManager&) = delete;
 };
-
-#endif

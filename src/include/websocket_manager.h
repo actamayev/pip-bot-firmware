@@ -1,5 +1,4 @@
-#ifndef WEBSOCKET_MANAGER_H
-#define WEBSOCKET_MANAGER_H
+#pragma once
 
 #include <Arduino.h>
 #include <ArduinoJson.h>
@@ -66,5 +65,3 @@ class WebSocketManager {
         void sendErrorMessage(const char* error);
         void sendJsonMessage(const char* event, const char* status, const char* extra = nullptr);
 };
-
-#endif
