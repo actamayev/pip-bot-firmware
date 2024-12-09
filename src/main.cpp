@@ -3,8 +3,8 @@
 #include "./include/user_code.h"
 #include "./include/wifi_manager.h"
 #include "./include/show_chip_info.h"
-#include "./include/esp32_api_client.h"
 #include "./include/webserver_manager.h"
+#include "./include/websocket_manager.h"
 
 // This task will run user code on Core 0
 void UserCodeTask(void * parameter) {
@@ -24,8 +24,6 @@ void setup() {
     Serial.println(DEFAULT_ENVIRONMENT);
     Serial.println(DEFAULT_PIP_ID);
     rgbLed.turn_led_off();
-    // Setup WiFi, sensors, etc.
-    ESP32ApiClient::getInstance();
     // sensorSetup.sensor_setup();
     WiFiManager::getInstance();
     WiFiManager::getInstance().connectToStoredWiFi();
@@ -48,6 +46,6 @@ void loop() {
     WebServerManager::getInstance().handleClientRequests();
     
     if (WiFi.status() == WL_CONNECTED) {
-        ESP32ApiClient::getInstance().pollWebSocket();
+        WebSocketManager::getInstance().pollWebSocket();
     }
 }

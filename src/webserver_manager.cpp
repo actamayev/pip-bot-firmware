@@ -5,8 +5,6 @@
 DNSServer dnsServer;
 WebServer server(80);
 
-WebServerManager* WebServerManager::instance = nullptr;
-
 WebServerManager::WebServerManager() {
 	Serial.println("Starting Web Manager");
 }

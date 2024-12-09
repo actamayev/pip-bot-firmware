@@ -1,7 +1,6 @@
 #include "./include/config.h"
 #include "./include/rgb_led.h"
 #include "./include/wifi_manager.h"
-#include "./include/esp32_api_client.h"
 #include "./include/webserver_manager.h"
 #include "./include/websocket_manager.h"
 
@@ -48,7 +47,7 @@ void WiFiManager::onIpEvent(void* arg, esp_event_base_t event_base, int32_t even
 	rgbLed.set_led_blue();
 
 	// Now connect to the WebSocket
-    ESP32ApiClient::getInstance().connectWebSocket();
+    WebSocketManager::getInstance().connectToWebSocket();
 }
 
 WiFiCredentials WiFiManager::getStoredWiFiCredentials() {
@@ -96,7 +95,7 @@ bool WiFiManager::attemptNewWifiConnection(String ssid, String password) {
 	if (WiFi.status() == WL_CONNECTED) {
 		Serial.println("Connected to Wi-Fi!");
 		rgbLed.set_led_blue();
-		ESP32ApiClient::getInstance().connectWebSocket();
+		WebSocketManager::getInstance().connectToWebSocket();
 		return true;
 	} else {
 		Serial.println("Failed to connect to saved Wi-Fi.");
