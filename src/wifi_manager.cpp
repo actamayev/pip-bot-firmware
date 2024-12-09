@@ -6,7 +6,12 @@
 #include "./include/websocket_manager.h"
 
 Preferences preferences;
-WiFiManager wifiManager;  // Create global instance
+
+WiFiManager* WiFiManager::instance = nullptr;
+
+WiFiManager::WiFiManager() {
+	initializeWiFi();
+}
 
 void WiFiManager::initializeWiFi() {
     // Register event handler for WiFi events
@@ -109,5 +114,5 @@ void WiFiManager::startAccessPoint() {
 	WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
 
 	Serial.println("Access Point started.");
-	webServerManager.startWebServer();
+	WebServerManager::getInstance().startWebServer();
 }

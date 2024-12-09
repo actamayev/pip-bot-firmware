@@ -11,18 +11,29 @@ struct WiFiCredentials {
 
 class WiFiManager {
 	public:
-		void initializeWiFi();
+		static WiFiManager& getInstance() {
+			if (instance == nullptr) {
+				instance = new WiFiManager();
+			}
+			return *instance;
+		}
 		void connectToStoredWiFi();
 		WiFiCredentials getStoredWiFiCredentials();
 		bool attemptNewWifiConnection(String ssid, String password);
-	
 	private:
+		static WiFiManager* instance;
+
+		WiFiManager();
+		void initializeWiFi();
+
 		static void onWiFiEvent(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data);
 		static void onIpEvent(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data);
 		void startAccessPoint();
+
+		WiFiManager(const WiFiManager&) = delete;
+		WiFiManager& operator=(const WiFiManager&) = delete;
 };
 
-extern WiFiManager wifiManager;
 extern Preferences preferences;
 
 #endif

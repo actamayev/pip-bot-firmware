@@ -5,7 +5,7 @@ ESP32ApiClient* ESP32ApiClient::instance = nullptr;
 
 // Constructor implementation
 ESP32ApiClient::ESP32ApiClient() {
-    Serial.println("here");
+    Serial.println("Starting API Client");
 }
 
 void ESP32ApiClient::connectWebSocket() {

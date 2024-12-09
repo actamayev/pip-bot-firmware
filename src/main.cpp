@@ -27,8 +27,8 @@ void setup() {
     // Setup WiFi, sensors, etc.
     ESP32ApiClient::getInstance();
     // sensorSetup.sensor_setup();
-    wifiManager.initializeWiFi();
-    wifiManager.connectToStoredWiFi();
+    WiFiManager::getInstance();
+    WiFiManager::getInstance().connectToStoredWiFi();
 
     // Create task for user code on Core 0
     xTaskCreatePinnedToCore(
@@ -45,7 +45,7 @@ void setup() {
 // // Main loop runs on Core 1
 void loop() {
     // Network-related tasks on Core 1
-    webServerManager.handleClientRequests();
+    WebServerManager::getInstance().handleClientRequests();
     
     if (WiFi.status() == WL_CONNECTED) {
         ESP32ApiClient::getInstance().pollWebSocket();

@@ -4,7 +4,12 @@
 
 DNSServer dnsServer;
 WebServer server(80);
-WebServerManager webServerManager;  // Create global instance
+
+WebServerManager* WebServerManager::instance = nullptr;
+
+WebServerManager::WebServerManager() {
+	Serial.println("Starting Web server");
+}
 
 void WebServerManager::startWebServer() {
 	IPAddress apIP(192, 168, 4, 1);
@@ -24,7 +29,7 @@ void WebServerManager::startWebServer() {
 		String ssid = server.arg("ssid");
 		String password = server.arg("password");
 
-		bool connectionStatus = wifiManager.attemptNewWifiConnection(ssid, password);
+		bool connectionStatus = WiFiManager::getInstance().attemptNewWifiConnection(ssid, password);
 
 		if (connectionStatus) {
 			String successHtml =

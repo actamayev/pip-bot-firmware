@@ -5,10 +5,10 @@
 #include <Arduino.h>
 #include <mbedtls/base64.h>
 
-class WebSocketManager;
-
 class FirmwareUpdater {
     private:
+        static FirmwareUpdater* instance;
+
         static const size_t WORKING_BUFFER_SIZE = 64 * 1024;    // 64KB working buffer
         static const size_t HEAP_OVERHEAD = 32 * 1024;          // 32KB overhead
 
@@ -44,8 +44,15 @@ class FirmwareUpdater {
         bool checkMemoryRequirements(size_t updateSize) const;
         void resetState();
 
-        // WebSocketManager& wsManager;
+        FirmwareUpdater(const FirmwareUpdater&) = delete;
+        FirmwareUpdater& operator=(const FirmwareUpdater&) = delete;
     public:
+        static FirmwareUpdater& getInstance() {
+            if (instance == nullptr) {
+                instance = new FirmwareUpdater();
+            }
+            return *instance;
+        }
         FirmwareUpdater();
         ~FirmwareUpdater();
         bool begin(size_t size);

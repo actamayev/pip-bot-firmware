@@ -6,11 +6,22 @@
 #include <WebServer.h>
 
 class WebServerManager {
-	public:
-		void startWebServer();
-		void handleClientRequests();
-};
+    public:
+        static WebServerManager& getInstance() {
+            if (instance == nullptr) {
+                instance = new WebServerManager();
+            }
+            return *instance;
+        }
+        void startWebServer();
+        void handleClientRequests();
+    private:
+        static WebServerManager* instance;
 
-extern WebServerManager webServerManager;
+        WebServerManager();
+
+        WebServerManager(const WebServerManager&) = delete;
+        WebServerManager& operator=(const WebServerManager&) = delete;
+};
 
 #endif

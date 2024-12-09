@@ -1,6 +1,8 @@
 #include "./include/firmware_updater.h"
 #include "./include/websocket_manager.h"  // Include this after the forward declaration
 
+FirmwareUpdater* FirmwareUpdater::instance = nullptr;
+
 FirmwareUpdater::FirmwareUpdater() 
     : writeBuffer(nullptr), receiveBuffer(nullptr),
       updateRunning(false), bufferReady(false), currentChunkSize(0),
