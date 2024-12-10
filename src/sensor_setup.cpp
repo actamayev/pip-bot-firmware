@@ -18,12 +18,14 @@ SensorSetup::SensorSetup() {
 
 void SensorSetup::sensor_setup() {
     i2c_setup();
+    // TODO: Later on, call these setup functions conditionally. Have a is_tof_setup flag that initializes as false, and have a checker run the setup function before using it to ensure it's properly setup
     setup_tof_sensors();
+    setup_imu();
 }
 
 void SensorSetup::i2c_setup() {
     Wire.begin(I2C_SDA, I2C_SCL);
-    Wire.setClock(400 * 1000); // 400kHz
+    Wire.setClock(I2C_CLOCK_SPEED);
 }
 
 void SensorSetup::setup_tof_sensors() {
@@ -41,14 +43,14 @@ void SensorSetup::setup_tof_sensors() {
     Serial.println("Initializing Right Tof...");
     if (rightTof.begin() == false) {
         Serial.println("Right TOF not found - check wiring. Freezing...");
-        while (1);
+        return;
     }
 
     // Set new address for right TOF
     Serial.printf("Setting right tof address to: 0x%02X\n", RIGHT_TOF_ADDRESS);
     if (rightTof.setAddress(RIGHT_TOF_ADDRESS) == false) {
         Serial.println("Failed to set right tof address. Freezing...");
-        while (1);
+        return;
     }
 
     // Verify new address
@@ -62,7 +64,7 @@ void SensorSetup::setup_tof_sensors() {
     Serial.println("Initializing left tof");
     if (leftTof.begin() == false) {
         Serial.println("Left TOF not found - check wiring. Freezing...");
-        while (1);
+        return;
     }
 
     // Configure both sensors
@@ -71,8 +73,6 @@ void SensorSetup::setup_tof_sensors() {
     // Set resolution for both sensors
     rightTof.setResolution(TOF_IMAGE_RESOLUTION * TOF_IMAGE_RESOLUTION);
     rightTof.setResolution(TOF_IMAGE_RESOLUTION * TOF_IMAGE_RESOLUTION);
-
-    // Set ranging frequency
     rightTof.setRangingFrequency(TOF_RANGING_FREQUENCY);
     leftTof.setRangingFrequency(TOF_RANGING_FREQUENCY);
 
@@ -99,22 +99,22 @@ void SensorSetup::setReports() {
     Serial.println("Setting desired reports");
 
     // Enable Game Rotation Vector with update rate of 5ms (200Hz)
-    if (!imu.enableReport(SH2_GAME_ROTATION_VECTOR, 5000)) {
+    if (!imu.enableReport(SH2_GAME_ROTATION_VECTOR, IMU_UPDATE_FREQ_MICROSECS)) {
         Serial.println("Could not enable game vector");
     }
 
     // Enable Accelerometer
-    // if (!imu.enableReport(SH2_ACCELEROMETER, 5000)) {
+    // if (!imu.enableReport(SH2_ACCELEROMETER, IMU_UPDATE_FREQ_MICROSECS)) {
     //     Serial.println("Could not enable accelerometer");
     // }
 
     // // Enable Gyroscope
-    // if (!imu.enableReport(SH2_GYROSCOPE_CALIBRATED, 5000)) {
+    // if (!imu.enableReport(SH2_GYROSCOPE_CALIBRATED, IMU_UPDATE_FREQ_MICROSECS)) {
     //     Serial.println("Could not enable gyroscope");
     // }
 
     // // Enable Magnetic Field
-    // if (!imu.enableReport(SH2_MAGNETIC_FIELD_CALIBRATED, 5000)) {
+    // if (!imu.enableReport(SH2_MAGNETIC_FIELD_CALIBRATED, IMU_UPDATE_FREQ_MICROSECS)) {
     //     Serial.println("Could not enable magnetic field");
     // }
 }
