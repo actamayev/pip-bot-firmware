@@ -11,7 +11,7 @@ extern const uint8_t DNS_PORT;
 //I2C:
 extern const uint8_t I2C_SDA;
 extern const uint8_t I2C_SCL;
-extern const uint8_t I2C_CLOCK_SPEED;
+extern const uint32_t I2C_CLOCK_SPEED;
 
 // TOF:
 extern const uint8_t LEFT_TOF_RESET_PIN;
@@ -24,7 +24,7 @@ extern const uint8_t TOF_IMAGE_RESOLUTION;
 extern const uint8_t TOF_RANGING_FREQUENCY;
 
 // IMU:
-extern const uint8_t IMU_UPDATE_FREQ_MICROSECS;
+extern const uint32_t IMU_UPDATE_FREQ_MICROSECS;
 
 // Web/Pip/Environment
 extern const char* rootCACertificate;

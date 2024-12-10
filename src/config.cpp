@@ -8,7 +8,7 @@ const uint8_t DNS_PORT = 53;
 //i2c (same for all i2c connections):
 const uint8_t I2C_SDA = 8;
 const uint8_t I2C_SCL = 9;
-const uint8_t I2C_CLOCK_SPEED = 400 * 1000; // 400 kHz
+const uint32_t I2C_CLOCK_SPEED = 400 * 1000; // 400 kHz
 
 // TOF:
 const uint8_t RIGHT_TOF_RESET_PIN = 14;
@@ -22,8 +22,7 @@ const uint8_t TOF_IMAGE_RESOLUTION = 8;  // Image width (can be 4 or 8)
 const uint8_t TOF_RANGING_FREQUENCY = 15;  // TOF sampling frequency
 
 // IMU
-const uint8_t IMU_UPDATE_FREQ_MICROSECS = 5000; // 5ms, 200Hz
-
+const uint32_t IMU_UPDATE_FREQ_MICROSECS = 5000;  // 5ms, 200Hz
 
 // echo | openssl s_client -showcerts -connect staging-api.bluedotrobots.com:443
 const char* rootCACertificate = \
