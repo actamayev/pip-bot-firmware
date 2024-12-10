@@ -12,5 +12,10 @@ class SensorSetup : public Singleton<SensorSetup> {
         SensorSetup();
         void sensor_setup();
         void i2c_setup();
+    
         void setup_tof_sensors();
+
+        // IMU:
+        void setup_imu();
+        void setReports();
 };

@@ -1,11 +1,16 @@
 #include "./include/config.h"
 #include "./include/sensor_setup.h"
 
+// TOF:
 SparkFun_VL53L5CX rightTof;
 VL53L5CX_ResultsData rightTofData;
 
 SparkFun_VL53L5CX leftTof;
 VL53L5CX_ResultsData leftTofData;
+
+// IMU:
+Adafruit_BNO08x imu;
+sh2_SensorValue_t imu_sensor_value;
 
 SensorSetup::SensorSetup() {
     sensor_setup();
@@ -13,17 +18,7 @@ SensorSetup::SensorSetup() {
 
 void SensorSetup::sensor_setup() {
     i2c_setup();
-    // pinMode(DIGITAL_IR_PIN_1, INPUT); // GPIO 32
-    // pinMode(DIGITAL_IR_PIN_3, INPUT); // GPIO 34
-
-    // Serial.println("Starting VL53L1X multiple sensors test...");
-
-    // if (!setupTofSensors()) {
-    //     Serial.println("Failed to initialize sensors!");
-    //     while (1) delay(10);  // Halt if setup failed
-    // }
-
-    // Serial.println("All sensors initialized successfully!");
+    setup_tof_sensors();
 }
 
 void SensorSetup::i2c_setup() {
@@ -87,47 +82,39 @@ void SensorSetup::setup_tof_sensors() {
     // leftTof.startRanging();
 }
 
-// bool SensorSetup::setupTofSensors() {
-//     // Initialize I2C
-//     Wire.begin(TIME_OF_FLIGHT_SDA, TIME_OF_FLIGHT_SCL);
+void SensorSetup::setup_imu() {
+    if (!imu.begin_I2C()) {
+        Serial.println("Failed to find BNO08x chip");
+        while (1) { delay(10); }
+    }
+    Serial.println("BNO08x Found!");
 
-//     // Set all XSHUT pins as outputs
-//     pinMode(TIME_OF_FLIGHT_XSHUT_1, OUTPUT);
-//     pinMode(TIME_OF_FLIGHT_XSHUT_2, OUTPUT);
-//     pinMode(TIME_OF_FLIGHT_XSHUT_3, OUTPUT);
+    // Enable the game rotation vector
+    setReports();
 
-//     // Disable all sensors
-//     digitalWrite(TIME_OF_FLIGHT_XSHUT_1, LOW);
-//     digitalWrite(TIME_OF_FLIGHT_XSHUT_2, LOW);
-//     digitalWrite(TIME_OF_FLIGHT_XSHUT_3, LOW);
-//     delay(10);
+    Serial.println("Reading events");
+}
 
-//     // Initialize sensor 1 (keep default address)
-//     digitalWrite(TIME_OF_FLIGHT_XSHUT_1, HIGH);
-//     delay(10);
-//     if (!sensor1.begin(TOF_SENSOR1_ADDRESS, &Wire)) {
-//         Serial.println("Failed to boot first VL53L1X");
-//         return false;
-//     }
-//     sensor1.startRanging();
+void SensorSetup::setReports() {
+    Serial.println("Setting desired reports");
 
-//     // Initialize sensor 2
-//     digitalWrite(TIME_OF_FLIGHT_XSHUT_2, HIGH);
-//     // delay(10);
-//     // if (!sensor2.begin(TOF_SENSOR2_ADDRESS, &Wire)) {
-//     //     Serial.println("Failed to boot second VL53L1X");
-//     //     return false;
-//     // }
-//     // sensor2.startRanging();
+    // Enable Game Rotation Vector with update rate of 5ms (200Hz)
+    if (!imu.enableReport(SH2_GAME_ROTATION_VECTOR, 5000)) {
+        Serial.println("Could not enable game vector");
+    }
 
-//     // // Initialize sensor 3
-//     digitalWrite(TIME_OF_FLIGHT_XSHUT_3, HIGH);
-//     // delay(10);
-//     // if (!sensor3.begin(TOF_SENSOR3_ADDRESS, &Wire)) {
-//     //     Serial.println("Failed to boot third VL53L1X");
-//     //     return false;
-//     // }
-//     // sensor3.startRanging();
+    // Enable Accelerometer
+    // if (!imu.enableReport(SH2_ACCELEROMETER, 5000)) {
+    //     Serial.println("Could not enable accelerometer");
+    // }
 
-//     return true;
-// }
+    // // Enable Gyroscope
+    // if (!imu.enableReport(SH2_GYROSCOPE_CALIBRATED, 5000)) {
+    //     Serial.println("Could not enable gyroscope");
+    // }
+
+    // // Enable Magnetic Field
+    // if (!imu.enableReport(SH2_MAGNETIC_FIELD_CALIBRATED, 5000)) {
+    //     Serial.println("Could not enable magnetic field");
+    // }
+}
