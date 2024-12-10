@@ -1,8 +1,8 @@
 #include "./include/config.h"
 #include "./include/rgb_led.h"
+#include "./include/sensors.h"
 #include "./include/user_code.h"
 #include "./include/wifi_manager.h"
-#include "./include/sensor_setup.h"
 #include "./include/show_chip_info.h"
 #include "./include/webserver_manager.h"
 #include "./include/websocket_manager.h"
@@ -20,13 +20,11 @@ void setup() {
     Serial.begin(115200);
     delay(2000);
 
-    // printFlashInfo();
-
     Serial.println(DEFAULT_ENVIRONMENT);
     Serial.println(DEFAULT_PIP_ID);
     rgbLed.turn_led_off();
 
-    SensorSetup::getInstance(); // Initializes sensors
+    Sensors::getInstance();// Initializes sensors
 
     WiFiManager::getInstance(); // Initializes WiFi
     WiFiManager::getInstance().connectToStoredWiFi();

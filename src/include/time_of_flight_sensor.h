@@ -9,12 +9,9 @@ class TimeOfFlightSensor {
         bool initialize();
         bool getData();
 
-        const VL53L5CX_ResultsData& getSensorData() const;
+        VL53L5CX_ResultsData sensorData;
 
         void startRanging();
         void stopRanging();
         SparkFun_VL53L5CX sensor;
-
-    private:
-        VL53L5CX_ResultsData sensorData;
 };

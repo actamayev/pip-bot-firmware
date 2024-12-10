@@ -19,10 +19,6 @@ bool TimeOfFlightSensor::getData() {
     return false;
 }
 
-const VL53L5CX_ResultsData& TimeOfFlightSensor::getSensorData() const {
-    return sensorData;
-}
-
 void TimeOfFlightSensor::startRanging() {
     sensor.startRanging();
 }

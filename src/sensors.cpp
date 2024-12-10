@@ -69,8 +69,8 @@ bool Sensors::getTofData(const VL53L5CX_ResultsData** leftData, const VL53L5CX_R
     bool leftSuccess = leftTof.getData();
     bool rightSuccess = rightTof.getData();
     
-    if (leftSuccess) *leftData = &leftTof.getSensorData();
-    if (rightSuccess) *rightData = &rightTof.getSensorData();
+    if (leftSuccess) *leftData = &leftTof.sensorData;
+    if (rightSuccess) *rightData = &rightTof.sensorData;
     
     return leftSuccess && rightSuccess;
 }
