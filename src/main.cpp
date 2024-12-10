@@ -2,6 +2,7 @@
 #include "./include/rgb_led.h"
 #include "./include/user_code.h"
 #include "./include/wifi_manager.h"
+#include "./include/sensor_setup.h"
 #include "./include/show_chip_info.h"
 #include "./include/webserver_manager.h"
 #include "./include/websocket_manager.h"
@@ -24,8 +25,10 @@ void setup() {
     Serial.println(DEFAULT_ENVIRONMENT);
     Serial.println(DEFAULT_PIP_ID);
     rgbLed.turn_led_off();
-    // sensorSetup.sensor_setup();
-    WiFiManager::getInstance();
+
+    SensorSetup::getInstance(); // Initializes sensors
+
+    WiFiManager::getInstance(); // Initializes WiFi
     WiFiManager::getInstance().connectToStoredWiFi();
 
     // Create task for user code on Core 0
