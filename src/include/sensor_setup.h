@@ -1,21 +1,21 @@
-#pragma once
+// #pragma once
 
-#include <Wire.h>
-#include <Adafruit_BNO08x.h>
-#include <SparkFun_VL53L5CX_Library.h>
-#include "./singleton.h"
+// #include <Wire.h>
+// #include <Adafruit_BNO08x.h>
+// #include <SparkFun_VL53L5CX_Library.h>
+// #include "./singleton.h"
 
-class SensorSetup : public Singleton<SensorSetup> {
-    friend class Singleton<SensorSetup>;
+// class SensorSetup : public Singleton<SensorSetup> {
+//     friend class Singleton<SensorSetup>;
 
-    private:
-        SensorSetup();
-        void sensor_setup();
-        void i2c_setup();
+//     private:
+//         SensorSetup();
+//         void sensor_setup();
+//         void i2c_setup();
     
-        void setup_tof_sensors();
+//         void setup_tof_sensors();
 
-        // IMU:
-        void setup_imu();
-        void setReports();
-};
+//         // IMU:
+//         void setup_imu();
+//         void setReports();
+// };
