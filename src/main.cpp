@@ -42,7 +42,6 @@ void setup() {
     // );
 }
 
-
 //Main loop runs on Core 1
 void loop() {
     // Network-related tasks on Core 1
