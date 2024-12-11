@@ -6,6 +6,7 @@
 #include "./include/show_chip_info.h"
 #include "./include/webserver_manager.h"
 #include "./include/websocket_manager.h"
+#include "./include/sensor_loggers.h"
 
 // This task will run user code on Core 0
 void UserCodeTask(void * parameter) {
@@ -41,36 +42,6 @@ void setup() {
     // );
 }
 
-void tofLogger() {
-    static unsigned long lastPrintTime = 0;
-    const unsigned long PRINT_INTERVAL = 1000; // Print every second
-    
-    if (millis() - lastPrintTime >= PRINT_INTERVAL) {
-        auto& sensors = Sensors::getInstance();
-        const VL53L5CX_ResultsData* leftData;
-        const VL53L5CX_ResultsData* rightData;
-    
-        if (sensors.getTofData(&leftData, &rightData)) {
-            // Print in 8x8 grid format
-            const int imageWidth = 8;
-            Serial.println("\nDistance readings (mm):");
-
-            for (int y = 0; y <= imageWidth * (imageWidth - 1); y += imageWidth) {
-                for (int x = imageWidth - 1; x >= 0; x--) {
-                    Serial.print("\t");
-                    Serial.print(leftData->distance_mm[x + y]);
-                }
-                Serial.println();
-            }
-        } else {
-            Serial.println("Failed to get TOF data");
-        }
-        
-        lastPrintTime = millis();
-    }
-
-    delay(5); // Small delay to prevent watchdog issues
-}
 
 //Main loop runs on Core 1
 void loop() {
@@ -81,4 +52,8 @@ void loop() {
     //     WebSocketManager::getInstance().pollWebSocket();
     // }
     tofLogger();
+
+    imuLogger();
+
+    delay(5);
 }

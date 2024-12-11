@@ -4,10 +4,10 @@ void Sensors::initialize() {
     // Setup I2C
     Wire.begin(I2C_SDA, I2C_SCL);
     Wire.setClock(I2C_CLOCK_SPEED);
-    
+
     // Initialize sensors
     initializeTofSensors();
-    // initializeIMU();
+    initializeIMU();
 }
 
 void Sensors::initializeTofSensors() {
@@ -22,10 +22,13 @@ void Sensors::initializeTofSensors() {
 }
 
 void Sensors::initializeIMU() {
+    Serial.println("Initializing IMU...");
+
     if (!imu.initialize()) {
         Serial.println("IMU initialization failed");
         return;
     }
+    Serial.println("IMU setup complete");
 }
 
 bool Sensors::getTofData(const VL53L5CX_ResultsData** leftData, const VL53L5CX_ResultsData** rightData) {
