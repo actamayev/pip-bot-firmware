@@ -4,56 +4,19 @@ void Sensors::initialize() {
     // Setup I2C
     Wire.begin(I2C_SDA, I2C_SCL);
     Wire.setClock(I2C_CLOCK_SPEED);
-
+    
     // Initialize sensors
     initializeTofSensors();
-    initializeIMU();
+    // initializeIMU();
 }
 
 void Sensors::initializeTofSensors() {
-    pinMode(LEFT_TOF_RESET_PIN, OUTPUT);
-    pinMode(RIGHT_TOF_RESET_PIN, OUTPUT);
+    Serial.println("Initializing Left TOF sensor...");
 
-    // Hold Left TOF in reset while we configure Right TOF
-    digitalWrite(LEFT_TOF_RESET_PIN, HIGH);
-
-    // Reset and initialize right tof:
-    digitalWrite(RIGHT_TOF_RESET_PIN, HIGH);
-    delay(100); // TODO: Figure out if we should use delay (use millis instead?)
-    digitalWrite(RIGHT_TOF_RESET_PIN, LOW);
-
-    Serial.println("Initializing Right Tof...");
-    if (rightTof.sensor.begin() == false) {
-        Serial.println("Right TOF not found - check wiring. Freezing...");
+    if (!leftTof.initialize()) {
+        Serial.println("Failed to initialize left TOF sensor");
         return;
     }
-
-    // Set new address for right TOF
-    Serial.printf("Setting right tof address to: 0x%02X\n", RIGHT_TOF_ADDRESS);
-    if (rightTof.sensor.setAddress(RIGHT_TOF_ADDRESS) == false) {
-        Serial.println("Failed to set right tof address. Freezing...");
-        return;
-    }
-
-    // Verify new address
-    int newAddress = rightTof.sensor.getAddress();
-    Serial.printf("Right tof new address confirmed as: 0x%02X\n", newAddress);
-
-    // Initialize left TOF
-    digitalWrite(LEFT_TOF_RESET_PIN, LOW);
-    delay(100);
-
-    Serial.println("Initializing Left tof");
-    if (leftTof.sensor.begin() == false) {
-        Serial.println("Left TOF not found - check wiring. Freezing...");
-        return;
-    }
-
-    // Configure both sensors
-    Serial.println("Configuring both sensors...");
-    
-    rightTof.initialize();
-    leftTof.initialize();
 
     Serial.println("TOF setup complete");
 }
@@ -67,12 +30,12 @@ void Sensors::initializeIMU() {
 
 bool Sensors::getTofData(const VL53L5CX_ResultsData** leftData, const VL53L5CX_ResultsData** rightData) {
     bool leftSuccess = leftTof.getData();
-    bool rightSuccess = rightTof.getData();
+    // bool rightSuccess = rightTof.getData();
     
     if (leftSuccess) *leftData = &leftTof.sensorData;
-    if (rightSuccess) *rightData = &rightTof.sensorData;
-    
-    return leftSuccess && rightSuccess;
+    // if (rightSuccess) *rightData = &rightTof.sensorData;
+
+    return leftSuccess;// && rightSuccess;
 }
 
 bool Sensors::getQuaternion(float& qX, float& qY, float& qZ, float& qW) {
