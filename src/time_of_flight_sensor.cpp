@@ -3,8 +3,6 @@
 bool TimeOfFlightSensor::initialize() {
     Serial.println("Initializing TOF sensor...");
 
-    Serial.println("Sensor found, configuring...");
-
     // Configure sensor resolution
     if (!sensor.setResolution(TOF_IMAGE_RESOLUTION * TOF_IMAGE_RESOLUTION)) { // 8x8 = 64 pixels
         Serial.println("Failed to set resolution");
