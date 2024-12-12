@@ -4,10 +4,10 @@ bool TimeOfFlightSensor::initialize() {
     Serial.println("Initializing TOF sensor...");
     
     // First initialize the sensor
-    if (!sensor.begin()) {
-        Serial.println("Sensor not found - check wiring.");
-        return false;
-    }
+    // if (!sensor.begin()) {
+    //     Serial.println("Sensor not found - check wiring.");
+    //     return false;
+    // }
 
     Serial.println("Sensor found, configuring...");
 
@@ -17,7 +17,11 @@ bool TimeOfFlightSensor::initialize() {
         return false;
     }
 
-    // Start ranging
+   if (!sensor.setRangingFrequency(TOF_RANGING_FREQUENCY)) {
+        Serial.println("Failed to set ranging frequency");
+        return false;
+    }
+    
     startRanging();
     
     Serial.println("TOF sensor initialization complete");
