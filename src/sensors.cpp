@@ -7,61 +7,14 @@ void Sensors::initialize() {
 
     // Initialize sensors
     initializeTofSensors();
-    // initializeIMU();
+    initializeIMU();
 }
 
 void Sensors::initializeTofSensors() {
-    // Configure reset pins
-    pinMode(LEFT_TOF_RESET_PIN, OUTPUT);
-    pinMode(RIGHT_TOF_RESET_PIN, OUTPUT);
+    Serial.println("Initializing Left TOF sensor...");
 
-    // Hold left sensor in reset while we configure right sensor
-    digitalWrite(LEFT_TOF_RESET_PIN, HIGH);
-
-    // Reset and initialize right sensor
-    digitalWrite(RIGHT_TOF_RESET_PIN, HIGH);
-    delay(100);
-    digitalWrite(RIGHT_TOF_RESET_PIN, LOW);
-    delay(100);  // Add delay after releasing from reset
-
-    Serial.println("Initializing right sensor...");
-    if (!rightTof.sensor.begin()) {
-        Serial.println("Right sensor not found - check wiring. Freezing...");
-        return;
-    }
-
-    // Set new address for right sensor
-    Serial.printf("Setting right sensor address to: 0x%02X\n", RIGHT_TOF_ADDRESS);
-    if (!rightTof.sensor.setAddress(RIGHT_TOF_ADDRESS)) {
-        Serial.println("Failed to set right sensor address. Freezing...");
-        return;
-    }
-
-    // Verify new address
-    int newAddress = rightTof.sensor.getAddress();
-    Serial.printf("Right sensor new address confirmed as: 0x%02X\n", newAddress);
-
-    // Initialize left sensor
-    digitalWrite(LEFT_TOF_RESET_PIN, LOW);
-    delay(100);  // Add delay after releasing from reset
-
-    Serial.println("Initializing left sensor...");
-    if (!leftTof.sensor.begin()) {
-        Serial.println("Left sensor not found - check wiring. Freezing...");
-        return;
-    }
-
-    // Configure both sensors
-    Serial.println("Configuring sensors...");
-
-    // Initialize both sensors
     if (!leftTof.initialize()) {
-        Serial.println("Left sensor not initializd...");
-        return;
-    }
-
-    if (!rightTof.initialize()) {
-        Serial.println("Right sensor not initializd...");
+        Serial.println("Failed to initialize left TOF sensor");
         return;
     }
 
@@ -80,12 +33,12 @@ void Sensors::initializeIMU() {
 
 bool Sensors::getTofData(const VL53L5CX_ResultsData** leftData, const VL53L5CX_ResultsData** rightData) {
     bool leftSuccess = leftTof.getData();
-    bool rightSuccess = rightTof.getData();
+    // bool rightSuccess = rightTof.getData();
     
     if (leftSuccess) *leftData = &leftTof.sensorData;
-    if (rightSuccess) *rightData = &rightTof.sensorData;
+    // if (rightSuccess) *rightData = &rightTof.sensorData;
 
-    return leftSuccess;
+    return leftSuccess;// && rightSuccess;
 }
 
 bool Sensors::getQuaternion(float& qX, float& qY, float& qZ, float& qW) {
