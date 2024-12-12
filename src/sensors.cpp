@@ -7,7 +7,7 @@ void Sensors::initialize() {
 
     // Initialize sensors
     initializeTofSensors();
-    initializeIMU();
+    // initializeIMU();
 }
 
 void Sensors::initializeTofSensors() {
