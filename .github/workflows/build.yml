@@ -20,16 +20,17 @@ jobs:
           python -m pip install --upgrade pip
           pip install platformio
 
-      - name: Determine build environment
-        id: build-env
-        run: |
-          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
-            echo "BUILD_ENV=production" >> "$GITHUB_ENV"
-          elif [ "${{ github.ref }}" = "refs/heads/staging" ]; then
-            echo "BUILD_ENV=staging" >> "$GITHUB_ENV"
-          else
-            echo "BUILD_ENV=local" >> "$GITHUB_ENV"
-          fi
+      - name: Set production environment
+        if: github.ref == 'refs/heads/main'
+        run: echo "BUILD_ENV=production" >> "$GITHUB_ENV"
+
+      - name: Set staging environment
+        if: github.ref == 'refs/heads/staging'
+        run: echo "BUILD_ENV=staging" >> "$GITHUB_ENV"
+
+      - name: Set local environment
+        if: github.ref != 'refs/heads/main' && github.ref != 'refs/heads/staging'
+        run: echo "BUILD_ENV=local" >> "$GITHUB_ENV"
 
       - name: Build project
         run: platformio run --environment ${{ env.BUILD_ENV }}
