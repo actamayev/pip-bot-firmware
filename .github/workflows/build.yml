@@ -24,12 +24,12 @@ jobs:
         id: build-env
         run: |
           if [ "${{ github.ref }}" = "refs/heads/main" ]; then
-            echo "production" >> $GITHUB_OUTPUT
+            echo "BUILD_ENV=production" >> "$GITHUB_ENV"
           elif [ "${{ github.ref }}" = "refs/heads/staging" ]; then
-            echo "staging" >> $GITHUB_OUTPUT
+            echo "BUILD_ENV=staging" >> "$GITHUB_ENV"
           else
-            echo "local" >> $GITHUB_OUTPUT
+            echo "BUILD_ENV=local" >> "$GITHUB_ENV"
           fi
 
       - name: Build project
-        run: platformio run --environment ${{ steps.build-env.outputs.env }}
+        run: platformio run --environment ${{ env.BUILD_ENV }}
