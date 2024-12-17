@@ -10,6 +10,15 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Debug Git Info
+        run: |
+          echo "Current ref: ${{ github.ref }}"
+          echo "Event name: ${{ github.event_name }}"
+          echo "Base ref: ${{ github.base_ref }}"
+          echo "Head ref: ${{ github.head_ref }}"
+          git branch --show-current
+          git rev-parse --abbrev-ref HEAD
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
@@ -22,15 +31,24 @@ jobs:
 
       - name: Set production environment
         if: github.ref == 'refs/heads/main'
-        run: echo "BUILD_ENV=production" >> "$GITHUB_ENV"
+        run: |
+          echo "Setting production environment"
+          echo "BUILD_ENV=production" >> "$GITHUB_ENV"
 
       - name: Set staging environment
         if: github.ref == 'refs/heads/staging'
-        run: echo "BUILD_ENV=staging" >> "$GITHUB_ENV"
+        run: |
+          echo "Setting staging environment"
+          echo "BUILD_ENV=staging" >> "$GITHUB_ENV"
 
       - name: Set local environment
         if: github.ref != 'refs/heads/main' && github.ref != 'refs/heads/staging'
-        run: echo "BUILD_ENV=local" >> "$GITHUB_ENV"
+        run: |
+          echo "Setting local environment"
+          echo "BUILD_ENV=local" >> "$GITHUB_ENV"
+
+      - name: Confirm Environment
+        run: echo "Selected environment is ${{ env.BUILD_ENV }}"
 
       - name: Build project
         run: platformio run --environment ${{ env.BUILD_ENV }}
