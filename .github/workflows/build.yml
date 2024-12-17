@@ -10,7 +10,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Set up PlatformIO and Python
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
@@ -21,6 +20,16 @@ jobs:
           python -m pip install --upgrade pip
           pip install platformio
 
-      # Build the project (compiles main.cpp)
+      - name: Determine build environment
+        id: build-env
+        run: |
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            echo "BUILD_ENV=production" >> "$GITHUB_ENV"
+          elif [ "${{ github.ref }}" = "refs/heads/staging" ]; then
+            echo "BUILD_ENV=staging" >> "$GITHUB_ENV"
+          else
+            echo "BUILD_ENV=local" >> "$GITHUB_ENV"
+          fi
+
       - name: Build project
-        run: platformio run --project-dir .
+        run: platformio run --environment ${{ env.BUILD_ENV }}
