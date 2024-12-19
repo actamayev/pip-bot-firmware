@@ -78,5 +78,10 @@ jobs:
 
       - name: Trigger firmware update
         run: |
-          curl -X POST ${{ steps.env.outputs.service_url }}/update-firmware \
-            -H "Content-Type: application/json"
+          response=$(curl -X POST ${{ steps.env.outputs.service_url }}/update-firmware \
+            -H "Content-Type: application/json")
+          echo "Response: $response"
+          if echo "$response" | grep -q '"success":false'; then
+            echo "Firmware update failed"
+            exit 1
+          fi
