@@ -19,9 +19,8 @@ void Sensors::initializeTofSensors() {
     delay(100);
     digitalWrite(RIGHT_TOF_RESET_PIN, LOW); //Sensor 1 should now be available at default address 0x29
 
-    bool isRegisteredAlready = check_address_on_i2c_line(RIGHT_TOF_ADDRESS);
     byte imager1Addr = DEFAULT_TOF_I2C_ADDRESS;
-    if (isRegisteredAlready == true) {
+    if (check_address_on_i2c_line(RIGHT_TOF_ADDRESS) == true) {
         imager1Addr = RIGHT_TOF_ADDRESS;
     }
     Serial.println(F("Initializing sensor 1. This can take up to 10s. Please wait."));
@@ -30,18 +29,10 @@ void Sensors::initializeTofSensors() {
         while (1);
     }
 
-    Serial.print(F("Setting sensor 1 address to: 0x"));
-    Serial.println(RIGHT_TOF_ADDRESS, HEX);
-
     if (rightTof.sensor.setAddress(RIGHT_TOF_ADDRESS) == false) {
         Serial.println(F("Sensor 1 failed to set new address. Please try again. Freezing..."));
         while (1);
     }
-
-    int newAddress = rightTof.sensor.getAddress();
-
-    Serial.print(F("New address of sensor 1 is: 0x"));
-    Serial.println(newAddress, HEX);
 
     digitalWrite(LEFT_TOF_RESET_PIN, LOW); //Release sensor 2 from reset
 

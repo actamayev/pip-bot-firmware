@@ -4,9 +4,9 @@
 #include "./include/user_code.h"
 #include "./include/wifi_manager.h"
 #include "./include/show_chip_info.h"
+#include "./include/sensor_loggers.h"
 #include "./include/webserver_manager.h"
 #include "./include/websocket_manager.h"
-#include "./include/sensor_loggers.h"
 
 // This task will run user code on Core 0
 void UserCodeTask(void * parameter) {
@@ -27,30 +27,30 @@ void setup() {
 
     Sensors::getInstance();
 
-    // WiFiManager::getInstance(); // Initializes WiFi
-    // WiFiManager::getInstance().connectToStoredWiFi();
+    WiFiManager::getInstance(); // Initializes WiFi
+    WiFiManager::getInstance().connectToStoredWiFi();
 
-    // // Create task for user code on Core 0
-    // xTaskCreatePinnedToCore(
-    //     UserCodeTask,  // Function to run
-    //     "UserCode",    // Task name
-    //     10000,         // Stack size
-    //     NULL,          // Task parameters
-    //     1,             // Priority
-    //     NULL,          // Task handle
-    //     0              // Run on Core 0
-    // );
+    // Create task for user code on Core 0
+    xTaskCreatePinnedToCore(
+        UserCodeTask,  // Function to run
+        "UserCode",    // Task name
+        10000,         // Stack size
+        NULL,          // Task parameters
+        1,             // Priority
+        NULL,          // Task handle
+        0              // Run on Core 0
+    );
 }
 
 //Main loop runs on Core 1
 void loop() {
     // Network-related tasks on Core 1
-    // WebServerManager::getInstance().handleClientRequests();
+    WebServerManager::getInstance().handleClientRequests();
 
-    // if (WiFi.status() == WL_CONNECTED) {
-    //     WebSocketManager::getInstance().pollWebSocket();
-    // }
-    tofLogger();
+    if (WiFi.status() == WL_CONNECTED) {
+        WebSocketManager::getInstance().pollWebSocket();
+    }
+    // tofLogger();
 
     // imuLogger();
 
