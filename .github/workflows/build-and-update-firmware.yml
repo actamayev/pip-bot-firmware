@@ -1,0 +1,87 @@
+name: Build and Update Firmware
+
+on:
+  push:
+    paths:
+      - 'src/**'
+      - 'platformio.ini'
+      - 'partitions_custom.csv'
+      - '.github/workflows/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Debug Git Info
+        run: |
+          echo "Current ref: ${{ github.ref }}"
+          echo "Event name: ${{ github.event_name }}"
+          echo "Base ref: ${{ github.base_ref }}"
+          echo "Head ref: ${{ github.head_ref }}"
+          git branch --show-current
+          git rev-parse --abbrev-ref HEAD
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install PlatformIO
+        run: |
+          python -m pip install --upgrade pip
+          pip install platformio
+
+      - name: Set production environment
+        if: github.ref == 'refs/heads/main'
+        run: |
+          echo "Setting production environment"
+          echo "BUILD_ENV=production" >> "$GITHUB_ENV"
+
+      - name: Set staging environment
+        if: github.ref == 'refs/heads/staging'
+        run: |
+          echo "Setting staging environment"
+          echo "BUILD_ENV=staging" >> "$GITHUB_ENV"
+
+      - name: Set local environment
+        if: github.ref != 'refs/heads/main' && github.ref != 'refs/heads/staging'
+        run: |
+          echo "Setting local environment"
+          echo "BUILD_ENV=local" >> "$GITHUB_ENV"
+
+      - name: Confirm Environment
+        run: echo "Selected environment is ${{ env.BUILD_ENV }}"
+
+      - name: Build project
+        run: platformio run --environment ${{ env.BUILD_ENV }}
+
+  notify-compiler:
+    needs: build
+    if: |
+      success() && 
+      (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set environment variables
+        id: env
+        run: |
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            echo "environment=production" >> $GITHUB_OUTPUT
+            echo "service_url=${{ secrets.PRODUCTION_COMPILER_SERVICE_URL }}" >> $GITHUB_OUTPUT
+          else
+            echo "environment=staging" >> $GITHUB_OUTPUT
+            echo "service_url=${{ secrets.STAGING_COMPILER_SERVICE_URL }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Trigger firmware update
+        run: |
+          response=$(curl -X POST ${{ steps.env.outputs.service_url }}/update-firmware \
+            -H "Content-Type: application/json")
+          echo "Response: $response"
+          if echo "$response" | grep -q '"success":false'; then
+            echo "Firmware update failed"
+            exit 1
+          fi
