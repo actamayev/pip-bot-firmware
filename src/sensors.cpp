@@ -10,35 +10,69 @@ void Sensors::initialize() {
     // initializeIMU();
 }
 
+void scanI2C() {
+  byte error, address;
+  int devicesFound = 0;
+  
+  Serial.println("Scanning I2C bus...");
+  
+  for (address = 1; address < 128; address++) {
+    Wire.beginTransmission(address);
+    error = Wire.endTransmission();
+    
+    if (error == 0) {
+      Serial.print("Device found at address 0x");
+      if (address < 16) Serial.print("0");
+      Serial.println(address, HEX);
+      devicesFound++;
+    }
+  }
+  
+  if (devicesFound == 0) {
+    Serial.println("No I2C devices found");
+  } else {
+    Serial.printf("Found %d device(s)\n", devicesFound);
+  }
+  Serial.println();
+}
+
 void Sensors::initializeTofSensors() {
     pinMode(LEFT_TOF_RESET_PIN, OUTPUT);
-    digitalWrite(LEFT_TOF_RESET_PIN, HIGH); //Hold sensor 2 in reset while we configure sensor 1
+    digitalWrite(LEFT_TOF_RESET_PIN, HIGH); //Hold left sensor in reset while we configure right sensor
 
     pinMode(RIGHT_TOF_RESET_PIN, OUTPUT);
-    digitalWrite(RIGHT_TOF_RESET_PIN, HIGH); //Reset sensor 1
+    digitalWrite(RIGHT_TOF_RESET_PIN, HIGH); //Reset right sensor
     delay(100);
-    digitalWrite(RIGHT_TOF_RESET_PIN, LOW); //Sensor 1 should now be available at default address 0x29
+    digitalWrite(RIGHT_TOF_RESET_PIN, LOW); //Right sensor should now be available at default address 0x29
 
+    bool isRegisteredAlready = check_address_on_i2c_line(RIGHT_TOF_ADDRESS);
     byte imager1Addr = DEFAULT_TOF_I2C_ADDRESS;
-    if (check_address_on_i2c_line(RIGHT_TOF_ADDRESS) == true) {
+    if (isRegisteredAlready == true) {
         imager1Addr = RIGHT_TOF_ADDRESS;
     }
-    Serial.println(F("Initializing sensor 1. This can take up to 10s. Please wait."));
+    Serial.println(F("Initializing right sensor. This can take up to 10s. Please wait."));
     if (rightTof.sensor.begin(imager1Addr) == false) {
-        Serial.println(F("Sensor 1 not found. Check wiring. Freezing..."));
+        Serial.println(F("Right sensor not found. Check wiring. Freezing..."));
         while (1);
     }
 
-    if (rightTof.sensor.setAddress(RIGHT_TOF_ADDRESS) == false) {
-        Serial.println(F("Sensor 1 failed to set new address. Please try again. Freezing..."));
-        while (1);
+    if (isRegisteredAlready == false) {
+        Serial.print(F("Setting right sensor address to: 0x"));
+        Serial.println(RIGHT_TOF_ADDRESS, HEX);
+
+        if (rightTof.sensor.setAddress(RIGHT_TOF_ADDRESS) == false) {
+            Serial.println(F("Right sensor failed to set new address. Please try again. Freezing..."));
+            while (1);
+        }
     }
 
-    digitalWrite(LEFT_TOF_RESET_PIN, LOW); //Release sensor 2 from reset
+    digitalWrite(LEFT_TOF_RESET_PIN, LOW); //Release left sensor from reset
 
-    Serial.println(F("Initializing sensor 2. This can take up to 10s. Please wait."));
+    delay(1000);
+    scanI2C();
+    Serial.println(F("Initializing left sensor. This can take up to 10s. Please wait."));
     if (leftTof.sensor.begin() == false) {
-        Serial.println(F("Sensor 2 not found. Check wiring. Freezing..."));
+        Serial.println(F("Left Sensor not found. Check wiring. Freezing..."));
         while (1);
     }
 
