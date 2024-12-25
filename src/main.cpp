@@ -54,5 +54,5 @@ void loop() {
 
     // imuLogger();
 
-    delay(5);
+    delay(200);
 }

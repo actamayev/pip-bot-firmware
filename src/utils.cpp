@@ -23,3 +23,24 @@ void quaternionToEuler(float qr, float qi, float qj, float qk, float& yaw, float
     pitch *= RAD_TO_DEG;
     roll *= RAD_TO_DEG;
 }
+
+bool check_address_on_i2c_line(uint8_t addr) {
+  byte error;
+  
+  Serial.printf("Checking for device at address %d...", addr);
+
+  Wire.beginTransmission(addr);
+  error = Wire.endTransmission();
+  
+  if (error == 0) {
+    Serial.printf("Device found at address %d!", addr);
+    return true;
+  } else {
+    if (error == 4) {
+      Serial.printf("Unknown error while checking address %d", addr);
+    } else {
+      Serial.printf("No device found at address %d", addr);
+    }
+    return false;
+  }
+}

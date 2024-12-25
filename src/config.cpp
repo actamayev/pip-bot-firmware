@@ -15,8 +15,9 @@ const uint8_t RIGHT_TOF_RESET_PIN = 14;
 const uint8_t LEFT_TOF_RESET_PIN = 13;
 
 // Unique I2C addresses for each sensor
+const uint8_t DEFAULT_TOF_I2C_ADDRESS = 0x29;  // New address for right sensor
 const uint8_t RIGHT_TOF_ADDRESS = 0x44;  // New address for right sensor
-const uint8_t LEFT_TOF_ADDRESS = 0x29;  // Default address for left sensor
+const uint8_t LEFT_TOF_ADDRESS = DEFAULT_TOF_I2C_ADDRESS;  // Default address for left sensor
 
 const uint8_t TOF_IMAGE_RESOLUTION = 8;  // Image width (can be 4 or 8)
 const uint8_t TOF_RANGING_FREQUENCY = 15;  // TOF sampling frequency

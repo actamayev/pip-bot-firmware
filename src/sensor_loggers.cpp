@@ -14,11 +14,22 @@ void tofLogger() {
             // Print in 8x8 grid format
             const int imageWidth = 8;
             Serial.println("\nDistance readings (mm):");
+            Serial.println("Left Sensor\t\t\t\t\t\t\t\t|\tRight Sensor");
+            Serial.println("--------------------------------------------------------------------------------");
 
             for (int y = 0; y <= imageWidth * (imageWidth - 1); y += imageWidth) {
+                // Print left sensor data
                 for (int x = imageWidth - 1; x >= 0; x--) {
                     Serial.print("\t");
                     Serial.print(leftData->distance_mm[x + y]);
+                }
+                
+                Serial.print("\t|\t"); // Separator between left and right data
+                
+                // Print right sensor data
+                for (int x = imageWidth - 1; x >= 0; x--) {
+                    Serial.print("\t");
+                    Serial.print(rightData->distance_mm[x + y]);
                 }
                 Serial.println();
             }

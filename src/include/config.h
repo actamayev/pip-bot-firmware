@@ -17,6 +17,7 @@ extern const uint32_t I2C_CLOCK_SPEED;
 extern const uint8_t LEFT_TOF_RESET_PIN;
 extern const uint8_t RIGHT_TOF_RESET_PIN;
 
+extern const uint8_t DEFAULT_TOF_I2C_ADDRESS;
 extern const uint8_t LEFT_TOF_ADDRESS;
 extern const uint8_t RIGHT_TOF_ADDRESS;
 
