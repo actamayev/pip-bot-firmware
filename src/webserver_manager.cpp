@@ -5,10 +5,6 @@
 DNSServer dnsServer;
 WebServer server(80);
 
-WebServerManager::WebServerManager() {
-	Serial.println("Starting Web Manager");
-}
-
 void WebServerManager::startWebServer() {
 	IPAddress apIP(192, 168, 4, 1);
 	dnsServer.start(DNS_PORT, "*", apIP);
