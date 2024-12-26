@@ -25,10 +25,10 @@ void setup() {
     Serial.println(DEFAULT_PIP_ID);
     rgbLed.turn_led_off();
 
-    Sensors::getInstance();
-
     WiFiManager::getInstance(); // Initializes WiFi
     WiFiManager::getInstance().connectToStoredWiFi();
+
+    // Sensors::getInstance();
 
     // Create task for user code on Core 0
     xTaskCreatePinnedToCore(
