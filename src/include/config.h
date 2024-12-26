@@ -2,36 +2,33 @@
 
 #include <string>
 #include <cstdint>
-#pragma once
 
-extern const uint8_t LED_PIN;
+extern const uint8_t ESP_LED_PIN;
 extern const uint8_t NUM_LEDS;
 
 extern const uint8_t DNS_PORT;
 
-extern const uint8_t DIGITAL_IR_PIN_1;
-extern const uint8_t DIGITAL_IR_PIN_2;
-extern const uint8_t DIGITAL_IR_PIN_3;
+//I2C:
+extern const uint8_t I2C_SDA;
+extern const uint8_t I2C_SCL;
+extern const uint32_t I2C_CLOCK_SPEED;
 
-//i2c:
-extern const uint8_t TIME_OF_FLIGHT_SDA;
-extern const uint8_t TIME_OF_FLIGHT_SCL;
+// TOF:
+extern const uint8_t LEFT_TOF_RESET_PIN;
+extern const uint8_t RIGHT_TOF_RESET_PIN;
 
-// tof:
-extern const uint8_t TIME_OF_FLIGHT_XSHUT_1;
-extern const uint8_t TIME_OF_FLIGHT_XSHUT_2;
-extern const uint8_t TIME_OF_FLIGHT_XSHUT_3;
+extern const uint8_t DEFAULT_TOF_I2C_ADDRESS;
+extern const uint8_t LEFT_TOF_ADDRESS;
+extern const uint8_t RIGHT_TOF_ADDRESS;
 
-extern const uint8_t TOF_SENSOR1_ADDRESS;
-extern const uint8_t TOF_SENSOR2_ADDRESS;
-extern const uint8_t TOF_SENSOR3_ADDRESS;
+extern const uint8_t TOF_IMAGE_RESOLUTION;
+extern const uint8_t TOF_RANGING_FREQUENCY;
 
-//IMU:
-extern const uint8_t IMU_SCL;
-extern const uint8_t IMU_MISO;
-extern const uint8_t IMU_MOSI;
-extern const uint8_t IMU_CS;
+// IMU:
+extern const uint32_t IMU_UPDATE_FREQ_MICROSECS;
+extern const uint8_t IMU_DEFAULT_ADDRESS;
 
+// Web/Pip/Environment
 extern const char* rootCACertificate;
 
 // Getter functions for URLs based on the environment

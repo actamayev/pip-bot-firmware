@@ -1,32 +1,30 @@
 #include "./include/config.h"
 
-const uint8_t LED_PIN = 38;
+const uint8_t ESP_LED_PIN = 38;
 const uint8_t NUM_LEDS = 1;
 
 const uint8_t DNS_PORT = 53;
 
-const uint8_t DIGITAL_IR_PIN_1 = 32;
-const uint8_t DIGITAL_IR_PIN_2 = 33;
-const uint8_t DIGITAL_IR_PIN_3 = 34;
-
 //i2c (same for all i2c connections):
-const uint8_t TIME_OF_FLIGHT_SDA = 21;
-const uint8_t TIME_OF_FLIGHT_SCL = 22;
+const uint8_t I2C_SDA = 8;
+const uint8_t I2C_SCL = 9;
+const uint32_t I2C_CLOCK_SPEED = 400 * 1000; // 400 kHz
 
-const uint8_t TIME_OF_FLIGHT_XSHUT_1 = 4;
-const uint8_t TIME_OF_FLIGHT_XSHUT_2 = 16;
-const uint8_t TIME_OF_FLIGHT_XSHUT_3 = 17;
+// TOF:
+const uint8_t RIGHT_TOF_RESET_PIN = 14;
+const uint8_t LEFT_TOF_RESET_PIN = 13;
 
-// Define unique I2C addresses for each sensor
-const uint8_t TOF_SENSOR1_ADDRESS = 0x29;  // Default address
-const uint8_t TOF_SENSOR2_ADDRESS = 0x30;  // New address for sensor 2
-const uint8_t TOF_SENSOR3_ADDRESS = 0x31;  // New address for sensor 3
+// Unique I2C addresses for each sensor
+const uint8_t DEFAULT_TOF_I2C_ADDRESS = 0x29;  // New address for right sensor
+const uint8_t RIGHT_TOF_ADDRESS = 0x44;  // New address for right sensor
+const uint8_t LEFT_TOF_ADDRESS = DEFAULT_TOF_I2C_ADDRESS;  // Default address for left sensor
 
-// IMU:
-const uint8_t IMU_SCL = 12;
-const uint8_t IMU_MISO = 14;
-const uint8_t IMU_MOSI = 27;
-const uint8_t IMU_CS = 26;
+const uint8_t TOF_IMAGE_RESOLUTION = 8;  // Image width (can be 4 or 8)
+const uint8_t TOF_RANGING_FREQUENCY = 15;  // TOF sampling frequency
+
+// IMU
+const uint32_t IMU_UPDATE_FREQ_MICROSECS = 5000;  // 5ms, 200Hz
+const uint8_t IMU_DEFAULT_ADDRESS = 0x4B; // The actual default addr is 0x4A, but ours shows up as 0x4A
 
 // echo | openssl s_client -showcerts -connect staging-api.bluedotrobots.com:443
 const char* rootCACertificate = \
