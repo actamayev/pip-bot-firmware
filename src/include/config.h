@@ -26,6 +26,7 @@ extern const uint8_t TOF_RANGING_FREQUENCY;
 
 // IMU:
 extern const uint32_t IMU_UPDATE_FREQ_MICROSECS;
+extern const uint8_t IMU_DEFAULT_ADDRESS;
 
 // Web/Pip/Environment
 extern const char* rootCACertificate;

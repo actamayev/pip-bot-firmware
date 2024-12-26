@@ -1,7 +1,7 @@
 #include "./include/imu.h"
 
 bool ImuSensor::initialize() {
-    if (!imu.begin_I2C()) {
+    if (!imu.begin_I2C(IMU_DEFAULT_ADDRESS)) {
         Serial.println("Failed to find BNO08x chip");
         return false;
     }
