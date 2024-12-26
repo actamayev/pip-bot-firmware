@@ -45,6 +45,8 @@ void Sensors::initializeTofSensors() {
     delay(100);
     digitalWrite(RIGHT_TOF_RESET_PIN, LOW); //Right sensor should now be available at default address 0x29
 
+    // TODO 12/25/24: If the ESP is reset (reset button is pressed) while it is doing i2c re-addressing, the Left tof sometimes either:
+    // 1. re-addresses to a non 0x29 pin addr, or isn't picked up at all by the i2c line. Best solution i've found has been to unplug the esp and wait until the addreses get reset, or kill power to right tof's avdd/iovdd 
     bool isRegisteredAlready = check_address_on_i2c_line(RIGHT_TOF_ADDRESS);
     byte imager1Addr = DEFAULT_TOF_I2C_ADDRESS;
     if (isRegisteredAlready == true) {
