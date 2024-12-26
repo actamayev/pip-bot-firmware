@@ -70,7 +70,7 @@ void Sensors::initializeTofSensors() {
 
     digitalWrite(LEFT_TOF_RESET_PIN, LOW); //Release left sensor from reset
 
-    delay(1000);
+    delay(100);
     scanI2C();
     Serial.println(F("Initializing left sensor. This can take up to 10s. Please wait."));
     if (leftTof.sensor.begin() == false) {

@@ -50,7 +50,7 @@ void loop() {
     if (WiFi.status() == WL_CONNECTED) {
         WebSocketManager::getInstance().pollWebSocket();
     }
-    tofLogger();
+    // tofLogger();
 
     // imuLogger();
 
