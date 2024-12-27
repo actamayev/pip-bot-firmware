@@ -2,12 +2,8 @@
 
 #include <WiFi.h>
 #include <Preferences.h>
+#include "./structs.h"
 #include "./singleton.h"
-
-struct WiFiCredentials {
-	String ssid;
-	String password;
-};
 
 class WiFiManager : public Singleton<WiFiManager> {
     friend class Singleton<WiFiManager>;
@@ -15,7 +11,7 @@ class WiFiManager : public Singleton<WiFiManager> {
 	public:
 		void connectToStoredWiFi();
 		WiFiCredentials getStoredWiFiCredentials();
-		bool attemptNewWifiConnection(String ssid, String password);
+		bool attemptNewWifiConnection(WiFiCredentials wifiCredentials);
 
 	private:
 		WiFiManager();
@@ -24,6 +20,9 @@ class WiFiManager : public Singleton<WiFiManager> {
 		static void onWiFiEvent(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data);
 		static void onIpEvent(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data);
 		void startAccessPoint();
+		esp_event_handler_instance_t wifi_event_instance;
+		esp_event_handler_instance_t ip_event_instance;
+
 };
 
 extern Preferences preferences;
