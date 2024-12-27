@@ -14,14 +14,7 @@ void WebServerManager::startWebServer() {
         String encodedCredentials = "";
         WiFiCredentials wifiCredentials;
 
-        // Get credentials from URL query parameter
-        for (int i = 0; i < server.args(); i++) {
-            if (server.argName(i) == "credentials") {
-                encodedCredentials = server.arg(i);
-                break;
-            }
-        }
-        bool extractCredentialsResult = extractCredentials(encodedCredentials, wifiCredentials);
+        bool extractCredentialsResult = extractCredentials(encodedCredentials, server, wifiCredentials);
 
         if (extractCredentialsResult == false) {
             server.send(400, "text/html", "<html><body><script>"

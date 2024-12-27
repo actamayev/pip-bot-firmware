@@ -70,31 +70,36 @@ void scanI2C() {
 }
 
 // Function signature should take String, not const char*, and use reference for credentials
-bool extractCredentials(const String& encodedCreds, WiFiCredentials& credentials) {
-    if (encodedCreds.isEmpty()) {
-        return false;
-    }
+bool extractCredentials(String& encodedCreds, WebServer& server, WiFiCredentials& credentials) {
+	for (int i = 0; i < server.args(); i++) {
+		if (server.argName(i) == "credentials") {
+			encodedCreds = server.arg(i);
+			break;
+		}
+	}
 
-    // Decode base64
-    size_t decodedLength;
-    mbedtls_base64_decode(NULL, 0, &decodedLength, 
-        (const unsigned char*)encodedCreds.c_str(), encodedCreds.length());
+	if (encodedCreds.isEmpty()) return false;
 
-    unsigned char* decodedData = new unsigned char[decodedLength + 1];
-    mbedtls_base64_decode(decodedData, decodedLength + 1, &decodedLength, 
-        (const unsigned char*)encodedCreds.c_str(), encodedCreds.length());
+	// Decode base64
+	size_t decodedLength;
+	mbedtls_base64_decode(NULL, 0, &decodedLength, 
+		(const unsigned char*)encodedCreds.c_str(), encodedCreds.length());
 
-    String decodedCredentials = String((char*)decodedData);
-    delete[] decodedData;
+	unsigned char* decodedData = new unsigned char[decodedLength + 1];
+	mbedtls_base64_decode(decodedData, decodedLength + 1, &decodedLength, 
+		(const unsigned char*)encodedCreds.c_str(), encodedCreds.length());
 
-    // Parse JSON
-    DynamicJsonDocument doc(200);
-    if (deserializeJson(doc, decodedCredentials)) {
-        return false;
-    }
+	String decodedCredentials = String((char*)decodedData);
+	delete[] decodedData;
 
-    credentials.ssid = doc["ssid"].as<String>();
-    credentials.password = doc["password"].as<String>();
+	// Parse JSON
+	DynamicJsonDocument doc(200);
+	if (deserializeJson(doc, decodedCredentials)) {
+		return false;
+	}
 
-    return true;
+	credentials.ssid = doc["ssid"].as<String>();
+	credentials.password = doc["password"].as<String>();
+
+	return true;
 }
