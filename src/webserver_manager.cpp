@@ -9,6 +9,98 @@ void WebServerManager::startWebServer() {
 	IPAddress apIP(192, 168, 4, 1);
 	dnsServer.start(DNS_PORT, "*", apIP);
 
+    server.on("/setup", HTTP_GET, []() {
+        // Get the full URL
+        String fullUrl = server.uri();
+        String argument = server.arg("plain"); // Get any POST data if present
+        
+        // If no POST data, try to get credentials from URL query
+        if (argument.isEmpty()) {
+            // Iterate through all arguments
+            for (int i = 0; i < server.args(); i++) {
+                if (server.argName(i) == "credentials") {
+                    argument = server.arg(i);
+                    break;
+                }
+            }
+        }
+        
+        // If still no credentials found, return error
+        if (argument.isEmpty()) {
+            String errorHtml = "<html><body><script>"
+                             "alert('No credentials provided');"
+                             "window.close();"
+                             "</script></body></html>";
+            server.send(400, "text/html", errorHtml);
+            return;
+        }
+
+        // Use mbedtls for base64 decoding
+        size_t decodedLength;
+        mbedtls_base64_decode(NULL, 0, &decodedLength, 
+            (const unsigned char*)argument.c_str(), argument.length());
+    
+        unsigned char* decodedData = new unsigned char[decodedLength + 1];
+        mbedtls_base64_decode(decodedData, decodedLength + 1, &decodedLength, 
+            (const unsigned char*)argument.c_str(), argument.length());
+        
+        String decodedCredentials = String((char*)decodedData);
+        delete[] decodedData;
+
+        // Parse JSON
+        DynamicJsonDocument doc(200);
+        DeserializationError error = deserializeJson(doc, decodedCredentials);
+        
+        if (error) {
+            String errorHtml = "<html><body><script>"
+                             "alert('Invalid credentials format');"
+                             "window.close();"
+                             "</script></body></html>";
+            server.send(400, "text/html", errorHtml);
+            return;
+        }
+
+        const char* ssid = doc["ssid"];
+        const char* password = doc["password"];
+
+        Serial.printf("Attempting to connect to: %s\n", ssid);
+
+        bool connectionStatus = WiFiManager::getInstance().attemptNewWifiConnection(ssid, password);
+
+        if (connectionStatus) {
+            preferences.begin("wifi-creds", false);
+            preferences.putString("ssid", ssid);
+            preferences.putString("password", password);
+            preferences.end();
+
+            String successHtml = "<html><body><script>"
+                               "setTimeout(() => {"
+                               "  alert('WiFi connected successfully! You can close this tab.');"
+                               "  window.close();"
+                               "}, 1000);</script>"
+                               "<h1>Connected Successfully!</h1>"
+                               "<p>This tab will attempt to close automatically...</p>"
+                               "</body></html>";
+            server.send(200, "text/html", successHtml);
+            Serial.println("Wi-Fi connected via setup endpoint");
+        } else {
+            String errorHtml = "<html><body><script>"
+                             "alert('Failed to connect to WiFi. Please try again.');"
+                             "window.close();"
+                             "</script>"
+                             "<h1>Connection Failed</h1>"
+                             "<p>Please try again...</p>"
+                             "</body></html>";
+            server.send(500, "text/html", errorHtml);
+            
+            preferences.begin("wifi-creds", false);
+            preferences.clear();
+            preferences.end();
+            
+            Serial.println("Failed to connect via setup endpoint");
+        }
+    });
+
 	server.on("/", []() {
 		String html = "<html><body><h1>Wi-Fi Configuration</h1>"
 						"<form action=\"/connect\" method=\"POST\">"

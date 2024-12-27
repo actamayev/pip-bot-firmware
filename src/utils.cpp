@@ -8,10 +8,8 @@ void quaternionToEuler(float qr, float qi, float qj, float qk, float& yaw, float
 
     // Pitch (y-axis rotation)
     float sinp = 2 * (qr * qj - qk * qi);
-    if (abs(sinp) >= 1)
-        pitch = copysign(M_PI / 2, sinp); // use 90 degrees if out of range
-    else
-        pitch = asin(sinp);
+    if (abs(sinp) >= 1) pitch = copysign(M_PI / 2, sinp); // use 90 degrees if out of range
+    else pitch = asin(sinp);
 
     // Yaw (z-axis rotation)
     float siny_cosp = 2 * (qr * qk + qi * qj);
