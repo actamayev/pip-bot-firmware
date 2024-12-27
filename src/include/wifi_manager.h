@@ -2,12 +2,8 @@
 
 #include <WiFi.h>
 #include <Preferences.h>
+#include "./structs.h"
 #include "./singleton.h"
-
-struct WiFiCredentials {
-	String ssid;
-	String password;
-};
 
 class WiFiManager : public Singleton<WiFiManager> {
     friend class Singleton<WiFiManager>;

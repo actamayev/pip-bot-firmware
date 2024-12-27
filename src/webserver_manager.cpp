@@ -1,3 +1,4 @@
+#include "./include/utils.h"
 #include "./include/config.h"
 #include "./include/wifi_manager.h"
 #include "./include/webserver_manager.h"
@@ -10,93 +11,52 @@ void WebServerManager::startWebServer() {
 	dnsServer.start(DNS_PORT, "*", apIP);
 
     server.on("/setup", HTTP_GET, []() {
-        // Get the full URL
-        String fullUrl = server.uri();
-        String argument = server.arg("plain"); // Get any POST data if present
-        
-        // If no POST data, try to get credentials from URL query
-        if (argument.isEmpty()) {
-            // Iterate through all arguments
-            for (int i = 0; i < server.args(); i++) {
-                if (server.argName(i) == "credentials") {
-                    argument = server.arg(i);
-                    break;
-                }
+        String encodedCredentials = "";
+        WiFiCredentials wifiCredentials;
+
+        // Get credentials from URL query parameter
+        for (int i = 0; i < server.args(); i++) {
+            if (server.argName(i) == "credentials") {
+                encodedCredentials = server.arg(i);
+                break;
             }
         }
-        
-        // If still no credentials found, return error
-        if (argument.isEmpty()) {
-            String errorHtml = "<html><body><script>"
-                             "alert('No credentials provided');"
-                             "window.close();"
-                             "</script></body></html>";
-            server.send(400, "text/html", errorHtml);
+        bool extractCredentialsResult = extractCredentials(encodedCredentials, wifiCredentials);
+
+        if (extractCredentialsResult == false) {
+            server.send(400, "text/html", "<html><body><script>"
+                            "alert('Invalid credentials format');"
+                            "window.close();"
+                            "</script></body></html>");
             return;
         }
 
-        // Use mbedtls for base64 decoding
-        size_t decodedLength;
-        mbedtls_base64_decode(NULL, 0, &decodedLength, 
-            (const unsigned char*)argument.c_str(), argument.length());
-    
-        unsigned char* decodedData = new unsigned char[decodedLength + 1];
-        mbedtls_base64_decode(decodedData, decodedLength + 1, &decodedLength, 
-            (const unsigned char*)argument.c_str(), argument.length());
-        
-        String decodedCredentials = String((char*)decodedData);
-        delete[] decodedData;
-
-        // Parse JSON
-        DynamicJsonDocument doc(200);
-        DeserializationError error = deserializeJson(doc, decodedCredentials);
-        
-        if (error) {
-            String errorHtml = "<html><body><script>"
-                             "alert('Invalid credentials format');"
-                             "window.close();"
-                             "</script></body></html>";
-            server.send(400, "text/html", errorHtml);
-            return;
-        }
-
-        const char* ssid = doc["ssid"];
-        const char* password = doc["password"];
-
-        Serial.printf("Attempting to connect to: %s\n", ssid);
-
-        bool connectionStatus = WiFiManager::getInstance().attemptNewWifiConnection(ssid, password);
+        bool connectionStatus = WiFiManager::getInstance().attemptNewWifiConnection(
+            wifiCredentials.ssid, 
+            wifiCredentials.password
+        );
 
         if (connectionStatus) {
             preferences.begin("wifi-creds", false);
-            preferences.putString("ssid", ssid);
-            preferences.putString("password", password);
+            preferences.putString("ssid", wifiCredentials.ssid);
+            preferences.putString("password", wifiCredentials.password);
             preferences.end();
 
-            String successHtml = "<html><body><script>"
-                               "setTimeout(() => {"
-                               "  alert('WiFi connected successfully! You can close this tab.');"
-                               "  window.close();"
-                               "}, 1000);</script>"
-                               "<h1>Connected Successfully!</h1>"
-                               "<p>This tab will attempt to close automatically...</p>"
-                               "</body></html>";
-            server.send(200, "text/html", successHtml);
+            server.send(200, "text/html", "<html><body><script>"
+                                        "setTimeout(() => {"
+                                        "  alert('WiFi connected successfully!');"
+                                        "  window.close();"
+                                        "}, 1000);</script></body></html>");
             Serial.println("Wi-Fi connected via setup endpoint");
         } else {
-            String errorHtml = "<html><body><script>"
-                             "alert('Failed to connect to WiFi. Please try again.');"
-                             "window.close();"
-                             "</script>"
-                             "<h1>Connection Failed</h1>"
-                             "<p>Please try again...</p>"
-                             "</body></html>";
-            server.send(500, "text/html", errorHtml);
-            
             preferences.begin("wifi-creds", false);
             preferences.clear();
             preferences.end();
             
+            server.send(500, "text/html", "<html><body><script>"
+                                        "alert('Failed to connect to WiFi');"
+                                        "window.close();"
+                                        "</script></body></html>");
             Serial.println("Failed to connect via setup endpoint");
         }
     });
