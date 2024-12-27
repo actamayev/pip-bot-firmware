@@ -59,21 +59,21 @@ WiFiCredentials WiFiManager::getStoredWiFiCredentials() {
 void WiFiManager::connectToStoredWiFi() {
 	WiFiCredentials storedCreds = getStoredWiFiCredentials();
 
-	attemptNewWifiConnection(storedCreds.ssid, storedCreds.password);
+	attemptNewWifiConnection(storedCreds);
 }
 
-bool WiFiManager::attemptNewWifiConnection(String ssid, String password) {
+bool WiFiManager::attemptNewWifiConnection(WiFiCredentials wifiCredentials) {
 	// Set WiFi mode to Station (client mode)
     WiFi.mode(WIFI_STA);
 
-	if (ssid.isEmpty()) {
+	if (wifiCredentials.ssid.isEmpty()) {
 		Serial.println("No SSID supplied.");
 		startAccessPoint();
 		return false;
 	}
-	WiFi.begin(ssid, password);
-	Serial.println(ssid);
-	Serial.println(password);
+	WiFi.begin(wifiCredentials.ssid, wifiCredentials.password);
+	Serial.println(wifiCredentials.ssid);
+	Serial.println(wifiCredentials.password);
 	WiFi.config(IPAddress(0, 0, 0, 0), IPAddress(8, 8, 8, 8), IPAddress(255, 255, 255, 0)); // Adding a fallback DNS server (Google DNS)
 
 	Serial.println("Attempting to connect to Wi-Fi...");

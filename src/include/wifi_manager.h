@@ -11,7 +11,7 @@ class WiFiManager : public Singleton<WiFiManager> {
 	public:
 		void connectToStoredWiFi();
 		WiFiCredentials getStoredWiFiCredentials();
-		bool attemptNewWifiConnection(String ssid, String password);
+		bool attemptNewWifiConnection(WiFiCredentials wifiCredentials);
 
 	private:
 		WiFiManager();

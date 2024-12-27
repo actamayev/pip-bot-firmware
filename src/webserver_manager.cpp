@@ -24,10 +24,7 @@ void WebServerManager::startWebServer() {
             return;
         }
 
-        bool connectionStatus = WiFiManager::getInstance().attemptNewWifiConnection(
-            wifiCredentials.ssid, 
-            wifiCredentials.password
-        );
+        bool connectionStatus = WiFiManager::getInstance().attemptNewWifiConnection(wifiCredentials);
 
         if (connectionStatus) {
             preferences.begin("wifi-creds", false);
@@ -68,7 +65,7 @@ void WebServerManager::startWebServer() {
 		String ssid = server.arg("ssid");
 		String password = server.arg("password");
 
-		bool connectionStatus = WiFiManager::getInstance().attemptNewWifiConnection(ssid, password);
+		bool connectionStatus = WiFiManager::getInstance().attemptNewWifiConnection({ ssid, password });
 
 		if (connectionStatus) {
 			String successHtml =
