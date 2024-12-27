@@ -7,27 +7,29 @@
 Preferences preferences;
 
 WiFiManager::WiFiManager() {
+	Serial.println("WiFiManager constructor");
 	initializeWiFi();
 }
 
 void WiFiManager::initializeWiFi() {
     // Register event handler for WiFi events
-    esp_event_handler_instance_t instance_any_id;
-    esp_event_handler_instance_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &WiFiManager::onWiFiEvent, this, &instance_any_id);
-    esp_event_handler_instance_t instance_got_ip;
-    esp_event_handler_instance_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &WiFiManager::onWiFiEvent, this, &instance_got_ip);
+    esp_event_handler_instance_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &WiFiManager::onWiFiEvent, this, &wifi_event_instance);
+    esp_event_handler_instance_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &WiFiManager::onIpEvent, this, &ip_event_instance);
+	Serial.println("WiFi event handlers registered");
 }
 
 void WiFiManager::onWiFiEvent(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data) {
-    if (WiFi.getMode() != WIFI_STA || event_base != WIFI_EVENT || event_id != WIFI_EVENT_STA_DISCONNECTED) {
-		return;
-	}
-	Serial.println("WiFi disconnected! Reconnecting...");
+	Serial.println("here");
+	Serial.println("event_base");
+	Serial.println(event_id);
+    if (event_base != WIFI_EVENT || event_id == WIFI_EVENT_STA_DISCONNECTED) return;
+	wifi_event_sta_disconnected_t* event = (wifi_event_sta_disconnected_t*) event_data;
+	Serial.printf("WiFi disconnected! Reason: %d\n", event->reason);
 	rgbLed.turn_led_off();
 
-	// Reconnect to WiFi (using the WiFiManager instance)
+	// Reconnect to WiFi
 	WiFiManager* wifiManager = static_cast<WiFiManager*>(arg);
-	wifiManager->connectToStoredWiFi();  // Attempt to reconnect to WiFi
+	wifiManager->connectToStoredWiFi();
 }
 
 void WiFiManager::onIpEvent(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data) {
