@@ -1,3 +1,4 @@
+#include "./include/utils.h"
 #include "./include/config.h"
 #include "./include/wifi_manager.h"
 #include "./include/webserver_manager.h"
@@ -8,6 +9,47 @@ WebServer server(80);
 void WebServerManager::startWebServer() {
 	IPAddress apIP(192, 168, 4, 1);
 	dnsServer.start(DNS_PORT, "*", apIP);
+
+    server.on("/setup", HTTP_GET, []() {
+        String encodedCredentials = "";
+        WiFiCredentials wifiCredentials;
+
+        bool extractCredentialsResult = extractCredentials(encodedCredentials, server, wifiCredentials);
+
+        if (extractCredentialsResult == false) {
+            server.send(400, "text/html", "<html><body><script>"
+                            "alert('Invalid credentials format');"
+                            "window.close();"
+                            "</script></body></html>");
+            return;
+        }
+
+        bool connectionStatus = WiFiManager::getInstance().attemptNewWifiConnection(wifiCredentials);
+
+        if (connectionStatus) {
+            preferences.begin("wifi-creds", false);
+            preferences.putString("ssid", wifiCredentials.ssid);
+            preferences.putString("password", wifiCredentials.password);
+            preferences.end();
+
+            server.send(200, "text/html", "<html><body><script>"
+                                        "setTimeout(() => {"
+                                        "  alert('WiFi connected successfully!');"
+                                        "  window.close();"
+                                        "}, 1000);</script></body></html>");
+            Serial.println("Wi-Fi connected via setup endpoint");
+        } else {
+            preferences.begin("wifi-creds", false);
+            preferences.clear();
+            preferences.end();
+            
+            server.send(500, "text/html", "<html><body><script>"
+                                        "alert('Failed to connect to WiFi');"
+                                        "window.close();"
+                                        "</script></body></html>");
+            Serial.println("Failed to connect via setup endpoint");
+        }
+    });
 
 	server.on("/", []() {
 		String html = "<html><body><h1>Wi-Fi Configuration</h1>"
@@ -23,7 +65,7 @@ void WebServerManager::startWebServer() {
 		String ssid = server.arg("ssid");
 		String password = server.arg("password");
 
-		bool connectionStatus = WiFiManager::getInstance().attemptNewWifiConnection(ssid, password);
+		bool connectionStatus = WiFiManager::getInstance().attemptNewWifiConnection({ ssid, password });
 
 		if (connectionStatus) {
 			String successHtml =
