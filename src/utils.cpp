@@ -8,10 +8,8 @@ void quaternionToEuler(float qr, float qi, float qj, float qk, float& yaw, float
 
     // Pitch (y-axis rotation)
     float sinp = 2 * (qr * qj - qk * qi);
-    if (abs(sinp) >= 1)
-        pitch = copysign(M_PI / 2, sinp); // use 90 degrees if out of range
-    else
-        pitch = asin(sinp);
+    if (abs(sinp) >= 1) pitch = copysign(M_PI / 2, sinp); // use 90 degrees if out of range
+    else pitch = asin(sinp);
 
     // Yaw (z-axis rotation)
     float siny_cosp = 2 * (qr * qk + qi * qj);
@@ -69,4 +67,39 @@ void scanI2C() {
     Serial.printf("Found %d device(s)\n", devicesFound);
   }
   Serial.println();
+}
+
+// Function signature should take String, not const char*, and use reference for credentials
+bool extractCredentials(String& encodedCreds, WebServer& server, WiFiCredentials& credentials) {
+	for (int i = 0; i < server.args(); i++) {
+		if (server.argName(i) == "credentials") {
+			encodedCreds = server.arg(i);
+			break;
+		}
+	}
+
+	if (encodedCreds.isEmpty()) return false;
+
+	// Decode base64
+	size_t decodedLength;
+	mbedtls_base64_decode(NULL, 0, &decodedLength, 
+		(const unsigned char*)encodedCreds.c_str(), encodedCreds.length());
+
+	unsigned char* decodedData = new unsigned char[decodedLength + 1];
+	mbedtls_base64_decode(decodedData, decodedLength + 1, &decodedLength, 
+		(const unsigned char*)encodedCreds.c_str(), encodedCreds.length());
+
+	String decodedCredentials = String((char*)decodedData);
+	delete[] decodedData;
+
+	// Parse JSON
+	DynamicJsonDocument doc(200);
+	if (deserializeJson(doc, decodedCredentials)) {
+		return false;
+	}
+
+	credentials.ssid = doc["ssid"].as<String>();
+	credentials.password = doc["password"].as<String>();
+
+	return true;
 }
