@@ -37,37 +37,18 @@ void WebServerManager::startWebServer() {
 			preferences.end();
 
 			server.send(200, "text/html", 
-				"<html><head><meta name='viewport' content='width=device-width,initial-scale=1'></head>"
-				"<body>"
-				"<div style='text-align:center; padding: 20px;'>"
-				"<h2>WiFi Connected Successfully!</h2>"
-				"<p>You can close this window and return to the application.</p>"
-				"</div>"
-				"<script>"
-				"alert('WiFi connected successfully!');"
-				"setTimeout(() => { window.close(); }, 1000);"
-				"</script></body></html>"
+				"<html><script>window.close();</script></html>"
 			);
 			Serial.println("Wi-Fi connected via setup endpoint");
-			// WiFi.mode(WIFI_STA);
 			WebSocketManager::getInstance().connectToWebSocket();
+			WiFi.softAPdisconnect(true);
 		} else {
-			// TODO: If the connection wasn't successful, it should display a form on the ESP to enter credentials
 			preferences.begin("wifi-creds", false);
 			preferences.clear();
 			preferences.end();
-			
+
 			server.send(200, "text/html", 
-				"<html><head><meta name='viewport' content='width=device-width,initial-scale=1'></head>"
-				"<body>"
-				"<div style='text-align:center; padding: 20px;'>"
-				"<h2>Failed to Connect</h2>"
-				"<p>Could not connect to the WiFi network. Please try again.</p>"
-				"</div>"
-				"<script>"
-				"alert('Failed to connect to WiFi');"
-				"setTimeout(() => { window.close(); }, 1000);"
-				"</script></body></html>"
+				"<html><script>window.close();</script></html>"
 			);
 			Serial.println("Failed to connect via setup endpoint");
 			WiFiManager::getInstance().startAccessPoint();

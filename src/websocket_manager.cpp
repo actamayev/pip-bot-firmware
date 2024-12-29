@@ -185,6 +185,7 @@ void WebSocketManager::connectToWebSocket() {
         initDoc["pipUUID"] = getPipID();
         String jsonString;
         serializeJson(initDoc, jsonString);
+        WiFi.mode(WIFI_STA);
         wsClient.send(jsonString);
     } else {
         Serial.println("WebSocket connection failed");
