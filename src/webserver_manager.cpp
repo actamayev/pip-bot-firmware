@@ -10,87 +10,107 @@ void WebServerManager::startWebServer() {
 	IPAddress apIP(192, 168, 4, 1);
 	dnsServer.start(DNS_PORT, "*", apIP);
 
-    server.on("/setup", HTTP_GET, []() {
-        String encodedCredentials = "";
-        WiFiCredentials wifiCredentials;
+	server.on("/setup", HTTP_GET, []() {
+		String encodedCredentials = "";
+		WiFiCredentials wifiCredentials;
 
-        bool extractCredentialsResult = extractCredentials(encodedCredentials, server, wifiCredentials);
+		bool extractCredentialsResult = extractCredentials(encodedCredentials, server, wifiCredentials);
 
-        if (extractCredentialsResult == false) {
-            server.send(400, "text/html", "<html><body><script>"
-                            "alert('Invalid credentials format');"
-                            "window.close();"
-                            "</script></body></html>");
-            return;
-        }
+		if (extractCredentialsResult == false) {
+			server.send(200, "text/html", 
+				"<html><head><meta name='viewport' content='width=device-width,initial-scale=1'></head>"
+				"<body><script>"
+				"alert('Invalid credentials format');"
+				"window.close();"
+				"</script></body></html>"
+			);
+			return;
+		}
 
-        bool connectionStatus = WiFiManager::getInstance().attemptNewWifiConnection(wifiCredentials);
-
-        if (connectionStatus) {
-            preferences.begin("wifi-creds", false);
-            preferences.putString("ssid", wifiCredentials.ssid);
-            preferences.putString("password", wifiCredentials.password);
-            preferences.end();
-
-            server.send(200, "text/html", "<html><body><script>"
-                                        "setTimeout(() => {"
-                                        "  alert('WiFi connected successfully!');"
-                                        "  window.close();"
-                                        "}, 1000);</script></body></html>");
-            Serial.println("Wi-Fi connected via setup endpoint");
-        } else {
-            preferences.begin("wifi-creds", false);
-            preferences.clear();
-            preferences.end();
-            
-            server.send(500, "text/html", "<html><body><script>"
-                                        "alert('Failed to connect to WiFi');"
-                                        "window.close();"
-                                        "</script></body></html>");
-            Serial.println("Failed to connect via setup endpoint");
-        }
-    });
-
-	server.on("/", []() {
-		String html = "<html><body><h1>Wi-Fi Configuration</h1>"
-						"<form action=\"/connect\" method=\"POST\">"
-						"SSID: <input type=\"text\" name=\"ssid\"><br>"
-						"Password: <input type=\"text\" name=\"password\"><br>"
-						"<input type=\"submit\" value=\"Connect\">"
-						"</form></body></html>";
-		server.send(200, "text/html", html);
-	});
-
-	server.on("/connect", []() {
-		String ssid = server.arg("ssid");
-		String password = server.arg("password");
-
-		bool connectionStatus = WiFiManager::getInstance().attemptNewWifiConnection({ ssid, password });
+		bool connectionStatus = WiFiManager::getInstance().attemptNewWifiConnection(wifiCredentials);
 
 		if (connectionStatus) {
-			String successHtml =
-				"<html><body><h1>Connected successfully!</h1>"
-				"<p>Please close this tab and re-connect your computer to your previously connected wifi</p></body></html>";
-
 			preferences.begin("wifi-creds", false);
-			preferences.putString("ssid", ssid);
-			preferences.putString("password", password);
+			preferences.putString("ssid", wifiCredentials.ssid);
+			preferences.putString("password", wifiCredentials.password);
 			preferences.end();
-			server.send(200, "text/html", successHtml);
-			Serial.println("Wi-Fi connected.");
-		} else {
-			String errorHtml = "<html><body><h1>Failed to connect to Wi-Fi</h1>"
-								"<p>Please try again.</p></body></html>";
-			server.send(500, "text/html", errorHtml);
-			
-			// Clear the entered Wifi ssid/password
-			preferences.begin("wifi-creds", false);  
-			preferences.clear();  // Clear all WiFi credentials from "wifi-creds" namespace
-			preferences.end();    // Close the preferences to free up resources
 
-			Serial.println("Failed to connect to Wi-Fi. No reboot.");
+			server.send(200, "text/html", 
+				"<html><head><meta name='viewport' content='width=device-width,initial-scale=1'></head>"
+				"<body>"
+				"<div style='text-align:center; padding: 20px;'>"
+				"<h2>WiFi Connected Successfully!</h2>"
+				"<p>You can close this window and return to the application.</p>"
+				"</div>"
+				"<script>"
+				"setTimeout(() => { window.close(); }, 1000);"
+				"</script></body></html>"
+			);
+			Serial.println("Wi-Fi connected via setup endpoint");
+			WiFi.mode(WIFI_STA);
+		} else {
+			WiFi.mode(WIFI_AP);
+			// TODO: If the connection wasn't successful, it should display a form on the ESP to enter credentials
+			preferences.begin("wifi-creds", false);
+			preferences.clear();
+			preferences.end();
+			
+			server.send(200, "text/html", 
+				"<html><head><meta name='viewport' content='width=device-width,initial-scale=1'></head>"
+				"<body>"
+				"<div style='text-align:center; padding: 20px;'>"
+				"<h2>Failed to Connect</h2>"
+				"<p>Could not connect to the WiFi network. Please try again.</p>"
+				"</div>"
+				"<script>"
+				"alert('Failed to connect to WiFi');"
+				"setTimeout(() => { window.close(); }, 1000);"
+				"</script></body></html>"
+			);
+			Serial.println("Failed to connect via setup endpoint");
 		}
 	});
+
+	// server.on("/", []() {
+	// 	String html = "<html><body><h1>Wi-Fi Configuration</h1>"
+	// 					"<form action=\"/connect\" method=\"POST\">"
+	// 					"SSID: <input type=\"text\" name=\"ssid\"><br>"
+	// 					"Password: <input type=\"text\" name=\"password\"><br>"
+	// 					"<input type=\"submit\" value=\"Connect\">"
+	// 					"</form></body></html>";
+	// 	server.send(200, "text/html", html);
+	// });
+
+	// server.on("/connect", []() {
+	// 	String ssid = server.arg("ssid");
+	// 	String password = server.arg("password");
+
+	// 	bool connectionStatus = WiFiManager::getInstance().attemptNewWifiConnection({ ssid, password });
+
+	// 	if (connectionStatus) {
+	// 		String successHtml =
+	// 			"<html><body><h1>Connected successfully!</h1>"
+	// 			"<p>Please close this tab and re-connect your computer to your previously connected wifi</p></body></html>";
+
+	// 		preferences.begin("wifi-creds", false);
+	// 		preferences.putString("ssid", ssid);
+	// 		preferences.putString("password", password);
+	// 		preferences.end();
+	// 		server.send(200, "text/html", successHtml);
+	// 		Serial.println("Wi-Fi connected.");
+	// 	} else {
+	// 		String errorHtml = "<html><body><h1>Failed to connect to Wi-Fi</h1>"
+	// 							"<p>Please try again.</p></body></html>";
+	// 		server.send(500, "text/html", errorHtml);
+			
+	// 		// Clear the entered Wifi ssid/password
+	// 		preferences.begin("wifi-creds", false);  
+	// 		preferences.clear();  // Clear all WiFi credentials from "wifi-creds" namespace
+	// 		preferences.end();    // Close the preferences to free up resources
+
+	// 		Serial.println("Failed to connect to Wi-Fi. No reboot.");
+	// 	}
+	// });
 
 	server.onNotFound([]() {
 		server.send(404, "text/plain", "Not Found");

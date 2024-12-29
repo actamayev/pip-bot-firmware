@@ -64,7 +64,7 @@ void WiFiManager::connectToStoredWiFi() {
 
 bool WiFiManager::attemptNewWifiConnection(WiFiCredentials wifiCredentials) {
 	// Set WiFi mode to Station (client mode)
-    WiFi.mode(WIFI_STA);
+    WiFi.mode(WIFI_AP_STA);
 
 	if (wifiCredentials.ssid.isEmpty()) {
 		Serial.println("No SSID supplied.");
