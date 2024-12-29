@@ -59,7 +59,10 @@ WiFiCredentials WiFiManager::getStoredWiFiCredentials() {
 void WiFiManager::connectToStoredWiFi() {
 	WiFiCredentials storedCreds = getStoredWiFiCredentials();
 
-	attemptNewWifiConnection(storedCreds);
+	bool connectionStatus = attemptNewWifiConnection(storedCreds);
+	if (connectionStatus == false) return startAccessPoint();
+	else return WebSocketManager::getInstance().connectToWebSocket();
+	
 }
 
 bool WiFiManager::attemptNewWifiConnection(WiFiCredentials wifiCredentials) {
@@ -68,12 +71,12 @@ bool WiFiManager::attemptNewWifiConnection(WiFiCredentials wifiCredentials) {
 
 	if (wifiCredentials.ssid.isEmpty()) {
 		Serial.println("No SSID supplied.");
-		startAccessPoint();
 		return false;
 	}
 	WiFi.begin(wifiCredentials.ssid, wifiCredentials.password);
 	Serial.println(wifiCredentials.ssid);
 	Serial.println(wifiCredentials.password);
+	// TODO: Take this line out (unnecessary):
 	WiFi.config(IPAddress(0, 0, 0, 0), IPAddress(8, 8, 8, 8), IPAddress(255, 255, 255, 0)); // Adding a fallback DNS server (Google DNS)
 
 	Serial.println("Attempting to connect to Wi-Fi...");
@@ -83,7 +86,7 @@ bool WiFiManager::attemptNewWifiConnection(WiFiCredentials wifiCredentials) {
 
     while (
 		WiFi.status() != WL_CONNECTED &&
-		millis() - startAttemptTime < timeout
+		(millis() - startAttemptTime < timeout)
 	) {
         delay(100);
         Serial.print(".");
@@ -92,18 +95,16 @@ bool WiFiManager::attemptNewWifiConnection(WiFiCredentials wifiCredentials) {
 	if (WiFi.status() == WL_CONNECTED) {
 		Serial.println("Connected to Wi-Fi!");
 		rgbLed.set_led_blue();
-		WebSocketManager::getInstance().connectToWebSocket();
 		return true;
 	} else {
 		Serial.println("Failed to connect to saved Wi-Fi.");
-		startAccessPoint();
 		return false;
 	}
 }
 
 void WiFiManager::startAccessPoint() {
 	WiFi.disconnect(true);
-	WiFi.mode(WIFI_AP);
+	WiFi.mode(WIFI_AP_STA);
 	WiFi.softAP(getAPSSID().c_str(), NULL);
 
 	IPAddress apIP(192, 168, 4, 1);

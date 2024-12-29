@@ -2,6 +2,7 @@
 #include "./include/config.h"
 #include "./include/wifi_manager.h"
 #include "./include/webserver_manager.h"
+#include "./include/websocket_manager.h"
 
 DNSServer dnsServer;
 WebServer server(80);
@@ -43,13 +44,14 @@ void WebServerManager::startWebServer() {
 				"<p>You can close this window and return to the application.</p>"
 				"</div>"
 				"<script>"
+				"alert('WiFi connected successfully!');"
 				"setTimeout(() => { window.close(); }, 1000);"
 				"</script></body></html>"
 			);
 			Serial.println("Wi-Fi connected via setup endpoint");
 			WiFi.mode(WIFI_STA);
+			WebSocketManager::getInstance().connectToWebSocket();
 		} else {
-			WiFi.mode(WIFI_AP);
 			// TODO: If the connection wasn't successful, it should display a form on the ESP to enter credentials
 			preferences.begin("wifi-creds", false);
 			preferences.clear();
@@ -68,6 +70,7 @@ void WebServerManager::startWebServer() {
 				"</script></body></html>"
 			);
 			Serial.println("Failed to connect via setup endpoint");
+			WiFiManager::getInstance().startAccessPoint();
 		}
 	});
 
@@ -121,13 +124,14 @@ void WebServerManager::startWebServer() {
 
 // TODO: Figure out if this is better:
 void WebServerManager::handleClientRequests() {
+	// TODO: Test with only server.handleClient();
 	// Only proceed if WiFi is connected or in Access Point mode
-	if (WiFi.status() != WL_CONNECTED && WiFi.getMode() != WIFI_AP) return;
+	// if (WiFi.status() != WL_CONNECTED && WiFi.getMode() != WIFI_AP) return;
 
-	if (WiFi.getMode() == WIFI_AP) {
-		// Only process DNS requests in AP mode
-		dnsServer.processNextRequest();
-	}
+	// if (WiFi.getMode() == WIFI_AP) {
+	// 	// Only process DNS requests in AP mode
+	// 	dnsServer.processNextRequest();
+	// }
 
 	// Handle HTTP server requests in both Station and AP modes
 	server.handleClient();
