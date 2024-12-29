@@ -81,11 +81,8 @@ bool WiFiManager::attemptNewWifiConnection(WiFiCredentials wifiCredentials) {
 		return false;
 	}
 	WiFi.begin(wifiCredentials.ssid, wifiCredentials.password);
-	Serial.println(wifiCredentials.ssid);
-	Serial.println(wifiCredentials.password);
-	// TODO: Take this line out (unnecessary):
-	WiFi.config(IPAddress(0, 0, 0, 0), IPAddress(8, 8, 8, 8), IPAddress(255, 255, 255, 0)); // Adding a fallback DNS server (Google DNS)
-
+	Serial.println("SSID: " + wifiCredentials.ssid);
+	Serial.println("Password: " + wifiCredentials.password);
 	Serial.println("Attempting to connect to Wi-Fi...");
 
 	unsigned long startAttemptTime = millis();
