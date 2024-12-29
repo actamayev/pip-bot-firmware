@@ -49,7 +49,7 @@ void WebServerManager::startWebServer() {
 				"</script></body></html>"
 			);
 			Serial.println("Wi-Fi connected via setup endpoint");
-			WiFi.mode(WIFI_STA);
+			// WiFi.mode(WIFI_STA);
 			WebSocketManager::getInstance().connectToWebSocket();
 		} else {
 			// TODO: If the connection wasn't successful, it should display a form on the ESP to enter credentials
