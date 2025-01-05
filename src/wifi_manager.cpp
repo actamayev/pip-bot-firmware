@@ -73,37 +73,43 @@ void WiFiManager::connectToStoredWiFi() {
 }
 
 bool WiFiManager::attemptNewWifiConnection(WiFiCredentials wifiCredentials) {
-	// Set WiFi mode to Station (client mode)
+    // Set WiFi mode to Station (client mode)
     WiFi.mode(WIFI_AP_STA);
 
-	if (wifiCredentials.ssid.isEmpty()) {
-		Serial.println("No SSID supplied.");
-		return false;
-	}
-	WiFi.begin(wifiCredentials.ssid, wifiCredentials.password);
-	Serial.println("SSID: " + wifiCredentials.ssid);
-	Serial.println("Password: " + wifiCredentials.password);
-	Serial.println("Attempting to connect to Wi-Fi...");
-
-	unsigned long startAttemptTime = millis();
-    const unsigned long timeout = 10000;  // 10-second timeout
-
-    while (
-		WiFi.status() != WL_CONNECTED &&
-		(millis() - startAttemptTime < timeout)
-	) {
-        delay(100);
-        Serial.print(".");
+    if (wifiCredentials.ssid.isEmpty()) {
+        Serial.println("No SSID supplied.");
+        return false;
     }
 
-	if (WiFi.status() == WL_CONNECTED) {
-		Serial.println("Connected to Wi-Fi!");
-		rgbLed.set_led_blue();
-		return true;
-	} else {
-		Serial.println("Failed to connect to saved Wi-Fi.");
-		return false;
-	}
+    WiFi.begin(wifiCredentials.ssid, wifiCredentials.password);
+    Serial.println("SSID: " + wifiCredentials.ssid);
+    Serial.println("Password: " + wifiCredentials.password);
+    Serial.println("Attempting to connect to Wi-Fi...");
+
+    unsigned long startAttemptTime = millis();
+    unsigned long lastPrintTime = startAttemptTime;
+    const unsigned long timeout = 10000;  // 10-second timeout
+    const unsigned long printInterval = 100;  // Print dots every 100ms
+
+    while (WiFi.status() != WL_CONNECTED && (millis() - startAttemptTime < timeout)) {
+        // Non-blocking print of dots
+        unsigned long currentTime = millis();
+        if (currentTime - lastPrintTime >= printInterval) {
+            Serial.print(".");
+            lastPrintTime = currentTime;
+            yield();  // Allow the ESP32 to handle background tasks
+        }
+    }
+
+    if (WiFi.status() == WL_CONNECTED) {
+        Serial.println("Connected to Wi-Fi!");
+        rgbLed.set_led_blue();
+        return true;
+    } else {
+        Serial.println("Failed to connect to Wi-Fi.");
+        rgbLed.turn_led_off();
+        return false;
+    }
 }
 
 void WiFiManager::startAccessPoint() {
