@@ -13,7 +13,14 @@ WiFiManager::WiFiManager() {
 
 void WiFiManager::initializeWiFi() {
     // Register event handler for WiFi events
-    esp_event_handler_instance_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &WiFiManager::onWiFiEvent, this, &wifi_event_instance);
+	// TODO: The wifi event handler isn't registering correctly.
+    esp_err_t err = esp_event_handler_instance_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &WiFiManager::onWiFiEvent, this, &wifi_event_instance);
+    // if (err != ESP_OK) {
+    //     Serial.print("Failed to register WiFi event handler. Error: ");
+    //     Serial.println(err);
+    // } else {
+    //     Serial.println("WiFi event handler registered successfully");
+    // }
     esp_event_handler_instance_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &WiFiManager::onIpEvent, this, &ip_event_instance);
 	Serial.println("WiFi event handlers registered");
 }
@@ -59,23 +66,23 @@ WiFiCredentials WiFiManager::getStoredWiFiCredentials() {
 void WiFiManager::connectToStoredWiFi() {
 	WiFiCredentials storedCreds = getStoredWiFiCredentials();
 
-	attemptNewWifiConnection(storedCreds);
+	bool connectionStatus = attemptNewWifiConnection(storedCreds);
+	if (connectionStatus == false) return startAccessPoint();
+	else return WebSocketManager::getInstance().connectToWebSocket();
+	
 }
 
 bool WiFiManager::attemptNewWifiConnection(WiFiCredentials wifiCredentials) {
 	// Set WiFi mode to Station (client mode)
-    WiFi.mode(WIFI_STA);
+    WiFi.mode(WIFI_AP_STA);
 
 	if (wifiCredentials.ssid.isEmpty()) {
 		Serial.println("No SSID supplied.");
-		startAccessPoint();
 		return false;
 	}
 	WiFi.begin(wifiCredentials.ssid, wifiCredentials.password);
-	Serial.println(wifiCredentials.ssid);
-	Serial.println(wifiCredentials.password);
-	WiFi.config(IPAddress(0, 0, 0, 0), IPAddress(8, 8, 8, 8), IPAddress(255, 255, 255, 0)); // Adding a fallback DNS server (Google DNS)
-
+	Serial.println("SSID: " + wifiCredentials.ssid);
+	Serial.println("Password: " + wifiCredentials.password);
 	Serial.println("Attempting to connect to Wi-Fi...");
 
 	unsigned long startAttemptTime = millis();
@@ -83,7 +90,7 @@ bool WiFiManager::attemptNewWifiConnection(WiFiCredentials wifiCredentials) {
 
     while (
 		WiFi.status() != WL_CONNECTED &&
-		millis() - startAttemptTime < timeout
+		(millis() - startAttemptTime < timeout)
 	) {
         delay(100);
         Serial.print(".");
@@ -92,18 +99,16 @@ bool WiFiManager::attemptNewWifiConnection(WiFiCredentials wifiCredentials) {
 	if (WiFi.status() == WL_CONNECTED) {
 		Serial.println("Connected to Wi-Fi!");
 		rgbLed.set_led_blue();
-		WebSocketManager::getInstance().connectToWebSocket();
 		return true;
 	} else {
 		Serial.println("Failed to connect to saved Wi-Fi.");
-		startAccessPoint();
 		return false;
 	}
 }
 
 void WiFiManager::startAccessPoint() {
 	WiFi.disconnect(true);
-	WiFi.mode(WIFI_AP);
+	WiFi.mode(WIFI_AP_STA);
 	WiFi.softAP(getAPSSID().c_str(), NULL);
 
 	IPAddress apIP(192, 168, 4, 1);
