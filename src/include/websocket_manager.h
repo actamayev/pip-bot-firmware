@@ -53,7 +53,7 @@ class WebSocketManager : public Singleton<WebSocketManager> {
         void handleJsonMessage(WebsocketsMessage message);
         void handleBinaryMessage(WebsocketsMessage message);
 		bool attemptConnection();
-		static const int MAX_RETRIES = 4;
+		static const int MAX_RETRIES = 8;
 		int retryCount;
 		unsigned long startAttemptTime;
 		bool connected;

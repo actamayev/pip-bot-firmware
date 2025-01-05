@@ -40,8 +40,9 @@ void WebServerManager::startWebServer() {
 				"<html><script>window.close();</script></html>"
 			);
 			Serial.println("Wi-Fi connected via setup endpoint");
-			WebSocketManager::getInstance().connectToWebSocket();
+			delay(1000);
 			WiFi.softAPdisconnect(true);
+			WebSocketManager::getInstance().connectToWebSocket();
 		} else {
 			preferences.begin("wifi-creds", false);
 			preferences.clear();

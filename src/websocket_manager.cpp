@@ -202,7 +202,6 @@ void WebSocketManager::connectToWebSocket() {
     }
 }
 
-
 void WebSocketManager::sendInitialData() {
     Serial.println("WebSocket connected. Sending initial data...");
     StaticJsonDocument<SMALL_DOC_SIZE> initDoc;
