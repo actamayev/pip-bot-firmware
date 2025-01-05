@@ -41,7 +41,7 @@ void WebServerManager::startWebServer() {
 			);
 			Serial.println("Wi-Fi connected via setup endpoint");
 			delay(1000);
-			WiFi.softAPdisconnect(true);
+			WiFi.softAPdisconnect(true); // kicks connected users off the Pip's AP
 			WebSocketManager::getInstance().connectToWebSocket();
 		} else {
 			preferences.begin("wifi-creds", false);
@@ -52,6 +52,8 @@ void WebServerManager::startWebServer() {
 				"<html><script>window.close();</script></html>"
 			);
 			Serial.println("Failed to connect via setup endpoint");
+			delay(1000);
+			WiFi.softAPdisconnect(true); // kicks connected users off the Pip's AP
 			WiFiManager::getInstance().startAccessPoint();
 		}
 	});
