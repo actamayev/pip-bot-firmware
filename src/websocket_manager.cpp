@@ -177,18 +177,64 @@ void WebSocketManager::connectToWebSocket() {
         }
     });
 
-    Serial.println("Attempting to connect to WebSocket...");
+    // First attempt
+    Serial.println("Attempt 1: Connecting to WebSocket...");
     if (wsClient.connect(getWsServerUrl())) {
-        Serial.println("WebSocket connected. Sending initial data...");
-        // Use ArduinoJson for this small message
-        StaticJsonDocument<SMALL_DOC_SIZE> initDoc;
-        initDoc["pipUUID"] = getPipID();
-        String jsonString;
-        serializeJson(initDoc, jsonString);
-        wsClient.send(jsonString);
-    } else {
-        Serial.println("WebSocket connection failed");
+        sendInitialData();
+        return;
     }
+
+    Serial.println("WebSocket connection failed. Starting retry sequence...");
+    startAttemptTime = millis();
+    retryCount = 1;  // First retry (second attempt overall)
+    connected = false;
+
+    // Retry loop
+    while (retryCount <= MAX_RETRIES && !connected) {
+        if (attemptConnection()) {
+            connected = true;
+            break;
+        }
+    }
+
+    if (!connected) {
+        Serial.println("All connection attempts failed");
+    }
+}
+
+void WebSocketManager::sendInitialData() {
+    Serial.println("WebSocket connected. Sending initial data...");
+    StaticJsonDocument<SMALL_DOC_SIZE> initDoc;
+    initDoc["pipUUID"] = getPipID();
+    String jsonString;
+    serializeJson(initDoc, jsonString);
+    WiFi.mode(WIFI_STA);
+    wsClient.send(jsonString);
+}
+
+bool WebSocketManager::attemptConnection() {
+    unsigned long currentTime = millis();
+    unsigned long delayPeriod = retryCount * 1000UL;  // Increasing delays: 1s, 2s, 3s, 4s
+
+    if (currentTime - startAttemptTime >= delayPeriod) {
+        Serial.printf("Attempt %d: Connecting to WebSocket...\n", retryCount + 1);
+
+        if (wsClient.connect(getWsServerUrl())) {
+            sendInitialData();
+            return true;
+        }
+
+        Serial.printf("WebSocket connection failed on attempt %d\n", retryCount + 1);
+        if (retryCount < MAX_RETRIES) {
+            Serial.printf("Will retry in %d seconds...\n", retryCount + 1);
+        }
+
+        startAttemptTime = currentTime;
+        retryCount++;
+    }
+
+    yield();
+    return false;
 }
 
 void WebSocketManager::processChunk(uint8_t* chunkData, size_t chunkDataLength,

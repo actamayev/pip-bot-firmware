@@ -16,7 +16,7 @@ class WebSocketManager : public Singleton<WebSocketManager> {
 	public:
         void connectToWebSocket();
         void pollWebSocket();
-        
+
         void sendErrorMessage(const char* error);
         void sendJsonMessage(const char* event, const char* status, const char* extra = nullptr);
 
@@ -52,4 +52,10 @@ class WebSocketManager : public Singleton<WebSocketManager> {
         void processChunk(uint8_t* chunkData, size_t chunkDataLength, size_t chunkIndex, size_t totalChunks, size_t totalSize, bool isLast);
         void handleJsonMessage(WebsocketsMessage message);
         void handleBinaryMessage(WebsocketsMessage message);
+		bool attemptConnection();
+		static const int MAX_RETRIES = 8;
+		int retryCount;
+		unsigned long startAttemptTime;
+		bool connected;
+		void sendInitialData();
 };

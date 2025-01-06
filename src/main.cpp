@@ -43,16 +43,25 @@ void setup() {
 }
 
 //Main loop runs on Core 1
+unsigned long lastCheckTime = 0;
+const unsigned long CHECK_INTERVAL = 200;  // 200ms interval
+
 void loop() {
-    // Network-related tasks on Core 1
-    WebServerManager::getInstance().handleClientRequests();
+    unsigned long currentTime = millis();
+    
+    // Run these tasks every CHECK_INTERVAL milliseconds
+    if (currentTime - lastCheckTime >= CHECK_INTERVAL) {
+        // Network-related tasks on Core 1
+        WebServerManager::getInstance().handleClientRequests();
 
-    if (WiFi.status() == WL_CONNECTED) {
-        WebSocketManager::getInstance().pollWebSocket();
+        if (WiFi.status() == WL_CONNECTED) {
+            WebSocketManager::getInstance().pollWebSocket();
+        }
+        // tofLogger();
+        // imuLogger();
+
+        lastCheckTime = currentTime;
     }
-    // tofLogger();
 
-    // imuLogger();
-
-    delay(200);
+    yield();  // Allow system background tasks to run
 }
