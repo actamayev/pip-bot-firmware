@@ -58,6 +58,16 @@ void WebServerManager::startWebServer() {
 		}
 	});
 
+	server.on("/ping", HTTP_GET, []() {
+		// Enable CORS headers to allow requests from any origin
+		server.sendHeader("Access-Control-Allow-Origin", "*");
+		server.sendHeader("Access-Control-Allow-Methods", "GET");
+		server.sendHeader("Access-Control-Allow-Headers", "*");
+
+		// Send a simple response
+		server.send(200, "text/plain", "pong");
+	});
+
 	server.onNotFound([]() {
 		server.send(404, "text/plain", "Not Found");
 	});
