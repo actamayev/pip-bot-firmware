@@ -2,8 +2,8 @@
 #include "./imu.h"
 #include "./config.h"
 #include "./singleton.h"
-#include "./time_of_flight_sensor.h"
 #include "./ir_sensor.h"
+#include "./time_of_flight_sensor.h"
 
 class Sensors : public Singleton<Sensors> {
     friend class Singleton<Sensors>;

@@ -59,6 +59,7 @@ void loop() {
         }
         // tofLogger();
         // imuLogger();
+        // irLogger();
 
         lastCheckTime = currentTime;
     }
