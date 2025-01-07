@@ -26,6 +26,10 @@ const uint8_t TOF_RANGING_FREQUENCY = 15;  // TOF sampling frequency
 const uint32_t IMU_UPDATE_FREQ_MICROSECS = 5000;  // 5ms, 200Hz
 const uint8_t IMU_DEFAULT_ADDRESS = 0x4B; // The actual default addr is 0x4A, but ours shows up as 0x4A
 
+// IR
+const uint8_t IR_SEND_PIN = 17;
+const uint8_t IR_RECV_PIN = 16;
+
 // echo | openssl s_client -showcerts -connect staging-api.bluedotrobots.com:443
 const char* rootCACertificate = \
 "-----BEGIN CERTIFICATE-----\n"
