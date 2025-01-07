@@ -6,8 +6,8 @@ void Sensors::initialize() {
     Wire.begin(I2C_SDA, I2C_SCL, I2C_CLOCK_SPEED);
 
     // Initialize sensors
-    // initializeTofSensors();
-    // initializeIMU();
+    initializeTofSensors();
+    initializeIMU();
     initializeIrSensors();
 }
 
