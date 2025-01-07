@@ -6,8 +6,9 @@ void Sensors::initialize() {
     Wire.begin(I2C_SDA, I2C_SCL, I2C_CLOCK_SPEED);
 
     // Initialize sensors
-    initializeTofSensors();
-    initializeIMU();
+    // initializeTofSensors();
+    // initializeIMU();
+    initializeIrSensors();
 }
 
 void Sensors::initializeTofSensors() {
@@ -99,4 +100,24 @@ bool Sensors::getImuData() {
 
 const sh2_SensorValue_t& Sensors::getImuSensorValue() const {
     return imu.getSensorValue();
+}
+
+void Sensors::initializeIrSensors() {
+    Serial.println("Initializing IR Sensors...");
+
+    if (!irSensor.initialize()) {
+        Serial.println("IR Sensor initialization failed");
+        return;
+    }
+    Serial.println("IR setup complete");
+}
+
+// Raw sensor value access if needed
+bool Sensors::getIrData() {
+    return irSensor.getData();
+}
+
+// Raw sensor value access if needed
+void Sensors::sendIrCommand(uint32_t command) {
+    return irSensor.sendIRCommand(command);
 }
