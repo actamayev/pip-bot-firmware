@@ -1,3 +1,4 @@
+#include <esp32-hal-timer.h>
 #include "./include/config.h"
 #include "./include/rgb_led.h"
 #include "./include/sensors.h"
@@ -10,7 +11,14 @@
 
 // This task will run user code on Core 0
 void UserCodeTask(void * parameter) {
+    disableCore0WDT();
+    Sensors::getInstance(); // Initialize sensors on Core 0
+    enableCore0WDT();
+
     for(;;) {
+        tofLogger();
+        imuLogger();
+        irLogger();
         user_code();  // Your LED blinking code
         delay(1);     // Small delay to prevent watchdog reset
     }
@@ -25,10 +33,8 @@ void setup() {
     Serial.println(DEFAULT_PIP_ID);
     rgbLed.turn_led_off();
 
-    WiFiManager::getInstance(); // Initializes WiFi
-    WiFiManager::getInstance().connectToStoredWiFi();
-
-    // Sensors::getInstance();
+    // WiFiManager::getInstance(); // Initializes WiFi
+    // WiFiManager::getInstance().connectToStoredWiFi();
 
     // Create task for user code on Core 0
     xTaskCreatePinnedToCore(
@@ -48,18 +54,14 @@ const unsigned long CHECK_INTERVAL = 200;  // 200ms interval
 
 void loop() {
     unsigned long currentTime = millis();
-    
+
     // Run these tasks every CHECK_INTERVAL milliseconds
     if (currentTime - lastCheckTime >= CHECK_INTERVAL) {
-        // Network-related tasks on Core 1
         WebServerManager::getInstance().handleClientRequests();
 
         if (WiFi.status() == WL_CONNECTED) {
             WebSocketManager::getInstance().pollWebSocket();
         }
-        // tofLogger();
-        // imuLogger();
-        // irLogger();
 
         lastCheckTime = currentTime;
     }
