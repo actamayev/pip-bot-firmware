@@ -63,7 +63,7 @@ void setup() {
     xTaskCreatePinnedToCore(
         SensorAndUserCodeTask,  // Sensor and user code task
         "SensorAndUserCode",    // Task name
-        SENSOR_STACK_SIZE,                  // Stack size
+        SENSOR_STACK_SIZE,      // Stack size
         NULL,                   // Task parameters
         1,                      // Priority
         NULL,                   // Task handle
