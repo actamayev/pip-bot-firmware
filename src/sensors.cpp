@@ -73,7 +73,9 @@ void Sensors::initializeIMU() {
 bool Sensors::getTofData(const VL53L5CX_ResultsData** leftData, const VL53L5CX_ResultsData** rightData) {
     bool leftSuccess = leftTof.getData();
     bool rightSuccess = rightTof.getData();
-    
+    Serial.printf("leftSuccess %d", leftSuccess);
+    Serial.printf("rightSuccess %d", rightSuccess);
+
     if (leftSuccess) *leftData = &leftTof.sensorData;
     if (rightSuccess) *rightData = &rightTof.sensorData;
 
