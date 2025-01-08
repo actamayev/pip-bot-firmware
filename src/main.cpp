@@ -19,8 +19,8 @@ void UserCodeTask(void * parameter) {
         tofLogger();
         imuLogger();
         irLogger();
-        user_code();  // Your LED blinking code
-        delay(1);     // Small delay to prevent watchdog reset
+        user_code();
+        delay(1);
     }
 }
 
@@ -33,8 +33,8 @@ void setup() {
     Serial.println(DEFAULT_PIP_ID);
     rgbLed.turn_led_off();
 
-    // WiFiManager::getInstance(); // Initializes WiFi
-    // WiFiManager::getInstance().connectToStoredWiFi();
+    WiFiManager::getInstance(); // Initializes WiFi
+    WiFiManager::getInstance().connectToStoredWiFi();
 
     // Create task for user code on Core 0
     xTaskCreatePinnedToCore(
