@@ -43,15 +43,14 @@ void tofLogger() {
 
 void imuLogger() {
     static unsigned long lastImuPrintTime = 0;
-    const unsigned long IMU_PRINT_INTERVAL = 50; // Print every 50ms (20Hz)
+    const unsigned long IMU_PRINT_INTERVAL = 500; // Print every 500ms
     
     if (millis() - lastImuPrintTime >= IMU_PRINT_INTERVAL) {
-        auto& sensors = Sensors::getInstance();
-        float qX, qY, qZ, qW;
+        const auto& quat = Sensors::getInstance().getQuaternion();
         
-        if (sensors.getQuaternion(qX, qY, qZ, qW)) {
+        if (quat.isValid) {
             float yaw, pitch, roll;
-            quaternionToEuler(qW, qX, qY, qZ, yaw, pitch, roll);
+            quaternionToEuler(quat.qW, quat.qX, quat.qY, quat.qZ, yaw, pitch, roll);
             
             Serial.print("Orientation - Yaw: ");
             Serial.print(yaw, 1);

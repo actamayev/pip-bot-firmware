@@ -80,20 +80,28 @@ bool Sensors::getTofData(const VL53L5CX_ResultsData** leftData, const VL53L5CX_R
     return leftSuccess && rightSuccess;
 }
 
-bool Sensors::getQuaternion(float& qX, float& qY, float& qZ, float& qW) {
-    return imu.getQuaternion(qX, qY, qZ, qW);
+// const TofData& Sensors::getLeftTofData() {
+//     return leftTof.getData();
+// }
+
+// const TofData& Sensors::getRightTofData() {
+//     return rightTof.getData();
+// }
+
+const QuaternionData& Sensors::getQuaternion() {
+    return imu.getQuaternion();
 }
 
-bool Sensors::getAcceleration(float& aX, float& aY, float& aZ) {
-    return imu.getAcceleration(aX, aY, aZ);
+const AccelerometerData& Sensors::getAcceleration() {
+    return imu.getAccelerometerData();
 }
 
-bool Sensors::getGyroscope(float& gX, float& gY, float& gZ) {
-    return imu.getGyroscope(gX, gY, gZ);
+const GyroscopeData& Sensors::getGyroscope() {
+    return imu.getGyroscopeData();
 }
 
-bool Sensors::getMagneticField(float& mX, float& mY, float& mZ) {
-    return imu.getMagneticField(mX, mY, mZ);
+const MagnetometerData& Sensors::getMagneticField() {
+    return imu.getMagnetometerData();
 }
 
 // Raw sensor value access if needed
