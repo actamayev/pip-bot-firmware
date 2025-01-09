@@ -27,6 +27,13 @@ struct QuaternionData {
     bool isValid = false;
 };
 
+struct EulerAngles {
+    float yaw;
+    float pitch;
+    float roll;
+    bool isValid;
+};
+
 struct AccelerometerData {
     float aX, aY, aZ;
     bool isValid = false;

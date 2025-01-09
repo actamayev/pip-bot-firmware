@@ -94,6 +94,10 @@ const QuaternionData& Sensors::getQuaternion() {
     return imu.getQuaternion();
 }
 
+EulerAngles& Sensors::getEulerAngles() {
+    return imu.getEulerAngles();
+}
+
 const AccelerometerData& Sensors::getAcceleration() {
     return imu.getAccelerometerData();
 }
@@ -109,10 +113,6 @@ const MagnetometerData& Sensors::getMagneticField() {
 // Raw sensor value access if needed
 bool Sensors::getImuData() {
     return imu.getData();
-}
-
-const sh2_SensorValue_t& Sensors::getImuSensorValue() const {
-    return imu.getSensorValue();
 }
 
 void Sensors::initializeIrSensors() {

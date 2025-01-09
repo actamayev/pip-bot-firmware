@@ -3,6 +3,7 @@
 #include <Adafruit_BNO08x.h>
 #include "./config.h"
 #include "./structs.h"
+#include "./utils.h"
 
 class ImuSensor {
     public:
@@ -11,35 +12,22 @@ class ImuSensor {
         bool initialize();
         bool getData();
 
-        const sh2_SensorValue_t& getSensorValue() const;
-
         // Quaternion:
         QuaternionData currentQuaternion;
-        const QuaternionData& getQuaternion() {
-            updateQuaternion();
-            return currentQuaternion;
-        }
+        const QuaternionData& getQuaternion();
+        EulerAngles& getEulerAngles();
 
         // Acceleromter:
         AccelerometerData currentAccelData;
-        const AccelerometerData& getAccelerometerData() {
-            updateAccelerometer();
-            return currentAccelData;
-        }
+        const AccelerometerData& getAccelerometerData();
 
         // Gyroscope:
         GyroscopeData currentGyroData;
-        const GyroscopeData& getGyroscopeData() {
-            updateGyroscope();
-            return currentGyroData;
-        }
+        const GyroscopeData& getGyroscopeData();
 
         // Magnetometer:
         MagnetometerData currentMagnetometer;
-        const MagnetometerData& getMagnetometerData() {
-            updateMagnetometer();
-            return currentMagnetometer;
-        }
+        const MagnetometerData& getMagnetometerData();
     private:
         Adafruit_BNO08x imu;
         sh2_SensorValue_t sensorValue;

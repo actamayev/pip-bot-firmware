@@ -17,13 +17,12 @@ class Sensors : public Singleton<Sensors> {
         const AccelerometerData& getAcceleration();
         const GyroscopeData& getGyroscope();
         const MagnetometerData& getMagneticField();
+        EulerAngles& getEulerAngles();
 
         // Raw sensor value access if needed
         bool getImuData();
         bool getIrData();
         void sendIrCommand(uint32_t command);
-
-        const sh2_SensorValue_t& getImuSensorValue() const;
 
     private:
         // Sensors

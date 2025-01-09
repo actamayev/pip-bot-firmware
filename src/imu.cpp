@@ -72,8 +72,9 @@ bool ImuSensor::getData() {
     return imu.getSensorEvent(&sensorValue);
 }
 
-const sh2_SensorValue_t& ImuSensor::getSensorValue() const {
-    return sensorValue;
+const QuaternionData& ImuSensor::getQuaternion() {
+    updateQuaternion();
+    return currentQuaternion;
 }
 
 // Convenience methods to get specific data types
@@ -92,6 +93,33 @@ bool ImuSensor::updateQuaternion() {
     return false;
 }
 
+EulerAngles& ImuSensor::getEulerAngles() {
+    static EulerAngles angles = {0, 0, 0, false}; // Use static for return reference validity
+
+    // Use getQuaternion to ensure the quaternion is updated
+    const QuaternionData& quaternion = getQuaternion();
+
+    if (quaternion.isValid) {
+        quaternionToEuler(
+            quaternion.qW, 
+            quaternion.qX, 
+            quaternion.qY, 
+            quaternion.qZ,
+            angles.yaw, angles.pitch, angles.roll
+        );
+        angles.isValid = true;
+    } else {
+        angles.isValid = false;
+    }
+
+    return angles;
+}
+
+const AccelerometerData& ImuSensor::getAccelerometerData() {
+    updateAccelerometer();
+    return currentAccelData;
+}
+
 bool ImuSensor::updateAccelerometer() {
     if (!enableAccelerometer()) return false;
     
@@ -106,6 +134,11 @@ bool ImuSensor::updateAccelerometer() {
     return false;
 }
 
+const GyroscopeData& ImuSensor::getGyroscopeData() {
+    updateGyroscope();
+    return currentGyroData;
+}
+
 bool ImuSensor::updateGyroscope() {
     if (!enableGyroscope()) return false;
     
@@ -118,6 +151,11 @@ bool ImuSensor::updateGyroscope() {
     }
     currentGyroData.isValid = false;
     return false;
+}
+
+const MagnetometerData& ImuSensor::getMagnetometerData() {
+    updateMagnetometer();
+    return currentMagnetometer;
 }
 
 bool ImuSensor::updateMagnetometer() {
