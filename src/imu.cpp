@@ -67,7 +67,7 @@ bool ImuSensor::enableMagneticField() {
     return true;
 }
 
-bool ImuSensor::getData() {
+bool ImuSensor::getImuData() {
     if (!isInitialized) return false;
     return imu.getSensorEvent(&sensorValue);
 }
@@ -81,7 +81,7 @@ const QuaternionData& ImuSensor::getQuaternion() {
 bool ImuSensor::updateQuaternion() {
     if (!enableGameRotationVector()) return false;
 
-    if (!getData() || sensorValue.sensorId != SH2_GAME_ROTATION_VECTOR) {
+    if (!getImuData() || sensorValue.sensorId != SH2_GAME_ROTATION_VECTOR) {
         currentQuaternion.isValid = false;
         return false;
     }
@@ -135,7 +135,7 @@ const AccelerometerData& ImuSensor::getAccelerometerData() {
 bool ImuSensor::updateAccelerometer() {
     if (!enableAccelerometer()) return false;
 
-    if (!getData() || sensorValue.sensorId != SH2_ACCELEROMETER) {
+    if (!getImuData() || sensorValue.sensorId != SH2_ACCELEROMETER) {
         currentAccelData.isValid = false;
         return false;
     }
@@ -166,7 +166,7 @@ const GyroscopeData& ImuSensor::getGyroscopeData() {
 bool ImuSensor::updateGyroscope() {
     if (!enableGyroscope()) return false;
     
-    if (!getData() || sensorValue.sensorId != SH2_GYROSCOPE_CALIBRATED) {
+    if (!getImuData() || sensorValue.sensorId != SH2_GYROSCOPE_CALIBRATED) {
         currentGyroData.isValid = false;
         return false;
     }
@@ -197,7 +197,7 @@ const MagnetometerData& ImuSensor::getMagnetometerData() {
 bool ImuSensor::updateMagnetometer() {
     if (!enableMagneticField()) return false;
 
-    if (!getData() || sensorValue.sensorId != SH2_MAGNETIC_FIELD_CALIBRATED) {
+    if (!getImuData() || sensorValue.sensorId != SH2_MAGNETIC_FIELD_CALIBRATED) {
         currentMagnetometer.isValid = false;
         return false;
     }

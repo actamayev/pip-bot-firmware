@@ -54,7 +54,7 @@ class ImuSensor {
             bool magneticField = false;
         } enabledReports;
 
-        bool getData();
+        bool getImuData();
 
         bool updateQuaternion();
         const QuaternionData& getQuaternion();

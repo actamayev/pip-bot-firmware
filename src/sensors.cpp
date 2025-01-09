@@ -71,8 +71,8 @@ void Sensors::initializeIMU() {
 }
 
 bool Sensors::getTofData(const VL53L5CX_ResultsData** leftData, const VL53L5CX_ResultsData** rightData) {
-    bool leftSuccess = leftTof.getData();
-    bool rightSuccess = rightTof.getData();
+    bool leftSuccess = leftTof.getTofData();
+    bool rightSuccess = rightTof.getTofData();
     Serial.printf("leftSuccess %d", leftSuccess);
     Serial.printf("rightSuccess %d", rightSuccess);
 
@@ -83,11 +83,11 @@ bool Sensors::getTofData(const VL53L5CX_ResultsData** leftData, const VL53L5CX_R
 }
 
 // const TofData& Sensors::getLeftTofData() {
-//     return leftTof.getData();
+//     return leftTof.getTofData();
 // }
 
 // const TofData& Sensors::getRightTofData() {
-//     return rightTof.getData();
+//     return rightTof.getTofData();
 // }
 
 EulerAngles& Sensors::getEulerAngles() {
@@ -154,7 +154,7 @@ void Sensors::initializeIrSensors() {
 
 // Raw sensor value access if needed
 bool Sensors::getIrData() {
-    return irSensor.getData();
+    return irSensor.getIrData();
 }
 
 // Raw sensor value access if needed
