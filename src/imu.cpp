@@ -115,6 +115,18 @@ EulerAngles& ImuSensor::getEulerAngles() {
     return angles;
 }
 
+float ImuSensor::getPitch() {
+    return getEulerAngles().pitch;
+}
+
+float ImuSensor::getYaw() {
+    return getEulerAngles().yaw;
+}
+
+float ImuSensor::getRoll() {
+    return getEulerAngles().roll;
+}
+
 const AccelerometerData& ImuSensor::getAccelerometerData() {
     updateAccelerometer();
     return currentAccelData;
@@ -132,6 +144,18 @@ bool ImuSensor::updateAccelerometer() {
     }
     currentAccelData.isValid = false;
     return false;
+}
+
+float ImuSensor::getXAccel() {
+    return currentAccelData.aX;
+}
+
+float ImuSensor::getYAccel() {
+    return currentAccelData.aY;
+}
+
+float ImuSensor::getZAccel() {
+    return currentAccelData.aZ;
 }
 
 const GyroscopeData& ImuSensor::getGyroscopeData() {
@@ -153,6 +177,18 @@ bool ImuSensor::updateGyroscope() {
     return false;
 }
 
+float ImuSensor::getXRotationRate() {
+    return currentGyroData.gX;
+}
+
+float ImuSensor::getYRotationRate() {
+    return currentGyroData.gY;
+}
+
+float ImuSensor::getZRotationRate() {
+    return currentGyroData.gZ;
+}
+
 const MagnetometerData& ImuSensor::getMagnetometerData() {
     updateMagnetometer();
     return currentMagnetometer;
@@ -170,4 +206,16 @@ bool ImuSensor::updateMagnetometer() {
     }
     currentMagnetometer.isValid = false;
     return false;
+}
+
+float ImuSensor::getMagneticFieldX() {
+    return currentMagnetometer.mX;
+}
+
+float ImuSensor::getMagneticFieldY() {
+    return currentMagnetometer.mY;
+}
+
+float ImuSensor::getMagneticFieldZ() {
+    return currentMagnetometer.mZ;
 }

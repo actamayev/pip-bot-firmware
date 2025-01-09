@@ -5,18 +5,14 @@
 #include "./include/utils.h"
 
 void user_code() {
-    const auto& angles = Sensors::getInstance().getEulerAngles();
+    float pitchAngle = Sensors::getInstance().getPitch();
 
-    if (!angles.isValid) {
-        rgbLed.turn_led_off();
+    if (pitchAngle >= 0 && pitchAngle <= 10) {
+        rgbLed.set_led_blue();  // Level position
+    } else if (pitchAngle > 10) {
+        rgbLed.set_led_red();   // Tilted up
     } else {
-        if (angles.pitch >= 0 && angles.pitch <= 10) {
-            rgbLed.set_led_blue();  // Level position
-        } else if (angles.pitch > 10) {
-            rgbLed.set_led_red();   // Tilted up
-        } else {
-            rgbLed.set_led_green(); // Tilted down
-        }
+        rgbLed.set_led_green(); // Tilted down
     }
 
     delay(50);

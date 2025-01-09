@@ -46,21 +46,18 @@ void imuLogger() {
     const unsigned long IMU_PRINT_INTERVAL = 500; // Print every 500ms
     
     if (millis() - lastImuPrintTime >= IMU_PRINT_INTERVAL) {
-        const auto& quat = Sensors::getInstance().getQuaternion();
+        EulerAngles eulerAngles = Sensors::getInstance().getEulerAngles();
         
-        if (quat.isValid) {
-            float yaw, pitch, roll;
-            quaternionToEuler(quat.qW, quat.qX, quat.qY, quat.qZ, yaw, pitch, roll);
-            
-            Serial.print("Orientation - Yaw: ");
-            Serial.print(yaw, 1);
-            Serial.print("° Pitch: ");
-            Serial.print(pitch, 1);
-            Serial.print("° Roll: ");
-            Serial.print(roll, 1);
-            Serial.println("°");
-        } else {
+        if (!eulerAngles.isValid) {
             Serial.println("Failed to get IMU data");
+        } else {
+            Serial.print("Orientation - Yaw: ");
+            Serial.print(eulerAngles.yaw, 1);
+            Serial.print("° Pitch: ");
+            Serial.print(eulerAngles.pitch, 1);
+            Serial.print("° Roll: ");
+            Serial.print(eulerAngles.roll, 1);
+            Serial.println("°");
         }
         
         lastImuPrintTime = millis();

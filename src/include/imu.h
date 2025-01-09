@@ -10,24 +10,32 @@ class ImuSensor {
         ImuSensor() = default;
 
         bool initialize();
-        bool getData();
 
         // Quaternion:
         QuaternionData currentQuaternion;
-        const QuaternionData& getQuaternion();
         EulerAngles& getEulerAngles();
+        float getPitch();
+        float getYaw();
+        float getRoll();
 
         // Acceleromter:
         AccelerometerData currentAccelData;
-        const AccelerometerData& getAccelerometerData();
+        float getXAccel();
+        float getYAccel();
+        float getZAccel();
 
         // Gyroscope:
         GyroscopeData currentGyroData;
-        const GyroscopeData& getGyroscopeData();
+        float getXRotationRate();
+        float getYRotationRate();
+        float getZRotationRate();
 
         // Magnetometer:
         MagnetometerData currentMagnetometer;
-        const MagnetometerData& getMagnetometerData();
+        float getMagneticFieldX();
+        float getMagneticFieldY();
+        float getMagneticFieldZ();
+
     private:
         Adafruit_BNO08x imu;
         sh2_SensorValue_t sensorValue;
@@ -46,8 +54,17 @@ class ImuSensor {
             bool magneticField = false;
         } enabledReports;
 
+        bool getData();
+
         bool updateQuaternion();
+        const QuaternionData& getQuaternion();
+
         bool updateAccelerometer();
+        const AccelerometerData& getAccelerometerData();
+
         bool updateGyroscope();
+        const GyroscopeData& getGyroscopeData();
+
         bool updateMagnetometer();
+        const MagnetometerData& getMagnetometerData();
 };

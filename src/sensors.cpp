@@ -90,29 +90,56 @@ bool Sensors::getTofData(const VL53L5CX_ResultsData** leftData, const VL53L5CX_R
 //     return rightTof.getData();
 // }
 
-const QuaternionData& Sensors::getQuaternion() {
-    return imu.getQuaternion();
-}
-
 EulerAngles& Sensors::getEulerAngles() {
     return imu.getEulerAngles();
 }
 
-const AccelerometerData& Sensors::getAcceleration() {
-    return imu.getAccelerometerData();
+float Sensors::getPitch() {
+    return imu.getPitch();
 }
 
-const GyroscopeData& Sensors::getGyroscope() {
-    return imu.getGyroscopeData();
+float Sensors::getYaw() {
+    return imu.getYaw();
 }
 
-const MagnetometerData& Sensors::getMagneticField() {
-    return imu.getMagnetometerData();
+float Sensors::getRoll() {
+    return imu.getRoll();
 }
 
-// Raw sensor value access if needed
-bool Sensors::getImuData() {
-    return imu.getData();
+float Sensors::getXAccel() {
+    return imu.getPitch();
+}
+
+float Sensors::getYAccel() {
+    return imu.getYaw();
+}
+
+float Sensors::getZAccel() {
+    return imu.getRoll();
+}
+
+float Sensors::getXRotationRate() {
+    return imu.getXRotationRate();
+}
+
+float Sensors::getYRotationRate() {
+    return imu.getYRotationRate();
+}
+
+float Sensors::getZRotationRate() {
+    return imu.getZRotationRate();
+}
+
+float Sensors::getMagneticFieldX() {
+    return imu.getMagneticFieldX();
+}
+
+float Sensors::getMagneticFieldY() {
+    return imu.getMagneticFieldY();
+}
+
+float Sensors::getMagneticFieldZ() {
+    return imu.getMagneticFieldZ();
 }
 
 void Sensors::initializeIrSensors() {
