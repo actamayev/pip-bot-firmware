@@ -81,16 +81,16 @@ const QuaternionData& ImuSensor::getQuaternion() {
 bool ImuSensor::updateQuaternion() {
     if (!enableGameRotationVector()) return false;
 
-    if (getData() && sensorValue.sensorId == SH2_GAME_ROTATION_VECTOR) {
-        currentQuaternion.qX = sensorValue.un.gameRotationVector.i;
-        currentQuaternion.qY = sensorValue.un.gameRotationVector.j;
-        currentQuaternion.qZ = sensorValue.un.gameRotationVector.k;
-        currentQuaternion.qW = sensorValue.un.gameRotationVector.real;
-        currentQuaternion.isValid = true;
-        return true;
+    if (!getData() || sensorValue.sensorId != SH2_GAME_ROTATION_VECTOR) {
+        currentQuaternion.isValid = false;
+        return false;
     }
-    currentQuaternion.isValid = false;
-    return false;
+    currentQuaternion.qX = sensorValue.un.gameRotationVector.i;
+    currentQuaternion.qY = sensorValue.un.gameRotationVector.j;
+    currentQuaternion.qZ = sensorValue.un.gameRotationVector.k;
+    currentQuaternion.qW = sensorValue.un.gameRotationVector.real;
+    currentQuaternion.isValid = true;
+    return true;
 }
 
 EulerAngles& ImuSensor::getEulerAngles() {
@@ -99,7 +99,9 @@ EulerAngles& ImuSensor::getEulerAngles() {
     // Use getQuaternion to ensure the quaternion is updated
     const QuaternionData& quaternion = getQuaternion();
 
-    if (quaternion.isValid) {
+    if (!quaternion.isValid) {
+        angles.isValid = false;
+    } else {
         quaternionToEuler(
             quaternion.qW, 
             quaternion.qX, 
@@ -108,8 +110,6 @@ EulerAngles& ImuSensor::getEulerAngles() {
             angles.yaw, angles.pitch, angles.roll
         );
         angles.isValid = true;
-    } else {
-        angles.isValid = false;
     }
 
     return angles;
@@ -134,16 +134,16 @@ const AccelerometerData& ImuSensor::getAccelerometerData() {
 
 bool ImuSensor::updateAccelerometer() {
     if (!enableAccelerometer()) return false;
-    
-    if (getData() && sensorValue.sensorId == SH2_ACCELEROMETER) {
-        currentAccelData.aX = sensorValue.un.accelerometer.x;
-        currentAccelData.aY = sensorValue.un.accelerometer.y;
-        currentAccelData.aZ = sensorValue.un.accelerometer.z;
-        currentAccelData.isValid = true;
-        return true;
+
+    if (!getData() || sensorValue.sensorId != SH2_ACCELEROMETER) {
+        currentAccelData.isValid = false;
+        return false;
     }
-    currentAccelData.isValid = false;
-    return false;
+    currentAccelData.aX = sensorValue.un.accelerometer.x;
+    currentAccelData.aY = sensorValue.un.accelerometer.y;
+    currentAccelData.aZ = sensorValue.un.accelerometer.z;
+    currentAccelData.isValid = true;
+    return true;
 }
 
 float ImuSensor::getXAccel() {
@@ -166,15 +166,15 @@ const GyroscopeData& ImuSensor::getGyroscopeData() {
 bool ImuSensor::updateGyroscope() {
     if (!enableGyroscope()) return false;
     
-    if (getData() && sensorValue.sensorId == SH2_GYROSCOPE_CALIBRATED) {
-        currentGyroData.gX = sensorValue.un.gyroscope.x;
-        currentGyroData.gY = sensorValue.un.gyroscope.y;
-        currentGyroData.gZ = sensorValue.un.gyroscope.z;
-        currentGyroData.isValid = true;
-        return true;
+    if (!getData() || sensorValue.sensorId != SH2_GYROSCOPE_CALIBRATED) {
+        currentGyroData.isValid = false;
+        return false;
     }
-    currentGyroData.isValid = false;
-    return false;
+    currentGyroData.gX = sensorValue.un.gyroscope.x;
+    currentGyroData.gY = sensorValue.un.gyroscope.y;
+    currentGyroData.gZ = sensorValue.un.gyroscope.z;
+    currentGyroData.isValid = true;
+    return true;
 }
 
 float ImuSensor::getXRotationRate() {
@@ -197,15 +197,15 @@ const MagnetometerData& ImuSensor::getMagnetometerData() {
 bool ImuSensor::updateMagnetometer() {
     if (!enableMagneticField()) return false;
 
-    if (getData() && sensorValue.sensorId == SH2_MAGNETIC_FIELD_CALIBRATED) {
-        currentMagnetometer.mX = sensorValue.un.magneticField.x;
-        currentMagnetometer.mY = sensorValue.un.magneticField.y;
-        currentMagnetometer.mZ = sensorValue.un.magneticField.z;
-        currentGyroData.isValid = true;
-        return true;
+    if (!getData() || sensorValue.sensorId != SH2_MAGNETIC_FIELD_CALIBRATED) {
+        currentMagnetometer.isValid = false;
+        return false;
     }
-    currentMagnetometer.isValid = false;
-    return false;
+    currentMagnetometer.mX = sensorValue.un.magneticField.x;
+    currentMagnetometer.mY = sensorValue.un.magneticField.y;
+    currentMagnetometer.mZ = sensorValue.un.magneticField.z;
+    currentGyroData.isValid = true;
+    return true;
 }
 
 float ImuSensor::getMagneticFieldX() {
