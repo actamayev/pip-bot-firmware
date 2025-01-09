@@ -41,10 +41,10 @@ class ImuSensor {
         sh2_SensorValue_t sensorValue;
         bool isInitialized = false;
 
-        bool enableGameRotationVector(uint32_t updateFreqMicros = IMU_UPDATE_FREQ_MICROSECS);
-        bool enableAccelerometer(uint32_t updateFreqMicros = IMU_UPDATE_FREQ_MICROSECS);
-        bool enableGyroscope(uint32_t updateFreqMicros = IMU_UPDATE_FREQ_MICROSECS);
-        bool enableMagneticField(uint32_t updateFreqMicros = IMU_UPDATE_FREQ_MICROSECS);
+        bool enableGameRotationVector();
+        bool enableAccelerometer();
+        bool enableGyroscope();
+        bool enableMagneticField();
 
         // Store enabled reports for status checking
         struct EnabledReports {

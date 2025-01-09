@@ -11,12 +11,12 @@ bool ImuSensor::initialize() {
     return true;
 }
 
-bool ImuSensor::enableGameRotationVector(uint32_t updateFreqMicros) {
+bool ImuSensor::enableGameRotationVector() {
     if (!isInitialized) return false;
 
     if (enabledReports.gameRotationVector == true) return true;
 
-    if (!imu.enableReport(SH2_GAME_ROTATION_VECTOR, updateFreqMicros)) {
+    if (!imu.enableReport(SH2_GAME_ROTATION_VECTOR, IMU_UPDATE_FREQ_MICROSECS)) {
         Serial.println("Could not enable game rotation vector");
         return false;
     }
@@ -25,12 +25,12 @@ bool ImuSensor::enableGameRotationVector(uint32_t updateFreqMicros) {
     return true;
 }
 
-bool ImuSensor::enableAccelerometer(uint32_t updateFreqMicros) {
+bool ImuSensor::enableAccelerometer() {
     if (!isInitialized) return false;
     
     if (enabledReports.accelerometer == true) return true;
 
-    if (!imu.enableReport(SH2_ACCELEROMETER, updateFreqMicros)) {
+    if (!imu.enableReport(SH2_ACCELEROMETER, IMU_UPDATE_FREQ_MICROSECS)) {
         Serial.println("Could not enable accelerometer");
         return false;
     }
@@ -39,12 +39,12 @@ bool ImuSensor::enableAccelerometer(uint32_t updateFreqMicros) {
     return true;
 }
 
-bool ImuSensor::enableGyroscope(uint32_t updateFreqMicros) {
+bool ImuSensor::enableGyroscope() {
     if (!isInitialized) return false;
     
     if (enabledReports.gyroscope == true) return true;
 
-    if (!imu.enableReport(SH2_GYROSCOPE_CALIBRATED, updateFreqMicros)) {
+    if (!imu.enableReport(SH2_GYROSCOPE_CALIBRATED, IMU_UPDATE_FREQ_MICROSECS)) {
         Serial.println("Could not enable gyroscope");
         return false;
     }
@@ -53,12 +53,12 @@ bool ImuSensor::enableGyroscope(uint32_t updateFreqMicros) {
     return true;
 }
 
-bool ImuSensor::enableMagneticField(uint32_t updateFreqMicros) {
+bool ImuSensor::enableMagneticField() {
     if (!isInitialized) return false;
     
     if (enabledReports.magneticField == true) return true;
 
-    if (!imu.enableReport(SH2_MAGNETIC_FIELD_CALIBRATED, updateFreqMicros)) {
+    if (!imu.enableReport(SH2_MAGNETIC_FIELD_CALIBRATED, IMU_UPDATE_FREQ_MICROSECS)) {
         Serial.println("Could not enable magnetic field");
         return false;
     }
