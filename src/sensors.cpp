@@ -13,14 +13,13 @@ void Sensors::initialize() {
 
 void Sensors::initializeTofSensors() {
     pinMode(LEFT_TOF_RESET_PIN, OUTPUT);
-    pinMode(RIGHT_TOF_RESET_PIN, OUTPUT);
-
-    // Hold both sensors in reset for 1 second:
     digitalWrite(LEFT_TOF_RESET_PIN, HIGH);
+
+    pinMode(RIGHT_TOF_RESET_PIN, OUTPUT);
     digitalWrite(RIGHT_TOF_RESET_PIN, HIGH);
+
     delay(100);
 
-    // Take right sensor out of reset:
     digitalWrite(RIGHT_TOF_RESET_PIN, LOW); //Right sensor should now be available at default address 0x29
 
     // TODO 12/25/24: If the ESP is reset (reset button is pressed) while it is doing i2c re-addressing, the Left tof sometimes either:
