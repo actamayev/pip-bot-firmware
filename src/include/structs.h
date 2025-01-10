@@ -22,6 +22,13 @@ struct TofData {
     unsigned long lastUpdateTime = 0;
 };
 
+struct EnabledReports {
+    bool gameRotationVector = false;
+    bool accelerometer = false;
+    bool gyroscope = false;
+    bool magneticField = false;
+};
+
 struct QuaternionData {
     float qX, qY, qZ, qW;
     bool isValid = false;

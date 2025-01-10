@@ -158,6 +158,10 @@ float ImuSensor::getZAccel() {
     return currentAccelData.aZ;
 }
 
+double ImuSensor::getAccelMagnitude() {
+    return sqrt(pow(getXAccel(), 2) + pow(getYAccel(), 2) + pow(getZAccel(), 2));
+}
+
 const GyroscopeData& ImuSensor::getGyroscopeData() {
     updateGyroscope();
     return currentGyroData;

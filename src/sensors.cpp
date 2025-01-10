@@ -118,6 +118,10 @@ float Sensors::getZAccel() {
     return imu.getRoll();
 }
 
+double Sensors::getAccelMagnitude() {
+    return imu.getAccelMagnitude();
+}
+
 float Sensors::getXRotationRate() {
     return imu.getXRotationRate();
 }

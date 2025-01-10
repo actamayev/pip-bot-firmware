@@ -1,9 +1,9 @@
 #pragma once
 #include <Wire.h>
 #include <Adafruit_BNO08x.h>
+#include "./utils.h"
 #include "./config.h"
 #include "./structs.h"
-#include "./utils.h"
 
 class ImuSensor {
     public:
@@ -12,26 +12,23 @@ class ImuSensor {
         bool initialize();
 
         // Quaternion:
-        QuaternionData currentQuaternion;
         EulerAngles& getEulerAngles();
         float getPitch();
         float getYaw();
         float getRoll();
 
         // Acceleromter:
-        AccelerometerData currentAccelData;
         float getXAccel();
         float getYAccel();
         float getZAccel();
+        double getAccelMagnitude();
 
         // Gyroscope:
-        GyroscopeData currentGyroData;
         float getXRotationRate();
         float getYRotationRate();
         float getZRotationRate();
 
         // Magnetometer:
-        MagnetometerData currentMagnetometer;
         float getMagneticFieldX();
         float getMagneticFieldY();
         float getMagneticFieldZ();
@@ -47,24 +44,23 @@ class ImuSensor {
         bool enableMagneticField();
 
         // Store enabled reports for status checking
-        struct EnabledReports {
-            bool gameRotationVector = false;
-            bool accelerometer = false;
-            bool gyroscope = false;
-            bool magneticField = false;
-        } enabledReports;
+        EnabledReports enabledReports;
 
         bool getImuData();
 
+        QuaternionData currentQuaternion;
         bool updateQuaternion();
         const QuaternionData& getQuaternion();
 
+        AccelerometerData currentAccelData;
         bool updateAccelerometer();
         const AccelerometerData& getAccelerometerData();
 
+        GyroscopeData currentGyroData;
         bool updateGyroscope();
         const GyroscopeData& getGyroscopeData();
 
+        MagnetometerData currentMagnetometer;
         bool updateMagnetometer();
         const MagnetometerData& getMagnetometerData();
 };

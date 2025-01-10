@@ -21,6 +21,7 @@ class Sensors : public Singleton<Sensors> {
         float getXAccel();
         float getYAccel();
         float getZAccel();
+        double getAccelMagnitude();
 
         float getXRotationRate();
         float getYRotationRate();
