@@ -6,9 +6,9 @@ void Sensors::initialize() {
     Wire.begin(I2C_SDA, I2C_SCL, I2C_CLOCK_SPEED);
 
     // Initialize sensors
-    // initializeTofSensors();
+    initializeTofSensors();
     initializeIMU();
-    // initializeIrSensors();
+    initializeIrSensors();
 }
 
 void Sensors::initializeTofSensors() {
@@ -19,7 +19,6 @@ void Sensors::initializeTofSensors() {
     digitalWrite(RIGHT_TOF_RESET_PIN, HIGH);
 
     delay(100);
-
     digitalWrite(RIGHT_TOF_RESET_PIN, LOW); //Right sensor should now be available at default address 0x29
 
     // TODO 12/25/24: If the ESP is reset (reset button is pressed) while it is doing i2c re-addressing, the Left tof sometimes either:

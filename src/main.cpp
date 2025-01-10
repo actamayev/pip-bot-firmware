@@ -25,9 +25,9 @@ void SensorAndUserCodeTask(void * parameter) {
         // tofLogger();
         // leftTofLogger();
         // rightTofLogger();
-        imuLogger();
+        // imuLogger();
         // irLogger();
-        // user_code();
+        user_code();
         delay(1);
     }
 }
@@ -72,15 +72,15 @@ void setup() {
         0                       // Run on Core 0
     );
 
-    // xTaskCreatePinnedToCore(
-    //     NetworkTask,            // Network handling task
-    //     "Network",              // Task name
-    //     NETWORK_STACK_SIZE,      // Stack size
-    //     NULL,                   // Task parameters
-    //     1,                      // Priority
-    //     NULL,                   // Task handle
-    //     1                       // Run on Core 1
-    // );
+    xTaskCreatePinnedToCore(
+        NetworkTask,            // Network handling task
+        "Network",              // Task name
+        NETWORK_STACK_SIZE,      // Stack size
+        NULL,                   // Task parameters
+        1,                      // Priority
+        NULL,                   // Task handle
+        1                       // Run on Core 1
+    );
 }
 
 // Main loop runs on Core 1
