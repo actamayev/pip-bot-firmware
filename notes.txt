@@ -1,0 +1,2 @@
+If having problems with the TOF setup, plug the ESP out, leave it unplugged for 10 seconds, plug back in.
+	Plug the IOVDD and AVDD of the TOF in and out as well

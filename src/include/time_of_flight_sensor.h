@@ -7,7 +7,7 @@ class TimeOfFlightSensor {
         TimeOfFlightSensor() = default;
 
         bool initialize();
-        bool getData();
+        bool getTofData();
 
         VL53L5CX_ResultsData sensorData;
 

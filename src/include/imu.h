@@ -1,38 +1,66 @@
 #pragma once
 #include <Wire.h>
 #include <Adafruit_BNO08x.h>
+#include "./utils.h"
 #include "./config.h"
+#include "./structs.h"
 
 class ImuSensor {
     public:
         ImuSensor() = default;
 
         bool initialize();
-        bool getData();
 
-        const sh2_SensorValue_t& getSensorValue() const;
+        // Quaternion:
+        EulerAngles& getEulerAngles();
+        float getPitch();
+        float getYaw();
+        float getRoll();
 
-        // Convenience methods to get specific data types
-        bool getQuaternion(float& qX, float& qY, float& qZ, float& qW);
-        bool getAcceleration(float& aX, float& aY, float& aZ);
-        bool getGyroscope(float& gX, float& gY, float& gZ);
-        bool getMagneticField(float& mX, float& mY, float& mZ);
+        // Acceleromter:
+        float getXAccel();
+        float getYAccel();
+        float getZAccel();
+        double getAccelMagnitude();
+
+        // Gyroscope:
+        float getXRotationRate();
+        float getYRotationRate();
+        float getZRotationRate();
+
+        // Magnetometer:
+        float getMagneticFieldX();
+        float getMagneticFieldY();
+        float getMagneticFieldZ();
 
     private:
         Adafruit_BNO08x imu;
         sh2_SensorValue_t sensorValue;
         bool isInitialized = false;
 
-        bool enableGameRotationVector(uint32_t updateFreqMicros = IMU_UPDATE_FREQ_MICROSECS);
-        bool enableAccelerometer(uint32_t updateFreqMicros = IMU_UPDATE_FREQ_MICROSECS);
-        bool enableGyroscope(uint32_t updateFreqMicros = IMU_UPDATE_FREQ_MICROSECS);
-        bool enableMagneticField(uint32_t updateFreqMicros = IMU_UPDATE_FREQ_MICROSECS);
+        bool enableGameRotationVector();
+        bool enableAccelerometer();
+        bool enableGyroscope();
+        bool enableMagneticField();
 
         // Store enabled reports for status checking
-        struct EnabledReports {
-            bool gameRotationVector = false;
-            bool accelerometer = false;
-            bool gyroscope = false;
-            bool magneticField = false;
-        } enabledReports;
+        EnabledReports enabledReports;
+
+        bool getImuData();
+
+        QuaternionData currentQuaternion;
+        bool updateQuaternion();
+        const QuaternionData& getQuaternion();
+
+        AccelerometerData currentAccelData;
+        bool updateAccelerometer();
+        const AccelerometerData& getAccelerometerData();
+
+        GyroscopeData currentGyroData;
+        bool updateGyroscope();
+        const GyroscopeData& getGyroscopeData();
+
+        MagnetometerData currentMagnetometer;
+        bool updateMagnetometer();
+        const MagnetometerData& getMagnetometerData();
 };
