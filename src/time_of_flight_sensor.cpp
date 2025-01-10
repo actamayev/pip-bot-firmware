@@ -13,7 +13,7 @@ bool TimeOfFlightSensor::initialize() {
     return true;
 }
 
-bool TimeOfFlightSensor::getData() {
+bool TimeOfFlightSensor::getTofData() {
     if (sensor.isDataReady()) {
         return sensor.getRangingData(&sensorData);
     }

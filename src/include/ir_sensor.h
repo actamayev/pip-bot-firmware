@@ -10,7 +10,7 @@ class IrSensor {
         IrSensor() : irsend(IR_SEND_PIN), irrecv(IR_RECV_PIN) {}
         
         bool initialize();
-        bool getData();  // Returns true if new data was received
+        bool getIrData();  // Returns true if new data was received
         void sendIRCommand(uint32_t command);
         
         // Add getter for the last received value

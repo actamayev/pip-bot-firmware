@@ -13,10 +13,11 @@ void Sensors::initialize() {
 
 void Sensors::initializeTofSensors() {
     pinMode(LEFT_TOF_RESET_PIN, OUTPUT);
-    digitalWrite(LEFT_TOF_RESET_PIN, HIGH); //Hold left sensor in reset while we configure right sensor
+    digitalWrite(LEFT_TOF_RESET_PIN, HIGH);
 
     pinMode(RIGHT_TOF_RESET_PIN, OUTPUT);
-    digitalWrite(RIGHT_TOF_RESET_PIN, HIGH); //Reset right sensor
+    digitalWrite(RIGHT_TOF_RESET_PIN, HIGH);
+
     delay(100);
     digitalWrite(RIGHT_TOF_RESET_PIN, LOW); //Right sensor should now be available at default address 0x29
 
@@ -68,38 +69,79 @@ void Sensors::initializeIMU() {
 }
 
 bool Sensors::getTofData(const VL53L5CX_ResultsData** leftData, const VL53L5CX_ResultsData** rightData) {
-    bool leftSuccess = leftTof.getData();
-    bool rightSuccess = rightTof.getData();
-    
+    bool leftSuccess = leftTof.getTofData();
+    bool rightSuccess = rightTof.getTofData();
+    Serial.printf("leftSuccess %d", leftSuccess);
+    Serial.printf("rightSuccess %d", rightSuccess);
+
     if (leftSuccess) *leftData = &leftTof.sensorData;
     if (rightSuccess) *rightData = &rightTof.sensorData;
 
     return leftSuccess && rightSuccess;
 }
 
-bool Sensors::getQuaternion(float& qX, float& qY, float& qZ, float& qW) {
-    return imu.getQuaternion(qX, qY, qZ, qW);
+// const TofData& Sensors::getLeftTofData() {
+//     return leftTof.getTofData();
+// }
+
+// const TofData& Sensors::getRightTofData() {
+//     return rightTof.getTofData();
+// }
+
+EulerAngles& Sensors::getEulerAngles() {
+    return imu.getEulerAngles();
 }
 
-bool Sensors::getAcceleration(float& aX, float& aY, float& aZ) {
-    return imu.getAcceleration(aX, aY, aZ);
+float Sensors::getPitch() {
+    return imu.getPitch();
 }
 
-bool Sensors::getGyroscope(float& gX, float& gY, float& gZ) {
-    return imu.getGyroscope(gX, gY, gZ);
+float Sensors::getYaw() {
+    return imu.getYaw();
 }
 
-bool Sensors::getMagneticField(float& mX, float& mY, float& mZ) {
-    return imu.getMagneticField(mX, mY, mZ);
+float Sensors::getRoll() {
+    return imu.getRoll();
 }
 
-// Raw sensor value access if needed
-bool Sensors::getImuData() {
-    return imu.getData();
+float Sensors::getXAccel() {
+    return imu.getPitch();
 }
 
-const sh2_SensorValue_t& Sensors::getImuSensorValue() const {
-    return imu.getSensorValue();
+float Sensors::getYAccel() {
+    return imu.getYaw();
+}
+
+float Sensors::getZAccel() {
+    return imu.getRoll();
+}
+
+double Sensors::getAccelMagnitude() {
+    return imu.getAccelMagnitude();
+}
+
+float Sensors::getXRotationRate() {
+    return imu.getXRotationRate();
+}
+
+float Sensors::getYRotationRate() {
+    return imu.getYRotationRate();
+}
+
+float Sensors::getZRotationRate() {
+    return imu.getZRotationRate();
+}
+
+float Sensors::getMagneticFieldX() {
+    return imu.getMagneticFieldX();
+}
+
+float Sensors::getMagneticFieldY() {
+    return imu.getMagneticFieldY();
+}
+
+float Sensors::getMagneticFieldZ() {
+    return imu.getMagneticFieldZ();
 }
 
 void Sensors::initializeIrSensors() {
@@ -114,7 +156,7 @@ void Sensors::initializeIrSensors() {
 
 // Raw sensor value access if needed
 bool Sensors::getIrData() {
-    return irSensor.getData();
+    return irSensor.getIrData();
 }
 
 // Raw sensor value access if needed
