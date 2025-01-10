@@ -22,10 +22,10 @@ void SensorAndUserCodeTask(void * parameter) {
 
     // Main sensor and user code loop
     for(;;) {
-        tofLogger();
+        // tofLogger();
         // leftTofLogger();
         // rightTofLogger();
-        // imuLogger();
+        imuLogger();
         // irLogger();
         // user_code();
         delay(1);
