@@ -11,12 +11,12 @@ bool ImuSensor::initialize() {
     return true;
 }
 
-bool ImuSensor::enableGameRotationVector(uint32_t updateFreqMicros) {
+bool ImuSensor::enableGameRotationVector() {
     if (!isInitialized) return false;
 
     if (enabledReports.gameRotationVector == true) return true;
 
-    if (!imu.enableReport(SH2_GAME_ROTATION_VECTOR, updateFreqMicros)) {
+    if (!imu.enableReport(SH2_GAME_ROTATION_VECTOR, IMU_UPDATE_FREQ_MICROSECS)) {
         Serial.println("Could not enable game rotation vector");
         return false;
     }
@@ -25,12 +25,12 @@ bool ImuSensor::enableGameRotationVector(uint32_t updateFreqMicros) {
     return true;
 }
 
-bool ImuSensor::enableAccelerometer(uint32_t updateFreqMicros) {
+bool ImuSensor::enableAccelerometer() {
     if (!isInitialized) return false;
     
     if (enabledReports.accelerometer == true) return true;
 
-    if (!imu.enableReport(SH2_ACCELEROMETER, updateFreqMicros)) {
+    if (!imu.enableReport(SH2_ACCELEROMETER, IMU_UPDATE_FREQ_MICROSECS)) {
         Serial.println("Could not enable accelerometer");
         return false;
     }
@@ -39,12 +39,12 @@ bool ImuSensor::enableAccelerometer(uint32_t updateFreqMicros) {
     return true;
 }
 
-bool ImuSensor::enableGyroscope(uint32_t updateFreqMicros) {
+bool ImuSensor::enableGyroscope() {
     if (!isInitialized) return false;
     
     if (enabledReports.gyroscope == true) return true;
 
-    if (!imu.enableReport(SH2_GYROSCOPE_CALIBRATED, updateFreqMicros)) {
+    if (!imu.enableReport(SH2_GYROSCOPE_CALIBRATED, IMU_UPDATE_FREQ_MICROSECS)) {
         Serial.println("Could not enable gyroscope");
         return false;
     }
@@ -53,12 +53,12 @@ bool ImuSensor::enableGyroscope(uint32_t updateFreqMicros) {
     return true;
 }
 
-bool ImuSensor::enableMagneticField(uint32_t updateFreqMicros) {
+bool ImuSensor::enableMagneticField() {
     if (!isInitialized) return false;
     
     if (enabledReports.magneticField == true) return true;
 
-    if (!imu.enableReport(SH2_MAGNETIC_FIELD_CALIBRATED, updateFreqMicros)) {
+    if (!imu.enableReport(SH2_MAGNETIC_FIELD_CALIBRATED, IMU_UPDATE_FREQ_MICROSECS)) {
         Serial.println("Could not enable magnetic field");
         return false;
     }
@@ -67,61 +67,159 @@ bool ImuSensor::enableMagneticField(uint32_t updateFreqMicros) {
     return true;
 }
 
-bool ImuSensor::getData() {
+bool ImuSensor::getImuData() {
     if (!isInitialized) return false;
     return imu.getSensorEvent(&sensorValue);
 }
 
-const sh2_SensorValue_t& ImuSensor::getSensorValue() const {
-    return sensorValue;
+const QuaternionData& ImuSensor::getQuaternion() {
+    updateQuaternion();
+    return currentQuaternion;
 }
 
 // Convenience methods to get specific data types
-bool ImuSensor::getQuaternion(float& qX, float& qY, float& qZ, float& qW) {
+bool ImuSensor::updateQuaternion() {
     if (!enableGameRotationVector()) return false;
 
-    if (getData() && sensorValue.sensorId == SH2_GAME_ROTATION_VECTOR) {
-        qX = sensorValue.un.gameRotationVector.i;
-        qY = sensorValue.un.gameRotationVector.j;
-        qZ = sensorValue.un.gameRotationVector.k;
-        qW = sensorValue.un.gameRotationVector.real;
-        return true;
+    if (!getImuData() || sensorValue.sensorId != SH2_GAME_ROTATION_VECTOR) {
+        currentQuaternion.isValid = false;
+        return false;
     }
-    return false;
+    currentQuaternion.qX = sensorValue.un.gameRotationVector.i;
+    currentQuaternion.qY = sensorValue.un.gameRotationVector.j;
+    currentQuaternion.qZ = sensorValue.un.gameRotationVector.k;
+    currentQuaternion.qW = sensorValue.un.gameRotationVector.real;
+    currentQuaternion.isValid = true;
+    return true;
 }
 
-bool ImuSensor::getAcceleration(float& aX, float& aY, float& aZ) {
+EulerAngles& ImuSensor::getEulerAngles() {
+    static EulerAngles angles = {0, 0, 0, false}; // Use static for return reference validity
+
+    // Use getQuaternion to ensure the quaternion is updated
+    const QuaternionData& quaternion = getQuaternion();
+
+    if (!quaternion.isValid) {
+        angles.isValid = false;
+    } else {
+        quaternionToEuler(
+            quaternion.qW, 
+            quaternion.qX, 
+            quaternion.qY, 
+            quaternion.qZ,
+            angles.yaw, angles.pitch, angles.roll
+        );
+        angles.isValid = true;
+    }
+
+    return angles;
+}
+
+float ImuSensor::getPitch() {
+    return getEulerAngles().pitch;
+}
+
+float ImuSensor::getYaw() {
+    return getEulerAngles().yaw;
+}
+
+float ImuSensor::getRoll() {
+    return getEulerAngles().roll;
+}
+
+const AccelerometerData& ImuSensor::getAccelerometerData() {
+    updateAccelerometer();
+    return currentAccelData;
+}
+
+bool ImuSensor::updateAccelerometer() {
     if (!enableAccelerometer()) return false;
-    
-    if (getData() && sensorValue.sensorId == SH2_ACCELEROMETER) {
-        aX = sensorValue.un.accelerometer.x;
-        aY = sensorValue.un.accelerometer.y;
-        aZ = sensorValue.un.accelerometer.z;
-        return true;
+
+    if (!getImuData() || sensorValue.sensorId != SH2_ACCELEROMETER) {
+        currentAccelData.isValid = false;
+        return false;
     }
-    return false;
+    currentAccelData.aX = sensorValue.un.accelerometer.x;
+    currentAccelData.aY = sensorValue.un.accelerometer.y;
+    currentAccelData.aZ = sensorValue.un.accelerometer.z;
+    currentAccelData.isValid = true;
+    return true;
 }
 
-bool ImuSensor::getGyroscope(float& gX, float& gY, float& gZ) {
+float ImuSensor::getXAccel() {
+    return currentAccelData.aX;
+}
+
+float ImuSensor::getYAccel() {
+    return currentAccelData.aY;
+}
+
+float ImuSensor::getZAccel() {
+    return currentAccelData.aZ;
+}
+
+double ImuSensor::getAccelMagnitude() {
+    return sqrt(pow(getXAccel(), 2) + pow(getYAccel(), 2) + pow(getZAccel(), 2));
+}
+
+const GyroscopeData& ImuSensor::getGyroscopeData() {
+    updateGyroscope();
+    return currentGyroData;
+}
+
+bool ImuSensor::updateGyroscope() {
     if (!enableGyroscope()) return false;
     
-    if (getData() && sensorValue.sensorId == SH2_GYROSCOPE_CALIBRATED) {
-        gX = sensorValue.un.gyroscope.x;
-        gY = sensorValue.un.gyroscope.y;
-        gZ = sensorValue.un.gyroscope.z;
-        return true;
+    if (!getImuData() || sensorValue.sensorId != SH2_GYROSCOPE_CALIBRATED) {
+        currentGyroData.isValid = false;
+        return false;
     }
-    return false;
+    currentGyroData.gX = sensorValue.un.gyroscope.x;
+    currentGyroData.gY = sensorValue.un.gyroscope.y;
+    currentGyroData.gZ = sensorValue.un.gyroscope.z;
+    currentGyroData.isValid = true;
+    return true;
 }
 
-bool ImuSensor::getMagneticField(float& mX, float& mY, float& mZ) {
+float ImuSensor::getXRotationRate() {
+    return currentGyroData.gX;
+}
+
+float ImuSensor::getYRotationRate() {
+    return currentGyroData.gY;
+}
+
+float ImuSensor::getZRotationRate() {
+    return currentGyroData.gZ;
+}
+
+const MagnetometerData& ImuSensor::getMagnetometerData() {
+    updateMagnetometer();
+    return currentMagnetometer;
+}
+
+bool ImuSensor::updateMagnetometer() {
     if (!enableMagneticField()) return false;
 
-    if (getData() && sensorValue.sensorId == SH2_MAGNETIC_FIELD_CALIBRATED) {
-        mX = sensorValue.un.magneticField.x;
-        mY = sensorValue.un.magneticField.y;
-        mZ = sensorValue.un.magneticField.z;
-        return true;
+    if (!getImuData() || sensorValue.sensorId != SH2_MAGNETIC_FIELD_CALIBRATED) {
+        currentMagnetometer.isValid = false;
+        return false;
     }
-    return false;
+    currentMagnetometer.mX = sensorValue.un.magneticField.x;
+    currentMagnetometer.mY = sensorValue.un.magneticField.y;
+    currentMagnetometer.mZ = sensorValue.un.magneticField.z;
+    currentGyroData.isValid = true;
+    return true;
+}
+
+float ImuSensor::getMagneticFieldX() {
+    return currentMagnetometer.mX;
+}
+
+float ImuSensor::getMagneticFieldY() {
+    return currentMagnetometer.mY;
+}
+
+float ImuSensor::getMagneticFieldZ() {
+    return currentMagnetometer.mZ;
 }

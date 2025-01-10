@@ -9,7 +9,7 @@ bool IrSensor::initialize() {
     return true;
 }
 
-bool IrSensor::getData() {
+bool IrSensor::getIrData() {
     if (!irrecv.decode(&results)) return false;
     // Store the received value
     if (results.decode_type == decode_type_t::NEC) {

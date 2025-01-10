@@ -30,6 +30,9 @@ const uint8_t IMU_DEFAULT_ADDRESS = 0x4B; // The actual default addr is 0x4A, bu
 const uint8_t IR_SEND_PIN = 17;
 const uint8_t IR_RECV_PIN = 16;
 
+const uint32_t SENSOR_STACK_SIZE = 16384;  // 16KB for sensor processing
+const uint32_t NETWORK_STACK_SIZE = 8192;  // 8KB for network operations
+
 // echo | openssl s_client -showcerts -connect staging-api.bluedotrobots.com:443
 const char* rootCACertificate = \
 "-----BEGIN CERTIFICATE-----\n"
@@ -67,7 +70,7 @@ const char* getEnvironment() {
 const char* getServerUrl() {
     const char* env = getEnvironment();
     if (env == nullptr || std::string(env) == "local") {
-        return "http://192.168.216.40:8080";  // local default
+        return "http://192.168.186.40:8080";  // local default
     } else if (std::string(env) == "staging") {
         return "staging-api.bluedotrobots.com";  // staging default
     }
@@ -77,7 +80,7 @@ const char* getServerUrl() {
 const char* getWsServerUrl() {
     const char* env = getEnvironment();
     if (env == nullptr || std::string(env) == "local") {
-        return "ws://192.168.216.40:8080/esp32";  // local default
+        return "ws://192.168.186.40:8080/esp32";  // local default
     } else if (std::string(env) == "staging") {
         return "wss://staging-api.bluedotrobots.com/esp32";  // staging default
     }

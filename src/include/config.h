@@ -28,8 +28,12 @@ extern const uint8_t TOF_RANGING_FREQUENCY;
 extern const uint32_t IMU_UPDATE_FREQ_MICROSECS;
 extern const uint8_t IMU_DEFAULT_ADDRESS;
 
+//IR:
 extern const uint8_t IR_SEND_PIN;
 extern const uint8_t IR_RECV_PIN;
+
+extern const uint32_t SENSOR_STACK_SIZE;
+extern const uint32_t NETWORK_STACK_SIZE;
 
 // Web/Pip/Environment
 extern const char* rootCACertificate;

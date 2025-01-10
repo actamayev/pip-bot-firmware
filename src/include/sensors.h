@@ -13,17 +13,27 @@ class Sensors : public Singleton<Sensors> {
         bool getTofData(const VL53L5CX_ResultsData** leftData, const VL53L5CX_ResultsData** rightData);
 
         // IMU methods
-        bool getQuaternion(float& qX, float& qY, float& qZ, float& qW);
-        bool getAcceleration(float& aX, float& aY, float& aZ);
-        bool getGyroscope(float& gX, float& gY, float& gZ);
-        bool getMagneticField(float& mX, float& mY, float& mZ);
+        EulerAngles& getEulerAngles();
+        float getPitch();
+        float getYaw();
+        float getRoll();
+
+        float getXAccel();
+        float getYAccel();
+        float getZAccel();
+        double getAccelMagnitude();
+
+        float getXRotationRate();
+        float getYRotationRate();
+        float getZRotationRate();
+
+        float getMagneticFieldX();
+        float getMagneticFieldY();
+        float getMagneticFieldZ();
 
         // Raw sensor value access if needed
-        bool getImuData();
         bool getIrData();
         void sendIrCommand(uint32_t command);
-
-        const sh2_SensorValue_t& getImuSensorValue() const;
 
     private:
         // Sensors
