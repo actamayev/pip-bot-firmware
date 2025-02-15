@@ -8,7 +8,6 @@ void Sensors::initialize() {
     // Initialize sensors
     initializeTofSensors();
     initializeIMU();
-    initializeIrSensors();
 }
 
 void Sensors::initializeTofSensors() {
@@ -142,24 +141,4 @@ float Sensors::getMagneticFieldY() {
 
 float Sensors::getMagneticFieldZ() {
     return imu.getMagneticFieldZ();
-}
-
-void Sensors::initializeIrSensors() {
-    Serial.println("Initializing IR Sensors...");
-
-    if (!irSensor.initialize()) {
-        Serial.println("IR Sensor initialization failed");
-        return;
-    }
-    Serial.println("IR setup complete");
-}
-
-// Raw sensor value access if needed
-bool Sensors::getIrData() {
-    return irSensor.getIrData();
-}
-
-// Raw sensor value access if needed
-void Sensors::sendIrCommand(uint32_t command) {
-    return irSensor.sendIRCommand(command);
 }

@@ -28,10 +28,6 @@ extern const uint8_t TOF_RANGING_FREQUENCY;
 extern const uint32_t IMU_UPDATE_FREQ_MICROSECS;
 extern const uint8_t IMU_DEFAULT_ADDRESS;
 
-//IR:
-extern const uint8_t IR_SEND_PIN;
-extern const uint8_t IR_RECV_PIN;
-
 // Motors:
 extern const uint8_t LEFT_MOTOR_PIN;
 extern const uint8_t RIGHT_MOTOR_PIN;
