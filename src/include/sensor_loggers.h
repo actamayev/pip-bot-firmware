@@ -2,4 +2,3 @@
 
 void tofLogger();
 void imuLogger();
-void irLogger();

@@ -51,47 +51,55 @@ void WebSocketManager::handleJsonMessage(WebsocketsMessage message) {
             Serial.printf("Found event type: '%s'\n", eventType.c_str());
 
             if (eventType == "new-user-code-meta") {
-                Serial.println("in new user code meta");
-                currentChunk.chunkIndex = 0;
-                currentChunk.totalChunks = 0;
-                currentChunk.totalSize = 0;
-                currentChunk.chunkSize = 0;  // Initialize chunk size
-                currentChunk.isLast = false;
-                currentChunk.expectingBinary = true;
-
-                // Now extract the other fields
-                for (int j = 1; j < tokenCount; j += 2) {
-                    String fieldKey = String(json + tokens[j].start, tokens[j].end - tokens[j].start);
-                    if (fieldKey == "chunkIndex") {
-                        currentChunk.chunkIndex = extractInt(json, &tokens[j + 1]);
-                    } else if (fieldKey == "totalChunks") {
-                        currentChunk.totalChunks = extractInt(json, &tokens[j + 1]);
-                    } else if (fieldKey == "totalSize") {
-                        currentChunk.totalSize = extractInt(json, &tokens[j + 1]);
-                    } else if (fieldKey == "isLast") {
-                        currentChunk.isLast = extractBool(json, &tokens[j + 1]);
-                    } else if (fieldKey == "chunkSize") {
-                        currentChunk.chunkSize = extractInt(json, &tokens[j + 1]);
-                    }
-                }
-
-                Serial.printf("Expecting binary chunk %d/%d of size: %d bytes\n", 
-                    currentChunk.chunkIndex + 1, 
-                    currentChunk.totalChunks,
-                    currentChunk.chunkSize);
-
-                // Initialize update if this is the first chunk
-                if (currentChunk.chunkIndex == 0) {
-                    if (!updater.begin(currentChunk.totalSize)) {
-                        sendErrorMessage("Failed to initialize update");
-                        return;
-                    }
-                    updater.setTotalChunks(currentChunk.totalChunks);
-                    sendJsonMessage("update_status", "ready");
-                }
+                handleFirmwareMetadata(json, tokenCount);
                 break;
+            } 
+            else {
+                // Forward all other events to the lab demo manager
+                LabDemoManager::getInstance().handleLabMessage(json, tokenCount, tokens);
             }
         }
+    }
+}
+
+void WebSocketManager::handleFirmwareMetadata(const char* json, int tokenCount) {
+    Serial.println("in new user code meta");
+    currentChunk.chunkIndex = 0;
+    currentChunk.totalChunks = 0;
+    currentChunk.totalSize = 0;
+    currentChunk.chunkSize = 0;
+    currentChunk.isLast = false;
+    currentChunk.expectingBinary = true;
+
+    // Extract the firmware metadata fields
+    for (int j = 1; j < tokenCount; j += 2) {
+        String fieldKey = String(json + tokens[j].start, tokens[j].end - tokens[j].start);
+        if (fieldKey == "chunkIndex") {
+            currentChunk.chunkIndex = extractInt(json, &tokens[j + 1]);
+        } else if (fieldKey == "totalChunks") {
+            currentChunk.totalChunks = extractInt(json, &tokens[j + 1]);
+        } else if (fieldKey == "totalSize") {
+            currentChunk.totalSize = extractInt(json, &tokens[j + 1]);
+        } else if (fieldKey == "isLast") {
+            currentChunk.isLast = extractBool(json, &tokens[j + 1]);
+        } else if (fieldKey == "chunkSize") {
+            currentChunk.chunkSize = extractInt(json, &tokens[j + 1]);
+        }
+    }
+
+    Serial.printf("Expecting binary chunk %d/%d of size: %d bytes\n", 
+        currentChunk.chunkIndex + 1, 
+        currentChunk.totalChunks,
+        currentChunk.chunkSize);
+
+    // Initialize update if this is the first chunk
+    if (currentChunk.chunkIndex == 0) {
+        if (!updater.begin(currentChunk.totalSize)) {
+            sendErrorMessage("Failed to initialize update");
+            return;
+        }
+        updater.setTotalChunks(currentChunk.totalChunks);
+        sendJsonMessage("update_status", "ready");
     }
 }
 

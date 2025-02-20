@@ -5,10 +5,10 @@ void Sensors::initialize() {
     // Setup I2C
     Wire.begin(I2C_SDA, I2C_SCL, I2C_CLOCK_SPEED);
 
+    initializeMotorPins();
     // Initialize sensors
-    initializeTofSensors();
-    initializeIMU();
-    initializeIrSensors();
+    // initializeTofSensors();
+    // initializeIMU();
 }
 
 void Sensors::initializeTofSensors() {
@@ -88,6 +88,13 @@ bool Sensors::getTofData(const VL53L5CX_ResultsData** leftData, const VL53L5CX_R
 //     return rightTof.getTofData();
 // }
 
+void Sensors::initializeMotorPins() {
+    pinMode(LEFT_MOTOR_PIN_IN_1, OUTPUT);
+    pinMode(LEFT_MOTOR_PIN_IN_2, OUTPUT);
+    pinMode(RIGHT_MOTOR_PIN_IN_1, OUTPUT);
+    pinMode(RIGHT_MOTOR_PIN_IN_2, OUTPUT);
+}
+
 EulerAngles& Sensors::getEulerAngles() {
     return imu.getEulerAngles();
 }
@@ -142,24 +149,4 @@ float Sensors::getMagneticFieldY() {
 
 float Sensors::getMagneticFieldZ() {
     return imu.getMagneticFieldZ();
-}
-
-void Sensors::initializeIrSensors() {
-    Serial.println("Initializing IR Sensors...");
-
-    if (!irSensor.initialize()) {
-        Serial.println("IR Sensor initialization failed");
-        return;
-    }
-    Serial.println("IR setup complete");
-}
-
-// Raw sensor value access if needed
-bool Sensors::getIrData() {
-    return irSensor.getIrData();
-}
-
-// Raw sensor value access if needed
-void Sensors::sendIrCommand(uint32_t command) {
-    return irSensor.sendIRCommand(command);
 }
