@@ -29,8 +29,10 @@ extern const uint32_t IMU_UPDATE_FREQ_MICROSECS;
 extern const uint8_t IMU_DEFAULT_ADDRESS;
 
 // Motors:
-extern const uint8_t LEFT_MOTOR_PIN;
-extern const uint8_t RIGHT_MOTOR_PIN;
+extern const uint8_t LEFT_MOTOR_PIN_IN_1;
+extern const uint8_t LEFT_MOTOR_PIN_IN_2;
+extern const uint8_t RIGHT_MOTOR_PIN_IN_1;
+extern const uint8_t RIGHT_MOTOR_PIN_IN_2;
 
 extern const uint32_t SENSOR_STACK_SIZE;
 extern const uint32_t NETWORK_STACK_SIZE;

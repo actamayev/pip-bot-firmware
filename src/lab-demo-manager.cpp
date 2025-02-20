@@ -1,6 +1,6 @@
 #include "./include/config.h"
+#include "./include/motor_driver.h"
 #include "./include/lab_demo_manager.h"
-#include "./include/rgb_led.h"
 
 void LabDemoManager::handleLabMessage(const char* json, int tokenCount, jsmntok_t* tokens) {
     // Find the "event" field in the JSON
@@ -38,28 +38,21 @@ void LabDemoManager::updateMotorSpeeds(int leftMotor, int rightMotor) {
     Serial.printf("Motors updated - Left: %d, Right: %d\n", leftMotor, rightMotor);
 
     if (leftMotor == -1 && rightMotor == -1) {
-        rgbLed.set_led_red();
+        motorDriver.both_motors_backward();
         return;
     } else if (leftMotor == -1 && rightMotor == 1) {
-        rgbLed.set_led_white();
+        motorDriver.rotate_counterclockwise();
         return;
     } else if (leftMotor == 1 && rightMotor == -1) {
-        rgbLed.set_led_green();
+        motorDriver.rotate_clockwise();
         return;
     } else if (leftMotor == 1 && rightMotor == 1) {
-        rgbLed.set_led_blue();
+        motorDriver.both_motors_forward();
+        return;
     } else {
-        rgbLed.turn_led_off();
+        motorDriver.stop_both_motors();
+        return;
     }
-    // // Ensure values are within PWM range (0-255)
-    // leftMotor = constrain(leftMotor, 0, 255);
-    // rightMotor = constrain(rightMotor, 0, 255);
-
-    // // Update motor speeds
-    // analogWrite(LEFT_MOTOR_PIN, leftMotor);
-    // analogWrite(RIGHT_MOTOR_PIN, rightMotor);
-    
-    // Serial.printf("Motors updated - Left: %d, Right: %d\n", leftMotor, rightMotor);
 }
 
 int64_t LabDemoManager::extractInt(const char* json, const jsmntok_t* tok) {

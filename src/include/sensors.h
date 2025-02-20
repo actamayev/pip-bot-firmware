@@ -42,4 +42,5 @@ class Sensors : public Singleton<Sensors> {
         void initialize();
         void initializeTofSensors();
         void initializeIMU();
+        void initializeMotorPins();
 };
