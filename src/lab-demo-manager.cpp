@@ -1,38 +1,32 @@
 #include "./include/config.h"
+#include "./include/rgb_led.h"
 #include "./include/motor_driver.h"
 #include "./include/lab_demo_manager.h"
-#include "./include/rgb_led.h"
 
-void LabDemoManager::handleLabMessage(const char* json, int tokenCount, jsmntok_t* tokens) {
-    // Find the "event" field in the JSON
-    for (int i = 1; i < tokenCount; i += 2) {
-        String key = String(json + tokens[i].start, tokens[i].end - tokens[i].start);
-        if (key == "event") {
-            String eventType = String(json + tokens[i + 1].start, tokens[i + 1].end - tokens[i + 1].start);
-            
-            if (eventType == "motor-control-data") {
-                handleMotorControl(json, tokenCount, tokens);
-                break;
-            }
-        }
-    }
-}
-
-void LabDemoManager::handleMotorControl(const char* json, int tokenCount, jsmntok_t* tokens) {
-    int leftMotor = 0;
-    int rightMotor = 0;
-
-    // Extract motor control values
-    for (int j = 1; j < tokenCount; j += 2) {
-        String fieldKey = String(json + tokens[j].start, tokens[j].end - tokens[j].start);
-        if (fieldKey == "leftMotor") {
-            leftMotor = extractInt(json, &tokens[j + 1]);
-        } else if (fieldKey == "rightMotor") {
-            rightMotor = extractInt(json, &tokens[j + 1]);
-        }
+void LabDemoManager::handleBinaryMessage(const char* data, size_t length) {
+    if (length != 2) {
+        Serial.println("Invalid binary message length");
+        return;
     }
 
-    updateMotorSpeeds(leftMotor, rightMotor);
+    // Check message type
+    uint8_t messageType = data[0];
+    if (messageType != 1) {  // 1 = motor control
+        Serial.printf("Unknown message type: %d\n", messageType);
+        return;
+    }
+
+    // Extract motor values from second byte
+    uint8_t motorByte = data[1];
+    uint8_t leftValue = (motorByte >> 4) & 0x0F;   // Get first 4 bits
+    uint8_t rightValue = motorByte & 0x0F;         // Get last 4 bits
+
+    // Convert to motor speeds
+    int leftSpeed = byteToMotorSpeed(leftValue);
+    int rightSpeed = byteToMotorSpeed(rightValue);
+
+    Serial.printf("Received motor control - Left: %d, Right: %d\n", leftSpeed, rightSpeed);
+    updateMotorSpeeds(leftSpeed, rightSpeed);
 }
 
 void LabDemoManager::updateMotorSpeeds(int leftMotor, int rightMotor) {
@@ -56,12 +50,4 @@ void LabDemoManager::updateMotorSpeeds(int leftMotor, int rightMotor) {
         motorDriver.stop_both_motors();
         return;
     }
-}
-
-int64_t LabDemoManager::extractInt(const char* json, const jsmntok_t* tok) {
-    char numStr[32];
-    int len = min(31, tok->end - tok->start);
-    strncpy(numStr, json + tok->start, len);
-    numStr[len] = '\0';
-    return atoll(numStr);
 }

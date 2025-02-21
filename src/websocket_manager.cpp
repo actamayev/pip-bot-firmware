@@ -54,10 +54,6 @@ void WebSocketManager::handleJsonMessage(WebsocketsMessage message) {
                 handleFirmwareMetadata(json, tokenCount);
                 break;
             } 
-            else {
-                // Forward all other events to the lab demo manager
-                LabDemoManager::getInstance().handleLabMessage(json, tokenCount, tokens);
-            }
         }
     }
 }
@@ -104,46 +100,40 @@ void WebSocketManager::handleFirmwareMetadata(const char* json, int tokenCount) 
 }
 
 void WebSocketManager::handleBinaryMessage(WebsocketsMessage message) {
-    unsigned long startTime = millis();
+    const char* data = message.c_str();
+    size_t length = message.length();
     
-    if (!currentChunk.expectingBinary) {
-        sendErrorMessage("Unexpected binary message");
-        return;
-    }
+    // If expecting a firmware chunk, handle it
+    if (currentChunk.expectingBinary) {
+        if (!updater.isUpdateInProgress()) {
+            sendErrorMessage("No update in progress");
+            return;
+        }
 
-    const char* rawData = message.c_str();
-    size_t dataLen = message.length();
-
-    Serial.printf("Received binary chunk %d/%d, size: %d bytes\n", 
-        currentChunk.chunkIndex + 1, currentChunk.totalChunks, dataLen);
-
-    if (dataLen == 0) {
-        Serial.println("Error: Received empty chunk");
-        return;
-    }
-
-    if (updater.isUpdateInProgress()) {
-        // Allocate buffer for entire chunk
-        uint8_t* buffer = (uint8_t*)ps_malloc(dataLen);
+        // Process firmware chunk
+        unsigned long processStart = millis();
+        uint8_t* buffer = (uint8_t*)ps_malloc(length);
         if (!buffer) {
             Serial.println("Failed to allocate buffer for binary chunk");
             return;
         }
 
-        // Copy data
-        memcpy(buffer, rawData, dataLen);
-
-        // Process chunk (will be broken into smaller pieces internally)
-        unsigned long processStart = millis();
-        updater.processChunk(buffer, dataLen, currentChunk.chunkIndex, currentChunk.isLast);
-        Serial.printf("Chunk processing time: %lu ms\n", millis() - processStart);
-
-        // Clean up
+        memcpy(buffer, data, length);
+        updater.processChunk(buffer, length, currentChunk.chunkIndex, currentChunk.isLast);
         free(buffer);
+
+        currentChunk.expectingBinary = false;
+        Serial.printf("Firmware chunk processing time: %lu ms\n", millis() - processStart);
+        return;
     }
 
-    currentChunk.expectingBinary = false;
-    Serial.printf("Total binary message handling time: %lu ms\n", millis() - startTime);
+    // Not expecting firmware, check if it's a motor control message (2 bytes)
+    if (length == 2) {
+        // It's a motor control message
+        LabDemoManager::getInstance().handleBinaryMessage(data, length);
+    } else {
+        Serial.printf("Unexpected binary message of length %d\n", length);
+    }
 }
 
 void WebSocketManager::sendJsonMessage(const char* event, const char* status, const char* extra) {

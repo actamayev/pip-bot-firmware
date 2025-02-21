@@ -8,12 +8,18 @@ class LabDemoManager : public Singleton<LabDemoManager> {
     friend class Singleton<LabDemoManager>;
 
     public:
-        void handleLabMessage(const char* json, int tokenCount, jsmntok_t* tokens);
+        void handleBinaryMessage(const char* data, size_t length);
         void updateMotorSpeeds(int leftMotor, int rightMotor);
 
     private:
         LabDemoManager() {}
-        
-        void handleMotorControl(const char* json, int tokenCount, jsmntok_t* tokens);
-        int64_t extractInt(const char* json, const jsmntok_t* tok);
+
+        int byteToMotorSpeed(uint8_t value) {
+            switch (value) {
+                case 1: return -1;  // 0001
+                case 2: return 0;   // 0010
+                case 3: return 1;   // 0011
+                default: return 0;
+            }
+        }
 };
