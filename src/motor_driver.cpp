@@ -45,7 +45,7 @@ void MotorDriver::left_motor_stop() {
 
 void MotorDriver::right_motor_forward() {
     digitalWrite(RIGHT_MOTOR_PIN_IN_1, LOW);
-    analogWrite(RIGHT_MOTOR_PIN_IN_2, 255);  // Full speed forward  
+    analogWrite(RIGHT_MOTOR_PIN_IN_2, 222);  // Full speed forward  
 }
 
 void MotorDriver::right_motor_backward() {

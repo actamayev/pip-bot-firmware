@@ -1,6 +1,7 @@
 #include "./include/config.h"
 #include "./include/motor_driver.h"
 #include "./include/lab_demo_manager.h"
+#include "./include/rgb_led.h"
 
 void LabDemoManager::handleLabMessage(const char* json, int tokenCount, jsmntok_t* tokens) {
     // Find the "event" field in the JSON
@@ -38,6 +39,7 @@ void LabDemoManager::updateMotorSpeeds(int leftMotor, int rightMotor) {
     Serial.printf("Motors updated - Left: %d, Right: %d\n", leftMotor, rightMotor);
 
     if (leftMotor == -1 && rightMotor == -1) {
+        rgbLed.set_led_green();
         motorDriver.both_motors_backward();
         return;
     } else if (leftMotor == -1 && rightMotor == 1) {
@@ -50,6 +52,7 @@ void LabDemoManager::updateMotorSpeeds(int leftMotor, int rightMotor) {
         motorDriver.both_motors_forward();
         return;
     } else {
+        rgbLed.turn_led_off();
         motorDriver.stop_both_motors();
         return;
     }
