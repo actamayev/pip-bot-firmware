@@ -2,7 +2,6 @@
 
 #include <Arduino.h>
 #include "./singleton.h"
-#include "./jsmn.h"
 
 class LabDemoManager : public Singleton<LabDemoManager> {
     friend class Singleton<LabDemoManager>;

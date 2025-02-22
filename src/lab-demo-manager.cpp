@@ -33,16 +33,19 @@ void LabDemoManager::updateMotorSpeeds(int leftMotor, int rightMotor) {
     Serial.printf("Motors updated - Left: %d, Right: %d\n", leftMotor, rightMotor);
 
     if (leftMotor == -1 && rightMotor == -1) {
-        rgbLed.set_led_green();
+        rgbLed.set_led_red();
         motorDriver.both_motors_backward();
         return;
     } else if (leftMotor == -1 && rightMotor == 1) {
+        rgbLed.set_led_green();
         motorDriver.rotate_counterclockwise();
         return;
     } else if (leftMotor == 1 && rightMotor == -1) {
+        rgbLed.set_led_white();
         motorDriver.rotate_clockwise();
         return;
     } else if (leftMotor == 1 && rightMotor == 1) {
+        rgbLed.set_led_blue();
         motorDriver.both_motors_forward();
         return;
     } else {
