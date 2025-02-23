@@ -9,48 +9,52 @@ void LabDemoManager::handleBinaryMessage(const char* data, size_t length) {
         return;
     }
 
-    // Check message type
-    uint8_t messageType = data[0];
-    if (messageType != 1) {  // 1 = motor control
-        Serial.printf("Unknown message type: %d\n", messageType);
+    if (data[0] != 1) {  // 1 = motor control
+        Serial.printf("Unknown message type: %d\n", data[0]);
         return;
     }
 
-    // Extract motor values from second byte
     uint8_t motorByte = data[1];
-    uint8_t leftValue = (motorByte >> 4) & 0x0F;   // Get first 4 bits
-    uint8_t rightValue = motorByte & 0x0F;         // Get last 4 bits
+    uint8_t leftValue = (motorByte >> 4) & 0x0F;  // First 4 bits
+    uint8_t rightValue = motorByte & 0x0F;        // Last 4 bits
 
-    // Convert to motor speeds
-    int leftSpeed = byteToMotorSpeed(leftValue);
-    int rightSpeed = byteToMotorSpeed(rightValue);
+    // Map 0, 1, 2 to -255, 0, 255
+    int leftSpeed = (leftValue == 0) ? -255 : (leftValue == 1) ? 0 : 255;
+    int rightSpeed = (rightValue == 0) ? -255 : (rightValue == 1) ? 0 : 222;
 
     Serial.printf("Received motor control - Left: %d, Right: %d\n", leftSpeed, rightSpeed);
     updateMotorSpeeds(leftSpeed, rightSpeed);
 }
 
-void LabDemoManager::updateMotorSpeeds(int leftMotor, int rightMotor) {
-    Serial.printf("Motors updated - Left: %d, Right: %d\n", leftMotor, rightMotor);
+void LabDemoManager::updateMotorSpeeds(int leftSpeed, int rightSpeed) {
+    Serial.printf("Motors updated - Left: %d, Right: %d\n", leftSpeed, rightSpeed);
 
-    if (leftMotor == -1 && rightMotor == -1) {
-        rgbLed.set_led_red();
-        motorDriver.both_motors_backward();
-        return;
-    } else if (leftMotor == -1 && rightMotor == 1) {
-        rgbLed.set_led_green();
-        motorDriver.rotate_counterclockwise();
-        return;
-    } else if (leftMotor == 1 && rightMotor == -1) {
-        rgbLed.set_led_white();
-        motorDriver.rotate_clockwise();
-        return;
-    } else if (leftMotor == 1 && rightMotor == 1) {
-        rgbLed.set_led_blue();
-        motorDriver.both_motors_forward();
-        return;
+    // Handle left motor
+    if (leftSpeed > 0) {
+        motorDriver.left_motor_forward(leftSpeed);
+    } else if (leftSpeed < 0) {
+        motorDriver.left_motor_backward(-leftSpeed);
     } else {
+        motorDriver.left_motor_stop();
+    }
+
+    // Handle right motor
+    if (rightSpeed > 0) {
+        motorDriver.right_motor_forward(rightSpeed);
+    } else if (rightSpeed < 0) {
+        motorDriver.right_motor_backward(-rightSpeed);
+    } else {
+        motorDriver.right_motor_stop();
+    }
+
+    // Update RGB LED based on motion
+    if (leftSpeed == 0 && rightSpeed == 0) {
         rgbLed.turn_led_off();
-        motorDriver.stop_both_motors();
-        return;
+    } else if (leftSpeed > 0 && rightSpeed > 0) {
+        rgbLed.set_led_blue();  // Forward
+    } else if (leftSpeed < 0 && rightSpeed < 0) {
+        rgbLed.set_led_red();   // Backward
+    } else {
+        rgbLed.set_led_green(); // Turning or mixed
     }
 }
