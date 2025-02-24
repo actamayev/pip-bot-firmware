@@ -128,7 +128,7 @@ void WebSocketManager::handleBinaryMessage(WebsocketsMessage message) {
     }
 
     // Not expecting firmware, check if it's a motor control message (2 bytes)
-    if (length == 2) {
+    if (length == 5) {
         // It's a motor control message
         LabDemoManager::getInstance().handleBinaryMessage(data, length);
     } else {

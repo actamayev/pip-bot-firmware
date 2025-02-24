@@ -4,8 +4,8 @@
 #include "./include/lab_demo_manager.h"
 
 void LabDemoManager::handleBinaryMessage(const char* data, size_t length) {
-    if (length != 2) {
-        Serial.println("Invalid binary message length");
+    if (length != 5) {
+        Serial.printf("Invalid binary message length: %d, expected 5\n", length);
         return;
     }
 
@@ -14,47 +14,52 @@ void LabDemoManager::handleBinaryMessage(const char* data, size_t length) {
         return;
     }
 
-    uint8_t motorByte = data[1];
-    uint8_t leftValue = (motorByte >> 4) & 0x0F;  // First 4 bits
-    uint8_t rightValue = motorByte & 0x0F;        // Last 4 bits
+    // Log raw bytes
+    Serial.printf("Received raw data: [%d, %d, %d, %d, %d]\n",
+        static_cast<uint8_t>(data[0]),
+        static_cast<uint8_t>(data[1]),
+        static_cast<uint8_t>(data[2]),
+        static_cast<uint8_t>(data[3]),
+        static_cast<uint8_t>(data[4])
+    );
 
-    // Map 0, 1, 2 to -255, 0, 255
-    int leftSpeed = (leftValue == 0) ? -255 : (leftValue == 1) ? 0 : 255;
-    int rightSpeed = (rightValue == 0) ? -255 : (rightValue == 1) ? 0 : 222;
+    // Extract 16-bit signed integers (little-endian)
+    int16_t leftSpeed = (static_cast<uint8_t>(data[2]) << 8) | static_cast<uint8_t>(data[1]);
+    int16_t rightSpeed = (static_cast<uint8_t>(data[4]) << 8) | static_cast<uint8_t>(data[3]);
 
     Serial.printf("Received motor control - Left: %d, Right: %d\n", leftSpeed, rightSpeed);
     updateMotorSpeeds(leftSpeed, rightSpeed);
 }
 
-void LabDemoManager::updateMotorSpeeds(int leftSpeed, int rightSpeed) {
+void LabDemoManager::updateMotorSpeeds(int16_t leftSpeed, int16_t rightSpeed) {
+    leftSpeed = constrain(leftSpeed, -255, 255);
+    rightSpeed = constrain(rightSpeed, -255, 255);
+
     Serial.printf("Motors updated - Left: %d, Right: %d\n", leftSpeed, rightSpeed);
 
-    // Handle left motor
-    if (leftSpeed > 0) {
-        motorDriver.left_motor_forward(leftSpeed);
-    } else if (leftSpeed < 0) {
-        motorDriver.left_motor_backward(-leftSpeed);
-    } else {
+    if (leftSpeed == 0) {
         motorDriver.left_motor_stop();
-    }
-
-    // Handle right motor
-    if (rightSpeed > 0) {
-        motorDriver.right_motor_forward(rightSpeed);
-    } else if (rightSpeed < 0) {
-        motorDriver.right_motor_backward(-rightSpeed);
+    } else if (leftSpeed > 0) {
+        motorDriver.left_motor_forward(leftSpeed);
     } else {
-        motorDriver.right_motor_stop();
+        motorDriver.left_motor_backward(-leftSpeed);
     }
 
-    // Update RGB LED based on motion
+    if (rightSpeed == 0) {
+        motorDriver.right_motor_stop();
+    } else if (rightSpeed > 0) {
+        motorDriver.right_motor_forward(rightSpeed);
+    } else {
+        motorDriver.right_motor_backward(-rightSpeed);
+    }
+
     if (leftSpeed == 0 && rightSpeed == 0) {
         rgbLed.turn_led_off();
     } else if (leftSpeed > 0 && rightSpeed > 0) {
-        rgbLed.set_led_blue();  // Forward
+        rgbLed.set_led_blue();
     } else if (leftSpeed < 0 && rightSpeed < 0) {
-        rgbLed.set_led_red();   // Backward
+        rgbLed.set_led_red();
     } else {
-        rgbLed.set_led_green(); // Turning or mixed
+        rgbLed.set_led_green();
     }
 }
