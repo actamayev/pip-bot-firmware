@@ -28,8 +28,13 @@ const uint8_t IMU_DEFAULT_ADDRESS = 0x4B; // The actual default addr is 0x4A, bu
 
 const uint8_t LEFT_MOTOR_PIN_IN_1 = 13;
 const uint8_t LEFT_MOTOR_PIN_IN_2 = 12;
+const uint8_t LEFT_MOTOR_ENCODER_A = 21;
+const uint8_t LEFT_MOTOR_ENCODER_B = 14;
+
 const uint8_t RIGHT_MOTOR_PIN_IN_1 = 10;
 const uint8_t RIGHT_MOTOR_PIN_IN_2 = 11;
+const uint8_t RIGHT_MOTOR_ENCODER_A = 47;
+const uint8_t RIGHT_MOTOR_ENCODER_B = 48;
 
 const uint32_t SENSOR_STACK_SIZE = 16384;  // 16KB for sensor processing
 const uint32_t NETWORK_STACK_SIZE = 8192;  // 8KB for network operations
