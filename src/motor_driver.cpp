@@ -3,14 +3,22 @@
 
 MotorDriver motorDriver;
 
-void MotorDriver::both_motors_forward() {
-    left_motor_forward();
-    right_motor_forward();
+MotorDriver::MotorDriver() {
+    // Initialize motor pins
+    pinMode(LEFT_MOTOR_PIN_IN_1, OUTPUT);
+    pinMode(LEFT_MOTOR_PIN_IN_2, OUTPUT);
+    pinMode(RIGHT_MOTOR_PIN_IN_1, OUTPUT);
+    pinMode(RIGHT_MOTOR_PIN_IN_2, OUTPUT);
 }
 
-void MotorDriver::both_motors_backward() {
-    left_motor_backward();
-    right_motor_backward();
+void MotorDriver::both_motors_forward(uint8_t speed) {
+    left_motor_forward(speed);
+    right_motor_forward(speed);
+}
+
+void MotorDriver::both_motors_backward(uint8_t speed) {
+    left_motor_backward(speed);
+    right_motor_backward(speed);
 }
 
 void MotorDriver::stop_both_motors() {
@@ -18,24 +26,26 @@ void MotorDriver::stop_both_motors() {
     right_motor_stop();
 }
 
-void MotorDriver::rotate_clockwise() {
-    left_motor_forward();
-    right_motor_backward();
+void MotorDriver::rotate_clockwise(uint8_t speed) {
+    left_motor_forward(speed);
+    right_motor_backward(speed);
 }
 
-void MotorDriver::rotate_counterclockwise() {
-    left_motor_backward();
-    right_motor_forward();
+void MotorDriver::rotate_counterclockwise(uint8_t speed) {
+    left_motor_backward(speed);
+    right_motor_forward(speed);
 }
 
-void MotorDriver::left_motor_forward() {
+void MotorDriver::left_motor_forward(uint8_t speed) {
+    analogWrite(LEFT_MOTOR_PIN_IN_1, 0); // Explicitly clear backward pin
     digitalWrite(LEFT_MOTOR_PIN_IN_1, LOW);
-    analogWrite(LEFT_MOTOR_PIN_IN_2, 255);  // Full speed forward  
+    analogWrite(LEFT_MOTOR_PIN_IN_2, speed);
 }
 
-void MotorDriver::left_motor_backward() {
+void MotorDriver::left_motor_backward(uint8_t speed) {
+    analogWrite(LEFT_MOTOR_PIN_IN_2, 0); // Explicitly clear forward pin
     digitalWrite(LEFT_MOTOR_PIN_IN_2, LOW);
-    analogWrite(LEFT_MOTOR_PIN_IN_1, 255);  // Full speed backward
+    analogWrite(LEFT_MOTOR_PIN_IN_1, speed);
 }
 
 void MotorDriver::left_motor_stop() {
@@ -43,14 +53,16 @@ void MotorDriver::left_motor_stop() {
     analogWrite(LEFT_MOTOR_PIN_IN_2, 0);
 }
 
-void MotorDriver::right_motor_forward() {
+void MotorDriver::right_motor_forward(uint8_t speed) {
+    analogWrite(RIGHT_MOTOR_PIN_IN_1, 0); // Explicitly clear backward pin
     digitalWrite(RIGHT_MOTOR_PIN_IN_1, LOW);
-    analogWrite(RIGHT_MOTOR_PIN_IN_2, 255);  // Full speed forward  
+    analogWrite(RIGHT_MOTOR_PIN_IN_2, speed);
 }
 
-void MotorDriver::right_motor_backward() {
+void MotorDriver::right_motor_backward(uint8_t speed) {
+    analogWrite(RIGHT_MOTOR_PIN_IN_2, 0); // Explicitly clear forward pin
     digitalWrite(RIGHT_MOTOR_PIN_IN_2, LOW);
-    analogWrite(RIGHT_MOTOR_PIN_IN_1, 255);  // Full speed backward
+    analogWrite(RIGHT_MOTOR_PIN_IN_1, speed);
 }
 
 void MotorDriver::right_motor_stop() {

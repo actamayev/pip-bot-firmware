@@ -1,64 +1,60 @@
 #include "./include/config.h"
+#include "./include/rgb_led.h"
 #include "./include/motor_driver.h"
 #include "./include/lab_demo_manager.h"
 
-void LabDemoManager::handleLabMessage(const char* json, int tokenCount, jsmntok_t* tokens) {
-    // Find the "event" field in the JSON
-    for (int i = 1; i < tokenCount; i += 2) {
-        String key = String(json + tokens[i].start, tokens[i].end - tokens[i].start);
-        if (key == "event") {
-            String eventType = String(json + tokens[i + 1].start, tokens[i + 1].end - tokens[i + 1].start);
-            
-            if (eventType == "motor-control-data") {
-                handleMotorControl(json, tokenCount, tokens);
-                break;
-            }
-        }
-    }
-}
-
-void LabDemoManager::handleMotorControl(const char* json, int tokenCount, jsmntok_t* tokens) {
-    int leftMotor = 0;
-    int rightMotor = 0;
-
-    // Extract motor control values
-    for (int j = 1; j < tokenCount; j += 2) {
-        String fieldKey = String(json + tokens[j].start, tokens[j].end - tokens[j].start);
-        if (fieldKey == "leftMotor") {
-            leftMotor = extractInt(json, &tokens[j + 1]);
-        } else if (fieldKey == "rightMotor") {
-            rightMotor = extractInt(json, &tokens[j + 1]);
-        }
+void LabDemoManager::handleBinaryMessage(const char* data) {
+    if (data[0] != 1) {  // 1 = motor control
+        Serial.printf("Unknown message type: %d\n", data[0]);
+        return;
     }
 
-    updateMotorSpeeds(leftMotor, rightMotor);
+    // Log raw bytes
+    Serial.printf("Received raw data: [%d, %d, %d, %d, %d]\n",
+        static_cast<uint8_t>(data[0]),
+        static_cast<uint8_t>(data[1]),
+        static_cast<uint8_t>(data[2]),
+        static_cast<uint8_t>(data[3]),
+        static_cast<uint8_t>(data[4])
+    );
+
+    // Extract 16-bit signed integers (little-endian)
+    int16_t leftSpeed = (static_cast<uint8_t>(data[2]) << 8) | static_cast<uint8_t>(data[1]);
+    int16_t rightSpeed = (static_cast<uint8_t>(data[4]) << 8) | static_cast<uint8_t>(data[3]);
+
+    Serial.printf("Received motor control - Left: %d, Right: %d\n", leftSpeed, rightSpeed);
+    updateMotorSpeeds(leftSpeed, rightSpeed);
 }
 
-void LabDemoManager::updateMotorSpeeds(int leftMotor, int rightMotor) {
-    Serial.printf("Motors updated - Left: %d, Right: %d\n", leftMotor, rightMotor);
+void LabDemoManager::updateMotorSpeeds(int16_t leftSpeed, int16_t rightSpeed) {
+    leftSpeed = constrain(leftSpeed, -255, 255);
+    rightSpeed = constrain(rightSpeed, -255, 255);
 
-    if (leftMotor == -1 && rightMotor == -1) {
-        motorDriver.both_motors_backward();
-        return;
-    } else if (leftMotor == -1 && rightMotor == 1) {
-        motorDriver.rotate_counterclockwise();
-        return;
-    } else if (leftMotor == 1 && rightMotor == -1) {
-        motorDriver.rotate_clockwise();
-        return;
-    } else if (leftMotor == 1 && rightMotor == 1) {
-        motorDriver.both_motors_forward();
-        return;
+    Serial.printf("Motors updated - Left: %d, Right: %d\n", leftSpeed, rightSpeed);
+
+    if (leftSpeed == 0) {
+        motorDriver.left_motor_stop();
+    } else if (leftSpeed > 0) {
+        motorDriver.left_motor_forward(leftSpeed);
     } else {
-        motorDriver.stop_both_motors();
-        return;
+        motorDriver.left_motor_backward(-leftSpeed);
     }
-}
 
-int64_t LabDemoManager::extractInt(const char* json, const jsmntok_t* tok) {
-    char numStr[32];
-    int len = min(31, tok->end - tok->start);
-    strncpy(numStr, json + tok->start, len);
-    numStr[len] = '\0';
-    return atoll(numStr);
+    if (rightSpeed == 0) {
+        motorDriver.right_motor_stop();
+    } else if (rightSpeed > 0) {
+        motorDriver.right_motor_forward(rightSpeed);
+    } else {
+        motorDriver.right_motor_backward(-rightSpeed);
+    }
+
+    if (leftSpeed == 0 && rightSpeed == 0) {
+        rgbLed.turn_led_off();
+    } else if (leftSpeed > 0 && rightSpeed > 0) {
+        rgbLed.set_led_blue();
+    } else if (leftSpeed < 0 && rightSpeed < 0) {
+        rgbLed.set_led_red();
+    } else {
+        rgbLed.set_led_green();
+    }
 }

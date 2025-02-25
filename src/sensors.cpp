@@ -5,7 +5,6 @@ void Sensors::initialize() {
     // Setup I2C
     Wire.begin(I2C_SDA, I2C_SCL, I2C_CLOCK_SPEED);
 
-    initializeMotorPins();
     // Initialize sensors
     // initializeTofSensors();
     // initializeIMU();
@@ -87,13 +86,6 @@ bool Sensors::getTofData(const VL53L5CX_ResultsData** leftData, const VL53L5CX_R
 // const TofData& Sensors::getRightTofData() {
 //     return rightTof.getTofData();
 // }
-
-void Sensors::initializeMotorPins() {
-    pinMode(LEFT_MOTOR_PIN_IN_1, OUTPUT);
-    pinMode(LEFT_MOTOR_PIN_IN_2, OUTPUT);
-    pinMode(RIGHT_MOTOR_PIN_IN_1, OUTPUT);
-    pinMode(RIGHT_MOTOR_PIN_IN_2, OUTPUT);
-}
 
 EulerAngles& Sensors::getEulerAngles() {
     return imu.getEulerAngles();
