@@ -63,20 +63,3 @@ void imuLogger() {
         lastImuPrintTime = millis();
     }
 }
-
-void irLogger() {
-    static unsigned long lastIrSend = 0;
-    const unsigned long IR_SEND_INTERVAL = 1000;  // Send every second
-
-    // Send periodic IR signal
-    if (millis() - lastIrSend >= IR_SEND_INTERVAL) {
-        Serial.println("Sending IR command: 51");
-        Sensors::getInstance().sendIrCommand(51);
-        lastIrSend = millis();
-    }
-
-    // Check for received IR signals
-    if (Sensors::getInstance().getIrData()) {
-        Serial.println("✓ IR signal received!");
-    }
-}
