@@ -26,7 +26,6 @@ void SensorAndUserCodeTask(void * parameter) {
         // leftTofLogger();
         // rightTofLogger();
         // imuLogger();
-        // irLogger();
         user_code();
         delay(1);
     }
