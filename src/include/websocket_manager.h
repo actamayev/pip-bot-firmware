@@ -34,15 +34,7 @@ class WebSocketManager : public Singleton<WebSocketManager> {
                 chunkSize(0), isLast(false), expectingBinary(false) {}
         };
 
-        struct MotorControl {
-            int leftMotor;
-            int rightMotor;
-            
-            MotorControl() : leftMotor(0), rightMotor(0) {}
-        };
-
         ChunkMetadata currentChunk;
-        MotorControl motorControl;
 
         static const size_t MAX_TOKENS = 32;  // Maximum number of JSON tokens
         jsmn_parser parser;
