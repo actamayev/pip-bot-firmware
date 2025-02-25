@@ -9,16 +9,6 @@ MotorDriver::MotorDriver() {
     pinMode(LEFT_MOTOR_PIN_IN_2, OUTPUT);
     pinMode(RIGHT_MOTOR_PIN_IN_1, OUTPUT);
     pinMode(RIGHT_MOTOR_PIN_IN_2, OUTPUT);
-
-    // Initialize encoder pins
-    pinMode(LEFT_MOTOR_ENCODER_A, INPUT_PULLUP);
-    pinMode(LEFT_MOTOR_ENCODER_B, INPUT_PULLUP);
-    pinMode(RIGHT_MOTOR_ENCODER_A, INPUT_PULLUP);
-    pinMode(RIGHT_MOTOR_ENCODER_B, INPUT_PULLUP);
-
-    // Attach interrupts for encoders (assuming ENC1_A and ENC2_A are defined in config.h)
-    attachInterrupt(LEFT_MOTOR_ENCODER_A, encoder1_isr, RISING);
-    attachInterrupt(RIGHT_MOTOR_ENCODER_A, encoder2_isr, RISING);
 }
 
 void MotorDriver::both_motors_forward(uint8_t speed) {
@@ -78,12 +68,4 @@ void MotorDriver::right_motor_backward(uint8_t speed) {
 void MotorDriver::right_motor_stop() {
     analogWrite(RIGHT_MOTOR_PIN_IN_1, 0);
     analogWrite(RIGHT_MOTOR_PIN_IN_2, 0);
-}
-
-void IRAM_ATTR MotorDriver::encoder1_isr() {
-    motorDriver.leftEncoderCount++;  // Increment left encoder count
-}
-
-void IRAM_ATTR MotorDriver::encoder2_isr() {
-    motorDriver.rightEncoderCount++;  // Increment right encoder count
 }
