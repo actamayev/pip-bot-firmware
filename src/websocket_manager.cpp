@@ -130,7 +130,7 @@ void WebSocketManager::handleBinaryMessage(WebsocketsMessage message) {
     // Not expecting firmware, check if it's a motor control message (2 bytes)
     if (length == 5) {
         // It's a motor control message
-        LabDemoManager::getInstance().handleBinaryMessage(data, length);
+        LabDemoManager::getInstance().handleBinaryMessage(data);
     } else {
         Serial.printf("Unexpected binary message of length %d\n", length);
     }

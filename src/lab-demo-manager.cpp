@@ -3,12 +3,7 @@
 #include "./include/motor_driver.h"
 #include "./include/lab_demo_manager.h"
 
-void LabDemoManager::handleBinaryMessage(const char* data, size_t length) {
-    if (length != 5) {
-        Serial.printf("Invalid binary message length: %d, expected 5\n", length);
-        return;
-    }
-
+void LabDemoManager::handleBinaryMessage(const char* data) {
     if (data[0] != 1) {  // 1 = motor control
         Serial.printf("Unknown message type: %d\n", data[0]);
         return;
