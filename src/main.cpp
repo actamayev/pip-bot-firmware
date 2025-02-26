@@ -6,10 +6,11 @@
 #include "./include/wifi_manager.h"
 #include "./include/show_chip_info.h"
 #include "./include/sensor_loggers.h"
+#include "./include/encoder_manager.h"
 #include "./include/lab_demo_manager.h"
 #include "./include/webserver_manager.h"
 #include "./include/websocket_manager.h"
-#include "./include/encoder_manager.h"
+#include "./include/send_data_to_server.h"
 
 // Task to handle sensors and user code on Core 0
 void SensorAndUserCodeTask(void * parameter) {
@@ -50,6 +51,7 @@ void NetworkTask(void * parameter) {
         if (WiFi.status() == WL_CONNECTED) {
             WebSocketManager::getInstance().pollWebSocket();
         }
+        SendDataToServer::getInstance().sendSensorDataToServer();
 
         delay(100); // Similar to the original CHECK_INTERVAL
     }

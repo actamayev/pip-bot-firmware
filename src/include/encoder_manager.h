@@ -15,7 +15,7 @@ class EncoderManager : public Singleton<EncoderManager> {
 
         void log_motor_rpm();
 
-        boolean should_log_motor_rpm = false;
+        bool should_log_motor_rpm = false;
     private:
         // ESP32Encoder objects
         ESP32Encoder _leftEncoder;
