@@ -56,25 +56,6 @@ void NetworkTask(void * parameter) {
     }
 }
 
-// void EncoderMonitoringTask(void * parameter) {
-//     // Small delay to let other systems initialize
-//     delay(1000);
-    
-//     Serial.println("Encoder monitoring task started");
-//     EncoderManager::getInstance();
-    
-//     // Main encoder monitoring loop
-//     for(;;) {
-//         // Only process encoder data when WiFi is connected
-//         if (WiFi.status() == WL_CONNECTED) {
-//             LabDemoManager::getInstance().monitorEncoders();
-//         }
-        
-//         // Precise timing for encoder data collection
-//         delay(100);
-//     }
-// }
-
 // Main setup runs on Core 1
 void setup() {
     Serial.begin(115200);
@@ -103,16 +84,6 @@ void setup() {
         NULL,                   // Task handle
         1                       // Run on Core 1
     );
-
-    // xTaskCreatePinnedToCore(
-    //     EncoderMonitoringTask,   // Task function
-    //     "EncoderMonitoring",     // Task name
-    //     SENSOR_STACK_SIZE,                    // Stack size
-    //     NULL,                    // Task parameters
-    //     1,                       // Priority
-    //     NULL,                    // Task handle
-    //     1                        // Run on Core 1 with network tasks
-    // );
 }
 
 // Main loop runs on Core 1

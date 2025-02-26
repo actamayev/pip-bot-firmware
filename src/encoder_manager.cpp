@@ -41,8 +41,6 @@ void EncoderManager::update() {
         _leftWheelRPM = leftMotorShaftRPM / GEAR_RATIO;
         _rightWheelRPM = rightMotorShaftRPM / GEAR_RATIO;
 
-        Serial.printf("Calculated RPM - Left: %.2f, Right: %.2f\n", _leftWheelRPM, _rightWheelRPM);
-
         // Reset pulse counters for next interval
         _leftEncoder.clearCount();
         _rightEncoder.clearCount();

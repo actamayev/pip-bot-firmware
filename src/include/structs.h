@@ -60,3 +60,10 @@ struct WheelRPMs {
     float leftWheelRPM;
     float rightWheelRPM;
 };
+
+struct MuxChannel {
+    const char* name;
+    bool A;
+    bool B;
+    bool C;
+};

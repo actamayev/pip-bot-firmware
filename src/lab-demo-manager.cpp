@@ -39,8 +39,6 @@ void LabDemoManager::updateMotorSpeeds(int16_t leftSpeed, int16_t rightSpeed) {
         motorDriver.right_motor_backward(-rightSpeed);
     }
 
-    encoderManager.getInstance().should_log_motor_rpm = true;
-
     if (leftSpeed == 0 && rightSpeed == 0) {
         rgbLed.turn_led_off();
     } else if (leftSpeed > 0 && rightSpeed > 0) {
@@ -51,49 +49,3 @@ void LabDemoManager::updateMotorSpeeds(int16_t leftSpeed, int16_t rightSpeed) {
         rgbLed.set_led_green();
     }
 }
-
-void LabDemoManager::monitorEncoders() {
-    // Check if motors are active
-    WheelRPMs wheelRpms = encoderManager.getInstance().getBothWheelRPMs();
-
-    Serial.printf("left wheel RPM%d\n", wheelRpms.leftWheelRPM);
-    Serial.printf("right wheel RPM%d\n", wheelRpms.rightWheelRPM);
-
-    // if (leftWheelRpm == 0 && rightWheelRpm == 0) return;
-    // // Check if it's time to send encoder data
-    // unsigned long currentTime = millis();
-    // if (currentTime - _lastEncoderUpdateTime >= ENCODER_UPDATE_INTERVAL) {
-    //     Serial.println("Updating encoder readings...");
-
-    //     // Update encoder calculations
-    //     encoderManager.update();
-
-    //     // Get current wheel speeds
-    //     float leftWheelRPM = encoderManager.getLeftWheelRPM();
-    //     float rightWheelRPM = encoderManager.getRightWheelRPM();
-        
-    //     // Send encoder data to server
-    //     sendEncoderDataToServer(leftWheelRPM, rightWheelRPM);
-        
-    //     // Debug output to serial
-    //     Serial.printf("Encoder Data - Left RPM: %.2f, Right RPM: %.2f\n", 
-    //                     leftWheelRPM, rightWheelRPM);
-
-    //     // Update last update time
-    //     _lastEncoderUpdateTime = currentTime;
-    // }
-}
-
-// void LabDemoManager::sendEncoderDataToServer(float leftWheelRPM, float rightWheelRPM) {
-//     Serial.println("Would send encoder data to server here");
-//     // Add your socket logic here to send data back to server
-//     // Example data format might be:
-//     // {
-//     //   "leftRPM": leftWheelRPM,
-//     //   "rightRPM": rightWheelRPM,
-//     //   "leftSpeed": _leftMotorSpeed,
-//     //   "rightSpeed": _rightMotorSpeed
-//     // }
-    
-//     // placeholder for your socket sending logic
-// }

@@ -1,11 +1,13 @@
 #include "./include/config.h"
 
+//Blank to be consistent with config.h
+
 const uint8_t ESP_LED_PIN = 38;
 const uint8_t NUM_LEDS = 1;
 
 const uint8_t DNS_PORT = 53;
 
-//i2c (same for all i2c connections):
+//I2C
 const uint8_t I2C_SDA = 8;
 const uint8_t I2C_SCL = 9;
 const uint32_t I2C_CLOCK_SPEED = 400 * 1000; // 400 kHz
@@ -26,6 +28,7 @@ const uint8_t TOF_RANGING_FREQUENCY = 15;  // TOF sampling frequency
 const uint32_t IMU_UPDATE_FREQ_MICROSECS = 5000;  // 5ms, 200Hz
 const uint8_t IMU_DEFAULT_ADDRESS = 0x4B; // The actual default addr is 0x4A, but ours shows up as 0x4A
 
+// Motors + Encoders
 const uint8_t LEFT_MOTOR_PIN_IN_1 = 13;
 const uint8_t LEFT_MOTOR_PIN_IN_2 = 12;
 const uint8_t LEFT_MOTOR_ENCODER_A = 21;
@@ -36,6 +39,14 @@ const uint8_t RIGHT_MOTOR_PIN_IN_2 = 11;
 const uint8_t RIGHT_MOTOR_ENCODER_A = 48;
 const uint8_t RIGHT_MOTOR_ENCODER_B = 47;
 
+// IR sensor
+const int PIN_MUX_C = 4;    // Multiplexer C input
+const int PIN_MUX_B = 5;    // Multiplexer B input
+const int PIN_MUX_A = 6;    // Multiplexer A input
+const int PIN_MUX_OUT = 7;  // Multiplexer output
+const int PIN_IR_EN = 15;    // IR sensor enable pin
+
+// Assign Stack sizes for the two cores
 const uint32_t SENSOR_STACK_SIZE = 16384;  // 16KB for sensor processing
 const uint32_t NETWORK_STACK_SIZE = 8192;  // 8KB for network operations
 
