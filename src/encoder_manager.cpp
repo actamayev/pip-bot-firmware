@@ -31,8 +31,6 @@ void EncoderManager::update() {
     int64_t leftPulses = _leftEncoder.getCount();
     int64_t rightPulses = _rightEncoder.getCount();
     
-    Serial.printf("Raw encoder pulses - Left: %lld, Right: %lld\n", leftPulses, rightPulses);
-    
     // Only update if enough time has passed
     if (elapsedTime >= RPM_CALC_INTERVAL) {
         // Calculate motor shaft RPM - NOTE: Using elapsedTime in seconds

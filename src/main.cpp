@@ -30,7 +30,6 @@ void SensorAndUserCodeTask(void * parameter) {
         // leftTofLogger();
         // rightTofLogger();
         // imuLogger();
-        EncoderManager::getInstance().log_motor_rpm();
         user_code();
         delay(1);
     }
@@ -50,8 +49,8 @@ void NetworkTask(void * parameter) {
 
         if (WiFi.status() == WL_CONNECTED) {
             WebSocketManager::getInstance().pollWebSocket();
+            SendDataToServer::getInstance().sendSensorDataToServer();
         }
-        SendDataToServer::getInstance().sendSensorDataToServer();
 
         delay(100); // Similar to the original CHECK_INTERVAL
     }
