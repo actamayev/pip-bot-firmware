@@ -55,3 +55,8 @@ struct MagnetometerData {
     float mX, mY, mZ;
     bool isValid = false;
 };
+
+struct WheelRPMs {
+    float leftWheelRPM;
+    float rightWheelRPM;
+};

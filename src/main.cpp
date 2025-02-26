@@ -6,8 +6,10 @@
 #include "./include/wifi_manager.h"
 #include "./include/show_chip_info.h"
 #include "./include/sensor_loggers.h"
+#include "./include/lab_demo_manager.h"
 #include "./include/webserver_manager.h"
 #include "./include/websocket_manager.h"
+#include "./include/encoder_manager.h"
 
 // Task to handle sensors and user code on Core 0
 void SensorAndUserCodeTask(void * parameter) {
@@ -16,6 +18,7 @@ void SensorAndUserCodeTask(void * parameter) {
     // Initialize sensors on Core 0
     Serial.println("Initializing sensors on Core 0...");
     Sensors::getInstance();
+    EncoderManager::getInstance();
     Serial.println("Sensors initialized on Core 0");
 
     enableCore0WDT();
@@ -47,17 +50,35 @@ void NetworkTask(void * parameter) {
             WebSocketManager::getInstance().pollWebSocket();
         }
 
-        delay(200); // Similar to the original CHECK_INTERVAL
+        delay(100); // Similar to the original CHECK_INTERVAL
     }
 }
+
+// void EncoderMonitoringTask(void * parameter) {
+//     // Small delay to let other systems initialize
+//     delay(1000);
+    
+//     Serial.println("Encoder monitoring task started");
+//     EncoderManager::getInstance();
+    
+//     // Main encoder monitoring loop
+//     for(;;) {
+//         // Only process encoder data when WiFi is connected
+//         if (WiFi.status() == WL_CONNECTED) {
+//             LabDemoManager::getInstance().monitorEncoders();
+//         }
+        
+//         // Precise timing for encoder data collection
+//         delay(100);
+//     }
+// }
 
 // Main setup runs on Core 1
 void setup() {
     Serial.begin(115200);
-    delay(2000);
+    // Only needed if we need to see the setup serial logs:
+    // delay(2000);
 
-    Serial.println(DEFAULT_ENVIRONMENT);
-    Serial.println(DEFAULT_PIP_ID);
     rgbLed.turn_led_off();
 
     // Create tasks for parallel execution
@@ -80,6 +101,16 @@ void setup() {
         NULL,                   // Task handle
         1                       // Run on Core 1
     );
+
+    // xTaskCreatePinnedToCore(
+    //     EncoderMonitoringTask,   // Task function
+    //     "EncoderMonitoring",     // Task name
+    //     SENSOR_STACK_SIZE,                    // Stack size
+    //     NULL,                    // Task parameters
+    //     1,                       // Priority
+    //     NULL,                    // Task handle
+    //     1                        // Run on Core 1 with network tasks
+    // );
 }
 
 // Main loop runs on Core 1
