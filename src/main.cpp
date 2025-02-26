@@ -29,6 +29,7 @@ void SensorAndUserCodeTask(void * parameter) {
         // leftTofLogger();
         // rightTofLogger();
         // imuLogger();
+        EncoderManager::getInstance().log_motor_rpm();
         user_code();
         delay(1);
     }

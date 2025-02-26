@@ -38,7 +38,8 @@ void LabDemoManager::updateMotorSpeeds(int16_t leftSpeed, int16_t rightSpeed) {
     } else {
         motorDriver.right_motor_backward(-rightSpeed);
     }
-    monitorEncoders();
+
+    encoderManager.getInstance().should_log_motor_rpm = true;
 
     if (leftSpeed == 0 && rightSpeed == 0) {
         rgbLed.turn_led_off();

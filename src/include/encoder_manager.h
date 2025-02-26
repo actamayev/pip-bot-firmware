@@ -12,6 +12,10 @@ class EncoderManager : public Singleton<EncoderManager> {
         EncoderManager();
 
         WheelRPMs getBothWheelRPMs();
+
+        void log_motor_rpm();
+
+        boolean should_log_motor_rpm = false;
     private:
         // ESP32Encoder objects
         ESP32Encoder _leftEncoder;
@@ -22,7 +26,8 @@ class EncoderManager : public Singleton<EncoderManager> {
 
         // Timing
         unsigned long _lastUpdateTime;
-        
+        unsigned long _lastLogTime;
+
         // Constants for calculations
         static constexpr float GEAR_RATIO = 297.924;
         static constexpr int ENCODER_CPR = 3;

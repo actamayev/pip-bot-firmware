@@ -60,3 +60,22 @@ WheelRPMs EncoderManager::getBothWheelRPMs() {
         rightWheelRPM: _rightWheelRPM
     };
 }
+
+void EncoderManager::log_motor_rpm() {
+    // Return if logging is disabled
+    if (!should_log_motor_rpm) return;
+    
+    // Check if 10ms has elapsed since last log
+    unsigned long currentTime = millis();
+    if (currentTime - _lastLogTime < 10) return;
+    
+    // Get latest RPM values
+    auto rpms = getBothWheelRPMs();
+
+    // Log the values
+    Serial.printf("Left wheel RPM: %.2f\n", rpms.leftWheelRPM);
+    Serial.printf("Right wheel RPM: %.2f\n", rpms.rightWheelRPM);
+    
+    // Update last log time
+    _lastLogTime = currentTime;
+}
