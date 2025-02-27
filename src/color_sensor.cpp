@@ -1,30 +1,26 @@
 #include "./include/config.h"
 #include "./include/color_sensor.h"
 
-ColorSensor colorSensor;
-
-ColorSensor::ColorSensor() {
+bool ColorSensor::initialize() {
     pinMode(COLOR_SENSOR_LED_PIN, OUTPUT);
     digitalWrite(COLOR_SENSOR_LED_PIN, LOW);  // Start with LED off
 
-    // Attempt to initialize the sensor with timeout
-    // Wire.begin();  // Make sure I2C is initialized
-    
     sensorConnected = false;  // Assume not connected initially
     
     // Try to initialize the sensor
+    lastUpdateTime = millis();
     if (Veml3328.begin()) {
         Serial.println("Warning: VEML3328 sensor not detected");
-    } else {
-        sensorConnected = true;
-        // Only configure if sensor is detected
-        Veml3328.setIntTime(time_50);
-        Veml3328.setGain(gain_x1);
-        Veml3328.setSensitivity(false);
-        digitalWrite(COLOR_SENSOR_LED_PIN, HIGH);  // Turn LED on only if sensor found
+        return false;
     }
-    
+    sensorConnected = true;
+    // Only configure if sensor is detected
+    Veml3328.setIntTime(time_50);
+    Veml3328.setGain(gain_x1);
+    Veml3328.setSensitivity(false);
+    digitalWrite(COLOR_SENSOR_LED_PIN, HIGH);  // Turn LED on only if sensor found
     lastUpdateTime = millis();
+    return true;
 }
 
 void ColorSensor::read_color_sensor() {

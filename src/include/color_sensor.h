@@ -6,7 +6,9 @@
 
 class ColorSensor {
     public:
-        ColorSensor();
+        ColorSensor() = default;
+
+        bool initialize();
         ColorSensorData getSensorData();
         bool isSensorConnected() { return sensorConnected; }
 
@@ -23,5 +25,3 @@ class ColorSensor {
 
         unsigned long lastUpdateTime;
 };
-
-extern ColorSensor colorSensor;
