@@ -68,6 +68,7 @@ struct MuxChannel {
     bool C;
 };
 
+// 2/27/25 TODO: Calibrate against black/white surfaces. See color_sensor_calibration project. Black/white values are used in the matrix method
 struct CalibrationValues {
     float redRedValue;
     float greenRedValue;
