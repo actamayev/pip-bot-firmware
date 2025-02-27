@@ -60,7 +60,7 @@ void NetworkTask(void * parameter) {
 void setup() {
     Serial.begin(115200);
     // Only needed if we need to see the setup serial logs:
-    // delay(2000);
+    delay(2000);
 
     rgbLed.turn_led_off();
 

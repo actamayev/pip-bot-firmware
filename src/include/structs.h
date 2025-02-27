@@ -67,3 +67,18 @@ struct MuxChannel {
     bool B;
     bool C;
 };
+
+struct CalibrationValues {
+    uint16_t blackRed;
+    uint16_t blackGreen;
+    uint16_t blackBlue;
+    uint16_t whiteRed;
+    uint16_t whiteGreen;
+    uint16_t whiteBlue;
+};
+
+struct ColorSensorData {
+    uint8_t redValue;
+    uint8_t greenValue;
+    uint8_t blueValue;
+};

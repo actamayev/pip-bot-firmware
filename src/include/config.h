@@ -39,6 +39,9 @@ extern const uint8_t RIGHT_MOTOR_PIN_IN_2;
 extern const uint8_t RIGHT_MOTOR_ENCODER_A;
 extern const uint8_t RIGHT_MOTOR_ENCODER_B;
 
+// Color Sensor
+extern const uint8_t COLOR_SENSOR_LED_PIN;
+
 //IR sensor
 extern const int PIN_MUX_C;
 extern const int PIN_MUX_B;

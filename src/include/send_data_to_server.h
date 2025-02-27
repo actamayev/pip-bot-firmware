@@ -16,4 +16,5 @@ class SendDataToServer : public Singleton<SendDataToServer> {
     private:
         void attachRPMData(JsonObject& payload);
         void attachIRData(JsonObject& payload);
+        // void attachColorSensorData(JsonObject& payload);
 };

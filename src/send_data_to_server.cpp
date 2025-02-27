@@ -1,5 +1,6 @@
 #include "./include/config.h"
 #include "./include/ir_sensor.h"
+// #include "./include/color_sensor.h"
 #include "./include/encoder_manager.h"
 #include "./include/websocket_manager.h"
 #include "./include/send_data_to_server.h"
@@ -25,6 +26,14 @@ void SendDataToServer::attachIRData(JsonObject& payload) {
     }
 }
 
+// void SendDataToServer::attachColorSensorData(JsonObject& payload) {
+//     ColorSensorData colorSensorData = colorSensor.getSensorData();
+
+//     payload["redValue"] = colorSensorData.redValue;
+//     payload["greenValue"] = colorSensorData.greenValue;
+//     payload["blueValue"] = colorSensorData.blueValue;
+// }
+
 void SendDataToServer::sendSensorDataToServer() {
     if (!sendSensorData) return;
 
@@ -40,6 +49,7 @@ void SendDataToServer::sendSensorDataToServer() {
     // Attach different types of sensor data
     attachRPMData(payload);
     attachIRData(payload);
+    // attachColorSensorData(payload);
 
     // Serialize and send
     String jsonString;
