@@ -3,8 +3,7 @@
 
 bool ColorSensor::initialize() {
     pinMode(COLOR_SENSOR_LED_PIN, OUTPUT);
-    digitalWrite(COLOR_SENSOR_LED_PIN, LOW);  // Start with LED off
-
+    
     sensorConnected = false;  // Assume not connected initially
     
     // Try to initialize the sensor
@@ -14,55 +13,85 @@ bool ColorSensor::initialize() {
         return false;
     }
     sensorConnected = true;
-    // Only configure if sensor is detected
+    
+    // Configure sensor
     Veml3328.setIntTime(time_50);
     Veml3328.setGain(gain_x1);
     Veml3328.setSensitivity(false);
-    digitalWrite(COLOR_SENSOR_LED_PIN, HIGH);  // Turn LED on only if sensor found
-    lastUpdateTime = millis();
+    analogWrite(COLOR_SENSOR_LED_PIN, 155);
+    precompute_inverse_matrix();
     return true;
 }
 
-void ColorSensor::read_color_sensor() {
-    if (!sensorConnected) {
-        // Return default values if no sensor
-        colorSensorData.redValue = 0;
-        colorSensorData.greenValue = 0;
-        colorSensorData.blueValue = 0;
-        return;
-    }
-    if (!isCalibrated) {
-        Serial.println("Please calibrate black and white points first!");
-        return;
-    }
-    // digitalWrite(COLOR_SENSOR_LED_PIN, HIGH);
-    // TODO: Consider removing this delay (use a state machine instead)
-    // delay(60);
+void ColorSensor::precompute_inverse_matrix() {
+    // Pre-compute the inverse matrix
+    float matrix[3][3] = {
+        {calibrationValues.redRedValue, calibrationValues.greenRedValue, calibrationValues.blueRedValue},
+        {calibrationValues.redGreenValue, calibrationValues.greenGreenValue, calibrationValues.blueGreenValue},
+        {calibrationValues.redBlueValue, calibrationValues.greenBlueValue, calibrationValues.blueBlueValue}
+    };
+      
+    // Calculate the determinant of the matrix
+    float det = 
+    matrix[0][0] * (matrix[1][1] * matrix[2][2] - matrix[1][2] * matrix[2][1]) -
+    matrix[0][1] * (matrix[1][0] * matrix[2][2] - matrix[1][2] * matrix[2][0]) +
+    matrix[0][2] * (matrix[1][0] * matrix[2][1] - matrix[1][1] * matrix[2][0]);
     
-    uint16_t red = Veml3328.getRed();
-    uint16_t green = Veml3328.getGreen();
-    uint16_t blue = Veml3328.getBlue();
+    // Calculate the inverse matrix
+    float invDet = 1.0 / det;
 
-    // Normalize readings to 0-255 range
-    uint8_t normalizedRed = map(red, calibration.blackRed, calibration.whiteRed, 0, 255);
-    uint8_t normalizedGreen = map(green, calibration.blackGreen, calibration.whiteGreen, 0, 255);
-    uint8_t normalizedBlue = map(blue, calibration.blackBlue, calibration.whiteBlue, 0, 255);
+    invMatrix[0][0] = (matrix[1][1] * matrix[2][2] - matrix[1][2] * matrix[2][1]) * invDet;
+    invMatrix[0][1] = (matrix[0][2] * matrix[2][1] - matrix[0][1] * matrix[2][2]) * invDet;
+    invMatrix[0][2] = (matrix[0][1] * matrix[1][2] - matrix[0][2] * matrix[1][1]) * invDet;
     
+    invMatrix[1][0] = (matrix[1][2] * matrix[2][0] - matrix[1][0] * matrix[2][2]) * invDet;
+    invMatrix[1][1] = (matrix[0][0] * matrix[2][2] - matrix[0][2] * matrix[2][0]) * invDet;
+    invMatrix[1][2] = (matrix[0][2] * matrix[1][0] - matrix[0][0] * matrix[1][2]) * invDet;
+    
+    invMatrix[2][0] = (matrix[1][0] * matrix[2][1] - matrix[1][1] * matrix[2][0]) * invDet;
+    invMatrix[2][1] = (matrix[0][1] * matrix[2][0] - matrix[0][0] * matrix[2][1]) * invDet;
+    invMatrix[2][2] = (matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0]) * invDet;
+    
+    lastUpdateTime = millis();
+}
+
+void ColorSensor::read_color_sensor() {
+    // Get raw sensor readings
+    float rawRed = Veml3328.getRed();
+    float rawGreen = Veml3328.getGreen();
+    float rawBlue = Veml3328.getBlue();
+    
+    // Apply pre-computed inverse matrix to get true RGB values
+    float trueRed = invMatrix[0][0] * rawRed + invMatrix[0][1] * rawGreen + invMatrix[0][2] * rawBlue;
+    float trueGreen = invMatrix[1][0] * rawRed + invMatrix[1][1] * rawGreen + invMatrix[1][2] * rawBlue;
+    float trueBlue = invMatrix[2][0] * rawRed + invMatrix[2][1] * rawGreen + invMatrix[2][2] * rawBlue;
+    
+    // Handle negative values
+    trueRed = max(0.0f, trueRed);
+    trueGreen = max(0.0f, trueGreen);
+    trueBlue = max(0.0f, trueBlue);
+    
+    // Normalize to percentage (0-100%)
+    float maxVal = max(max(trueRed, trueGreen), trueBlue);
+    float redPercent, greenPercent, bluePercent;
+    
+    if (maxVal > 0) {
+      redPercent = (trueRed / maxVal) * 100.0;
+      greenPercent = (trueGreen / maxVal) * 100.0;
+      bluePercent = (trueBlue / maxVal) * 100.0;
+    } else {
+      redPercent = greenPercent = bluePercent = 0;
+    }
+    
+    // Calculate normalized 0-255 RGB values
+    uint8_t normalizedRed = (uint8_t)(redPercent * 2.55);
+    uint8_t normalizedGreen = (uint8_t)(greenPercent * 2.55);
+    uint8_t normalizedBlue = (uint8_t)(bluePercent * 2.55);
+    
+    Serial.printf("Color: R:%u G:%u B:%u\r\n", normalizedRed, normalizedGreen, normalizedBlue);
     colorSensorData.redValue = normalizedRed;
     colorSensorData.greenValue = normalizedGreen;
     colorSensorData.blueValue = normalizedBlue;
-
-    Serial.println("\nNormalized readings (0-255):");
-    Serial.printf("Red: %u\r\n", normalizedRed);
-    Serial.printf("Green: %u\r\n", normalizedGreen);
-    Serial.printf("Blue: %u\r\n", normalizedBlue);
-    
-    // Also show raw values
-    Serial.println("\nRaw readings:");
-    Serial.printf("Red: %u\r\n", (uint16_t)(red / scaleFactor));
-    Serial.printf("Green: %u\r\n", (uint16_t)(green / scaleFactor));
-    Serial.printf("Blue: %u\r\n", (uint16_t)(blue / scaleFactor));
-    // digitalWrite(COLOR_SENSOR_LED_PIN, LOW);
 }
 
 // TODO: only take sensor reading if it was more than 20ms ago

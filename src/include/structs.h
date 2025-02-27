@@ -69,12 +69,15 @@ struct MuxChannel {
 };
 
 struct CalibrationValues {
-    uint16_t blackRed;
-    uint16_t blackGreen;
-    uint16_t blackBlue;
-    uint16_t whiteRed;
-    uint16_t whiteGreen;
-    uint16_t whiteBlue;
+    float redRedValue;
+    float greenRedValue;
+    float blueRedValue;
+    float redGreenValue;
+    float greenGreenValue;
+    float blueGreenValue;
+    float redBlueValue;
+    float greenBlueValue;
+    float blueBlueValue;
 };
 
 struct ColorSensorData {
