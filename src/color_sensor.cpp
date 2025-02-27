@@ -94,7 +94,7 @@ void ColorSensor::read_color_sensor() {
     colorSensorData.blueValue = normalizedBlue;
 }
 
-// TODO: only take sensor reading if it was more than 20ms ago
+// 2/27/25 TODO: only take sensor reading if it was more than 20ms ago
 ColorSensorData ColorSensor::getSensorData() {
     if (!sensorConnected) {
         Serial.println("Sensor not connected - returning default values");

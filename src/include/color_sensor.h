@@ -19,7 +19,6 @@ class ColorSensor {
         bool isCalibrated = true;
         const float scaleFactor = 128.0;
 
-        // TODO: Give default values
         CalibrationValues calibrationValues = {
             // RED LED readings (R, G, B)
             195 * scaleFactor, 42 * scaleFactor, 5 * scaleFactor,
