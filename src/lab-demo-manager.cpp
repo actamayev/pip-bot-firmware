@@ -2,6 +2,7 @@
 #include "./include/rgb_led.h"
 #include "./include/motor_driver.h"
 #include "./include/lab_demo_manager.h"
+#include "./include/encoder_manager.h"
 
 void LabDemoManager::handleBinaryMessage(const char* data) {
     if (data[0] != 1) {  // 1 = motor control
@@ -9,20 +10,10 @@ void LabDemoManager::handleBinaryMessage(const char* data) {
         return;
     }
 
-    // Log raw bytes
-    Serial.printf("Received raw data: [%d, %d, %d, %d, %d]\n",
-        static_cast<uint8_t>(data[0]),
-        static_cast<uint8_t>(data[1]),
-        static_cast<uint8_t>(data[2]),
-        static_cast<uint8_t>(data[3]),
-        static_cast<uint8_t>(data[4])
-    );
-
     // Extract 16-bit signed integers (little-endian)
     int16_t leftSpeed = (static_cast<uint8_t>(data[2]) << 8) | static_cast<uint8_t>(data[1]);
     int16_t rightSpeed = (static_cast<uint8_t>(data[4]) << 8) | static_cast<uint8_t>(data[3]);
 
-    Serial.printf("Received motor control - Left: %d, Right: %d\n", leftSpeed, rightSpeed);
     updateMotorSpeeds(leftSpeed, rightSpeed);
 }
 

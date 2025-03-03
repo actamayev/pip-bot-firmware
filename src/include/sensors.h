@@ -2,6 +2,7 @@
 #include "./imu.h"
 #include "./config.h"
 #include "./singleton.h"
+#include "./color_sensor.h"
 #include "./time_of_flight_sensor.h"
 
 class Sensors : public Singleton<Sensors> {
@@ -30,11 +31,14 @@ class Sensors : public Singleton<Sensors> {
         float getMagneticFieldY();
         float getMagneticFieldZ();
 
+        // Color Sensor Methods:
+        ColorSensorData getColorSensorData();
     private:
         // Sensors
         TimeOfFlightSensor leftTof;
         TimeOfFlightSensor rightTof;
         ImuSensor imu;
+        ColorSensor colorSensor;
 
         // Private constructor
         Sensors() : leftTof(), rightTof() { initialize(); }
@@ -42,4 +46,5 @@ class Sensors : public Singleton<Sensors> {
         void initialize();
         void initializeTofSensors();
         void initializeIMU();
+        void initializeColorSensor();
 };

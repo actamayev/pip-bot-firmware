@@ -8,6 +8,7 @@
 #include "./singleton.h"
 #include "./firmware_updater.h"
 #include "./lab_demo_manager.h"
+#include "./send_data_to_server.h"
 
 using namespace websockets;
 
@@ -21,6 +22,7 @@ class WebSocketManager : public Singleton<WebSocketManager> {
         void sendErrorMessage(const char* error);
         void sendJsonMessage(const char* event, const char* status, const char* extra = nullptr);
 
+        websockets::WebsocketsClient wsClient;
     private:
         struct ChunkMetadata {
             size_t chunkIndex;
@@ -42,7 +44,6 @@ class WebSocketManager : public Singleton<WebSocketManager> {
 
         static const size_t SMALL_DOC_SIZE = 256;       // For small outgoing messages
 
-        websockets::WebsocketsClient wsClient;
         FirmwareUpdater updater;
 
         // Make constructor private for singleton
