@@ -1,7 +1,6 @@
 #pragma once
 
 #include <Update.h>
-#include <Arduino.h>
 #include <mbedtls/base64.h>
 #include "./singleton.h"
 

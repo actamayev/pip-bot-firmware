@@ -1,8 +1,6 @@
 #pragma once
-#include <Wire.h>
-#include <Arduino.h>
 #include "./structs.h"
-#include "./include/veml3328.h"
+#include "./veml3328.h"
 
 class ColorSensor {
     public:
