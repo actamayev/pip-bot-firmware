@@ -8,7 +8,7 @@ void Sensors::initialize() {
     // Initialize sensors
     // initializeTofSensors();
     // initializeIMU();
-    initializeColorSensor();
+    // initializeColorSensor();
 }
 
 void Sensors::initializeTofSensors() {

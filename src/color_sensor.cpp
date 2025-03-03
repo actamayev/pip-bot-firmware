@@ -97,15 +97,15 @@ void ColorSensor::read_color_sensor() {
 // 2/27/25 TODO: only take sensor reading if it was more than 20ms ago
 ColorSensorData ColorSensor::getSensorData() {
     if (!sensorConnected) {
-        Serial.println("Sensor not connected - returning default values");
+        // Serial.println("Sensor not connected - returning default values");
         colorSensorData.redValue = 0;
         colorSensorData.greenValue = 0;
         colorSensorData.blueValue = 0;
         return colorSensorData;
     }
     read_color_sensor();
-    Serial.printf("red%d\n", colorSensorData.redValue);
-    Serial.printf("green%d\n", colorSensorData.greenValue);
-    Serial.printf("blue%d\n", colorSensorData.blueValue);
+    // Serial.printf("red%d\n", colorSensorData.redValue);
+    // Serial.printf("green%d\n", colorSensorData.greenValue);
+    // Serial.printf("blue%d\n", colorSensorData.blueValue);
     return colorSensorData;
 }
