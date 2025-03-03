@@ -6,8 +6,11 @@
 #include "./include/wifi_manager.h"
 #include "./include/show_chip_info.h"
 #include "./include/sensor_loggers.h"
+#include "./include/encoder_manager.h"
+#include "./include/lab_demo_manager.h"
 #include "./include/webserver_manager.h"
 #include "./include/websocket_manager.h"
+#include "./include/send_data_to_server.h"
 
 // Task to handle sensors and user code on Core 0
 void SensorAndUserCodeTask(void * parameter) {
@@ -16,6 +19,7 @@ void SensorAndUserCodeTask(void * parameter) {
     // Initialize sensors on Core 0
     Serial.println("Initializing sensors on Core 0...");
     Sensors::getInstance();
+    EncoderManager::getInstance();
     Serial.println("Sensors initialized on Core 0");
 
     enableCore0WDT();
@@ -45,19 +49,19 @@ void NetworkTask(void * parameter) {
 
         if (WiFi.status() == WL_CONNECTED) {
             WebSocketManager::getInstance().pollWebSocket();
+            SendDataToServer::getInstance().sendSensorDataToServer();
         }
 
-        delay(200); // Similar to the original CHECK_INTERVAL
+        delay(100); // Similar to the original CHECK_INTERVAL
     }
 }
 
 // Main setup runs on Core 1
 void setup() {
     Serial.begin(115200);
+    // Only needed if we need to see the setup serial logs:
     delay(2000);
 
-    Serial.println(DEFAULT_ENVIRONMENT);
-    Serial.println(DEFAULT_PIP_ID);
     rgbLed.turn_led_off();
 
     // Create tasks for parallel execution

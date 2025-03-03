@@ -13,7 +13,7 @@ WiFiManager::WiFiManager() {
 
 void WiFiManager::initializeWiFi() {
     // Register event handler for WiFi events
-	// TODO: The wifi event handler isn't registering correctly.
+	// 1/10/25 TODO: The wifi event handler isn't registering correctly.
     esp_err_t err = esp_event_handler_instance_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &WiFiManager::onWiFiEvent, this, &wifi_event_instance);
     // if (err != ESP_OK) {
     //     Serial.print("Failed to register WiFi event handler. Error: ");

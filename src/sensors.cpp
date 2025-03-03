@@ -8,6 +8,7 @@ void Sensors::initialize() {
     // Initialize sensors
     // initializeTofSensors();
     // initializeIMU();
+    // initializeColorSensor();
 }
 
 void Sensors::initializeTofSensors() {
@@ -65,6 +66,16 @@ void Sensors::initializeIMU() {
         return;
     }
     Serial.println("IMU setup complete");
+}
+
+void Sensors::initializeColorSensor() {
+    Serial.println("Initializing Color Sensor...");
+
+    if (!colorSensor.initialize()) {
+        Serial.println("Color Sensor initialization failed");
+        return;
+    }
+    Serial.println("Color Sensor setup complete");
 }
 
 bool Sensors::getTofData(const VL53L5CX_ResultsData** leftData, const VL53L5CX_ResultsData** rightData) {
@@ -141,4 +152,8 @@ float Sensors::getMagneticFieldY() {
 
 float Sensors::getMagneticFieldZ() {
     return imu.getMagneticFieldZ();
+}
+
+ColorSensorData Sensors::getColorSensorData() {
+    return colorSensor.getSensorData();
 }
