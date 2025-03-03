@@ -30,6 +30,7 @@ void SensorAndUserCodeTask(void * parameter) {
         // leftTofLogger();
         // rightTofLogger();
         // imuLogger();
+        LabDemoManager::getInstance().processPendingCommands();
         user_code();
         delay(1);
     }
@@ -52,7 +53,7 @@ void NetworkTask(void * parameter) {
             SendDataToServer::getInstance().sendSensorDataToServer();
         }
 
-        delay(100); // Similar to the original CHECK_INTERVAL
+        delay(100);
     }
 }
 

@@ -6,6 +6,7 @@
 
 class EncoderManager : public Singleton<EncoderManager> {
     friend class Singleton<EncoderManager>;
+    friend class LabDemoManager;  // Add this line to allow LabDemoManager to access private members
 
     public:
         // Constructor
