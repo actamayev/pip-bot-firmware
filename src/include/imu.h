@@ -1,5 +1,4 @@
 #pragma once
-#include <Wire.h>
 #include <Adafruit_BNO08x.h>
 #include "./utils.h"
 #include "./config.h"

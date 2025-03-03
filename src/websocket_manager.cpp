@@ -53,7 +53,14 @@ void WebSocketManager::handleJsonMessage(WebsocketsMessage message) {
             if (eventType == "new-user-code-meta") {
                 handleFirmwareMetadata(json, tokenCount);
                 break;
-            } 
+            }
+            // else if (eventType == "start-sending-sensor-data") {
+            //     SendDataToServer::getInstance().sendSensorData = true;
+            //     break;
+            // } else if (eventType == "stop-sending-sensor-data") {
+            //     SendDataToServer::getInstance().sendSensorData = false;
+            //     break;
+            // } 
         }
     }
 }
@@ -203,9 +210,12 @@ void WebSocketManager::connectToWebSocket() {
 void WebSocketManager::sendInitialData() {
     Serial.println("WebSocket connected. Sending initial data...");
     StaticJsonDocument<SMALL_DOC_SIZE> initDoc;
-    initDoc["pipUUID"] = getPipID();
+    initDoc["route"] = "/register";
+    JsonObject payload = initDoc.createNestedObject("payload");
+    payload["pipUUID"] = getPipID();
     String jsonString;
     serializeJson(initDoc, jsonString);
+
     WiFi.mode(WIFI_STA);
     wsClient.send(jsonString);
 }

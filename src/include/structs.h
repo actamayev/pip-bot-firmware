@@ -55,3 +55,34 @@ struct MagnetometerData {
     float mX, mY, mZ;
     bool isValid = false;
 };
+
+struct WheelRPMs {
+    float leftWheelRPM;
+    float rightWheelRPM;
+};
+
+struct MuxChannel {
+    const char* name;
+    bool A;
+    bool B;
+    bool C;
+};
+
+// 2/27/25 TODO: Calibrate against black/white surfaces. See color_sensor_calibration project. Black/white values are used in the matrix method
+struct CalibrationValues {
+    float redRedValue;
+    float greenRedValue;
+    float blueRedValue;
+    float redGreenValue;
+    float greenGreenValue;
+    float blueGreenValue;
+    float redBlueValue;
+    float greenBlueValue;
+    float blueBlueValue;
+};
+
+struct ColorSensorData {
+    uint8_t redValue;
+    uint8_t greenValue;
+    uint8_t blueValue;
+};
