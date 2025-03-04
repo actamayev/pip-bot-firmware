@@ -12,15 +12,16 @@ extern const uint8_t I2C_SDA;
 extern const uint8_t I2C_SCL;
 extern const uint32_t I2C_CLOCK_SPEED;
 
-// TOF:
-extern const uint8_t LEFT_TOF_RESET_PIN;
-extern const uint8_t RIGHT_TOF_RESET_PIN;
+// Side TOF:
+extern int VCNL36828P_SlaveAddress;
+extern int I2C_Bus;
+extern int CalibValue;
+extern int AverageCount;
 
-// Unique I2C addresses for each sensor
-extern const uint8_t DEFAULT_TOF_I2C_ADDRESS;
-extern const uint8_t LEFT_TOF_ADDRESS;
-extern const uint8_t RIGHT_TOF_ADDRESS;
+extern const int SENSOR1_ADDRESS;
+extern const int SENSOR2_ADDRESS;
 
+// Multizone TOF
 extern const uint8_t TOF_IMAGE_RESOLUTION;
 extern const uint8_t TOF_RANGING_FREQUENCY;
 

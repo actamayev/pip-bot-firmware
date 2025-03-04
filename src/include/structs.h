@@ -86,3 +86,8 @@ struct ColorSensorData {
     uint8_t greenValue;
     uint8_t blueValue;
 };
+
+struct SideTofDistances {
+    uint16_t leftDistance;
+    uint16_t rightDistance;
+};
