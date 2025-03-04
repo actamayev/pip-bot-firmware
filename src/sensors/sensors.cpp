@@ -50,7 +50,7 @@ void Sensors::initializeSideTimeOfFlights() {
         return;
     }
     Serial.println("Initializing right side TOF...");
-    if (!rightSideTof.initialize(RIGHT_TOF_ADDRESS)) {
+    if (!rightSideTofSensor.initialize(RIGHT_TOF_ADDRESS)) {
         Serial.println("Color Sensor initialization failed");
         return;
     }
@@ -126,5 +126,5 @@ uint16_t Sensors::getLeftSideTofDistance() {
 }
 
 uint16_t Sensors::getRightSideTofDistance() {
-    return rightSideTof.getDistance();
+    return rightSideTofSensor.getDistance();
 }

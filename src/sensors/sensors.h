@@ -42,7 +42,7 @@ class Sensors : public Singleton<Sensors> {
         ImuSensor imu;
         MultizoneTofSensor multizoneTofSensor;
         SideTimeOfFlightSensor leftSideTofSensor;
-        SideTimeOfFlightSensor rightSideTof;
+        SideTimeOfFlightSensor rightSideTofSensor;
         ColorSensor colorSensor;
 
         // Private constructor
