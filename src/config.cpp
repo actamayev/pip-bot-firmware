@@ -13,14 +13,15 @@ const uint8_t I2C_SCL = 9;
 const uint32_t I2C_CLOCK_SPEED = 400 * 1000; // 400 kHz
 
 // TOF:
-const uint8_t RIGHT_TOF_RESET_PIN = 14;
-const uint8_t LEFT_TOF_RESET_PIN = 13;
+int VCNL36828P_SlaveAddress = 0x60; // Default address
+int I2C_Bus = 1;
+int CalibValue = 0;
+int AverageCount = 10;
 
-// Unique I2C addresses for each sensor
-const uint8_t DEFAULT_TOF_I2C_ADDRESS = 0x29;  // New address for right sensor
-const uint8_t RIGHT_TOF_ADDRESS = 0x44;  // New address for right sensor
-const uint8_t LEFT_TOF_ADDRESS = DEFAULT_TOF_I2C_ADDRESS;  // Default address for left sensor
+const int LEFT_TOF_ADDRESS = 0x60;
+const int RIGHT_TOF_ADDRESS = 0x51;
 
+// Multizone TOF
 const uint8_t TOF_IMAGE_RESOLUTION = 8;  // Image width (can be 4 or 8)
 const uint8_t TOF_RANGING_FREQUENCY = 15;  // TOF sampling frequency
 
@@ -90,7 +91,7 @@ const char* getEnvironment() {
 const char* getServerUrl() {
     const char* env = getEnvironment();
     if (env == nullptr || std::string(env) == "local") {
-        return "http://172.17.254.40:8080";  // local default
+        return "http://10.133.193.40:8080";  // local default
     } else if (std::string(env) == "staging") {
         return "staging-api.bluedotrobots.com";  // staging default
     }
@@ -100,7 +101,7 @@ const char* getServerUrl() {
 const char* getWsServerUrl() {
     const char* env = getEnvironment();
     if (env == nullptr || std::string(env) == "local") {
-        return "ws://172.17.254.40:8080/esp32";  // local default
+        return "ws://10.133.193.40:8080/esp32";  // local default
     } else if (std::string(env) == "staging") {
         return "wss://staging-api.bluedotrobots.com/esp32";  // staging default
     }

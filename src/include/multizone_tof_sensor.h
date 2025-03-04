@@ -2,9 +2,9 @@
 #include <SparkFun_VL53L5CX_Library.h>
 #include "./config.h"
 
-class TimeOfFlightSensor {
+class MultizoneTofSensor {
     public:
-        TimeOfFlightSensor() = default;
+        MultizoneTofSensor() = default;
 
         bool initialize();
         bool getTofData();
