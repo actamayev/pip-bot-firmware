@@ -1,16 +1,16 @@
 #include <esp32-hal-timer.h>
-#include "./include/config.h"
-#include "./include/rgb_led.h"
-#include "./include/sensors.h"
-#include "./include/user_code.h"
-#include "./include/wifi_manager.h"
-#include "./include/show_chip_info.h"
-#include "./include/sensor_loggers.h"
-#include "./include/encoder_manager.h"
-#include "./include/lab_demo_manager.h"
-#include "./include/webserver_manager.h"
-#include "./include/websocket_manager.h"
-#include "./include/send_data_to_server.h"
+#include "./utils/config.h"
+#include "./actuators/rgb_led.h"
+#include "./sensors/sensors.h"
+#include "./user_code/user_code.h"
+#include "./networking/wifi_manager.h"
+#include "./utils/show_chip_info.h"
+#include "./utils/sensor_loggers.h"
+#include "./sensors/encoder_manager.h"
+#include "./lab_demo/lab_demo_manager.h"
+#include "./networking/webserver_manager.h"
+#include "./networking/websocket_manager.h"
+#include "./networking/send_data_to_server.h"
 
 // Task to handle sensors and user code on Core 0
 void SensorAndUserCodeTask(void * parameter) {
@@ -27,9 +27,9 @@ void SensorAndUserCodeTask(void * parameter) {
     // Main sensor and user code loop
     for(;;) {
         // tofLogger();
-        // leftTofLogger();
-        // rightTofLogger();
         // imuLogger();
+        // sideTofsLogger();
+        LabDemoManager::getInstance().processPendingCommands();
         user_code();
         delay(1);
     }
@@ -52,7 +52,7 @@ void NetworkTask(void * parameter) {
             SendDataToServer::getInstance().sendSensorDataToServer();
         }
 
-        delay(100); // Similar to the original CHECK_INTERVAL
+        delay(100);
     }
 }
 
