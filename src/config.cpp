@@ -18,8 +18,8 @@ int I2C_Bus = 1;
 int CalibValue = 0;
 int AverageCount = 10;
 
-const int SENSOR1_ADDRESS = 0x60;
-const int SENSOR2_ADDRESS = 0x51;
+const int LEFT_TOF_ADDRESS = 0x60;
+const int RIGHT_TOF_ADDRESS = 0x51;
 
 // Multizone TOF
 const uint8_t TOF_IMAGE_RESOLUTION = 8;  // Image width (can be 4 or 8)

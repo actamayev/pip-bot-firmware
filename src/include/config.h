@@ -18,8 +18,8 @@ extern int I2C_Bus;
 extern int CalibValue;
 extern int AverageCount;
 
-extern const int SENSOR1_ADDRESS;
-extern const int SENSOR2_ADDRESS;
+extern const int LEFT_TOF_ADDRESS;
+extern const int RIGHT_TOF_ADDRESS;
 
 // Multizone TOF
 extern const uint8_t TOF_IMAGE_RESOLUTION;
