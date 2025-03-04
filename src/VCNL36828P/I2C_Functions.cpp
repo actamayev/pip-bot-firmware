@@ -146,7 +146,7 @@
 				*Quantity: the number of bytes to request. For Read Command, 2 Bytes are required.
 				*Stop : boolean. true (true as declared in i2c_t3.h/Wire.h) will send a stop message after the request, releasing the bus.
 				*/
-				Wire.requestFrom((uint8_t)Data->Slave_Address, (uint8_t)2, (bool)true);
+				Wire.requestFrom((int)Data->Slave_Address, (int)2, (int)1);
 
 				/*Step 6) Read data from slave.
 				*Wire.read() - Reads a byte that was transmitted from a slave device to a master after a call to requestFrom().
@@ -193,7 +193,7 @@
 				*Quantity: the number of bytes to request. For Read Command, 2 Bytes are required.
 				*Stop : boolean. true (true as declared in i2c_t3.h/Wire.h) will send a stop message after the request, releasing the bus.
 				*/
-				Wire.requestFrom((uint8_t)Data->Slave_Address, (uint8_t)2, (bool)true);
+				Wire.requestFrom((int)Data->Slave_Address, (int)2, (int)1);
 
 				/*Step 6) Read data from slave.
 				*Wire.read() - Reads a byte that was transmitted from a slave device to a master after a call to requestFrom().
