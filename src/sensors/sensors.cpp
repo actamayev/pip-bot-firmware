@@ -6,8 +6,7 @@ void Sensors::initialize() {
     Wire.begin(I2C_SDA, I2C_SCL, I2C_CLOCK_SPEED);
 
     // Initialize sensors
-    initializeMultizoneTof();
-    // initializeTofSensors();
+    // initializeMultizoneTof();
     // initializeIMU();
     // initializeColorSensor();
     // initializeSideTimeOfFlights();
@@ -45,12 +44,17 @@ void Sensors::initializeColorSensor() {
 }
 
 void Sensors::initializeSideTimeOfFlights() {
-    Serial.println("Initializing side TOFs...");
-    if (!sideTimeOfFlightSensors.initialize()) {
+    Serial.println("Initializing left side TOF...");
+    if (!leftSideTofSensor.initialize(LEFT_TOF_ADDRESS)) {
         Serial.println("Color Sensor initialization failed");
         return;
     }
-    Serial.println("Color Sensor setup complete");
+    Serial.println("Initializing right side TOF...");
+    if (!rightSideTof.initialize(RIGHT_TOF_ADDRESS)) {
+        Serial.println("Color Sensor initialization failed");
+        return;
+    }
+    Serial.println("Side TOF setup complete");
 }
 
 VL53L5CX_ResultsData Sensors::getMultizoneTofData() {
@@ -117,6 +121,10 @@ ColorSensorData Sensors::getColorSensorData() {
     return colorSensor.getSensorData();
 }
 
-SideTofDistances Sensors::getSideTofDistances() {
-    return sideTimeOfFlightSensors.getBothDistances();
+uint16_t Sensors::getLeftSideTofDistance() {
+    return leftSideTofSensor.getDistance();
+}
+
+uint16_t Sensors::getRightSideTofDistance() {
+    return rightSideTof.getDistance();
 }

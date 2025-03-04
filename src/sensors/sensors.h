@@ -4,7 +4,7 @@
 #include "../utils/singleton.h"
 #include "./color_sensor.h"
 #include "./multizone_tof_sensor.h"
-#include "./side_time_of_flight_sensors.h"
+#include "./side_time_of_flight_sensor.h"
 
 class Sensors : public Singleton<Sensors> {
     friend class Singleton<Sensors>;
@@ -36,11 +36,13 @@ class Sensors : public Singleton<Sensors> {
         ColorSensorData getColorSensorData();
 
         // Side TOFs:
-        SideTofDistances getSideTofDistances();
+        uint16_t getLeftSideTofDistance();
+        uint16_t getRightSideTofDistance();
     private:
         ImuSensor imu;
         MultizoneTofSensor multizoneTofSensor;
-        SideTimeOfFlightSensors sideTimeOfFlightSensors;
+        SideTimeOfFlightSensor leftSideTofSensor;
+        SideTimeOfFlightSensor rightSideTof;
         ColorSensor colorSensor;
 
         // Private constructor

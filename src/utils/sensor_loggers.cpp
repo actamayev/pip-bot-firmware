@@ -51,12 +51,16 @@ void sideTofsLogger() {
     const unsigned long PRINT_INTERVAL = 500; // Print every 500ms
     
     if (millis() - lastPrintTime >= PRINT_INTERVAL) {
-        SideTofDistances sideTofDistances = Sensors::getInstance().getSideTofDistances();
+        uint16_t leftTofDistance = Sensors::getInstance().getLeftSideTofDistance();
+        uint16_t rightTofDistance = Sensors::getInstance().getRightSideTofDistance();
 
-        Serial.println("Left TOF Distance");
-        Serial.print(sideTofDistances.leftDistance, 1);
-        Serial.println("Right TOF Distance: ");
-        Serial.print(sideTofDistances.rightDistance, 1);
+        // Print side by side with alignment
+        Serial.print("Left TOF: ");
+        Serial.print(leftTofDistance);
+        Serial.print(" mm              || Right TOF: ");
+        Serial.print(rightTofDistance);
+        Serial.println(" mm");
+        
         lastPrintTime = millis();
     }
 }
