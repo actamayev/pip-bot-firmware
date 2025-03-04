@@ -3,6 +3,10 @@
 bool MultizoneTofSensor::initialize() {
     Serial.println("Initializing TOF sensor...");
 
+    if (sensor.begin() == false) {
+      Serial.println(F("Sensor not found - check your wiring"));
+      return false;
+    }
     sensor.setResolution(TOF_IMAGE_RESOLUTION * TOF_IMAGE_RESOLUTION);
     sensor.setRangingFrequency(TOF_RANGING_FREQUENCY);
 
@@ -13,11 +17,14 @@ bool MultizoneTofSensor::initialize() {
     return true;
 }
 
-bool MultizoneTofSensor::getTofData() {
-    if (sensor.isDataReady()) {
-        return sensor.getRangingData(&sensorData);
-    }
-    return false;
+void MultizoneTofSensor::measureDistance() {
+    if (!sensor.isDataReady()) return;
+    sensor.getRangingData(&sensorData);
+}
+
+VL53L5CX_ResultsData MultizoneTofSensor::getTofData() {
+    measureDistance();
+    return sensorData;
 }
 
 void MultizoneTofSensor::startRanging() {

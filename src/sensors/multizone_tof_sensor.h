@@ -7,11 +7,13 @@ class MultizoneTofSensor {
         MultizoneTofSensor() = default;
 
         bool initialize();
-        bool getTofData();
-
-        VL53L5CX_ResultsData sensorData;
+        VL53L5CX_ResultsData getTofData();
 
         void startRanging();
         void stopRanging();
+
+    private:
         SparkFun_VL53L5CX sensor;
+        void measureDistance();
+        VL53L5CX_ResultsData sensorData;
 };

@@ -10,8 +10,8 @@ class Sensors : public Singleton<Sensors> {
     friend class Singleton<Sensors>;
 
     public:
-        // TOF methods
-        // bool getTofData(const VL53L5CX_ResultsData** leftData, const VL53L5CX_ResultsData** rightData);
+        // Multizone TOF methods
+        VL53L5CX_ResultsData getMultizoneTofData();
 
         // IMU methods
         EulerAngles& getEulerAngles();
@@ -39,8 +39,8 @@ class Sensors : public Singleton<Sensors> {
         SideTofDistances getSideTofDistances();
     private:
         ImuSensor imu;
+        MultizoneTofSensor multizoneTofSensor;
         SideTimeOfFlightSensors sideTimeOfFlightSensors;
-
         ColorSensor colorSensor;
 
         // Private constructor
@@ -49,7 +49,7 @@ class Sensors : public Singleton<Sensors> {
         }
 
         void initialize();
-        // void initializeTofSensors();
+        void initializeMultizoneTof();
         void initializeIMU();
         void initializeColorSensor();
         void initializeSideTimeOfFlights();
