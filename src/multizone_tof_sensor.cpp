@@ -1,6 +1,6 @@
-#include "./include/time_of_flight_sensor.h"
+#include "./include/multizone_tof_sensor.h"
 
-bool TimeOfFlightSensor::initialize() {
+bool MultizoneTofSensor::initialize() {
     Serial.println("Initializing TOF sensor...");
 
     sensor.setResolution(TOF_IMAGE_RESOLUTION * TOF_IMAGE_RESOLUTION);
@@ -13,18 +13,18 @@ bool TimeOfFlightSensor::initialize() {
     return true;
 }
 
-bool TimeOfFlightSensor::getTofData() {
+bool MultizoneTofSensor::getTofData() {
     if (sensor.isDataReady()) {
         return sensor.getRangingData(&sensorData);
     }
     return false;
 }
 
-void TimeOfFlightSensor::startRanging() {
+void MultizoneTofSensor::startRanging() {
     Serial.println("starting to range");
     sensor.startRanging();
 }
 
-void TimeOfFlightSensor::stopRanging() {
+void MultizoneTofSensor::stopRanging() {
     sensor.stopRanging();
 }

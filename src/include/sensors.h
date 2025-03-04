@@ -3,7 +3,7 @@
 #include "./config.h"
 #include "./singleton.h"
 #include "./color_sensor.h"
-#include "./time_of_flight_sensor.h"
+#include "./multizone_tof_sensor.h"
 #include "./side_time_of_flight_sensors.h"
 
 class Sensors : public Singleton<Sensors> {
