@@ -76,75 +76,71 @@ void Print_Data_Only()
 	char   TransmitBuffer[TRANSMIT_BUFFER_SIZE];
 	char   TransmitBuffer2[TRANSMIT_BUFFER_SIZE];
 
-	#ifdef Arduino
+	Serial.println(">>>>>>>>>>>>>>>>>>>>>>>>PS<<<<<<<<<<<<<<<<<<<<<<<<<");
+	delay(50);
 
-		Serial.println(">>>>>>>>>>>>>>>>>>>>>>>>PS<<<<<<<<<<<<<<<<<<<<<<<<<");
+	//Print Proximity Data
+	//Set Trigger for the AF Mode + Associated delay due to IT
+	if(VCNL36828P_GET_PS_MODE_Bit() == 1)
+	{
+		//Set trigger to start a measurement
+		VCNL36828P_SET_PS_TRIG(VCNL36828P_PS_TRIG_EN);
+
+		//Delay of PS Measurement + other Circuit Delay
 		delay(50);
+	}
 
-		//Print Proximity Data
-		//Set Trigger for the AF Mode + Associated delay due to IT
-		if(VCNL36828P_GET_PS_MODE_Bit() == 1)
-		{
-			//Set trigger to start a measurement
-			VCNL36828P_SET_PS_TRIG(VCNL36828P_PS_TRIG_EN);
-
-			//Delay of PS Measurement + other Circuit Delay
-			delay(50);
-		}
-
-		//Delay for Auto Mode + Associated delay due to IT
-		if(VCNL36828P_GET_PS_MODE_Bit() == 0)
-		{
-			//Delay of PS Measurement + other Circuit Delay
-			delay(50);
-		}
-
-		if(VCNL36828P_SlaveAddress == 0x60)
-		{
-			Serial.println(">>>>>>>>>>>>>>>>>Sensor 1 - 0x60<<<<<<<<<<<<<<<<<<<");
-			delay(50);
-		}
-
-		if(VCNL36828P_SlaveAddress == 0x51)
-		{
-			Serial.println(">>>>>>>>>>>>>>>>>Sensor 2 - 0x51<<<<<<<<<<<<<<<<<<<");
-			delay(50);
-		}
-
-		value = VCNL36828P_GET_ID();
-		Serial.print(">>>>>>>ID : 0x");
-		Serial.print(value,HEX);
-		Serial.println("<<<<<<<<");
+	//Delay for Auto Mode + Associated delay due to IT
+	if(VCNL36828P_GET_PS_MODE_Bit() == 0)
+	{
+		//Delay of PS Measurement + other Circuit Delay
 		delay(50);
+	}
 
-		value = VCNL36828P_READ_REG(VCNL36828P_PS_DATA);
-		Serial.print(">>>>>>>Proximity Data : ");
-		Serial.print(value,DEC);
-		Serial.println(" Counts<<<<<<<<");
+	if(VCNL36828P_SlaveAddress == 0x60)
+	{
+		Serial.println(">>>>>>>>>>>>>>>>>Sensor 1 - 0x60<<<<<<<<<<<<<<<<<<<");
 		delay(50);
+	}
 
-		//Print the Interrupt Flag
-		Serial.println("***************************************************");
+	if(VCNL36828P_SlaveAddress == 0x51)
+	{
+		Serial.println(">>>>>>>>>>>>>>>>>Sensor 2 - 0x51<<<<<<<<<<<<<<<<<<<");
 		delay(50);
+	}
 
-		//Print the Interrupt Flag
-		value = VCNL36828P_GET_INT_FLAG();
-		Serial.print(">>>>>>>Interrupt Flag : 0x");
-		Serial.print(value,HEX);
-		Serial.println("<<<<<<<<");
-		delay(50);
+	value = VCNL36828P_GET_ID();
+	Serial.print(">>>>>>>ID : 0x");
+	Serial.print(value,HEX);
+	Serial.println("<<<<<<<<");
+	delay(50);
 
-		Serial.println("***************************************************");
-		delay(50);
+	value = VCNL36828P_READ_REG(VCNL36828P_PS_DATA);
+	Serial.print(">>>>>>>Proximity Data : ");
+	Serial.print(value,DEC);
+	Serial.println(" Counts<<<<<<<<");
+	delay(50);
 
-		Serial.println(" ");
-		delay(50);
+	//Print the Interrupt Flag
+	Serial.println("***************************************************");
+	delay(50);
 
-		Serial.println(" ");
+	//Print the Interrupt Flag
+	value = VCNL36828P_GET_INT_FLAG();
+	Serial.print(">>>>>>>Interrupt Flag : 0x");
+	Serial.print(value,HEX);
+	Serial.println("<<<<<<<<");
+	delay(50);
 
-		delay(1000);
+	Serial.println("***************************************************");
+	delay(50);
 
-	#endif
+	Serial.println(" ");
+	delay(50);
+
+	Serial.println(" ");
+
+	delay(1000);
 }
 
 
@@ -161,21 +157,16 @@ void Print_Variable_DEC(Word Var)
 	char   TransmitBuffer[TRANSMIT_BUFFER_SIZE];
 	char   TransmitBuffer2[TRANSMIT_BUFFER_SIZE];
 
-	#ifdef Arduino
+	Serial.println("***************************************************");
+	delay(50);
 
-		Serial.println("***************************************************");
-		delay(50);
+	Serial.print(">>>>>>>Variable : 0d");
+	Serial.println(Var,DEC);
+	delay(50);
 
-		Serial.print(">>>>>>>Variable : 0d");
-		Serial.println(Var,DEC);
-		delay(50);
+	Serial.println("***************************************************");
 
-		Serial.println("***************************************************");
-
-		delay(2000);
-
-	#endif
-
+	delay(2000);
 
 }
 
@@ -192,20 +183,16 @@ void Print_Variable_HEX(Word Var)
 	char   TransmitBuffer[TRANSMIT_BUFFER_SIZE];
 	char   TransmitBuffer2[TRANSMIT_BUFFER_SIZE];
 
-	#ifdef Arduino
+	Serial.println("***************************************************");
+	delay(50);
 
-		Serial.println("***************************************************");
-		delay(50);
+	Serial.print(">>>>>>>Variable : 0d");
+	Serial.println(Var,DEC);
+	delay(50);
 
-		Serial.print(">>>>>>>Variable : 0d");
-		Serial.println(Var,DEC);
-		delay(50);
+	Serial.println("***************************************************");
 
-		Serial.println("***************************************************");
-
-		delay(2000);
-
-	#endif
+	delay(2000);
 
 }
 
