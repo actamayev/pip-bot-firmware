@@ -260,6 +260,11 @@ void WebSocketManager::processChunk(uint8_t* chunkData, size_t chunkDataLength,
 }
 
 void WebSocketManager::pollWebSocket() {
+    unsigned long currentTime = millis();
+    if (currentTime - lastPollTime < POLL_INTERVAL) return;
+    
+    lastPollTime = currentTime;
+    
     if (WiFi.status() != WL_CONNECTED) {
         Serial.println("WiFi disconnected, cannot poll WebSocket");
         return;

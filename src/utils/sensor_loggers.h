@@ -1,5 +1,5 @@
 #pragma once
 
-void tofLogger();
+void multizoneTofLogger();
 void imuLogger();
 void sideTofsLogger();
