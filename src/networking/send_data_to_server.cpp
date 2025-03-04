@@ -37,6 +37,11 @@ void SendDataToServer::attachColorSensorData(JsonObject& payload) {
 void SendDataToServer::sendSensorDataToServer() {
     if (!sendSensorData) return;
 
+    unsigned long currentTime = millis();
+    if (currentTime - lastSendTime < SEND_INTERVAL) return;
+    
+    lastSendTime = currentTime;
+
     // Create a JSON document with both routing information and payload
     StaticJsonDocument<256> doc;
 

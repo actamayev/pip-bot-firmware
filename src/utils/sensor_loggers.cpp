@@ -1,45 +1,27 @@
 #include "../sensors/sensors.h"
 #include "./utils.h"
 
-// void tofLogger() {
-//     static unsigned long lastPrintTime = 0;
-//     const unsigned long PRINT_INTERVAL = 1000; // Print every second
+void multizoneTofLogger() {
+    static unsigned long lastPrintTime = 0;
+    const unsigned long PRINT_INTERVAL = 1000; // Print every second
 
-//     if (millis() - lastPrintTime >= PRINT_INTERVAL) {
-//         auto& sensors = Sensors::getInstance();
-//         const VL53L5CX_ResultsData* leftData;
-//         const VL53L5CX_ResultsData* rightData;
+    if (millis() - lastPrintTime >= PRINT_INTERVAL) {
+        auto& sensors = Sensors::getInstance();
+        // Option 1: If getMultizoneTofData() returns a struct (not a pointer)
+        VL53L5CX_ResultsData multizoneTofData = sensors.getMultizoneTofData();
+        for (int y = 0; y <= TOF_IMAGE_RESOLUTION * (TOF_IMAGE_RESOLUTION - 1); y += TOF_IMAGE_RESOLUTION) {
+            // Print left sensor data
+            for (int x = TOF_IMAGE_RESOLUTION - 1; x >= 0; x--) {
+                Serial.print("\t");
+                Serial.print(multizoneTofData.distance_mm[x + y]);
+            }
+            
+            Serial.print("\t|\t"); // Separator between left and right data
+        }
 
-//         if (sensors.getTofData(&leftData, &rightData)) {
-//             // Print in 8x8 grid format
-//             const int imageWidth = 8;
-//             Serial.println("\nDistance readings (mm):");
-//             Serial.println("Left Sensor\t\t\t\t\t\t\t\t|\tRight Sensor");
-//             Serial.println("--------------------------------------------------------------------------------");
-
-//             for (int y = 0; y <= imageWidth * (imageWidth - 1); y += imageWidth) {
-//                 // Print left sensor data
-//                 for (int x = imageWidth - 1; x >= 0; x--) {
-//                     Serial.print("\t");
-//                     Serial.print(leftData->distance_mm[x + y]);
-//                 }
-                
-//                 Serial.print("\t|\t"); // Separator between left and right data
-                
-//                 // Print right sensor data
-//                 for (int x = imageWidth - 1; x >= 0; x--) {
-//                     Serial.print("\t");
-//                     Serial.print(rightData->distance_mm[x + y]);
-//                 }
-//                 Serial.println();
-//             }
-//         } else {
-//             Serial.println("Failed to get TOF data");
-//         }
-
-//         lastPrintTime = millis();
-//     }
-// }
+        lastPrintTime = millis();
+    }
+}
 
 void imuLogger() {
     static unsigned long lastImuPrintTime = 0;
@@ -69,12 +51,16 @@ void sideTofsLogger() {
     const unsigned long PRINT_INTERVAL = 500; // Print every 500ms
     
     if (millis() - lastPrintTime >= PRINT_INTERVAL) {
-        SideTofDistances sideTofDistances = Sensors::getInstance().getSideTofDistances();
+        uint16_t leftTofDistance = Sensors::getInstance().getLeftSideTofDistance();
+        uint16_t rightTofDistance = Sensors::getInstance().getRightSideTofDistance();
 
-        Serial.println("Left TOF Distance");
-        Serial.print(sideTofDistances.leftDistance, 1);
-        Serial.println("Right TOF Distance: ");
-        Serial.print(sideTofDistances.rightDistance, 1);
+        // Print side by side with alignment
+        Serial.print("Left TOF: ");
+        Serial.print(leftTofDistance);
+        Serial.print(" mm              || Right TOF: ");
+        Serial.print(rightTofDistance);
+        Serial.println(" mm");
+        
         lastPrintTime = millis();
     }
 }

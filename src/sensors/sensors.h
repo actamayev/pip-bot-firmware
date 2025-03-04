@@ -4,14 +4,14 @@
 #include "../utils/singleton.h"
 #include "./color_sensor.h"
 #include "./multizone_tof_sensor.h"
-#include "./side_time_of_flight_sensors.h"
+#include "./side_time_of_flight_sensor.h"
 
 class Sensors : public Singleton<Sensors> {
     friend class Singleton<Sensors>;
 
     public:
-        // TOF methods
-        // bool getTofData(const VL53L5CX_ResultsData** leftData, const VL53L5CX_ResultsData** rightData);
+        // Multizone TOF methods
+        VL53L5CX_ResultsData getMultizoneTofData();
 
         // IMU methods
         EulerAngles& getEulerAngles();
@@ -36,11 +36,13 @@ class Sensors : public Singleton<Sensors> {
         ColorSensorData getColorSensorData();
 
         // Side TOFs:
-        SideTofDistances getSideTofDistances();
+        uint16_t getLeftSideTofDistance();
+        uint16_t getRightSideTofDistance();
     private:
         ImuSensor imu;
-        SideTimeOfFlightSensors sideTimeOfFlightSensors;
-
+        MultizoneTofSensor multizoneTofSensor;
+        SideTimeOfFlightSensor leftSideTofSensor;
+        SideTimeOfFlightSensor rightSideTofSensor;
         ColorSensor colorSensor;
 
         // Private constructor
@@ -49,7 +51,7 @@ class Sensors : public Singleton<Sensors> {
         }
 
         void initialize();
-        // void initializeTofSensors();
+        void initializeMultizoneTof();
         void initializeIMU();
         void initializeColorSensor();
         void initializeSideTimeOfFlights();

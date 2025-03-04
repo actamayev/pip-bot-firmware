@@ -62,4 +62,7 @@ class WebSocketManager : public Singleton<WebSocketManager> {
         unsigned long startAttemptTime;
         bool connected;
         void sendInitialData();
+
+        unsigned long lastPollTime = 0;
+        const unsigned long POLL_INTERVAL = 50; // Poll every 50ms
 };

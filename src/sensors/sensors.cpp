@@ -6,58 +6,22 @@ void Sensors::initialize() {
     Wire.begin(I2C_SDA, I2C_SCL, I2C_CLOCK_SPEED);
 
     // Initialize sensors
-    // initializeTofSensors();
+    // initializeMultizoneTof();
     // initializeIMU();
     // initializeColorSensor();
     // initializeSideTimeOfFlights();
 }
 
-// void Sensors::initializeTofSensors() {
-//     pinMode(LEFT_TOF_RESET_PIN, OUTPUT);
-//     digitalWrite(LEFT_TOF_RESET_PIN, HIGH);
+void Sensors::initializeMultizoneTof() {
+    Serial.println("Initializing Multizone sensor...");
 
-//     pinMode(RIGHT_TOF_RESET_PIN, OUTPUT);
-//     digitalWrite(RIGHT_TOF_RESET_PIN, HIGH);
+    if (!multizoneTofSensor.initialize()) {
+        Serial.println("Multizone sensor initialization failed");
+        return;
+    }
 
-//     delay(100);
-//     digitalWrite(RIGHT_TOF_RESET_PIN, LOW); //Right sensor should now be available at default address 0x29
-
-//     // TODO 12/25/24: If the ESP is reset (reset button is pressed) while it is doing i2c re-addressing, the Left tof sometimes either:
-//     // 1. re-addresses to a non 0x29 pin addr, or isn't picked up at all by the i2c line. Best solution i've found has been to unplug the esp and wait until the addreses get reset, or kill power to right tof's avdd/iovdd 
-//     bool isRegisteredAlready = check_address_on_i2c_line(RIGHT_TOF_ADDRESS);
-//     byte imager1Addr = DEFAULT_TOF_I2C_ADDRESS;
-//     if (isRegisteredAlready == true) {
-//         imager1Addr = RIGHT_TOF_ADDRESS;
-//     }
-//     Serial.println(F("Initializing right sensor. This can take up to 10s. Please wait."));
-//     if (rightTof.sensor.begin(imager1Addr) == false) {
-//         Serial.println(F("Right sensor not found. Check wiring. Freezing..."));
-//         while (1);
-//     }
-
-//     if (isRegisteredAlready == false) {
-//         Serial.print(F("Setting right sensor address to: 0x"));
-//         Serial.println(RIGHT_TOF_ADDRESS, HEX);
-
-//         if (rightTof.sensor.setAddress(RIGHT_TOF_ADDRESS) == false) {
-//             Serial.println(F("Right sensor failed to set new address. Please try again. Freezing..."));
-//             while (1);
-//         }
-//     }
-
-//     digitalWrite(LEFT_TOF_RESET_PIN, LOW); //Release left sensor from reset
-
-//     delay(100);
-//     scanI2C();
-//     Serial.println(F("Initializing left sensor. This can take up to 10s. Please wait."));
-//     if (leftTof.sensor.begin() == false) {
-//         Serial.println(F("Left Sensor not found. Check wiring. Freezing..."));
-//         while (1);
-//     }
-
-//     rightTof.initialize();
-//     leftTof.initialize();
-// }
+    Serial.println("Multizone sensor setup complete");
+}
 
 void Sensors::initializeIMU() {
     Serial.println("Initializing IMU...");
@@ -80,21 +44,22 @@ void Sensors::initializeColorSensor() {
 }
 
 void Sensors::initializeSideTimeOfFlights() {
-    Serial.println("Initializing side TOFs...");
-    if (!sideTimeOfFlightSensors.initialize()) {
+    Serial.println("Initializing left side TOF...");
+    if (!leftSideTofSensor.initialize(LEFT_TOF_ADDRESS)) {
         Serial.println("Color Sensor initialization failed");
         return;
     }
-    Serial.println("Color Sensor setup complete");
+    Serial.println("Initializing right side TOF...");
+    if (!rightSideTofSensor.initialize(RIGHT_TOF_ADDRESS)) {
+        Serial.println("Color Sensor initialization failed");
+        return;
+    }
+    Serial.println("Side TOF setup complete");
 }
 
-// const TofData& Sensors::getLeftTofData() {
-//     return leftTof.getTofData();
-// }
-
-// const TofData& Sensors::getRightTofData() {
-//     return rightTof.getTofData();
-// }
+VL53L5CX_ResultsData Sensors::getMultizoneTofData() {
+    return multizoneTofSensor.getTofData();
+}
 
 EulerAngles& Sensors::getEulerAngles() {
     return imu.getEulerAngles();
@@ -156,6 +121,10 @@ ColorSensorData Sensors::getColorSensorData() {
     return colorSensor.getSensorData();
 }
 
-SideTofDistances Sensors::getSideTofDistances() {
-    return sideTimeOfFlightSensors.getBothDistances();
+uint16_t Sensors::getLeftSideTofDistance() {
+    return leftSideTofSensor.getDistance();
+}
+
+uint16_t Sensors::getRightSideTofDistance() {
+    return rightSideTofSensor.getDistance();
 }

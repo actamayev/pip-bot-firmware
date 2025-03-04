@@ -45,14 +45,17 @@ void NetworkTask(void * parameter) {
 
     // Main network loop
     for(;;) {
+        // Always process web server requests without delay
         WebServerManager::getInstance().handleClientRequests();
 
         if (WiFi.status() == WL_CONNECTED) {
+            // Other network operations can use internal timing
             WebSocketManager::getInstance().pollWebSocket();
             SendDataToServer::getInstance().sendSensorDataToServer();
         }
 
-        delay(100);
+        // Short delay to yield to other tasks
+        delay(5); // Just enough delay to prevent hogging the CPU
     }
 }
 
