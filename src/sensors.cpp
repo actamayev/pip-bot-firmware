@@ -9,7 +9,7 @@ void Sensors::initialize() {
     // initializeTofSensors();
     // initializeIMU();
     // initializeColorSensor();
-    initializeSideTimeOfFlights();
+    // initializeSideTimeOfFlights();
 }
 
 // void Sensors::initializeTofSensors() {

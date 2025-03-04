@@ -28,7 +28,7 @@ void SensorAndUserCodeTask(void * parameter) {
     for(;;) {
         // tofLogger();
         // imuLogger();
-        sideTofsLogger();
+        // sideTofsLogger();
         LabDemoManager::getInstance().processPendingCommands();
         user_code();
         delay(1);
