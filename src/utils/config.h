@@ -12,16 +12,16 @@ extern const uint8_t I2C_SDA;
 extern const uint8_t I2C_SCL;
 extern const uint32_t I2C_CLOCK_SPEED;
 
-// Side TOF:
+// Side TOFs:
 extern int VCNL36828P_SlaveAddress;
 extern int I2C_Bus;
 extern int CalibValue;
 extern int AverageCount;
-
 extern const int LEFT_TOF_ADDRESS;
 extern const int RIGHT_TOF_ADDRESS;
 
 // Multizone TOF
+extern int MULTIZONE_TOF_ADDRESS;
 extern const uint8_t TOF_IMAGE_RESOLUTION;
 extern const uint8_t TOF_RANGING_FREQUENCY;
 
