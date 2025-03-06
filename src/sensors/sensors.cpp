@@ -5,7 +5,7 @@ void Sensors::initialize() {
     // Setup I2C
 
     // Initialize sensors
-    // initializeMultizoneTof();
+    initializeMultizoneTof();
     // initializeIMU();
     // initializeColorSensor();
     initializeSideTimeOfFlights();
