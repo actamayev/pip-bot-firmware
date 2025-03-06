@@ -13,10 +13,9 @@ bool DisplayScreen::init(TwoWire& wire) {
     }
 
     initialized = true;
-    
-    // Clear the buffer
-    display.clearDisplay();
-    
+
+    clear();
+
     // Start the startup sequence
     showStartScreen();
     
@@ -26,9 +25,7 @@ bool DisplayScreen::init(TwoWire& wire) {
 
 // Main update method - call this in the task loop
 void DisplayScreen::update() {
-    if (!initialized) {
-        return;
-    }
+    if (!initialized) return;
     
     unsigned long currentTime = millis();
     
@@ -40,7 +37,7 @@ void DisplayScreen::update() {
             redrawStartScreen = true; // Redraw without animation when done
         } else {
             // During the startup animation, update the car position frequently
-            if (currentTime - lastUpdateTime >= 33) { // ~30fps for smooth animation
+            if (currentTime - lastUpdateTime >= UPDATE_INTERVAL) { // ~30fps for smooth animation
                 lastUpdateTime = currentTime;
                 showStartScreen(false); // Update animation without resetting timer
             }
@@ -72,11 +69,11 @@ void DisplayScreen::showStartScreen(bool resetTimer) {
         isShowingStartScreen = true;
         redrawStartScreen = false;
     }
-    
+
     // For animation, calculate car position based on elapsed time
     unsigned long currentTime = millis();
     int carPosition = -20; // Default position if not animating
-    
+
     if (isShowingStartScreen) {
         // Calculate elapsed time (handle millis() overflow)
         unsigned long elapsedTime = (currentTime >= startScreenStartTime) ? 
@@ -88,7 +85,7 @@ void DisplayScreen::showStartScreen(bool resetTimer) {
         float progress = (float)elapsedTime / START_SCREEN_DURATION;
         carPosition = -20 + progress * (SCREEN_WIDTH + 40);
     }
-    
+
     clear();
     
     // Draw border
@@ -116,7 +113,7 @@ void DisplayScreen::showDistanceSensors(SideTofDistances sideTofDistances) {
     if (!initialized || isShowingStartScreen) return;
 
     customScreenActive = true;
-    
+
     clear();
     
     // Draw border
@@ -171,28 +168,4 @@ void DisplayScreen::drawCenteredText(const String& text, int y, int size) {
     display.setCursor((SCREEN_WIDTH - w) / 2, y);
     
     display.println(text);
-}
-
-// Draw a progress bar
-void DisplayScreen::drawProgressBar(int progress, int y) {
-    if (!initialized) return;
-    // progress should be 0-100
-    progress = constrain(progress, 0, 100);
-    
-    // Draw the progress bar border
-    display.drawRect(0, y, SCREEN_WIDTH, 10, SSD1306_WHITE);
-    
-    // Fill the progress bar
-    int fillWidth = (progress * (SCREEN_WIDTH - 4)) / 100;
-    display.fillRect(2, y + 2, fillWidth, 6, SSD1306_WHITE);
-    
-    // Display the percentage
-    drawCenteredText(String(progress) + "%", y + 20, 1);
-}
-
-// Reset to start screen
-void DisplayScreen::resetToStartScreen() {
-    if (!initialized) return;
-    customScreenActive = false;
-    redrawStartScreen = true;
 }

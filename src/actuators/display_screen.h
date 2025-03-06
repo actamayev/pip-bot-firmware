@@ -15,24 +15,8 @@ class DisplayScreen: public Singleton<DisplayScreen> {
         
         // Main update method to call in the task loop
         void update();
-        
-        // Screen display methods
-        void showStartScreen(bool resetTimer = true);
+
         void showDistanceSensors(SideTofDistances sideTofDistances);
-        void resetToStartScreen();
-        
-        // Drawing utilities
-        void clear();
-        void drawText(const String& text, int x, int y, int size = 1);
-        void drawCenteredText(const String& text, int y, int size = 1);
-        void drawProgressBar(int progress, int y);
-        
-        // Status checks
-        bool isInitialized() const { return initialized; }
-        bool isStartupComplete() const { return !isShowingStartScreen; }
-        
-        // Get access to the underlying display object if needed
-        Adafruit_SSD1306* getDisplay() { return &display; }
 
     private:
         // Private constructor for singleton
@@ -46,7 +30,15 @@ class DisplayScreen: public Singleton<DisplayScreen> {
         
         // Helper method
         void renderDisplay();
-        
+
+        // Drawing utilities
+        void clear();
+        void drawText(const String& text, int x, int y, int size = 1);
+        void drawCenteredText(const String& text, int y, int size = 1);
+
+        // Screen display methods
+        void showStartScreen(bool resetTimer = true);
+
         // Display object
         Adafruit_SSD1306 display = Adafruit_SSD1306(SCREEN_WIDTH, SCREEN_HEIGHT, nullptr, OLED_RESET);
         
@@ -59,7 +51,7 @@ class DisplayScreen: public Singleton<DisplayScreen> {
         // Timing management
         unsigned long lastUpdateTime;
         unsigned long startScreenStartTime;
-        
+
         // Constants
         static const unsigned long START_SCREEN_DURATION = 2000;  // 2 seconds
         static const unsigned long UPDATE_INTERVAL = 50;          // 50ms (20fps)
