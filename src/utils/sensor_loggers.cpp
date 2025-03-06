@@ -52,11 +52,11 @@ void sideTofsLogger() {
     DisplayScreen::getInstance().showDistanceSensors(tofDistances);
 
     // Print side by side with alignment
-    Serial.print("Left TOF: ");
-    Serial.print(tofDistances.leftDistance);
-    Serial.print(" mm              || Right TOF: ");
-    Serial.print(tofDistances.rightDistance);
-    Serial.println(" mm");
+    // Serial.print("Left TOF: ");
+    // Serial.print(tofDistances.leftDistance);
+    // Serial.print(" mm              || Right TOF: ");
+    // Serial.print(tofDistances.rightDistance);
+    // Serial.println(" mm");
     
     lastPrintTime = millis();
 }

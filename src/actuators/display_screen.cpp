@@ -92,15 +92,15 @@ void DisplayScreen::showDistanceSensors(SideTofDistances sideTofDistances) {
     
     // Title
     drawCenteredText("Distance Sensors", 5, 1);
-    
-    // Left sensor
+
+    // Left sensor - use String(value) without decimal places
     drawText("Left:", 10, 25, 1);
-    drawText(String(sideTofDistances.leftDistance, 1) + " cm", 50, 25, 1);
-    
-    // Right sensor
+    drawText(String(sideTofDistances.leftDistance) + " mm", 50, 25, 1);
+
+    // Right sensor - use String(value) without decimal places
     drawText("Right:", 10, 40, 1);
-    drawText(String(sideTofDistances.rightDistance, 1) + " cm", 50, 40, 1);
-    
+    drawText(String(sideTofDistances.rightDistance) + " mm", 50, 40, 1);
+
     renderDisplay();
 }
 
