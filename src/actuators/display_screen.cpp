@@ -81,8 +81,9 @@ void DisplayScreen::showStartScreen(bool resetTimer) {
 
 // Show ToF sensor distances
 void DisplayScreen::showDistanceSensors(SideTofDistances sideTofDistances) {
-    if (!initialized) return;
-    
+    // If we're still showing the start screen, don't show anything yet
+    if (!initialized || isShowingStartScreen) return;
+
     customScreenActive = true;
     
     clear();

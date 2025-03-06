@@ -9,7 +9,7 @@
 
 class DisplayScreen: public Singleton<DisplayScreen> {
     friend class Singleton<DisplayScreen>;  // Allow Singleton to access private constructor
-    
+
     public:
         // Explicit initialization with Wire reference
         bool init(TwoWire& wire);
