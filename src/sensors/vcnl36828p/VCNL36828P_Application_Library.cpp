@@ -12,63 +12,59 @@
 #include "./VCNL36828P.h"
 #include "./I2C_Functions.h"
 
-extern int I2C_Bus;
-extern int VCNL36828P_SlaveAddress;
-
 //****************************************************************************************************
 //***************************************Application API**********************************************
 
 //Reset the Sensor to the default value
-void Reset_Sensor()
+void Reset_Sensor(int slaveAddress, int i2cBus)
 {
 	struct TransferData VCNL36828P_Data;
 
-	VCNL36828P_Data.Slave_Address = VCNL36828P_SlaveAddress;
+	VCNL36828P_Data.Slave_Address = slaveAddress;
 	VCNL36828P_Data.RegisterAddress = VCNL36828P_PS_CONF_1;
-	VCNL36828P_Data.Select_I2C_Bus = I2C_Bus;
+	VCNL36828P_Data.Select_I2C_Bus = i2cBus;
 	VCNL36828P_Data.WData[0] = 0x00;
 	VCNL36828P_Data.WData[1] = 0x00;
 	WriteI2C_Bus(&VCNL36828P_Data);
 
-	VCNL36828P_Data.Slave_Address = VCNL36828P_SlaveAddress;
+	VCNL36828P_Data.Slave_Address = slaveAddress;
 	VCNL36828P_Data.RegisterAddress = VCNL36828P_PS_CONF_2;
-	VCNL36828P_Data.Select_I2C_Bus = I2C_Bus;
+	VCNL36828P_Data.Select_I2C_Bus = i2cBus;
 	VCNL36828P_Data.WData[0] = 0x00;
 	VCNL36828P_Data.WData[1] = 0x00;
 	WriteI2C_Bus(&VCNL36828P_Data);
 
-	VCNL36828P_Data.Slave_Address = VCNL36828P_SlaveAddress;
+	VCNL36828P_Data.Slave_Address = slaveAddress;
 	VCNL36828P_Data.RegisterAddress = VCNL36828P_PS_CONF_3;
-	VCNL36828P_Data.Select_I2C_Bus = I2C_Bus;
+	VCNL36828P_Data.Select_I2C_Bus = i2cBus;
 	VCNL36828P_Data.WData[0] = 0x00;
 	VCNL36828P_Data.WData[1] = 0x00;
 	WriteI2C_Bus(&VCNL36828P_Data);
 
-	VCNL36828P_Data.Slave_Address = VCNL36828P_SlaveAddress;
+	VCNL36828P_Data.Slave_Address = slaveAddress;
 	VCNL36828P_Data.RegisterAddress = VCNL36828P_PS_THDL;
-	VCNL36828P_Data.Select_I2C_Bus = I2C_Bus;
+	VCNL36828P_Data.Select_I2C_Bus = i2cBus;
 	VCNL36828P_Data.WData[0] = 0x00;
 	VCNL36828P_Data.WData[1] = 0x00;
 	WriteI2C_Bus(&VCNL36828P_Data);
 
-	VCNL36828P_Data.Slave_Address = VCNL36828P_SlaveAddress;
+	VCNL36828P_Data.Slave_Address = slaveAddress;
 	VCNL36828P_Data.RegisterAddress = VCNL36828P_PS_THDH;
-	VCNL36828P_Data.Select_I2C_Bus = I2C_Bus;
+	VCNL36828P_Data.Select_I2C_Bus = i2cBus;
 	VCNL36828P_Data.WData[0] = 0x00;
 	VCNL36828P_Data.WData[1] = 0x00;
 	WriteI2C_Bus(&VCNL36828P_Data);
 
-    VCNL36828P_Data.Slave_Address = VCNL36828P_SlaveAddress;
+	VCNL36828P_Data.Slave_Address = slaveAddress;
 	VCNL36828P_Data.RegisterAddress = VCNL36828P_PS_CANC;
-	VCNL36828P_Data.Select_I2C_Bus = I2C_Bus;
+	VCNL36828P_Data.Select_I2C_Bus = i2cBus;
 	VCNL36828P_Data.WData[0] = 0x00;
 	VCNL36828P_Data.WData[1] = 0x00;
 	WriteI2C_Bus(&VCNL36828P_Data);
-
-}
+	}
 
 //Print the output of the sensor
-void Print_Data_Only()
+void Print_Data_Only(int slaveAddress, int i2cBus)
 {
 	Word value;
 
@@ -81,41 +77,41 @@ void Print_Data_Only()
 
 	//Print Proximity Data
 	//Set Trigger for the AF Mode + Associated delay due to IT
-	if(VCNL36828P_GET_PS_MODE_Bit() == 1)
+	if(VCNL36828P_GET_PS_MODE_Bit(slaveAddress, i2cBus) == 1)
 	{
 		//Set trigger to start a measurement
-		VCNL36828P_SET_PS_TRIG(VCNL36828P_PS_TRIG_EN);
+		VCNL36828P_SET_PS_TRIG(slaveAddress, VCNL36828P_PS_TRIG_EN, i2cBus);
 
 		//Delay of PS Measurement + other Circuit Delay
 		delay(50);
 	}
 
 	//Delay for Auto Mode + Associated delay due to IT
-	if(VCNL36828P_GET_PS_MODE_Bit() == 0)
+	if(VCNL36828P_GET_PS_MODE_Bit(slaveAddress, i2cBus) == 0)
 	{
 		//Delay of PS Measurement + other Circuit Delay
 		delay(50);
 	}
 
-	if(VCNL36828P_SlaveAddress == 0x60)
+	if(slaveAddress == 0x60)
 	{
 		Serial.println(">>>>>>>>>>>>>>>>>Sensor 1 - 0x60<<<<<<<<<<<<<<<<<<<");
 		delay(50);
 	}
 
-	if(VCNL36828P_SlaveAddress == 0x51)
+	if(slaveAddress == 0x51)
 	{
 		Serial.println(">>>>>>>>>>>>>>>>>Sensor 2 - 0x51<<<<<<<<<<<<<<<<<<<");
 		delay(50);
 	}
 
-	value = VCNL36828P_GET_ID();
+	value = VCNL36828P_GET_ID(slaveAddress, i2cBus);
 	Serial.print(">>>>>>>ID : 0x");
 	Serial.print(value,HEX);
 	Serial.println("<<<<<<<<");
 	delay(50);
 
-	value = VCNL36828P_READ_REG(VCNL36828P_PS_DATA);
+	value = VCNL36828P_READ_REG(slaveAddress, VCNL36828P_PS_DATA, i2cBus);
 	Serial.print(">>>>>>>Proximity Data : ");
 	Serial.print(value,DEC);
 	Serial.println(" Counts<<<<<<<<");
@@ -126,7 +122,7 @@ void Print_Data_Only()
 	delay(50);
 
 	//Print the Interrupt Flag
-	value = VCNL36828P_GET_INT_FLAG();
+	value = VCNL36828P_GET_INT_FLAG(slaveAddress, i2cBus);
 	Serial.print(">>>>>>>Interrupt Flag : 0x");
 	Serial.print(value,HEX);
 	Serial.println("<<<<<<<<");
@@ -142,7 +138,6 @@ void Print_Data_Only()
 
 	delay(1000);
 }
-
 
 /*Print the variable in DEC for debugging
  *Print_Variable_DEC(Word Var)
