@@ -2,8 +2,6 @@
 #include "../utils/utils.h"
 
 void Sensors::initialize() {
-    // Setup I2C
-
     // Initialize sensors
     // initializeMultizoneTof();
     // initializeIMU();
@@ -118,14 +116,6 @@ float Sensors::getMagneticFieldZ() {
 
 ColorSensorData Sensors::getColorSensorData() {
     return colorSensor.getSensorData();
-}
-
-uint16_t Sensors::getLeftSideTofDistance() {
-    return leftSideTofSensor.getDistance();
-}
-
-uint16_t Sensors::getRightSideTofDistance() {
-    return rightSideTofSensor.getDistance();
 }
 
 SideTofDistances Sensors::getBothSideTofDistances() {

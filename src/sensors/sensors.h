@@ -36,8 +36,6 @@ class Sensors : public Singleton<Sensors> {
         ColorSensorData getColorSensorData();
 
         // Side TOFs:
-        uint16_t getLeftSideTofDistance();
-        uint16_t getRightSideTofDistance();
         SideTofDistances getBothSideTofDistances();
     private:
         ImuSensor imu;
