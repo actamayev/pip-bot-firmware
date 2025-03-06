@@ -33,7 +33,7 @@ void SensorAndUserCodeTask(void * parameter) {
     for(;;) {
         // multizoneTofLogger();
         // imuLogger();
-        sideTofsLogger();
+        // sideTofsLogger();
         DisplayScreen::getInstance().update();
         LabDemoManager::getInstance().processPendingCommands();
         user_code();
