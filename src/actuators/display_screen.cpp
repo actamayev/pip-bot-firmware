@@ -5,7 +5,7 @@ bool DisplayScreen::init(TwoWire& wire) {
     if (initialized) return true;  // Already initialized
     
     // Initialize the OLED display with the provided Wire instance
-    display = Adafruit_SSD1306(SCREEN_WIDTH, SCREEN_HEIGHT, &wire, OLED_RESET);
+    display = Adafruit_SSD1306(SCREEN_WIDTH, SCREEN_HEIGHT);
     
     if(!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
         Serial.println(F("SSD1306 allocation failed"));
@@ -24,7 +24,6 @@ bool DisplayScreen::init(TwoWire& wire) {
     return true;
 }
 
-// Main update method - call this in the task loop
 // Main update method - call this in the task loop
 void DisplayScreen::update() {
     if (!initialized) {
