@@ -1,5 +1,6 @@
-#include "../sensors/sensors.h"
 #include "./utils.h"
+#include "../sensors/sensors.h"
+#include "../actuators/display_screen.h"
 
 void multizoneTofLogger() {
     static unsigned long lastPrintTime = 0;
@@ -47,14 +48,14 @@ void sideTofsLogger() {
     const unsigned long PRINT_INTERVAL = 500; // Print every 500ms
     
     if (millis() - lastPrintTime < PRINT_INTERVAL) return;
-    uint16_t leftTofDistance = Sensors::getInstance().getLeftSideTofDistance();
-    uint16_t rightTofDistance = Sensors::getInstance().getRightSideTofDistance();
+    SideTofDistances tofDistances = Sensors::getInstance().getBothSideTofDistances();
+    DisplayScreen::getInstance().showDistanceSensors(tofDistances);
 
     // Print side by side with alignment
     Serial.print("Left TOF: ");
-    Serial.print(leftTofDistance);
+    Serial.print(tofDistances.leftDistance);
     Serial.print(" mm              || Right TOF: ");
-    Serial.print(rightTofDistance);
+    Serial.print(tofDistances.rightDistance);
     Serial.println(" mm");
     
     lastPrintTime = millis();

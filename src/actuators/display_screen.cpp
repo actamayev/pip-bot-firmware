@@ -18,7 +18,7 @@ bool DisplayScreen::init(TwoWire& wire) {
     display.clearDisplay();
     
     // Start the startup sequence
-    startStartupSequence();
+    showStartScreen();
     
     Serial.println("OLED display initialized successfully!");
     return true;
@@ -32,107 +32,75 @@ void DisplayScreen::update() {
     
     unsigned long currentTime = millis();
     
-    // Always process startup animation if active
-    if (startupActive) {
-        updateStartupAnimation();
-        return;
+    // Check if we're still in the initial screen display period
+    if (isShowingStartScreen) {
+        // If 2 seconds have passed, mark start screen as complete but keep displaying it
+        if (currentTime - startScreenStartTime >= START_SCREEN_DURATION) {
+            isShowingStartScreen = false;
+        }
     }
     
-    // For regular display updates, use frame rate control
+    // Only update display at regular intervals to save processing
     if (currentTime - lastUpdateTime >= UPDATE_INTERVAL) {
         lastUpdateTime = currentTime;
-        updateRegularDisplay();
+        
+        // If nothing else has been set to display, keep the start screen showing
+        if (!customScreenActive) {
+            // If we just finished showing the start screen animation, redraw it statically
+            if (redrawStartScreen) {
+                showStartScreen(false); // Show without resetting timer
+                redrawStartScreen = false;
+            }
+        }
     }
 }
 
-// Update the startup animation
-void DisplayScreen::updateStartupAnimation() {
-    unsigned long currentTime = millis();
+// Show the start screen
+void DisplayScreen::showStartScreen(bool resetTimer) {
+    if (!initialized) return;
     
-    // Calculate elapsed time (handle millis() overflow)
-    unsigned long elapsedTime = (currentTime >= startupStartTime) ? 
-        (currentTime - startupStartTime) : 
-        (UINT32_MAX - startupStartTime + currentTime);
-        
-    if (elapsedTime >= STARTUP_DURATION) {
-        // Startup animation is complete
-        startupActive = false;
-        startupComplete = true;
-        return;
+    if (resetTimer) {
+        startScreenStartTime = millis();
+        isShowingStartScreen = true;
+        redrawStartScreen = false;
     }
     
-    // Animate startup screen
     clear();
     
     // Draw border
     display.drawRect(0, 0, display.width(), display.height(), SSD1306_WHITE);
     
-    // Draw company name and product
-    drawCenteredText("Blue Dot Robots", 10, 1);
-    drawCenteredText("Pip", 35, 1);
+    // Draw company name (smaller)
+    drawCenteredText("Blue Dot Robots", 15, 1);
     
-    // Calculate car position based on elapsed time
-    // Move from left (-20) to right (SCREEN_WIDTH + 20)
-    float progress = (float)elapsedTime / STARTUP_DURATION;
-    carPosition = -20 + progress * (SCREEN_WIDTH + 40);
-    
-    // Draw the car - simple car shape
-    int carY = 50;
-    display.fillRect(carPosition, carY, 15, 5, SSD1306_WHITE);       // Car body
-    display.fillRect(carPosition + 3, carY - 3, 9, 3, SSD1306_WHITE); // Car top
-    display.fillCircle(carPosition + 3, carY + 5, 2, SSD1306_WHITE);  // Left wheel
-    display.fillCircle(carPosition + 12, carY + 5, 2, SSD1306_WHITE); // Right wheel
+    // Draw circle underneath
+    display.fillCircle(display.width()/2, 40, 10, SSD1306_WHITE);
     
     renderDisplay();
 }
 
-// Update the regular display content (after startup)
-void DisplayScreen::updateRegularDisplay() {
-    // Clear the display
+// Show ToF sensor distances
+void DisplayScreen::showDistanceSensors(SideTofDistances sideTofDistances) {
+    if (!initialized) return;
+    
+    customScreenActive = true;
+    
     clear();
     
-    // Show different content based on the display mode
-    // Cycle through modes every 2 seconds (40 frames at 50ms interval)
-    displayMode = (animationCounter / 40) % 4;
+    // Draw border
+    display.drawRect(0, 0, display.width(), display.height(), SSD1306_WHITE);
     
-    switch(displayMode) {
-        case 0:
-            // Show company info
-            drawCenteredText("Blue Dot Robots", 5, 1);
-            drawText("Pip Status", 10, 30, 1);
-            drawText("Mode: " + String(displayMode), 10, 45, 1);
-            break;
-
-        case 1:
-            // Show a progress bar (could be battery level)
-            drawCenteredText("Battery Level", 5, 1);
-            drawProgressBar(animationCounter % 101, 25);
-            break;
-            
-        case 2:
-            // Show some sensor data (replace with actual sensor readings)
-            drawCenteredText("Sensor Data", 5, 1);
-            drawText("Temp: " + String(random(20, 30)) + " C", 10, 25, 1);
-            drawText("Speed: " + String(random(0, 15)) + " m/s", 10, 40, 1);
-            break;
-            
-        case 3:
-            // Animation
-            drawCenteredText("Status", 5, 1);
-            // Draw a moving dot
-            int pos = animationCounter % SCREEN_WIDTH;
-            // Use sine wave for vertical position
-            float angle = (float)animationCounter / 10.0;
-            int height = 35 + sin(angle) * 10;
-            
-            display.fillCircle(pos, height, 3, SSD1306_WHITE);
-            break;
-    }
+    // Title
+    drawCenteredText("Distance Sensors", 5, 1);
     
-    // Update the counter
-    animationCounter++;
+    // Left sensor
+    drawText("Left:", 10, 25, 1);
+    drawText(String(sideTofDistances.leftDistance, 1) + " cm", 50, 25, 1);
     
-    // Render the display
+    // Right sensor
+    drawText("Right:", 10, 40, 1);
+    drawText(String(sideTofDistances.rightDistance, 1) + " cm", 50, 40, 1);
+    
     renderDisplay();
 }
 
@@ -190,11 +158,9 @@ void DisplayScreen::drawProgressBar(int progress, int y) {
     drawCenteredText(String(progress) + "%", y + 20, 1);
 }
 
-// Start the startup animation sequence
-void DisplayScreen::startStartupSequence() {
+// Reset to start screen
+void DisplayScreen::resetToStartScreen() {
     if (!initialized) return;
-    startupActive = true;
-    startupComplete = false;
-    startupStartTime = millis();
-    carPosition = -20;  // Start the car off-screen
+    customScreenActive = false;
+    redrawStartScreen = true;
 }

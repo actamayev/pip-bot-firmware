@@ -4,6 +4,7 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 #include "../utils/config.h"
+#include "../utils/structs.h"
 #include "../utils/singleton.h"
 
 class DisplayScreen: public Singleton<DisplayScreen> {
@@ -13,38 +14,38 @@ class DisplayScreen: public Singleton<DisplayScreen> {
         // Explicit initialization with Wire reference
         bool init(TwoWire& wire);
         
-        // Main update method to handle all display logic
+        // Main update method to call in the task loop
         void update();
         
-        // Drawing functions - can be called externally if needed
+        // Screen display methods
+        void showStartScreen(bool resetTimer = true);
+        void showDistanceSensors(SideTofDistances sideTofDistances);
+        void resetToStartScreen();
+        
+        // Drawing utilities
         void clear();
         void drawText(const String& text, int x, int y, int size = 1);
         void drawCenteredText(const String& text, int y, int size = 1);
         void drawProgressBar(int progress, int y);
-        void startStartupSequence();
         
         // Status checks
         bool isInitialized() const { return initialized; }
-        bool isStartupComplete() const { return startupComplete; }
+        bool isStartupComplete() const { return !isShowingStartScreen; }
         
         // Get access to the underlying display object if needed
         Adafruit_SSD1306* getDisplay() { return &display; }
 
     private:
-        // Private constructor for singleton - will be called by Singleton<T>::getInstance()
+        // Private constructor for singleton
         DisplayScreen() : 
             initialized(false),
-            startupActive(false),
-            startupComplete(false),
+            isShowingStartScreen(false),
+            customScreenActive(false),
+            redrawStartScreen(false),
             lastUpdateTime(0),
-            startupStartTime(0),
-            carPosition(-20),
-            displayMode(0),
-            animationCounter(0) {}
+            startScreenStartTime(0) {}
         
-        // Private methods
-        void updateStartupAnimation();
-        void updateRegularDisplay();
+        // Helper method
         void renderDisplay();
         
         // Display object
@@ -52,19 +53,15 @@ class DisplayScreen: public Singleton<DisplayScreen> {
         
         // State flags
         bool initialized;
-        bool startupActive;
-        bool startupComplete;
+        bool isShowingStartScreen;
+        bool customScreenActive;
+        bool redrawStartScreen;
         
         // Timing management
         unsigned long lastUpdateTime;
-        unsigned long startupStartTime;
-        
-        // Animation variables
-        int carPosition;
-        int displayMode;
-        int animationCounter;
+        unsigned long startScreenStartTime;
         
         // Constants
-        static const unsigned long STARTUP_DURATION = 2000;  // 2 seconds
-        static const unsigned long UPDATE_INTERVAL = 50;     // 50ms (20fps)
+        static const unsigned long START_SCREEN_DURATION = 2000;  // 2 seconds
+        static const unsigned long UPDATE_INTERVAL = 50;          // 50ms (20fps)
 };

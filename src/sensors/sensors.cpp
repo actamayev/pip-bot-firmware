@@ -8,7 +8,7 @@ void Sensors::initialize() {
     // initializeMultizoneTof();
     // initializeIMU();
     // initializeColorSensor();
-    // initializeSideTimeOfFlights();
+    initializeSideTimeOfFlights();
 }
 
 void Sensors::initializeMultizoneTof() {
@@ -126,4 +126,14 @@ uint16_t Sensors::getLeftSideTofDistance() {
 
 uint16_t Sensors::getRightSideTofDistance() {
     return rightSideTofSensor.getDistance();
+}
+
+SideTofDistances Sensors::getBothSideTofDistances() {
+    uint16_t rightDistance = rightSideTofSensor.getDistance();
+    uint16_t leftDistance = leftSideTofSensor.getDistance();
+
+    return {
+        leftDistance,
+        rightDistance
+    };
 }
