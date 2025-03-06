@@ -57,6 +57,6 @@ void sideTofsLogger() {
     // Serial.print(" mm              || Right TOF: ");
     // Serial.print(tofDistances.rightDistance);
     // Serial.println(" mm");
-    
+
     lastPrintTime = millis();
 }

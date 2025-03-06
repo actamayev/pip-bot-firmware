@@ -15,8 +15,6 @@ const uint32_t I2C_CLOCK_SPEED = 400 * 1000; // 400 kHz
 // Side TOFs:
 int VCNL36828P_SlaveAddress = 0x60; // Default address
 int I2C_Bus = 1;
-int CalibValue = 0;
-int AverageCount = 10;
 const int LEFT_TOF_ADDRESS = 0x60;
 const int RIGHT_TOF_ADDRESS = 0x51;
 
