@@ -40,6 +40,12 @@ extern const uint8_t RIGHT_MOTOR_PIN_IN_2;
 extern const uint8_t RIGHT_MOTOR_ENCODER_A;
 extern const uint8_t RIGHT_MOTOR_ENCODER_B;
 
+// Display Screen
+extern const int SCREEN_WIDTH;
+extern const int SCREEN_HEIGHT;
+extern const int OLED_RESET;
+extern const int SCREEN_ADDRESS;
+
 // Color Sensor
 extern const uint8_t COLOR_SENSOR_LED_PIN;
 

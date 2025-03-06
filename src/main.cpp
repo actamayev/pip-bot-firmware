@@ -3,10 +3,11 @@
 #include "./actuators/rgb_led.h"
 #include "./sensors/sensors.h"
 #include "./user_code/user_code.h"
-#include "./networking/wifi_manager.h"
 #include "./utils/show_chip_info.h"
 #include "./utils/sensor_loggers.h"
 #include "./sensors/encoder_manager.h"
+#include "./networking/wifi_manager.h"
+#include "./actuators/display_screen.h"
 #include "./lab_demo/lab_demo_manager.h"
 #include "./networking/webserver_manager.h"
 #include "./networking/websocket_manager.h"
@@ -15,11 +16,15 @@
 // Task to handle sensors and user code on Core 0
 void SensorAndUserCodeTask(void * parameter) {
     disableCore0WDT();
-    
+    Wire.begin(I2C_SDA, I2C_SCL, I2C_CLOCK_SPEED);
+    delay(10);
     // Initialize sensors on Core 0
     Serial.println("Initializing sensors on Core 0...");
     Sensors::getInstance();
     EncoderManager::getInstance();
+    if (!DisplayScreen::getInstance().init(Wire)) {
+        Serial.println("Display initialization failed");
+    }
     Serial.println("Sensors initialized on Core 0");
 
     enableCore0WDT();
@@ -29,6 +34,7 @@ void SensorAndUserCodeTask(void * parameter) {
         // multizoneTofLogger();
         // imuLogger();
         // sideTofsLogger();
+        DisplayScreen::getInstance().update();
         LabDemoManager::getInstance().processPendingCommands();
         user_code();
         delay(1);
@@ -78,15 +84,15 @@ void setup() {
         0                       // Run on Core 0
     );
 
-    xTaskCreatePinnedToCore(
-        NetworkTask,            // Network handling task
-        "Network",              // Task name
-        NETWORK_STACK_SIZE,      // Stack size
-        NULL,                   // Task parameters
-        1,                      // Priority
-        NULL,                   // Task handle
-        1                       // Run on Core 1
-    );
+    // xTaskCreatePinnedToCore(
+    //     NetworkTask,            // Network handling task
+    //     "Network",              // Task name
+    //     NETWORK_STACK_SIZE,      // Stack size
+    //     NULL,                   // Task parameters
+    //     1,                      // Priority
+    //     NULL,                   // Task handle
+    //     1                       // Run on Core 1
+    // );
 }
 
 // Main loop runs on Core 1

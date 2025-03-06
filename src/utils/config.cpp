@@ -40,6 +40,12 @@ const uint8_t RIGHT_MOTOR_PIN_IN_2 = 11;
 const uint8_t RIGHT_MOTOR_ENCODER_A = 48;
 const uint8_t RIGHT_MOTOR_ENCODER_B = 47;
 
+// Display Screen
+const int SCREEN_WIDTH = 128;
+const int SCREEN_HEIGHT = 64;
+const int OLED_RESET = -1;  // Reset pin (-1 if sharing Arduino reset pin)
+const int SCREEN_ADDRESS = 0x3C;
+
 // Color Sensor
 const uint8_t COLOR_SENSOR_LED_PIN = 16;
 

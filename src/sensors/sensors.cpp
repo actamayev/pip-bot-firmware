@@ -3,7 +3,6 @@
 
 void Sensors::initialize() {
     // Setup I2C
-    Wire.begin(I2C_SDA, I2C_SCL, I2C_CLOCK_SPEED);
 
     // Initialize sensors
     // initializeMultizoneTof();
