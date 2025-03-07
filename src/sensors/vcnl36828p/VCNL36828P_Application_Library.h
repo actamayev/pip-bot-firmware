@@ -10,10 +10,10 @@
 #include "typedefinition.h"
 
 //Reset the Sensor to the default value
-void Reset_Sensor();
+void Reset_Sensor(int slaveAddress, int i2cBus = 1);
 
 //Print the output of the sensor
-void Print_Data_Only();
+void Print_Data_Only(int slaveAddress, int i2cBus = 1);
 
 /*Print the variable in DEC for debugging
  *Print_Variable_DEC(Word Var)

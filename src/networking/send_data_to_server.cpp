@@ -21,7 +21,7 @@ void SendDataToServer::attachIRData(JsonObject& payload) {
     JsonArray irArray = payload.createNestedArray("irSensorData");
     
     // Add each sensor reading to the array
-    for (int i = 0; i < 5; i++) {
+    for (uint8_t i = 0; i < 5; i++) {
         irArray.add(irSensorData[i]);
     }
 }

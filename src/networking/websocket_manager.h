@@ -57,8 +57,8 @@ class WebSocketManager : public Singleton<WebSocketManager> {
         void handleFirmwareMetadata(const char* json, int tokenCount);
         void handleBinaryMessage(WebsocketsMessage message);
         bool attemptConnection();
-        static const int MAX_RETRIES = 8;
-        int retryCount;
+        static const uint8_t MAX_RETRIES = 8;
+        uint8_t retryCount;
         unsigned long startAttemptTime;
         bool connected;
         void sendInitialData();
