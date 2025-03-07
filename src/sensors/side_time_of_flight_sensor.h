@@ -11,24 +11,20 @@ class SideTimeOfFlightSensor {
     public:
         SideTimeOfFlightSensor() = default;
 
-        bool initialize(const int TOF_ADDRESS);
+        bool initialize(const uint8_t TOF_ADDRESS);
         uint16_t getDistance();
     private:
-        int VCNL36828P_SlaveAddress = 0x60; // Default address
-        int sensorAddress = 0; // Store the specific sensor address
-        int I2C_Bus = 1;
+        uint8_t sensorAddress = 0; // Store the specific sensor address
 
         // Reset a specific sensor by address
         void Reset_Specific_Sensor() {
-            VCNL36828P_SlaveAddress = sensorAddress;
-            Reset_Sensor();
+            Reset_Sensor(sensorAddress);
             delay(100);
         }
 
         // Read proximity data from the sensor
         uint16_t Read_Proximity_Data() {
-            VCNL36828P_SlaveAddress = sensorAddress;
-            return VCNL36828P_GET_PS_DATA();
+            return VCNL36828P_GET_PS_DATA(sensorAddress);
         }
 
         uint16_t _tofDistance;

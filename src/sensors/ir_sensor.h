@@ -12,7 +12,7 @@ class IrSensor {
         void setMuxChannel(bool A, bool B, bool C);
 
         MuxChannel channels[5];
-        const int cutoff = 1.75;
+        const float cutoff = 1.75f;
         float sensorReadings[5];
 };
 

@@ -25,7 +25,7 @@ void RgbLed::set_led_white() {
     set_led_to_color(255, 255, 255);
 }
 
-void RgbLed::set_led_to_color(int red, int green, int blue) {
+void RgbLed::set_led_to_color(uint8_t red, uint8_t green, uint8_t blue) {
     strip.setPixelColor(0, strip.Color(red, green, blue));
     strip.show();
 }

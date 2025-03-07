@@ -3,7 +3,7 @@
 bool MultizoneTofSensor::initialize() {
     Serial.println("Initializing TOF sensor...");
 
-    if (sensor.begin() == false) {
+    if (sensor.begin(MULTIZONE_TOF_ADDRESS) == false) {
       Serial.println(F("Sensor not found - check your wiring"));
       return false;
     }
@@ -12,7 +12,7 @@ bool MultizoneTofSensor::initialize() {
 
     // Start ranging
     startRanging();
-    
+
     Serial.println("TOF sensor initialization complete");
     return true;
 }

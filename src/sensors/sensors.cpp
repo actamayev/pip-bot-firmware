@@ -2,9 +2,6 @@
 #include "../utils/utils.h"
 
 void Sensors::initialize() {
-    // Setup I2C
-    Wire.begin(I2C_SDA, I2C_SCL, I2C_CLOCK_SPEED);
-
     // Initialize sensors
     // initializeMultizoneTof();
     // initializeIMU();
@@ -46,12 +43,12 @@ void Sensors::initializeColorSensor() {
 void Sensors::initializeSideTimeOfFlights() {
     Serial.println("Initializing left side TOF...");
     if (!leftSideTofSensor.initialize(LEFT_TOF_ADDRESS)) {
-        Serial.println("Color Sensor initialization failed");
+        Serial.println("Left TOF initialization failed");
         return;
     }
     Serial.println("Initializing right side TOF...");
     if (!rightSideTofSensor.initialize(RIGHT_TOF_ADDRESS)) {
-        Serial.println("Color Sensor initialization failed");
+        Serial.println("Right TOF initialization failed");
         return;
     }
     Serial.println("Side TOF setup complete");
@@ -121,10 +118,12 @@ ColorSensorData Sensors::getColorSensorData() {
     return colorSensor.getSensorData();
 }
 
-uint16_t Sensors::getLeftSideTofDistance() {
-    return leftSideTofSensor.getDistance();
-}
+SideTofDistances Sensors::getBothSideTofDistances() {
+    uint16_t leftDistance = leftSideTofSensor.getDistance();
+    uint16_t rightDistance = rightSideTofSensor.getDistance();
 
-uint16_t Sensors::getRightSideTofDistance() {
-    return rightSideTofSensor.getDistance();
+    return {
+        leftDistance,
+        rightDistance
+    };
 }
