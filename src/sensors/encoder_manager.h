@@ -31,7 +31,7 @@ class EncoderManager : public Singleton<EncoderManager> {
 
         // Constants for calculations
         static constexpr float GEAR_RATIO = 297.924;
-        static constexpr int ENCODER_CPR = 3;
+        static constexpr uint8_t ENCODER_CPR = 3;
         static constexpr unsigned long RPM_CALC_INTERVAL = 100; // ms
 
         // Update speed calculations - call this periodically

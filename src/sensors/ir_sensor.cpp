@@ -25,12 +25,12 @@ IrSensor::IrSensor() {
 }
 
 void IrSensor::read_ir_sensor() {
-    for (int i = 0; i < 5; i++) {
+    for (uint8_t i = 0; i < 5; i++) {
         // Set multiplexer to current channel
         setMuxChannel(channels[i].A, channels[i].B, channels[i].C);
         
         // Read sensor value and convert to voltage
-        int rawValue = analogRead(PIN_MUX_OUT);
+        uint16_t rawValue = analogRead(PIN_MUX_OUT);
         sensorReadings[i] = (rawValue * 3.3) / 4095.0;
     }
 }

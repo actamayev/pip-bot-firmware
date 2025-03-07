@@ -11,10 +11,10 @@ class SideTimeOfFlightSensor {
     public:
         SideTimeOfFlightSensor() = default;
 
-        bool initialize(const int TOF_ADDRESS);
+        bool initialize(const uint8_t TOF_ADDRESS);
         uint16_t getDistance();
     private:
-        int sensorAddress = 0; // Store the specific sensor address
+        uint8_t sensorAddress = 0; // Store the specific sensor address
 
         // Reset a specific sensor by address
         void Reset_Specific_Sensor() {

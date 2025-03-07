@@ -10,7 +10,7 @@ class RgbLed {
         void set_led_blue();
         void set_led_white();
     private:
-        void set_led_to_color(int red, int green, int blue);  
+        void set_led_to_color(uint8_t red, uint8_t green, uint8_t blue);  
 };
 
 extern RgbLed rgbLed;

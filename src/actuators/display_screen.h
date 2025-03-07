@@ -33,8 +33,8 @@ class DisplayScreen: public Singleton<DisplayScreen> {
 
         // Drawing utilities
         void clear();
-        void drawText(const String& text, int x, int y, int size = 1);
-        void drawCenteredText(const String& text, int y, int size = 1);
+        void drawText(const String& text, uint16_t x, uint16_t y, uint16_t size = 1);
+        void drawCenteredText(const String& text, uint16_t y, uint16_t size = 1);
 
         // Screen display methods
         void showStartScreen(bool resetTimer = true);

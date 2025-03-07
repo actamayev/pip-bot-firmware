@@ -13,16 +13,16 @@ const uint8_t I2C_SCL = 9;
 const uint32_t I2C_CLOCK_SPEED = 400 * 1000; // 400 kHz
 
 // Side TOFs:
-const int LEFT_TOF_ADDRESS = 0x60;
-const int RIGHT_TOF_ADDRESS = 0x51;
+const uint8_t LEFT_TOF_ADDRESS = 0x60;
+const uint8_t RIGHT_TOF_ADDRESS = 0x51;
 
 // Multizone TOF
-int MULTIZONE_TOF_ADDRESS = 0x29; // Default address
+const uint8_t MULTIZONE_TOF_ADDRESS = 0x29; // Default address
 const uint8_t TOF_IMAGE_RESOLUTION = 8;  // Image width (can be 4 or 8)
 const uint8_t TOF_RANGING_FREQUENCY = 15;  // TOF sampling frequency
 
 // IMU
-const uint32_t IMU_UPDATE_FREQ_MICROSECS = 5000;  // 5ms, 200Hz
+const uint16_t IMU_UPDATE_FREQ_MICROSECS = 5000;  // 5ms, 200Hz
 const uint8_t IMU_DEFAULT_ADDRESS = 0x4B; // The actual default addr is 0x4A, but ours shows up as 0x4A
 
 // Motors + Encoders
@@ -37,20 +37,20 @@ const uint8_t RIGHT_MOTOR_ENCODER_A = 48;
 const uint8_t RIGHT_MOTOR_ENCODER_B = 47;
 
 // Display Screen
-const int SCREEN_WIDTH = 128;
-const int SCREEN_HEIGHT = 64;
-const int OLED_RESET = -1;  // Reset pin (-1 if sharing Arduino reset pin)
-const int SCREEN_ADDRESS = 0x3C;
+const uint8_t SCREEN_WIDTH = 128;
+const uint8_t SCREEN_HEIGHT = 64;
+const int8_t OLED_RESET = -1;  // Reset pin (-1 if sharing Arduino reset pin)
+const uint8_t SCREEN_ADDRESS = 0x3C;
 
 // Color Sensor
 const uint8_t COLOR_SENSOR_LED_PIN = 16;
 
 // IR sensor
-const int PIN_MUX_C = 4;    // Multiplexer C input
-const int PIN_MUX_B = 5;    // Multiplexer B input
-const int PIN_MUX_A = 6;    // Multiplexer A input
-const int PIN_MUX_OUT = 7;  // Multiplexer output
-const int PIN_IR_EN = 15;    // IR sensor enable pin
+const uint8_t PIN_MUX_C = 4;    // Multiplexer C input
+const uint8_t PIN_MUX_B = 5;    // Multiplexer B input
+const uint8_t PIN_MUX_A = 6;    // Multiplexer A input
+const uint8_t PIN_MUX_OUT = 7;  // Multiplexer output
+const uint8_t PIN_IR_EN = 15;    // IR sensor enable pin
 
 // Assign Stack sizes for the two cores
 const uint32_t SENSOR_STACK_SIZE = 16384;  // 16KB for sensor processing

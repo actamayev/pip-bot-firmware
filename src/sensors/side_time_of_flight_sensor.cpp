@@ -1,6 +1,6 @@
 #include "./side_time_of_flight_sensor.h"
 
-bool SideTimeOfFlightSensor::initialize(const int TOF_ADDRESS) {
+bool SideTimeOfFlightSensor::initialize(const uint8_t TOF_ADDRESS) {
     // Save the sensor address to the class member variable
     sensorAddress = TOF_ADDRESS;
     

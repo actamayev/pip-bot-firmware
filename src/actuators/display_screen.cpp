@@ -72,7 +72,7 @@ void DisplayScreen::showStartScreen(bool resetTimer) {
 
     // For animation, calculate car position based on elapsed time
     unsigned long currentTime = millis();
-    int carPosition = -20; // Default position if not animating
+    int16_t carPosition = -20; // Default position if not animating
 
     if (isShowingStartScreen) {
         // Calculate elapsed time (handle millis() overflow)
@@ -92,13 +92,13 @@ void DisplayScreen::showStartScreen(bool resetTimer) {
     display.drawRect(0, 0, display.width(), display.height(), SSD1306_WHITE);
     
     // Draw company name (smaller)
-    drawCenteredText("Blue Dot Robots", 15, 1);
+    drawCenteredText("Blue Dot Robots", 1);
     
     // Draw circle underneath
     display.fillCircle(display.width()/2, 40, 10, SSD1306_WHITE);
 
     // Draw the car - simple car shape
-    int carY = 55;
+    const uint8_t carY = 55;
     display.fillRect(carPosition, carY, 15, 5, SSD1306_WHITE);       // Car body
     display.fillRect(carPosition + 3, carY - 3, 9, 3, SSD1306_WHITE); // Car top
     display.fillCircle(carPosition + 3, carY + 5, 2, SSD1306_WHITE);  // Left wheel
@@ -120,7 +120,7 @@ void DisplayScreen::showDistanceSensors(SideTofDistances sideTofDistances) {
     display.drawRect(0, 0, display.width(), display.height(), SSD1306_WHITE);
     
     // Title
-    drawCenteredText("Distance Sensors", 5, 1);
+    drawCenteredText("Distance Sensors", 1);
 
     // Left sensor - use String(value) without decimal places
     drawText("Left:", 10, 25, 1);
@@ -146,7 +146,7 @@ void DisplayScreen::renderDisplay() {
 }
 
 // Draw text at specified position
-void DisplayScreen::drawText(const String& text, int x, int y, int size) {
+void DisplayScreen::drawText(const String& text, uint16_t x, uint16_t y, uint16_t size) {
     if (!initialized) return;
     display.setTextSize(size);
     display.setTextColor(SSD1306_WHITE);
@@ -155,7 +155,7 @@ void DisplayScreen::drawText(const String& text, int x, int y, int size) {
 }
 
 // Draw centered text
-void DisplayScreen::drawCenteredText(const String& text, int y, int size) {
+void DisplayScreen::drawCenteredText(const String& text, uint16_t y, uint16_t size) {
     if (!initialized) return;
     int16_t x1, y1;
     uint16_t w, h;
