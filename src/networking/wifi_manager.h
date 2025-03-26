@@ -17,19 +17,17 @@ class WiFiManager : public Singleton<WiFiManager> {
 		bool attemptNewWifiConnection(WiFiCredentials wifiCredentials);
 		void startAccessPoint();
 
-		struct WiFiNetwork {
-			String ssid;
-			int32_t rssi;
-			uint8_t encryptionType;
-		};
-
-		std::vector<WiFiNetwork> scanWiFiNetworks();
-		void sortNetworksBySignalStrength(std::vector<WiFiNetwork>& networks);
-		void printNetworkList(const std::vector<WiFiNetwork>& networks);
+		std::vector<WiFiNetworkInfo> scanWiFiNetworkInfos();
+		void sortNetworksBySignalStrength(std::vector<WiFiNetworkInfo>& networks);
+		void printNetworkList(const std::vector<WiFiNetworkInfo>& networks);
 		int getSelectedNetworkIndex() const { return _selectedNetworkIndex; }
 		void setSelectedNetworkIndex(int index);
-		const std::vector<WiFiNetwork>& getAvailableNetworks() const { return _availableNetworks; }
+		const std::vector<WiFiNetworkInfo>& getAvailableNetworks() const { return _availableNetworks; }
 
+		void storeWiFiCredentials(const String& ssid, const String& password, int index);
+		std::vector<WiFiCredentials> getAllStoredNetworks();
+		WiFiNetworkInfo scanForSpecificNetwork(const String& ssid);
+		bool connectToStrongestSavedNetwork();
 	private:
 		WiFiManager();
 		void initializeWiFi();
@@ -39,7 +37,7 @@ class WiFiManager : public Singleton<WiFiManager> {
 		esp_event_handler_instance_t wifi_event_instance;
 		esp_event_handler_instance_t ip_event_instance;
 
-		std::vector<WiFiNetwork> _availableNetworks;
+		std::vector<WiFiNetworkInfo> _availableNetworks;
 		int _selectedNetworkIndex = 0;
 };
 

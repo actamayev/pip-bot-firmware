@@ -7,6 +7,11 @@ Preferences preferences;
 
 WiFiManager::WiFiManager() {
 	Serial.println("WiFiManager constructor");
+
+    // Hard-coding Wifi creds during initialization (before we have encoders + screen)
+    preferences.begin("wifi-creds", false);
+    storeWiFiCredentials("Another Dimension", "Iforgotit123", 0);
+
 	initializeWiFi();
 }
 
@@ -63,20 +68,24 @@ WiFiCredentials WiFiManager::getStoredWiFiCredentials() {
 }
 
 void WiFiManager::connectToStoredWiFi() {
-	WiFiCredentials storedCreds = getStoredWiFiCredentials();
-
-	bool connectionStatus = attemptNewWifiConnection(storedCreds);
-	if (connectionStatus == true) {
+    // Try to connect to strongest saved network
+    bool connectionStatus = connectToStrongestSavedNetwork();
+    
+    if (connectionStatus) {
         return WebSocketManager::getInstance().connectToWebSocket();
     }
-    // Scan for networks instead of immediately starting AP
-    auto networks = scanWiFiNetworks();
-
+    
+    // If no saved networks are in range or connection failed,
+    // do a full scan for all networks
+    auto networks = scanWiFiNetworkInfos();
+    
     if (networks.empty()) {
         // If no networks found, start AP
+        Serial.println("No networks found in full scan, starting Access Point");
         startAccessPoint();
         return;
     }
+    
     // Print the available networks and select the first one
     printNetworkList(networks);
     setSelectedNetworkIndex(0);
@@ -84,7 +93,6 @@ void WiFiManager::connectToStoredWiFi() {
     // Init encoder for network selection
     EncoderManager::getInstance().initNetworkSelection();
     
-    // Don't start AP yet, let user scroll through networks
     Serial.println("Use the right motor to scroll through networks");
 }
 
@@ -139,8 +147,8 @@ void WiFiManager::startAccessPoint() {
 	Serial.println("Access Point started.");
 }
 
-std::vector<WiFiManager::WiFiNetwork> WiFiManager::scanWiFiNetworks() {
-    std::vector<WiFiNetwork> networks;
+std::vector<WiFiNetworkInfo> WiFiManager::scanWiFiNetworkInfos() {
+    std::vector<WiFiNetworkInfo> networks;
 
     WiFi.disconnect(true);
     WiFi.scanDelete();
@@ -173,7 +181,7 @@ std::vector<WiFiManager::WiFiNetwork> WiFiManager::scanWiFiNetworks() {
 
     // Store the networks
     for (int i = 0; i < numNetworks; i++) {
-        WiFiNetwork network;
+        WiFiNetworkInfo network;
         network.ssid = WiFi.SSID(i);
         network.rssi = WiFi.RSSI(i);
         network.encryptionType = WiFi.encryptionType(i);
@@ -189,15 +197,15 @@ std::vector<WiFiManager::WiFiNetwork> WiFiManager::scanWiFiNetworks() {
     return networks;
 }
 
-void WiFiManager::sortNetworksBySignalStrength(std::vector<WiFiNetwork>& networks) {
+void WiFiManager::sortNetworksBySignalStrength(std::vector<WiFiNetworkInfo>& networks) {
     // Sort networks by RSSI (higher values = stronger signal)
     std::sort(networks.begin(), networks.end(), 
-              [](const WiFiNetwork& a, const WiFiNetwork& b) {
+              [](const WiFiNetworkInfo& a, const WiFiNetworkInfo& b) {
                   return a.rssi > b.rssi;
               });
 }
 
-void WiFiManager::printNetworkList(const std::vector<WiFiNetwork>& networks) {
+void WiFiManager::printNetworkList(const std::vector<WiFiNetworkInfo>& networks) {
     Serial.println("Available WiFi Networks (sorted by signal strength):");
     Serial.println("----------------------------------------------------");
     
@@ -214,7 +222,7 @@ void WiFiManager::printNetworkList(const std::vector<WiFiNetwork>& networks) {
             case WIFI_AUTH_WPA_WPA2_PSK: encryption = "WPA/WPA2"; break;
             default: encryption = "Unknown"; break;
         }
-        
+
         Serial.printf("%2d. %s | Signal: %d dBm | Security: %s %s\n", 
                     (int)i + 1, 
                     network.ssid.c_str(), 
@@ -243,4 +251,139 @@ void WiFiManager::setSelectedNetworkIndex(int index) {
                     _availableNetworks[_selectedNetworkIndex].ssid.c_str(),
                     _availableNetworks[_selectedNetworkIndex].rssi);
     }
+}
+
+// For storing WiFi credentials:
+void WiFiManager::storeWiFiCredentials(const String& ssid, const String& password, int index) {
+    preferences.begin("wifi-creds", false);
+    
+    // Fix: Create strings first, then use c_str()
+    String ssidKey = "ssid" + String(index);
+    String passKey = "pass" + String(index);
+    
+    preferences.putString(ssidKey.c_str(), ssid);
+    preferences.putString(passKey.c_str(), password);
+    
+    // Keep track of the number of saved networks
+    int count = preferences.getInt("count", 0);
+    if (index >= count) {
+        preferences.putInt("count", index + 1);
+    }
+    preferences.end();
+}
+
+// For retrieving WiFi credentials:
+std::vector<WiFiCredentials> WiFiManager::getAllStoredNetworks() {
+    std::vector<WiFiCredentials> networks;
+    
+    preferences.begin("wifi-creds", false);
+    int count = preferences.getInt("count", 0);
+    
+    for (int i = 0; i < count; i++) {
+        WiFiCredentials creds;
+        
+        // Fix: Create strings first, then use c_str()
+        String ssidKey = "ssid" + String(i);
+        String passKey = "pass" + String(i);
+        
+        creds.ssid = preferences.getString(ssidKey.c_str(), "");
+        creds.password = preferences.getString(passKey.c_str(), "");
+        
+        if (!creds.ssid.isEmpty()) {
+            networks.push_back(creds);
+        }
+    }
+    
+    preferences.end();
+    return networks;
+}
+
+struct WiFiNetworkInfo WiFiManager::scanForSpecificNetwork(const String& ssid) {
+    WiFiNetworkInfo result;
+    result.ssid = "";
+    result.rssi = -100; // Default weak signal
+    
+    // Disconnect to ensure clean scan state
+    WiFi.disconnect(true);
+    delay(100);
+    
+    Serial.printf("Scanning for network: %s\n", ssid.c_str());
+   
+    // Targeted scan for this SSID (faster than full scan)
+    int numNetworks = WiFi.scanNetworks(false, false, false, 300, 0, ssid.c_str());
+
+    if (numNetworks > 0) {
+        for (int i = 0; i < numNetworks; i++) {
+            if (WiFi.SSID(i) == ssid) {
+                result.ssid = WiFi.SSID(i);
+                result.rssi = WiFi.RSSI(i);
+                result.encryptionType = WiFi.encryptionType(i);
+                break;
+            }
+        }
+    }
+
+    // Clean up scan results
+    WiFi.scanDelete();
+    
+    return result;
+}
+
+bool WiFiManager::connectToStrongestSavedNetwork() {
+    // Turn on LED to indicate scanning
+    rgbLed.set_led_purple();
+    
+    // Get all saved networks
+    std::vector<WiFiCredentials> savedNetworks = getAllStoredNetworks();
+    
+    if (savedNetworks.empty()) {
+        Serial.println("No saved networks found");
+        rgbLed.turn_led_off();
+        return false;
+    }
+    
+    // Structure to track available networks with their signal strength
+    struct AvailableSavedNetwork {
+        WiFiCredentials credentials;
+        int32_t rssi;
+    };
+    std::vector<AvailableSavedNetwork> availableNetworks;
+    
+    // For each saved network, do a targeted scan
+    for (const auto& network : savedNetworks) {
+        // Scan specifically for this network
+        WiFiNetworkInfo scanResult = scanForSpecificNetwork(network.ssid);
+        
+        if (!scanResult.ssid.isEmpty()) {
+            // Found the network, add it to available networks
+            AvailableSavedNetwork available;
+            available.credentials = network;
+            available.rssi = scanResult.rssi;
+            availableNetworks.push_back(available);
+            
+            Serial.printf("Found saved network %s with signal strength %d dBm\n", 
+                      network.ssid.c_str(), scanResult.rssi);
+        }
+    }
+    
+    // Turn off scanning LED
+    rgbLed.turn_led_off();
+    
+    if (availableNetworks.empty()) {
+        Serial.println("None of the saved networks are in range");
+        return false;
+    }
+    
+    // Sort networks by signal strength (strongest first)
+    std::sort(availableNetworks.begin(), availableNetworks.end(),
+            [](const AvailableSavedNetwork& a, const AvailableSavedNetwork& b) {
+                return a.rssi > b.rssi;
+            });
+    
+    // Try to connect to the strongest network
+    Serial.printf("Connecting to strongest network: %s (signal: %d dBm)\n",
+                availableNetworks[0].credentials.ssid.c_str(),
+                availableNetworks[0].rssi);
+    
+    return attemptNewWifiConnection(availableNetworks[0].credentials);
 }
