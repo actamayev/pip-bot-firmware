@@ -75,3 +75,41 @@ void EncoderManager::log_motor_rpm() {
     // Update last log time
     _lastLogTime = currentTime;
 }
+
+void EncoderManager::initNetworkSelection() {
+    // Reset encoder position
+    _rightEncoder.clearCount();
+    _lastRightEncoderValue = 0;
+    _networkSelectionActive = true;
+    Serial.println("Network selection mode activated");
+    Serial.println("Turn right encoder to scroll through networks");
+}
+
+void EncoderManager::updateNetworkSelection() {
+    if (!_networkSelectionActive) return;
+    
+    // Get current encoder value
+    int32_t currentValue = _rightEncoder.getCount();
+    
+    // Check if the encoder has moved enough to change selection
+    if (abs(currentValue - _lastRightEncoderValue) >= _scrollSensitivity) {
+        // Calculate direction and number of steps
+        int steps = (currentValue - _lastRightEncoderValue) / _scrollSensitivity;
+
+        // Update the WiFi manager's selected network index
+        WiFiManager& wifiManager = WiFiManager::getInstance();
+        int currentIndex = wifiManager.getSelectedNetworkIndex();
+        wifiManager.setSelectedNetworkIndex(currentIndex + steps);
+        
+        // Print the updated list with the new selection
+        wifiManager.printNetworkList(wifiManager.getAvailableNetworks());
+        
+        // Store current value as last value
+        _lastRightEncoderValue = currentValue;
+    }
+}
+
+void EncoderManager::processNetworkSelection() {
+    if (!_networkSelectionActive) return;
+    updateNetworkSelection();
+}

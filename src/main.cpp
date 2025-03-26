@@ -9,7 +9,6 @@
 #include "./networking/wifi_manager.h"
 #include "./actuators/display_screen.h"
 #include "./lab_demo/lab_demo_manager.h"
-#include "./networking/webserver_manager.h"
 #include "./networking/websocket_manager.h"
 #include "./networking/send_data_to_server.h"
 
@@ -51,13 +50,12 @@ void NetworkTask(void * parameter) {
 
     // Main network loop
     for(;;) {
-        // Always process web server requests without delay
-        WebServerManager::getInstance().handleClientRequests();
-
         if (WiFi.status() == WL_CONNECTED) {
             // Other network operations can use internal timing
             WebSocketManager::getInstance().pollWebSocket();
             SendDataToServer::getInstance().sendSensorDataToServer();
+        } else {
+            EncoderManager::getInstance().processNetworkSelection();
         }
 
         // Short delay to yield to other tasks

@@ -1,5 +1,5 @@
-#include "../utils/config.h"
 #include "./rgb_led.h"
+#include "../utils/config.h"
 
 RgbLed rgbLed;
 
@@ -23,6 +23,10 @@ void RgbLed::set_led_blue() {
 
 void RgbLed::set_led_white() {
     set_led_to_color(255, 255, 255);
+}
+
+void RgbLed::set_led_purple() {
+    set_led_to_color(255, 0, 255);
 }
 
 void RgbLed::set_led_to_color(uint8_t red, uint8_t green, uint8_t blue) {

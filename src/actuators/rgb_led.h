@@ -9,6 +9,7 @@ class RgbLed {
         void set_led_green();
         void set_led_blue();
         void set_led_white();
+        void set_led_purple();
     private:
         void set_led_to_color(uint8_t red, uint8_t green, uint8_t blue);  
 };

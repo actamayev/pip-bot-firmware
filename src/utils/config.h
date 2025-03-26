@@ -5,8 +5,6 @@
 extern const uint8_t ESP_LED_PIN;
 extern const uint8_t NUM_LEDS;
 
-extern const uint8_t DNS_PORT;
-
 //I2C:
 extern const uint8_t I2C_SDA;
 extern const uint8_t I2C_SCL;

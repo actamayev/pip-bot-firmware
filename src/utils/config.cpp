@@ -5,8 +5,6 @@
 const uint8_t ESP_LED_PIN = 38;
 const uint8_t NUM_LEDS = 1;
 
-const uint8_t DNS_PORT = 53;
-
 //I2C
 const uint8_t I2C_SDA = 8;
 const uint8_t I2C_SCL = 9;

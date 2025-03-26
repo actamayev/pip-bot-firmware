@@ -1,7 +1,6 @@
 #include "../utils/config.h"
 #include "../actuators/rgb_led.h"
 #include "./wifi_manager.h"
-#include "./webserver_manager.h"
 #include "./websocket_manager.h"
 
 Preferences preferences;
@@ -67,9 +66,26 @@ void WiFiManager::connectToStoredWiFi() {
 	WiFiCredentials storedCreds = getStoredWiFiCredentials();
 
 	bool connectionStatus = attemptNewWifiConnection(storedCreds);
-	if (connectionStatus == false) return startAccessPoint();
-	else return WebSocketManager::getInstance().connectToWebSocket();
-	
+	if (connectionStatus == true) {
+        return WebSocketManager::getInstance().connectToWebSocket();
+    }
+    // Scan for networks instead of immediately starting AP
+    auto networks = scanWiFiNetworks();
+
+    if (networks.empty()) {
+        // If no networks found, start AP
+        startAccessPoint();
+        return;
+    }
+    // Print the available networks and select the first one
+    printNetworkList(networks);
+    setSelectedNetworkIndex(0);
+    
+    // Init encoder for network selection
+    EncoderManager::getInstance().initNetworkSelection();
+    
+    // Don't start AP yet, let user scroll through networks
+    Serial.println("Use the right motor to scroll through networks");
 }
 
 bool WiFiManager::attemptNewWifiConnection(WiFiCredentials wifiCredentials) {
@@ -121,5 +137,110 @@ void WiFiManager::startAccessPoint() {
 	WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
 
 	Serial.println("Access Point started.");
-	WebServerManager::getInstance().startWebServer();
+}
+
+std::vector<WiFiManager::WiFiNetwork> WiFiManager::scanWiFiNetworks() {
+    std::vector<WiFiNetwork> networks;
+
+    WiFi.disconnect(true);
+    WiFi.scanDelete();
+    delay(100);
+    // Set WiFi mode to station before scanning
+    WiFi.mode(WIFI_STA);
+
+    // Turn on LED to indicate scanning 
+    rgbLed.set_led_purple();
+
+    Serial.println("Scanning for WiFi networks...");
+    int numNetworks = WiFi.scanNetworks(false);
+    Serial.printf("Scan completed, found %d networks\n", numNetworks);
+
+    // Turn off LED after scanning
+    rgbLed.turn_led_off();
+
+    if (numNetworks <= 0) {
+        if (numNetworks == 0) {
+            Serial.println("No networks found");
+        } else if (numNetworks == -1) {
+            Serial.println("No Scan currently running");
+        } else if (numNetworks == -2) {
+            Serial.println("Error with scan");
+        } else {
+            Serial.printf("Unknown scan error: %d\n", numNetworks);
+        }
+        return networks;
+    }
+
+    // Store the networks
+    for (int i = 0; i < numNetworks; i++) {
+        WiFiNetwork network;
+        network.ssid = WiFi.SSID(i);
+        network.rssi = WiFi.RSSI(i);
+        network.encryptionType = WiFi.encryptionType(i);
+        networks.push_back(network);
+    }
+
+    // Sort networks by signal strength
+    sortNetworksBySignalStrength(networks);
+    
+    _availableNetworks = networks;
+    _selectedNetworkIndex = 0;
+    
+    return networks;
+}
+
+void WiFiManager::sortNetworksBySignalStrength(std::vector<WiFiNetwork>& networks) {
+    // Sort networks by RSSI (higher values = stronger signal)
+    std::sort(networks.begin(), networks.end(), 
+              [](const WiFiNetwork& a, const WiFiNetwork& b) {
+                  return a.rssi > b.rssi;
+              });
+}
+
+void WiFiManager::printNetworkList(const std::vector<WiFiNetwork>& networks) {
+    Serial.println("Available WiFi Networks (sorted by signal strength):");
+    Serial.println("----------------------------------------------------");
+    
+    for (size_t i = 0; i < networks.size(); i++) {
+        const auto& network = networks[i];
+        String encryption = "";
+        
+        // Convert encryption type to readable format
+        switch (network.encryptionType) {
+            case WIFI_AUTH_OPEN: encryption = "Open"; break;
+            case WIFI_AUTH_WEP: encryption = "WEP"; break;
+            case WIFI_AUTH_WPA_PSK: encryption = "WPA"; break;
+            case WIFI_AUTH_WPA2_PSK: encryption = "WPA2"; break;
+            case WIFI_AUTH_WPA_WPA2_PSK: encryption = "WPA/WPA2"; break;
+            default: encryption = "Unknown"; break;
+        }
+        
+        Serial.printf("%2d. %s | Signal: %d dBm | Security: %s %s\n", 
+                    (int)i + 1, 
+                    network.ssid.c_str(), 
+                    network.rssi,
+                    encryption.c_str(),
+                    (i == _selectedNetworkIndex) ? " <SELECTED>" : "");
+    }
+    Serial.println("----------------------------------------------------");
+}
+
+void WiFiManager::setSelectedNetworkIndex(int index) {
+    if (_availableNetworks.empty()) return;
+    
+    // Apply bounds checking
+    if (index < 0) {
+        _selectedNetworkIndex = 0;
+    } else if (index >= (int)_availableNetworks.size()) {
+        _selectedNetworkIndex = _availableNetworks.size() - 1;
+    } else {
+        _selectedNetworkIndex = index;
+    }
+    
+    // Print the selected network
+    if (!_availableNetworks.empty()) {
+        Serial.printf("Selected Network: %s (Signal: %d dBm)\n", 
+                    _availableNetworks[_selectedNetworkIndex].ssid.c_str(),
+                    _availableNetworks[_selectedNetworkIndex].rssi);
+    }
 }

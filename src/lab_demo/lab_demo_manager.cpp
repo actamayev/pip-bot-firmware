@@ -59,17 +59,17 @@ void LabDemoManager::executeCommand(int16_t leftSpeed, int16_t rightSpeed) {
     if (leftSpeed == 0) {
         motorDriver.left_motor_stop();
     } else if (leftSpeed > 0) {
-        motorDriver.left_motor_forward(leftSpeed);
+        motorDriver.left_motor_backward(leftSpeed);  // Changed from forward to backward
     } else {
-        motorDriver.left_motor_backward(-leftSpeed);
+        motorDriver.left_motor_forward(-leftSpeed);  // Changed from backward to forward
     }
 
     if (rightSpeed == 0) {
         motorDriver.right_motor_stop();
     } else if (rightSpeed > 0) {
-        motorDriver.right_motor_forward(rightSpeed);
+        motorDriver.right_motor_backward(rightSpeed);  // Changed from forward to backward
     } else {
-        motorDriver.right_motor_backward(-rightSpeed);
+        motorDriver.right_motor_forward(-rightSpeed);  // Changed from backward to forward
     }
 
     // Update LED based on motor direction

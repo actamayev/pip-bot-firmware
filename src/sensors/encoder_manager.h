@@ -3,6 +3,7 @@
 #include <ESP32Encoder.h>
 #include "./utils/structs.h"
 #include "./utils/singleton.h"
+#include "../networking/wifi_manager.h"
 
 class EncoderManager : public Singleton<EncoderManager> {
     friend class Singleton<EncoderManager>;
@@ -17,6 +18,11 @@ class EncoderManager : public Singleton<EncoderManager> {
         void log_motor_rpm();
 
         bool should_log_motor_rpm = false;
+
+        void initNetworkSelection();
+        void updateNetworkSelection();
+        void processNetworkSelection();
+
     private:
         // ESP32Encoder objects
         ESP32Encoder _leftEncoder;
@@ -36,6 +42,11 @@ class EncoderManager : public Singleton<EncoderManager> {
 
         // Update speed calculations - call this periodically
         void update();
+
+        // For network selection scrolling
+        int32_t _lastRightEncoderValue = 0;
+        int _scrollSensitivity = 5; // Adjust this to change scrolling sensitivity
+        bool _networkSelectionActive = false;
 };
 
 extern EncoderManager encoderManager;
