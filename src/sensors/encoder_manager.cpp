@@ -90,7 +90,7 @@ void EncoderManager::updateNetworkSelection() {
     
     // Get current encoder value
     int32_t currentValue = _rightEncoder.getCount();
-    
+
     // Check if the encoder has moved enough to change selection
     if (abs(currentValue - _lastRightEncoderValue) >= _scrollSensitivity) {
         // Calculate direction and number of steps
@@ -99,10 +99,28 @@ void EncoderManager::updateNetworkSelection() {
         // Update the WiFi manager's selected network index
         WiFiManager& wifiManager = WiFiManager::getInstance();
         int currentIndex = wifiManager.getSelectedNetworkIndex();
-        wifiManager.setSelectedNetworkIndex(currentIndex + steps);
+        int newIndex = currentIndex + steps;
         
-        // Print the updated list with the new selection
-        wifiManager.printNetworkList(wifiManager.getAvailableNetworks());
+        // Constrain the new index to valid range
+        int maxIndex = wifiManager.getAvailableNetworks().size() - 1;
+        
+        // Check if we're at boundaries
+        if (newIndex < 0 || newIndex > maxIndex) {
+            // Provide boundary feedback
+            motorDriver.provide_boundary_feedback();
+            newIndex = constrain(newIndex, 0, maxIndex);
+        } else {
+            // Only provide detent feedback if we're changing index
+            if (newIndex != currentIndex) {
+                motorDriver.provide_detent_feedback();
+            }
+        }
+        
+        // Update the selection if needed
+        if (newIndex != currentIndex) {
+            wifiManager.setSelectedNetworkIndex(newIndex);
+            wifiManager.printNetworkList(wifiManager.getAvailableNetworks());
+        }
         
         // Store current value as last value
         _lastRightEncoderValue = currentValue;

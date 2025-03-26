@@ -4,10 +4,12 @@
 #include "./utils/structs.h"
 #include "./utils/singleton.h"
 #include "../networking/wifi_manager.h"
+#include "../actuators/motor_driver.h"
 
 class EncoderManager : public Singleton<EncoderManager> {
     friend class Singleton<EncoderManager>;
     friend class LabDemoManager;  // Add this line to allow LabDemoManager to access private members
+    friend class MotorDriver;  // Add this line to allow LabDemoManager to access private members
 
     public:
         // Constructor
