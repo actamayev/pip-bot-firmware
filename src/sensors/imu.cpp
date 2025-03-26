@@ -93,26 +93,29 @@ bool ImuSensor::updateQuaternion() {
     return true;
 }
 
-EulerAngles& ImuSensor::getEulerAngles() {
-    static EulerAngles angles = {0, 0, 0, false}; // Use static for return reference validity
-
-    // Use getQuaternion to ensure the quaternion is updated
-    const QuaternionData& quaternion = getQuaternion();
-
-    if (!quaternion.isValid) {
-        angles.isValid = false;
-    } else {
-        quaternionToEuler(
-            quaternion.qW, 
-            quaternion.qX, 
-            quaternion.qY, 
-            quaternion.qZ,
-            angles.yaw, angles.pitch, angles.roll
-        );
-        angles.isValid = true;
+const EulerAngles& ImuSensor::getEulerAngles() {
+    // Use member variable instead of static local variable
+    if (!currentQuaternion.isValid) {
+        // Try to update the quaternion if it's not valid
+        if (!updateQuaternion()) {
+            currentEulerAngles.isValid = false;
+            return currentEulerAngles;
+        }
     }
 
-    return angles;
+    // Convert quaternion to Euler angles
+    quaternionToEuler(
+        currentQuaternion.qW, 
+        currentQuaternion.qX, 
+        currentQuaternion.qY, 
+        currentQuaternion.qZ,
+        currentEulerAngles.yaw, 
+        currentEulerAngles.pitch, 
+        currentEulerAngles.roll
+    );
+    
+    currentEulerAngles.isValid = true;
+    return currentEulerAngles;
 }
 
 float ImuSensor::getPitch() {
@@ -208,7 +211,7 @@ bool ImuSensor::updateMagnetometer() {
     currentMagnetometer.mX = sensorValue.un.magneticField.x;
     currentMagnetometer.mY = sensorValue.un.magneticField.y;
     currentMagnetometer.mZ = sensorValue.un.magneticField.z;
-    currentGyroData.isValid = true;
+    currentMagnetometer.isValid = true;
     return true;
 }
 

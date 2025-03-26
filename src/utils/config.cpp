@@ -91,7 +91,7 @@ const char* getEnvironment() {
 const char* getServerUrl() {
     const char* env = getEnvironment();
     if (env == nullptr || std::string(env) == "local") {
-        return "http://10.133.193.40:8080";  // local default
+        return "http://10.132.185.40:8080";  // local default
     } else if (std::string(env) == "staging") {
         return "staging-api.bluedotrobots.com";  // staging default
     }
@@ -101,7 +101,7 @@ const char* getServerUrl() {
 const char* getWsServerUrl() {
     const char* env = getEnvironment();
     if (env == nullptr || std::string(env) == "local") {
-        return "ws://10.133.193.40:8080/esp32";  // local default
+        return "ws://10.132.185.40:8080/esp32";  // local default
     } else if (std::string(env) == "staging") {
         return "wss://staging-api.bluedotrobots.com/esp32";  // staging default
     }

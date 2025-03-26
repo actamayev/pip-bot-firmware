@@ -14,23 +14,26 @@ class Sensors : public Singleton<Sensors> {
         VL53L5CX_ResultsData getMultizoneTofData();
 
         // IMU methods
-        EulerAngles& getEulerAngles();
         float getPitch();
         float getYaw();
         float getRoll();
+        const EulerAngles& getEulerAngles();
 
         float getXAccel();
         float getYAccel();
         float getZAccel();
         double getAccelMagnitude();
+        const AccelerometerData& getAccelerometerData();
 
         float getXRotationRate();
         float getYRotationRate();
         float getZRotationRate();
+        const GyroscopeData& getGyroscopeData();
 
         float getMagneticFieldX();
         float getMagneticFieldY();
         float getMagneticFieldZ();
+        const MagnetometerData& getMagnetometerData();
 
         // Color Sensor Methods:
         ColorSensorData getColorSensorData();
