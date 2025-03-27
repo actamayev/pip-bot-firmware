@@ -18,11 +18,20 @@ class MotorDriver {
         void right_motor_backward(uint8_t speed = 255);
         void right_motor_stop();
 
-        // Provide a short vibration/bump effect
-        void provide_detent_feedback(uint8_t strength = 50, uint8_t duration_ms = 30);
+        enum HapticState {
+            HAPTIC_IDLE,
+            HAPTIC_PULSE_ACTIVE,
+            HAPTIC_PULSE_RECOVERY
+        };
 
-        // Provide stronger boundary feedback
-        void provide_boundary_feedback(uint8_t strength = 100, uint8_t duration_ms = 50);
+        void start_haptic_feedback(uint8_t strength, uint8_t duration_ms);
+        void update_haptic_feedback();
+
+    private:
+        HapticState _hapticState = HAPTIC_IDLE;
+        uint8_t _hapticStrength = 0;
+        unsigned long _hapticStartTime = 0;
+        unsigned long _hapticDuration = 0;
 };
 
 extern MotorDriver motorDriver;

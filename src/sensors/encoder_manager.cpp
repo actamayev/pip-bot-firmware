@@ -90,37 +90,41 @@ void EncoderManager::updateNetworkSelection() {
     
     // Get current encoder value
     int32_t currentValue = _rightEncoder.getCount();
-
+    
     // Check if the encoder has moved enough to change selection
     if (abs(currentValue - _lastRightEncoderValue) >= _scrollSensitivity) {
         // Calculate direction and number of steps
         int steps = (currentValue - _lastRightEncoderValue) / _scrollSensitivity;
-
+        
         // Update the WiFi manager's selected network index
         WiFiManager& wifiManager = WiFiManager::getInstance();
         int currentIndex = wifiManager.getSelectedNetworkIndex();
         int newIndex = currentIndex + steps;
         
-        // Constrain the new index to valid range
         int maxIndex = wifiManager.getAvailableNetworks().size() - 1;
+        bool wrappedAround = false;
         
-        // Check if we're at boundaries
-        if (newIndex < 0 || newIndex > maxIndex) {
-            // Provide boundary feedback
-            motorDriver.provide_boundary_feedback();
-            newIndex = constrain(newIndex, 0, maxIndex);
+        // Handle wrapping with boundary feedback
+        if (newIndex < 0) {
+            newIndex = maxIndex; // Wrap to end
+            wrappedAround = true;
+        } else if (newIndex > maxIndex) {
+            newIndex = 0; // Wrap to beginning
+            wrappedAround = true;
+        }
+        
+        // Provide appropriate haptic feedback
+        if (wrappedAround) {
+            // Stronger feedback for wrapping (higher strength, longer duration)
+            motorDriver.start_haptic_feedback(150, 30);
         } else {
-            // Only provide detent feedback if we're changing index
-            if (newIndex != currentIndex) {
-                motorDriver.provide_detent_feedback();
-            }
+            // Normal detent feedback for regular navigation
+            motorDriver.start_haptic_feedback(50, 30);
         }
         
-        // Update the selection if needed
-        if (newIndex != currentIndex) {
-            wifiManager.setSelectedNetworkIndex(newIndex);
-            wifiManager.printNetworkList(wifiManager.getAvailableNetworks());
-        }
+        // Update the selection
+        wifiManager.setSelectedNetworkIndex(newIndex);
+        wifiManager.printNetworkList(wifiManager.getAvailableNetworks());
         
         // Store current value as last value
         _lastRightEncoderValue = currentValue;

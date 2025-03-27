@@ -50,6 +50,7 @@ void NetworkTask(void * parameter) {
 
     // Main network loop
     for(;;) {
+        motorDriver.update_haptic_feedback();
         if (WiFi.status() == WL_CONNECTED) {
             // Other network operations can use internal timing
             WebSocketManager::getInstance().pollWebSocket();

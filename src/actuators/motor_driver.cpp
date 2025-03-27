@@ -1,5 +1,5 @@
-#include "../utils/config.h"
 #include "./motor_driver.h"
+#include "../utils/config.h"
 
 MotorDriver motorDriver;
 
@@ -70,29 +70,41 @@ void MotorDriver::right_motor_stop() {
     analogWrite(RIGHT_MOTOR_PIN_IN_2, 0);
 }
 
-// Implement in motor_driver.cpp
-void MotorDriver::provide_detent_feedback(uint8_t strength, uint8_t duration_ms) {
-    // Save current encoder position
-    int64_t startPos = encoderManager._rightEncoder.getCount();
-
-    // Run motor briefly in opposite direction to create tactile bump
-    right_motor_backward(strength);
-    delay(duration_ms);
-    right_motor_stop();
+// In motor_driver.cpp
+void MotorDriver::start_haptic_feedback(uint8_t strength, uint8_t duration_ms) {
+    if (_hapticState != HAPTIC_IDLE) return;
+    _hapticState = HAPTIC_PULSE_ACTIVE;
+    _hapticStrength = strength;
+    _hapticStartTime = millis();
+    _hapticDuration = duration_ms;
     
-    // If user is still turning, resume movement
-    int64_t endPos = encoderManager._rightEncoder.getCount();
-    if (endPos != startPos) {
-        // If encoder has moved more, user is still turning
-        right_motor_forward(50); // Lower power to create smooth movement
-        delay(10);
-        right_motor_stop();
-    }
+    // Start the pulse (in opposite direction to create resistance)
+    right_motor_backward(strength);
+    
+    Serial.printf("Haptic feedback started: strength=%d, duration=%d\n", 
+                strength, duration_ms);
 }
 
-void MotorDriver::provide_boundary_feedback(uint8_t strength, uint8_t duration_ms) {
-    // Stronger feedback for boundaries
-    right_motor_backward(strength);
-    delay(duration_ms);
-    right_motor_stop();
+void MotorDriver::update_haptic_feedback() {
+    // Only process if we're in an active haptic state
+    if (_hapticState == HAPTIC_IDLE) return;
+
+    unsigned long currentTime = millis();
+
+    if (_hapticState == HAPTIC_PULSE_ACTIVE) {
+        // Check if pulse duration has elapsed
+        if (currentTime - _hapticStartTime >= _hapticDuration) {
+            // Stop the motor
+            right_motor_stop();
+            
+            // Enter recovery state (short pause before accepting new haptic commands)
+            _hapticState = HAPTIC_PULSE_RECOVERY;
+            _hapticStartTime = currentTime;
+        }
+    } else if (_hapticState == HAPTIC_PULSE_RECOVERY) {
+        // Allow a short recovery time (10ms) before accepting new haptic commands
+        if (currentTime - _hapticStartTime >= 10) {
+            _hapticState = HAPTIC_IDLE;
+        }
+    }
 }
