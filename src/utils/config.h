@@ -2,8 +2,10 @@
 #include <string>
 #include <cstdint>
 
-extern const uint8_t ESP_LED_PIN;
-extern const uint8_t NUM_LEDS;
+extern const uint8_t ESP_LED_PIN1;
+extern const uint8_t NUM_LEDS1;
+extern const uint8_t ESP_LED_PIN2;
+extern const uint8_t NUM_LEDS2;
 
 //I2C:
 extern const uint8_t I2C_SDA;
