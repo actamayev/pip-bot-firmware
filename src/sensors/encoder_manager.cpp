@@ -88,36 +88,42 @@ void EncoderManager::initNetworkSelection() {
 
 void EncoderManager::updateNetworkSelection() {
     if (!_networkSelectionActive) return;
-
-    // Get current encoder value
-    int32_t currentValue = _rightEncoder.getCount();
-
-    // Calculate deltas
-    int32_t encoderDelta = currentValue - _lastRightEncoderValue;
-    int32_t hapticDelta = currentValue - _lastHapticPosition;
-
-    // First check if we should provide haptic feedback (more frequent)
-    if (abs(hapticDelta) >= _hapticSensitivity) {
-        // Calculate haptic direction
-        int hapticDirection = (hapticDelta > 0) ? 1 : -1;
-        
-        // Provide haptic feedback (but don't change selection yet)
-        if (abs(hapticDelta) >= _scrollSensitivity) {
-            // If we're also about to change selection, use stronger feedback
-            motorDriver.start_haptic_feedback(hapticDirection, 130, 15);
+    
+    // Process haptic feedback even during cooldown
+    unsigned long currentTime = millis();
+    
+    // Check if we're in a cooldown period
+    if (!_scrollingEnabled) {
+        // Wait for the cooldown to finish
+        if (currentTime - _scrollCooldownTime >= _scrollCooldownDuration) {
+            _scrollingEnabled = true;
+            // Reset encoder position once cooldown is complete
+            _rightEncoder.clearCount();
+            _lastRightEncoderValue = 0;
+            _lastHapticPosition = 0;
+            Serial.println("Scrolling re-enabled after cooldown");
         } else {
-            // Just haptic feedback, lighter
-            motorDriver.start_haptic_feedback(hapticDirection, 90, 12);
+            // We're still in cooldown, don't process scrolling
+            return;
         }
-        
-        // Update last haptic position (round to nearest haptic step to prevent drift)
-        _lastHapticPosition = currentValue - (currentValue % _hapticSensitivity);
     }
     
-    // Check if we've moved enough to change the network selection
+    // Get current encoder value
+    int32_t currentValue = _rightEncoder.getCount();
+    
+    // Calculate delta (how much the encoder has moved)
+    int32_t encoderDelta = currentValue - _lastRightEncoderValue;
+    
+    // Ignore very small movements to reduce noise
+    if (abs(encoderDelta) < 2) return;
+    
+    // Only proceed if encoder has moved enough to trigger a scroll
     if (abs(encoderDelta) >= _scrollSensitivity) {
-        // Calculate direction and number of steps
-        int steps = encoderDelta / _scrollSensitivity;
+        // Calculate direction for simple movement (positive or negative)
+        int direction = (encoderDelta > 0) ? 1 : -1;
+        
+        // Calculate number of steps (limit to 1 to prevent skipping)
+        int steps = direction; // Always just move 1 item at a time
         
         // Update the WiFi manager's selected network index
         WiFiManager& wifiManager = WiFiManager::getInstance();
@@ -136,17 +142,30 @@ void EncoderManager::updateNetworkSelection() {
             wrappedAround = true;
         }
         
-        // Only handle wrap-around feedback here (regular feedback handled above)
-        if (wrappedAround) {
-            motorDriver.start_haptic_feedback(steps > 0 ? 1 : -1, 180, 20);
-        }
+        // Determine haptic strength based on wrap-around
+        uint8_t hapticStrength = wrappedAround ? 180 : 130;
+        uint8_t hapticDuration = wrappedAround ? 25 : 20;
         
         // Update the selection
         wifiManager.setSelectedNetworkIndex(newIndex);
+        
+        // Print updated network list
         wifiManager.printNetworkList(wifiManager.getAvailableNetworks());
         
-        // Store current value as last value (round to nearest scroll step to prevent drift)
-        _lastRightEncoderValue = currentValue - (currentValue % _scrollSensitivity);
+        // Apply haptic feedback
+        motorDriver.start_haptic_feedback(direction, hapticStrength, hapticDuration);
+        
+        // Start cooldown period
+        _scrollingEnabled = false;
+        _scrollCooldownTime = currentTime;
+        _selectionChanged = true;
+        
+        // Store current value as last value
+        _lastRightEncoderValue = currentValue;
+        _lastHapticPosition = currentValue;
+        
+        Serial.printf("Network selection changed to index %d, entering cooldown for %d ms\n", 
+                     newIndex, _scrollCooldownDuration);
     }
 }
 
