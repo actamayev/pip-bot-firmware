@@ -89,7 +89,7 @@ void EncoderManager::initNetworkSelection() {
 void EncoderManager::updateNetworkSelection() {
     if (!_networkSelectionActive) return;
     
-    // Process haptic feedback even during cooldown
+    // Process timing logic
     unsigned long currentTime = millis();
     
     // Check if we're in a cooldown period
@@ -107,6 +107,9 @@ void EncoderManager::updateNetworkSelection() {
             return;
         }
     }
+
+    // Don't process encoder changes if haptic feedback is in progress
+    if (motorDriver.isHapticInProgress()) return;
     
     // Get current encoder value
     int32_t currentValue = _rightEncoder.getCount();
@@ -141,16 +144,21 @@ void EncoderManager::updateNetworkSelection() {
             newIndex = 0; // Wrap to beginning
             wrappedAround = true;
         }
-        
+
         // Determine haptic strength based on wrap-around
-        uint8_t hapticStrength = wrappedAround ? 225 : 225;
-        uint8_t hapticDuration = wrappedAround ? 30 : 20;
-        
+        uint8_t hapticStrength = wrappedAround ? 255 : 255;
+        uint8_t hapticDuration = wrappedAround ? 28 : 15;
+
         // Update the selection
         wifiManager.setSelectedNetworkIndex(newIndex);
         
         // Print updated network list
         wifiManager.printNetworkList(wifiManager.getAvailableNetworks());
+        
+        // Store current encoder value BEFORE starting haptic feedback
+        // This way we don't get false readings during haptic feedback
+        _lastRightEncoderValue = currentValue;
+        _lastHapticPosition = currentValue;
         
         // Apply haptic feedback
         motorDriver.start_haptic_feedback(direction, hapticStrength, hapticDuration);
@@ -158,10 +166,7 @@ void EncoderManager::updateNetworkSelection() {
         // Start cooldown period
         _scrollingEnabled = false;
         _scrollCooldownTime = currentTime;
-        
-        // Store current value as last value
-        _lastRightEncoderValue = currentValue;
-        _lastHapticPosition = currentValue;
+        _selectionChanged = true;
         
         Serial.printf("Network selection changed to index %d, entering cooldown for %d ms\n", 
                      newIndex, _scrollCooldownDuration);

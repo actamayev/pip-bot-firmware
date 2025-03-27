@@ -83,7 +83,7 @@ void MotorDriver::start_haptic_feedback(int8_t direction, uint8_t strength, uint
     _reversePulseStrength = min(255, (int)(strength * 0.9)); // Strong reverse pulse
     _centeringStrength = min(255, (int)(strength * 0.5));   // Gentle centering
     _finalBumpStrength = min(255, (int)(strength * 0.7));   // Definitive final "click"
-
+    
     // Set durations for distinct feeling stages
     // Total duration will be longer than input duration to make effect more noticeable
     _resistanceDuration = min(255, (int)(duration_ms * 0.6)); // Initial resistance
@@ -141,7 +141,7 @@ void MotorDriver::update_haptic_feedback() {
                 }
             }
             break;
-
+            
         case HAPTIC_CENTERING:
             if (elapsedTime >= _centeringDuration) {
                 _hapticState = HAPTIC_FINAL_BUMP;
@@ -180,4 +180,8 @@ void MotorDriver::update_haptic_feedback() {
             right_motor_stop();
             break;
     }
+}
+
+bool MotorDriver::isHapticInProgress() const {
+    return _hapticState != HAPTIC_IDLE;
 }

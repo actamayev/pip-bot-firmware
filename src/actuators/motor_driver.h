@@ -4,6 +4,8 @@
 #include "../sensors/encoder_manager.h"
 
 class MotorDriver {
+    friend class EncoderManager;  // Add this line to allow LabDemoManager to access private members
+
     public:
         MotorDriver();  // Constructor to initialize pins
         void both_motors_forward(uint8_t speed = 255);
@@ -29,6 +31,7 @@ class MotorDriver {
 
         void start_haptic_feedback(int8_t direction, uint8_t strength, uint8_t duration_ms);
         void update_haptic_feedback();
+        bool isHapticInProgress() const;
 
     private:
         HapticState _hapticState = HAPTIC_IDLE;

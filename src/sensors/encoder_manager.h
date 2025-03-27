@@ -54,6 +54,8 @@ class EncoderManager : public Singleton<EncoderManager> {
         bool _scrollingEnabled = true;          // Flag to enable/disable scrolling during cooldown
         unsigned long _scrollCooldownTime = 0;   // Time when cooldown started
         unsigned long _scrollCooldownDuration = 40; // Cooldown duration in ms
+        bool _selectionChanged = false;         // Flag to track if the selection has changed
+        bool _hapticInProgress = false;         // Flag to track if haptic feedback is in progress
 };
 
 extern EncoderManager encoderManager;
