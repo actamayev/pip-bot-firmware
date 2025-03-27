@@ -80,6 +80,7 @@ void EncoderManager::initNetworkSelection() {
     // Reset encoder position
     _rightEncoder.clearCount();
     _lastRightEncoderValue = 0;
+    _lastHapticPosition = 0;  // Also reset the haptic position
     _networkSelectionActive = true;
     Serial.println("Network selection mode activated");
     Serial.println("Turn right encoder to scroll through networks");
@@ -87,17 +88,37 @@ void EncoderManager::initNetworkSelection() {
 
 void EncoderManager::updateNetworkSelection() {
     if (!_networkSelectionActive) return;
-    
+
     // Get current encoder value
     int32_t currentValue = _rightEncoder.getCount();
-    int32_t encoderDelta = currentValue - _lastRightEncoderValue;
 
-    // Check if the encoder has moved enough to change selection
+    // Calculate deltas
+    int32_t encoderDelta = currentValue - _lastRightEncoderValue;
+    int32_t hapticDelta = currentValue - _lastHapticPosition;
+
+    // First check if we should provide haptic feedback (more frequent)
+    if (abs(hapticDelta) >= _hapticSensitivity) {
+        // Calculate haptic direction
+        int hapticDirection = (hapticDelta > 0) ? 1 : -1;
+        
+        // Provide haptic feedback (but don't change selection yet)
+        if (abs(hapticDelta) >= _scrollSensitivity) {
+            // If we're also about to change selection, use stronger feedback
+            motorDriver.start_haptic_feedback(hapticDirection, 130, 15);
+        } else {
+            // Just haptic feedback, lighter
+            motorDriver.start_haptic_feedback(hapticDirection, 90, 12);
+        }
+        
+        // Update last haptic position (round to nearest haptic step to prevent drift)
+        _lastHapticPosition = currentValue - (currentValue % _hapticSensitivity);
+    }
+    
+    // Check if we've moved enough to change the network selection
     if (abs(encoderDelta) >= _scrollSensitivity) {
         // Calculate direction and number of steps
         int steps = encoderDelta / _scrollSensitivity;
-        int direction = (steps > 0) ? 1 : -1; // Positive = clockwise, Negative = counterclockwise
-
+        
         // Update the WiFi manager's selected network index
         WiFiManager& wifiManager = WiFiManager::getInstance();
         int currentIndex = wifiManager.getSelectedNetworkIndex();
@@ -115,21 +136,17 @@ void EncoderManager::updateNetworkSelection() {
             wrappedAround = true;
         }
         
-        // Provide appropriate haptic feedback
+        // Only handle wrap-around feedback here (regular feedback handled above)
         if (wrappedAround) {
-            // Stronger feedback for wrapping (higher strength, shorter duration)
-            motorDriver.start_haptic_feedback(direction, 150, 30);
-        } else {
-            // Normal detent feedback for regular navigation
-            motorDriver.start_haptic_feedback(direction, 75, 30);
+            motorDriver.start_haptic_feedback(steps > 0 ? 1 : -1, 180, 20);
         }
         
         // Update the selection
         wifiManager.setSelectedNetworkIndex(newIndex);
         wifiManager.printNetworkList(wifiManager.getAvailableNetworks());
         
-        // Store current value as last value
-        _lastRightEncoderValue = currentValue;
+        // Store current value as last value (round to nearest scroll step to prevent drift)
+        _lastRightEncoderValue = currentValue - (currentValue % _scrollSensitivity);
     }
 }
 

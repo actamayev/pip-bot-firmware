@@ -47,8 +47,10 @@ class EncoderManager : public Singleton<EncoderManager> {
 
         // For network selection scrolling
         int32_t _lastRightEncoderValue = 0;
-        int _scrollSensitivity = 6; // Adjust this to change scrolling sensitivity
+        int _scrollSensitivity = 5; // Adjust this to change scrolling sensitivity
+        int _hapticSensitivity = 4; // Adjust this to change scrolling sensitivity
         bool _networkSelectionActive = false;
+        int32_t _lastHapticPosition = 0;     // Track position for haptic feedback separately
 };
 
 extern EncoderManager encoderManager;

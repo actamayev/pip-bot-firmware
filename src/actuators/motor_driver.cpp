@@ -71,39 +71,40 @@ void MotorDriver::right_motor_stop() {
 }
 
 void MotorDriver::start_haptic_feedback(int8_t direction, uint8_t strength, uint8_t duration_ms) {
-    if (_hapticState != HAPTIC_IDLE) return;
-    // Store direction for use in all stages
-    _hapticDirection = direction;
-    
-    // Set strength for each stage (proportional to base strength)
-    _resistanceStrength = strength;
-    _reversePulseStrength = strength * 0.7;  // Slightly weaker reverse pulse
-    _centeringStrength = strength * 0.4;     // Much gentler centering force
-    
-    // Set duration for each stage
-    _resistanceDuration = duration_ms;          // Initial resistance
-    _reversePulseDuration = duration_ms * 0.4;  // Shorter reverse pulse
-    _centeringDuration = duration_ms * 0.8;     // Longer centering period
-    _recoveryDuration = 15;                     // Fixed recovery time
-    
-    // Start first stage - resistance against movement
-    _hapticState = HAPTIC_RESISTANCE;
-    _hapticStartTime = millis();
-    
-    // Apply resistance in the opposite direction of movement
-    if (direction > 0) {
-        // User turning clockwise, apply counterclockwise resistance
-        right_motor_backward(_resistanceStrength);
-    } else {
-        // User turning counterclockwise, apply clockwise resistance
-        right_motor_forward(_resistanceStrength);
+    if (_hapticState == HAPTIC_IDLE) {
+        // Store direction for use in all stages
+        _hapticDirection = direction;
+        
+        // Enhanced centering parameters
+        _resistanceStrength = strength * 1.5;
+        _reversePulseStrength = strength * 0.8;     // Strong reverse pulse
+        _centeringStrength = strength * 0.6;        // Increased centering strength (was 0.4)
+        _finalBumpStrength = strength * 0.7;        // Strong final bump to "click" into place
+        
+        // Set durations for enhanced snap feel
+        _resistanceDuration = duration_ms * 1.2;        // Slightly shorter initial resistance
+        _reversePulseDuration = duration_ms * 0.3;      // Brief reverse pulse
+        _centeringDuration = duration_ms * 1.5;         // Extended centering (25-30ms)
+        _finalBumpDuration = duration_ms * 0.4;         // Brief final bump
+        _recoveryDuration = 12;                         // Slightly reduced recovery
+        
+        // Start first stage - resistance against movement
+        _hapticState = HAPTIC_RESISTANCE;
+        _hapticStartTime = millis();
+        
+        // Apply resistance in the opposite direction of movement
+        if (direction > 0) {
+            right_motor_backward(_resistanceStrength);
+        } else {
+            right_motor_forward(_resistanceStrength);
+        }
+        
+        Serial.printf("Enhanced haptic: dir=%d, str=%d, dur=%d\n", 
+                     direction, strength, duration_ms);
     }
-    
-    Serial.printf("Haptic sequence: dir=%d, strength=%d\n", direction, strength);
 }
 
 void MotorDriver::update_haptic_feedback() {
-    // Only process if we're in an active haptic state
     if (_hapticState == HAPTIC_IDLE) return;
 
     unsigned long currentTime = millis();
@@ -111,63 +112,66 @@ void MotorDriver::update_haptic_feedback() {
 
     switch (_hapticState) {
         case HAPTIC_RESISTANCE:
-            // Check if resistance stage completed
             if (elapsedTime >= _resistanceDuration) {
-                // Start reverse pulse stage - helping force in the direction of movement
                 _hapticState = HAPTIC_REVERSE_PULSE;
                 _hapticStartTime = currentTime;
                 
-                // Apply pulse in same direction as user movement (helping force)
+                // Apply pulse in same direction as user movement
                 if (_hapticDirection > 0) {
-                    // User turning clockwise, apply clockwise pulse
                     right_motor_forward(_reversePulseStrength);
                 } else {
-                    // User turning counterclockwise, apply counterclockwise pulse
                     right_motor_backward(_reversePulseStrength);
                 }
             }
             break;
-
+            
         case HAPTIC_REVERSE_PULSE:
-            // Check if reverse pulse stage completed
             if (elapsedTime >= _reversePulseDuration) {
-                // Start centering stage - gentle force toward centered position
                 _hapticState = HAPTIC_CENTERING;
                 _hapticStartTime = currentTime;
                 
-                // Apply gentle force toward "center" of the detent
-                // (same direction as user was turning)
+                // Enhanced centering - stronger pull toward center
                 if (_hapticDirection > 0) {
-                    // User was turning clockwise, gentle clockwise centering
                     right_motor_forward(_centeringStrength);
                 } else {
-                    // User was turning counterclockwise, gentle counterclockwise centering
                     right_motor_backward(_centeringStrength);
                 }
             }
             break;
             
         case HAPTIC_CENTERING:
-            // Check if centering stage completed
             if (elapsedTime >= _centeringDuration) {
+                _hapticState = HAPTIC_FINAL_BUMP;
+                _hapticStartTime = currentTime;
+                
+                // Final "bump" - brief stronger pulse in same direction
+                // to create a definitive end to the sequence
+                if (_hapticDirection > 0) {
+                    right_motor_forward(_finalBumpStrength);
+                } else {
+                    right_motor_backward(_finalBumpStrength);
+                }
+            }
+            break;
+            
+        case HAPTIC_FINAL_BUMP:
+            if (elapsedTime >= _finalBumpDuration) {
                 // Stop the motor
                 right_motor_stop();
                 
-                // Enter recovery state before accepting new haptic commands
+                // Enter recovery state
                 _hapticState = HAPTIC_RECOVERY;
                 _hapticStartTime = currentTime;
             }
             break;
-
+            
         case HAPTIC_RECOVERY:
-            // Check if recovery time has elapsed
             if (elapsedTime >= _recoveryDuration) {
                 _hapticState = HAPTIC_IDLE;
             }
             break;
-  
+            
         default:
-            // Unexpected state, reset to idle
             _hapticState = HAPTIC_IDLE;
             right_motor_stop();
             break;

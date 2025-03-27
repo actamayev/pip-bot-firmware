@@ -23,6 +23,7 @@ class MotorDriver {
             HAPTIC_RESISTANCE,      // Stage 1: Initial resistance against movement
             HAPTIC_REVERSE_PULSE,   // Stage 2: Helping pulse in direction of movement
             HAPTIC_CENTERING,       // Stage 3: Gentle centering force
+            HAPTIC_FINAL_BUMP,      // Stage 4: Final "click" into place
             HAPTIC_RECOVERY         // Cool-down period before accepting new input
         };
 
@@ -31,14 +32,16 @@ class MotorDriver {
 
     private:
         HapticState _hapticState = HAPTIC_IDLE;
-        int8_t _hapticDirection = 0;         // Direction of encoder movement
-        uint8_t _resistanceStrength = 0;     // Strength of initial resistance
-        uint8_t _reversePulseStrength = 0;   // Strength of reverse pulse
-        uint8_t _centeringStrength = 0;      // Strength of centering force
-        unsigned long _hapticStartTime = 0;  // Start time of current stage
+        int8_t _hapticDirection = 0;
+        uint8_t _resistanceStrength = 0;
+        uint8_t _reversePulseStrength = 0;
+        uint8_t _centeringStrength = 0;
+        uint8_t _finalBumpStrength = 0;    // Added for the final bump
+        unsigned long _hapticStartTime = 0;
         unsigned long _resistanceDuration = 0;
         unsigned long _reversePulseDuration = 0;
         unsigned long _centeringDuration = 0;
+        unsigned long _finalBumpDuration = 0;  // Added for the final bump
         unsigned long _recoveryDuration = 0;
 };
 
