@@ -70,19 +70,25 @@ void MotorDriver::right_motor_stop() {
     analogWrite(RIGHT_MOTOR_PIN_IN_2, 0);
 }
 
-// In motor_driver.cpp
-void MotorDriver::start_haptic_feedback(uint8_t strength, uint8_t duration_ms) {
-    if (_hapticState != HAPTIC_IDLE) return;
-    _hapticState = HAPTIC_PULSE_ACTIVE;
-    _hapticStrength = strength;
-    _hapticStartTime = millis();
-    _hapticDuration = duration_ms;
-    
-    // Start the pulse (in opposite direction to create resistance)
-    right_motor_backward(strength);
-    
-    Serial.printf("Haptic feedback started: strength=%d, duration=%d\n", 
-                strength, duration_ms);
+void MotorDriver::start_haptic_feedback(int8_t direction, uint8_t strength, uint8_t duration_ms) {
+    if (_hapticState == HAPTIC_IDLE) {
+        _hapticState = HAPTIC_PULSE_ACTIVE;
+        _hapticStrength = strength;
+        _hapticStartTime = millis();
+        _hapticDuration = duration_ms;
+        
+        // Apply resistance in the opposite direction of movement
+        if (direction > 0) {
+            // User is turning clockwise, apply counterclockwise resistance
+            right_motor_backward(strength);
+        } else {
+            // User is turning counterclockwise, apply clockwise resistance
+            right_motor_forward(strength);
+        }
+        
+        Serial.printf("Haptic feedback: dir=%d, strength=%d, duration=%d\n", 
+                    direction, strength, duration_ms);
+    }
 }
 
 void MotorDriver::update_haptic_feedback() {

@@ -24,7 +24,7 @@ class MotorDriver {
             HAPTIC_PULSE_RECOVERY
         };
 
-        void start_haptic_feedback(uint8_t strength, uint8_t duration_ms);
+        void start_haptic_feedback(int8_t direction, uint8_t strength, uint8_t duration_ms);
         void update_haptic_feedback();
 
     private:

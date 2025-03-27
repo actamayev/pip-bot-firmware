@@ -90,11 +90,13 @@ void EncoderManager::updateNetworkSelection() {
     
     // Get current encoder value
     int32_t currentValue = _rightEncoder.getCount();
-    
+    int32_t encoderDelta = currentValue - _lastRightEncoderValue;
+
     // Check if the encoder has moved enough to change selection
-    if (abs(currentValue - _lastRightEncoderValue) >= _scrollSensitivity) {
+    if (abs(encoderDelta) >= _scrollSensitivity) {
         // Calculate direction and number of steps
-        int steps = (currentValue - _lastRightEncoderValue) / _scrollSensitivity;
+        int steps = encoderDelta / _scrollSensitivity;
+        int direction = (steps > 0) ? 1 : -1; // Positive = clockwise, Negative = counterclockwise
         
         // Update the WiFi manager's selected network index
         WiFiManager& wifiManager = WiFiManager::getInstance();
@@ -115,11 +117,11 @@ void EncoderManager::updateNetworkSelection() {
         
         // Provide appropriate haptic feedback
         if (wrappedAround) {
-            // Stronger feedback for wrapping (higher strength, longer duration)
-            motorDriver.start_haptic_feedback(150, 30);
+            // Stronger feedback for wrapping (higher strength, shorter duration)
+            motorDriver.start_haptic_feedback(direction, 150, 30);
         } else {
             // Normal detent feedback for regular navigation
-            motorDriver.start_haptic_feedback(50, 30);
+            motorDriver.start_haptic_feedback(direction, 50, 30);
         }
         
         // Update the selection

@@ -69,11 +69,11 @@ WiFiCredentials WiFiManager::getStoredWiFiCredentials() {
 
 void WiFiManager::connectToStoredWiFi() {
     // Try to connect to strongest saved network
-    bool connectionStatus = connectToStrongestSavedNetwork();
+    // bool connectionStatus = connectToStrongestSavedNetwork();
     
-    if (connectionStatus) {
-        return WebSocketManager::getInstance().connectToWebSocket();
-    }
+    // if (connectionStatus) {
+    //     return WebSocketManager::getInstance().connectToWebSocket();
+    // }
     
     // If no saved networks are in range or connection failed,
     // do a full scan for all networks

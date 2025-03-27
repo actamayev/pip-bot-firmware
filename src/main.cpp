@@ -60,7 +60,7 @@ void NetworkTask(void * parameter) {
         }
 
         // Short delay to yield to other tasks
-        delay(5); // Just enough delay to prevent hogging the CPU
+        delay(2); // Just enough delay to prevent hogging the CPU
     }
 }
 
