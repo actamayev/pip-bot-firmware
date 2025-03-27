@@ -97,7 +97,7 @@ void EncoderManager::updateNetworkSelection() {
         // Calculate direction and number of steps
         int steps = encoderDelta / _scrollSensitivity;
         int direction = (steps > 0) ? 1 : -1; // Positive = clockwise, Negative = counterclockwise
-        
+
         // Update the WiFi manager's selected network index
         WiFiManager& wifiManager = WiFiManager::getInstance();
         int currentIndex = wifiManager.getSelectedNetworkIndex();
@@ -121,7 +121,7 @@ void EncoderManager::updateNetworkSelection() {
             motorDriver.start_haptic_feedback(direction, 150, 30);
         } else {
             // Normal detent feedback for regular navigation
-            motorDriver.start_haptic_feedback(direction, 50, 30);
+            motorDriver.start_haptic_feedback(direction, 75, 30);
         }
         
         // Update the selection
