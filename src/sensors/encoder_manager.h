@@ -47,7 +47,7 @@ class EncoderManager : public Singleton<EncoderManager> {
 
         // For network selection scrolling
         int32_t _lastRightEncoderValue = 0;
-        int _scrollSensitivity = 5; // Adjust this to change scrolling sensitivity
+        int _scrollSensitivity = 8; // Adjust this to change scrolling sensitivity
         bool _networkSelectionActive = false;
 };
 
