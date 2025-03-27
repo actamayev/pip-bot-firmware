@@ -143,8 +143,8 @@ void EncoderManager::updateNetworkSelection() {
         }
         
         // Determine haptic strength based on wrap-around
-        uint8_t hapticStrength = wrappedAround ? 180 : 130;
-        uint8_t hapticDuration = wrappedAround ? 25 : 20;
+        uint8_t hapticStrength = wrappedAround ? 225 : 225;
+        uint8_t hapticDuration = wrappedAround ? 30 : 20;
         
         // Update the selection
         wifiManager.setSelectedNetworkIndex(newIndex);
