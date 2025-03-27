@@ -48,14 +48,12 @@ class EncoderManager : public Singleton<EncoderManager> {
         // For network selection scrolling
         int32_t _lastRightEncoderValue = 0;
         int _scrollSensitivity = 5; // Adjust this to change scrolling sensitivity
-        int _hapticSensitivity = 4; // Adjust this to change scrolling sensitivity
         bool _networkSelectionActive = false;
         int32_t _lastHapticPosition = 0;     // Track position for haptic feedback separately
 
         bool _scrollingEnabled = true;          // Flag to enable/disable scrolling during cooldown
         unsigned long _scrollCooldownTime = 0;   // Time when cooldown started
         unsigned long _scrollCooldownDuration = 40; // Cooldown duration in ms
-        bool _selectionChanged = false;         // Flag to track if the selection has changed
 };
 
 extern EncoderManager encoderManager;

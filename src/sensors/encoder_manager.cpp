@@ -158,7 +158,6 @@ void EncoderManager::updateNetworkSelection() {
         // Start cooldown period
         _scrollingEnabled = false;
         _scrollCooldownTime = currentTime;
-        _selectionChanged = true;
         
         // Store current value as last value
         _lastRightEncoderValue = currentValue;
