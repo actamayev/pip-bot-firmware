@@ -3,7 +3,7 @@
 #include "../actuators/rgb_led.h"
 #include "../actuators/motor_driver.h"
 #include "../sensors/encoder_manager.h"
-#include "../actuators/speaker.h"
+// #include "../actuators/speaker.h"
 
 LabDemoManager::LabDemoManager() 
     : isExecutingCommand(false), 
@@ -49,7 +49,7 @@ void LabDemoManager::handleSoundMessage(const char* data) {
 
         case TUNE_CHIME:
             Serial.println("Playing Chime sound");
-            speaker.chime();
+            // speaker.chime();
             break;
 
         default:
@@ -64,10 +64,10 @@ void LabDemoManager::handleSpeakerMuteMessage(const char* data) {
     
     if (muteState == 0) {
         Serial.println("Muting speaker");
-        speaker.mute();
+        // speaker.mute();
     } else if (muteState == 1) {
         Serial.println("Unmuting speaker");
-        speaker.unmute();
+        // speaker.unmute();
     } else {
         Serial.printf("Unknown mute state: %d\n", muteState);
     }
@@ -187,7 +187,7 @@ void LabDemoManager::processPendingCommands() {
 
 void LabDemoManager::handleChimeCommand() {
     // Play the chime sound
-    speaker.chime();
+    // speaker.chime();
 
     Serial.println("Chime command executed");
 }

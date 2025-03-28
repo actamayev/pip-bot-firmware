@@ -2,10 +2,8 @@
 #include <string>
 #include <cstdint>
 
-extern const uint8_t ESP_LED_PIN1;
-extern const uint8_t NUM_LEDS1;
-extern const uint8_t ESP_LED_PIN2;
-extern const uint8_t NUM_LEDS2;
+extern const uint8_t ESP_LED_PIN;
+extern const uint8_t NUM_LEDS;
 
 //I2C:
 extern const uint8_t I2C_SDA;
@@ -53,7 +51,7 @@ extern const uint8_t PIN_MUX_OUT;
 extern const uint8_t PIN_IR_EN;
 
 //Speaker
-extern const uint8_t AUDIO_PIN;
+// extern const uint8_t AUDIO_PIN;
 
 // Assign Stack sizes for the two cores
 extern const uint32_t SENSOR_STACK_SIZE;
