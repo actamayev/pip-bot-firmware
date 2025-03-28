@@ -1,7 +1,8 @@
 #include <esp32-hal-timer.h>
 #include "./utils/config.h"
-#include "./actuators/rgb_led.h"
 #include "./sensors/sensors.h"
+#include "./actuators/rgb_led.h"
+#include "./actuators/speaker.h"
 #include "./user_code/user_code.h"
 #include "./utils/show_chip_info.h"
 #include "./utils/sensor_loggers.h"
@@ -71,6 +72,7 @@ void setup() {
     delay(2000);
 
     rgbLed.turn_led_off();
+    speaker.chime();
 
     // Create tasks for parallel execution
     xTaskCreatePinnedToCore(

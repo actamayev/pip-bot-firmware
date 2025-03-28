@@ -3,6 +3,7 @@
 #include "../actuators/rgb_led.h"
 #include "../actuators/motor_driver.h"
 #include "../sensors/encoder_manager.h"
+#include "../actuators/speaker.h"
 
 LabDemoManager::LabDemoManager() 
     : isExecutingCommand(false), 
@@ -16,16 +17,23 @@ LabDemoManager::LabDemoManager()
 }
 
 void LabDemoManager::handleBinaryMessage(const char* data) {
-    if (data[0] != 1) {  // 1 = motor control
-        Serial.printf("Unknown message type: %d\n", data[0]);
-        return;
-    }
-
-    // Extract 16-bit signed integers (little-endian)
-    int16_t leftSpeed = (static_cast<uint8_t>(data[2]) << 8) | static_cast<uint8_t>(data[1]);
-    int16_t rightSpeed = (static_cast<uint8_t>(data[4]) << 8) | static_cast<uint8_t>(data[3]);
+    // Check message type
+    uint8_t msgType = static_cast<uint8_t>(data[0]);
     
-    updateMotorSpeeds(leftSpeed, rightSpeed);
+    if (msgType == MOTOR_CONTROL_MSG_TYPE) {
+        // Extract 16-bit signed integers (little-endian)
+        int16_t leftSpeed = (static_cast<uint8_t>(data[2]) << 8) | static_cast<uint8_t>(data[1]);
+        int16_t rightSpeed = (static_cast<uint8_t>(data[4]) << 8) | static_cast<uint8_t>(data[3]);
+        
+        updateMotorSpeeds(leftSpeed, rightSpeed);
+    }
+    else if (msgType == CHIME_MSG_TYPE) {
+        // Handle chime command
+        handleChimeCommand();
+    }
+    else {
+        Serial.printf("Unknown message type: %d\n", msgType);
+    }
 }
 
 void LabDemoManager::updateMotorSpeeds(int16_t leftSpeed, int16_t rightSpeed) {
@@ -138,4 +146,11 @@ void LabDemoManager::processPendingCommands() {
             hasNextCommand = false;
         }
     }
+}
+
+void LabDemoManager::handleChimeCommand() {
+    // Play the chime sound
+    speaker.chime();
+
+    Serial.println("Chime command executed");
 }

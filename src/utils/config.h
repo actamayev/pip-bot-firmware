@@ -52,6 +52,9 @@ extern const uint8_t PIN_MUX_A;
 extern const uint8_t PIN_MUX_OUT;
 extern const uint8_t PIN_IR_EN;
 
+//Speaker
+extern const uint8_t AUDIO_PIN;
+
 // Assign Stack sizes for the two cores
 extern const uint32_t SENSOR_STACK_SIZE;
 extern const uint32_t NETWORK_STACK_SIZE;
