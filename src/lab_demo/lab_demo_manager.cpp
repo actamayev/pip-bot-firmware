@@ -17,22 +17,44 @@ LabDemoManager::LabDemoManager()
 }
 
 void LabDemoManager::handleBinaryMessage(const char* data) {
-    // Check message type
-    uint8_t msgType = static_cast<uint8_t>(data[0]);
+    if (data[0] != 1) {  // 1 = motor control
+        Serial.printf("Unknown message type: %d\n", data[0]);
+        return;
+    }
+
+    // Extract 16-bit signed integers (little-endian)
+    int16_t leftSpeed = (static_cast<uint8_t>(data[2]) << 8) | static_cast<uint8_t>(data[1]);
+    int16_t rightSpeed = (static_cast<uint8_t>(data[4]) << 8) | static_cast<uint8_t>(data[3]);
     
-    if (msgType == MOTOR_CONTROL_MSG_TYPE) {
-        // Extract 16-bit signed integers (little-endian)
-        int16_t leftSpeed = (static_cast<uint8_t>(data[2]) << 8) | static_cast<uint8_t>(data[1]);
-        int16_t rightSpeed = (static_cast<uint8_t>(data[4]) << 8) | static_cast<uint8_t>(data[3]);
-        
-        updateMotorSpeeds(leftSpeed, rightSpeed);
-    }
-    else if (msgType == CHIME_MSG_TYPE) {
-        // Handle chime command
-        handleChimeCommand();
-    }
-    else {
-        Serial.printf("Unknown message type: %d\n", msgType);
+    updateMotorSpeeds(leftSpeed, rightSpeed);
+}
+
+// Add this to lab_demo_manager.cpp
+void LabDemoManager::handleSoundMessage(const char* data) {
+    uint8_t tuneType = static_cast<uint8_t>(data[1]);
+
+    // Play the requested tune
+    switch(tuneType) {
+        case TUNE_ALERT:
+            Serial.println("Playing Alert sound");
+            // Call your alert sound function
+            // speaker.alert();
+            break;
+
+        case TUNE_BEEP:
+            Serial.println("Playing Beep sound");
+            // Call your beep sound function
+            // speaker.beep();
+            break;
+
+        case TUNE_CHIME:
+            Serial.println("Playing Chime sound");
+            speaker.chime();
+            break;
+
+        default:
+            Serial.printf("Unknown tune type: %d\n", tuneType);
+            break;
     }
 }
 

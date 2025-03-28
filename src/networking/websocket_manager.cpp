@@ -138,6 +138,9 @@ void WebSocketManager::handleBinaryMessage(WebsocketsMessage message) {
     if (length == 5) {
         // It's a motor control message
         LabDemoManager::getInstance().handleBinaryMessage(data);
+    } else if (length == 2 && data[0] == 2) {
+        // It's a sound message
+        LabDemoManager::getInstance().handleSoundMessage(data);
     } else {
         Serial.printf("Unexpected binary message of length %d\n", length);
     }

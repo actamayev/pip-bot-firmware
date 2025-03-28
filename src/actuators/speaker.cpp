@@ -28,7 +28,7 @@ void IRAM_ATTR onChimeTimer() {
         // Playback finished
         isChimePlaying = false;
         currentChimeSample = WAV_HEADER_SIZE; // Reset for next time
-        
+
         // Stop output to prevent noise
         ledcWrite(0, 128); // Output silence (mid-level)
     }

@@ -72,7 +72,6 @@ void setup() {
     delay(2000);
 
     rgbLed.turn_led_off();
-    speaker.chime();
 
     // Create tasks for parallel execution
     xTaskCreatePinnedToCore(

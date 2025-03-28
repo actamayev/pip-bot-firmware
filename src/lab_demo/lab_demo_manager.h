@@ -13,11 +13,17 @@ class LabDemoManager : public Singleton<LabDemoManager> {
         void processPendingCommands();
         LabDemoManager();
 
+        enum TuneType {
+            TUNE_ALERT = 0,
+            TUNE_BEEP = 1,
+            TUNE_CHIME = 2
+        };
+        
+        // Add this method declaration
+        void handleSoundMessage(const char* data);
+
     private:
         void executeCommand(int16_t leftSpeed, int16_t rightSpeed);
-
-        static constexpr uint8_t MOTOR_CONTROL_MSG_TYPE = 1;
-        static constexpr uint8_t CHIME_MSG_TYPE = 2; // New message type for chime
 
         // Simple command tracking
         bool isExecutingCommand;
