@@ -3,10 +3,13 @@
 #include <ESP32Encoder.h>
 #include "./utils/structs.h"
 #include "./utils/singleton.h"
+#include "../networking/wifi_manager.h"
+#include "../actuators/motor_driver.h"
 
 class EncoderManager : public Singleton<EncoderManager> {
     friend class Singleton<EncoderManager>;
     friend class LabDemoManager;  // Add this line to allow LabDemoManager to access private members
+    friend class MotorDriver;  // Add this line to allow LabDemoManager to access private members
 
     public:
         // Constructor
@@ -17,6 +20,11 @@ class EncoderManager : public Singleton<EncoderManager> {
         void log_motor_rpm();
 
         bool should_log_motor_rpm = false;
+
+        void initNetworkSelection();
+        void updateNetworkSelection();
+        void processNetworkSelection();
+
     private:
         // ESP32Encoder objects
         ESP32Encoder _leftEncoder;
@@ -36,6 +44,16 @@ class EncoderManager : public Singleton<EncoderManager> {
 
         // Update speed calculations - call this periodically
         void update();
+
+        // For network selection scrolling
+        int32_t _lastRightEncoderValue = 0;
+        int _scrollSensitivity = 5; // Adjust this to change scrolling sensitivity
+        bool _networkSelectionActive = false;
+        int32_t _lastHapticPosition = 0;     // Track position for haptic feedback separately
+
+        bool _scrollingEnabled = true;          // Flag to enable/disable scrolling during cooldown
+        unsigned long _scrollCooldownTime = 0;   // Time when cooldown started
+        unsigned long _scrollCooldownDuration = 40; // Cooldown duration in ms
 };
 
 extern EncoderManager encoderManager;

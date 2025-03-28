@@ -7,6 +7,12 @@ struct WiFiCredentials {
 	String password;
 };
 
+struct WiFiNetworkInfo {
+    String ssid;
+    int32_t rssi;
+    uint8_t encryptionType;
+};
+
 struct MessageTokens {
     int eventIndex = -1;
     int chunkIndexIndex = -1;
