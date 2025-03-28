@@ -58,6 +58,21 @@ void LabDemoManager::handleSoundMessage(const char* data) {
     }
 }
 
+void LabDemoManager::handleSpeakerMuteMessage(const char* data) {
+    // Get mute state (0 = mute, 1 = unmute)
+    uint8_t muteState = static_cast<uint8_t>(data[1]);
+    
+    if (muteState == 0) {
+        Serial.println("Muting speaker");
+        speaker.mute();
+    } else if (muteState == 1) {
+        Serial.println("Unmuting speaker");
+        speaker.unmute();
+    } else {
+        Serial.printf("Unknown mute state: %d\n", muteState);
+    }
+}
+
 void LabDemoManager::updateMotorSpeeds(int16_t leftSpeed, int16_t rightSpeed) {
     // Constrain speeds
     leftSpeed = constrain(leftSpeed, -255, 255);

@@ -13,7 +13,13 @@ class Speaker {
         bool isPlaying() const;
         
         // This should be called periodically from a task to update the speaker
-        void update();
+        void mute();
+        void unmute();
+        void setMuted(bool muted);
+        bool getMuted() const;
+    private:
+        bool isMuted;
+
 };
 
 extern Speaker speaker;

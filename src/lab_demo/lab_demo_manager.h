@@ -21,6 +21,7 @@ class LabDemoManager : public Singleton<LabDemoManager> {
         
         // Add this method declaration
         void handleSoundMessage(const char* data);
+        void handleSpeakerMuteMessage(const char* data);
 
     private:
         void executeCommand(int16_t leftSpeed, int16_t rightSpeed);
