@@ -9,8 +9,19 @@ class LabDemoManager : public Singleton<LabDemoManager> {
     public:
         void handleBinaryMessage(const char* data);
         void updateMotorSpeeds(int16_t leftSpeed, int16_t rightSpeed);
+        void handleChimeCommand(); // New method for chime command
         void processPendingCommands();
         LabDemoManager();
+
+        enum TuneType {
+            TUNE_ALERT = 0,
+            TUNE_BEEP = 1,
+            TUNE_CHIME = 2
+        };
+        
+        // Add this method declaration
+        void handleSoundMessage(const char* data);
+        void handleSpeakerMuteMessage(const char* data);
 
     private:
         void executeCommand(int16_t leftSpeed, int16_t rightSpeed);

@@ -58,10 +58,6 @@ VL53L5CX_ResultsData Sensors::getMultizoneTofData() {
     return multizoneTofSensor.getTofData();
 }
 
-EulerAngles& Sensors::getEulerAngles() {
-    return imu.getEulerAngles();
-}
-
 float Sensors::getPitch() {
     return imu.getPitch();
 }
@@ -74,20 +70,28 @@ float Sensors::getRoll() {
     return imu.getRoll();
 }
 
+const EulerAngles& Sensors::getEulerAngles() {
+    return imu.getEulerAngles();
+}
+
 float Sensors::getXAccel() {
-    return imu.getPitch();
+    return imu.getXAccel();
 }
 
 float Sensors::getYAccel() {
-    return imu.getYaw();
+    return imu.getYAccel();
 }
 
 float Sensors::getZAccel() {
-    return imu.getRoll();
+    return imu.getZAccel();
 }
 
 double Sensors::getAccelMagnitude() {
     return imu.getAccelMagnitude();
+}
+
+const AccelerometerData& Sensors::getAccelerometerData() {
+    return imu.getAccelerometerData();
 }
 
 float Sensors::getXRotationRate() {
@@ -102,6 +106,10 @@ float Sensors::getZRotationRate() {
     return imu.getZRotationRate();
 }
 
+const GyroscopeData& Sensors::getGyroscopeData() {
+    return imu.getGyroscopeData();
+}
+
 float Sensors::getMagneticFieldX() {
     return imu.getMagneticFieldX();
 }
@@ -112,6 +120,10 @@ float Sensors::getMagneticFieldY() {
 
 float Sensors::getMagneticFieldZ() {
     return imu.getMagneticFieldZ();
+}
+
+const MagnetometerData& Sensors::getMagnetometerData() {
+    return imu.getMagnetometerData();
 }
 
 ColorSensorData Sensors::getColorSensorData() {

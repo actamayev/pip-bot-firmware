@@ -26,6 +26,28 @@ void SendDataToServer::attachIRData(JsonObject& payload) {
     }
 }
 
+void SendDataToServer::attachImuData(JsonObject& payload) {
+    const EulerAngles& eulerAngles = Sensors::getInstance().getEulerAngles();
+    payload["pitch"] = eulerAngles.pitch;
+    payload["yaw"] = eulerAngles.yaw;
+    payload["roll"] = eulerAngles.roll;
+
+    const AccelerometerData& accelerometerData = Sensors::getInstance().getAccelerometerData();
+    payload["aX"] = accelerometerData.aX;
+    payload["aY"] = accelerometerData.aY;
+    payload["aZ"] = accelerometerData.aZ;
+
+    const GyroscopeData& gyroscopeData = Sensors::getInstance().getGyroscopeData();
+    payload["gX"] = gyroscopeData.gX;
+    payload["gY"] = gyroscopeData.gY;
+    payload["gZ"] = gyroscopeData.gZ;
+
+    const MagnetometerData& magnetometerData = Sensors::getInstance().getMagnetometerData();
+    payload["mX"] = magnetometerData.mX;
+    payload["mY"] = magnetometerData.mY;
+    payload["mZ"] = magnetometerData.mZ;
+}
+
 void SendDataToServer::attachColorSensorData(JsonObject& payload) {
     ColorSensorData colorSensorData = Sensors::getInstance().getColorSensorData();
 
@@ -55,6 +77,7 @@ void SendDataToServer::sendSensorDataToServer() {
     attachRPMData(payload);
     attachIRData(payload);
     attachColorSensorData(payload);
+    attachImuData(payload);
 
     // Serialize and send
     String jsonString;
