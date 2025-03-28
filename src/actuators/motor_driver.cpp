@@ -181,7 +181,3 @@ void MotorDriver::update_haptic_feedback() {
             break;
     }
 }
-
-bool MotorDriver::isHapticInProgress() const {
-    return _hapticState != HAPTIC_IDLE;
-}
