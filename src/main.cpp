@@ -1,7 +1,8 @@
 #include <esp32-hal-timer.h>
 #include "./utils/config.h"
-#include "./actuators/rgb_led.h"
 #include "./sensors/sensors.h"
+#include "./actuators/rgb_led.h"
+#include "./actuators/speaker.h"
 #include "./user_code/user_code.h"
 #include "./utils/show_chip_info.h"
 #include "./utils/sensor_loggers.h"
@@ -9,7 +10,6 @@
 #include "./networking/wifi_manager.h"
 #include "./actuators/display_screen.h"
 #include "./lab_demo/lab_demo_manager.h"
-#include "./networking/webserver_manager.h"
 #include "./networking/websocket_manager.h"
 #include "./networking/send_data_to_server.h"
 
@@ -51,17 +51,17 @@ void NetworkTask(void * parameter) {
 
     // Main network loop
     for(;;) {
-        // Always process web server requests without delay
-        WebServerManager::getInstance().handleClientRequests();
-
+        motorDriver.update_haptic_feedback();
         if (WiFi.status() == WL_CONNECTED) {
             // Other network operations can use internal timing
             WebSocketManager::getInstance().pollWebSocket();
             SendDataToServer::getInstance().sendSensorDataToServer();
+        } else {
+            EncoderManager::getInstance().processNetworkSelection();
         }
 
         // Short delay to yield to other tasks
-        delay(5); // Just enough delay to prevent hogging the CPU
+        delay(1); // Just enough delay to prevent hogging the CPU
     }
 }
 

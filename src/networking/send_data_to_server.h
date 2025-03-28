@@ -17,6 +17,7 @@ class SendDataToServer : public Singleton<SendDataToServer> {
         void attachRPMData(JsonObject& payload);
         void attachIRData(JsonObject& payload);
         void attachColorSensorData(JsonObject& payload);
+        void attachImuData(JsonObject& payload);
 
         unsigned long lastSendTime = 0;
         const unsigned long SEND_INTERVAL = 200; // Poll every 50ms
