@@ -22,22 +22,23 @@ void SensorAndUserCodeTask(void * parameter) {
     Serial.println("Initializing sensors on Core 0...");
     Sensors::getInstance();
     EncoderManager::getInstance();
-    if (!DisplayScreen::getInstance().init(Wire)) {
-        Serial.println("Display initialization failed");
-    }
+    // if (!DisplayScreen::getInstance().init(Wire)) {
+    //     Serial.println("Display initialization failed");
+    // }
     Serial.println("Sensors initialized on Core 0");
 
     enableCore0WDT();
 
     // Main sensor and user code loop
     for(;;) {
+        if (!Sensors::getInstance().sensors_initialized) continue;
         // multizoneTofLogger();
         // imuLogger();
         // sideTofsLogger();
-        DisplayScreen::getInstance().update();
+        // DisplayScreen::getInstance().update();
         LabDemoManager::getInstance().processPendingCommands();
         user_code();
-        delay(1);
+        delay(2);
     }
 }
 
