@@ -46,6 +46,8 @@ void SendDataToServer::attachImuData(JsonObject& payload) {
     payload["mX"] = magnetometerData.mX;
     payload["mY"] = magnetometerData.mY;
     payload["mZ"] = magnetometerData.mZ;
+    float yawValue = payload["yaw"];
+    Serial.printf("payload yaw %f\n", yawValue);
 }
 
 void SendDataToServer::attachColorSensorData(JsonObject& payload) {
@@ -57,12 +59,10 @@ void SendDataToServer::attachColorSensorData(JsonObject& payload) {
 }
 
 void SendDataToServer::sendSensorDataToServer() {
-    if (!sendSensorData) return;
+    // if (!sendSensorData) return;
 
     unsigned long currentTime = millis();
     if (currentTime - lastSendTime < SEND_INTERVAL) return;
-    
-    lastSendTime = currentTime;
 
     // Create a JSON document with both routing information and payload
     StaticJsonDocument<256> doc;
@@ -82,7 +82,9 @@ void SendDataToServer::sendSensorDataToServer() {
     // Serialize and send
     String jsonString;
     serializeJson(doc, jsonString);
-    
+
     // Send the JSON string to the WebSocket
     WebSocketManager::getInstance().wsClient.send(jsonString);
+
+    lastSendTime = currentTime;
 }
