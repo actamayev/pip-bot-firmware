@@ -4,8 +4,6 @@
 #include <vector>
 #include <algorithm>
 #include <Preferences.h>
-#include "esp_wifi.h"
-#include "esp_system.h"
 #include "../utils/structs.h"
 #include "../utils/singleton.h"
 #include "../sensors/encoder_manager.h"
@@ -40,8 +38,7 @@ class WiFiManager : public Singleton<WiFiManager> {
 		int _selectedNetworkIndex = 0;
 
 		void handleWiFiEvent(WiFiEvent_t event, WiFiEventInfo_t info);
-
-		bool hardResetWiFi();
+		void resetWiFiState();
 };
 
 extern Preferences preferences;

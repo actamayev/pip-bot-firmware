@@ -14,18 +14,14 @@ WiFiManager::WiFiManager() {
 }
 
 void WiFiManager::initializeWiFi() {
-    // Clear any previous handlers
-    WiFi.disconnect(true);
-    delay(100);
+    // More thorough cleanup
+    resetWiFiState();
 
-    // Set WiFi mode
-    WiFi.mode(WIFI_STA);
-
-    // Register single event handler for all WiFi events
+    // Register event handler for all WiFi events
     WiFi.onEvent([this](WiFiEvent_t event, WiFiEventInfo_t info) {
         this->handleWiFiEvent(event, info);
     });
-
+    
     Serial.println("WiFi event handler registered");
 }
 
@@ -42,9 +38,7 @@ void WiFiManager::connectToStoredWiFi() {
     // Try to connect to strongest saved network
     bool connectionStatus = connectToStrongestSavedNetwork();
 
-    if (connectionStatus) {
-        return WebSocketManager::getInstance().connectToWebSocket();
-    }
+    if (connectionStatus) return;
 
     // If no saved networks are in range or connection failed,
     // do a full scan for all networks
@@ -91,7 +85,7 @@ bool WiFiManager::attemptNewWifiConnection(WiFiCredentials wifiCredentials) {
         if (currentTime - lastPrintTime >= printInterval) {
             Serial.print(".");
             lastPrintTime = currentTime;
-            yield();  // Allow the ESP32 to handle background tasks
+            // yield();  // Allow the ESP32 to handle background tasks
         }
     }
 
@@ -108,51 +102,55 @@ bool WiFiManager::attemptNewWifiConnection(WiFiCredentials wifiCredentials) {
 
 std::vector<WiFiNetworkInfo> WiFiManager::scanWiFiNetworkInfos() {
     std::vector<WiFiNetworkInfo> networks;
+    int numNetworks = 0;
     
-    // First try the hard reset before scanning
-    hardResetWiFi();
+    Serial.println("Starting WiFi scan...");
     
-    // Try async scan instead of blocking scan
-    Serial.println("Starting async WiFi scan...");
-    if (WiFi.scanNetworks(true) == WIFI_SCAN_RUNNING) {
-        Serial.println("Async scan started successfully");
-        
-        // Wait for scan completion with timeout
-        unsigned long scanStart = millis();
-        const unsigned long SCAN_TIMEOUT = 10000; // 10 seconds timeout
-        
-        while (WiFi.scanComplete() < 0 && millis() - scanStart < SCAN_TIMEOUT) {
-            delay(100);
-        }
-        
-        // Check scan results
-        int numNetworks = WiFi.scanComplete();
-        
-        if (numNetworks > 0) {
-            Serial.printf("Found %d networks\n", numNetworks);
-            
-            // Process networks here
-            for (int i = 0; i < numNetworks; i++) {
-                WiFiNetworkInfo network;
-                network.ssid = WiFi.SSID(i);
-                network.rssi = WiFi.RSSI(i);
-                network.encryptionType = WiFi.encryptionType(i);
-                networks.push_back(network);
-            }
-            
-            // Sort and store
-            sortNetworksBySignalStrength(networks);
-            _availableNetworks = networks;
-            _selectedNetworkIndex = 0;
-            
-            // Clean up
-            WiFi.scanDelete();
+    resetWiFiState();
+    rgbLed.set_led_purple();
+    
+    // Perform synchronous scan
+    numNetworks = WiFi.scanNetworks(false);
+    
+    // Turn off LED after scanning
+    rgbLed.turn_led_off();
+    
+    // Handle scan results
+    if (numNetworks <= 0) {
+        if (numNetworks == 0) {
+            Serial.println("No networks found");
+        } else if (numNetworks == -1) {
+            Serial.println("Scan still running");
+        } else if (numNetworks == -2) {
+            Serial.println("Error with scan");
         } else {
-            Serial.printf("Async scan failed with code %d\n", numNetworks);
+            Serial.printf("Unknown scan error: %d\n", numNetworks);
         }
-    } else {
-        Serial.println("Failed to start async scan");
+        return networks;  // Return empty network list
     }
+    
+    // Extract network information
+    for (int i = 0; i < numNetworks; i++) {
+        WiFiNetworkInfo network;
+        network.ssid = WiFi.SSID(i);
+        network.rssi = WiFi.RSSI(i);
+        network.encryptionType = WiFi.encryptionType(i);
+        networks.push_back(network);
+        
+        // Debug output
+        Serial.printf("  Network %d: %s (Signal: %d dBm)\n", 
+                     i + 1, network.ssid.c_str(), network.rssi);
+    }
+    
+    // Clean up scan results to free memory
+    WiFi.scanDelete();
+    
+    // Sort networks by signal strength
+    sortNetworksBySignalStrength(networks);
+    
+    // Update class members
+    _availableNetworks = networks;
+    _selectedNetworkIndex = 0;
     
     return networks;
 }
@@ -262,13 +260,13 @@ struct WiFiNetworkInfo WiFiManager::scanForSpecificNetwork(const String& ssid) {
     WiFiNetworkInfo result;
     result.ssid = "";
     result.rssi = -100; // Default weak signal
-    
+
     // Disconnect to ensure clean scan state
     WiFi.disconnect(true);
     delay(100);
-    
+
     Serial.printf("Scanning for network: %s\n", ssid.c_str());
-   
+
     // Targeted scan for this SSID (faster than full scan)
     int numNetworks = WiFi.scanNetworks(false, false, false, 300, 0, ssid.c_str());
 
@@ -292,7 +290,7 @@ struct WiFiNetworkInfo WiFiManager::scanForSpecificNetwork(const String& ssid) {
 bool WiFiManager::connectToStrongestSavedNetwork() {
     // Turn on LED to indicate scanning
     rgbLed.set_led_purple();
-    
+
     // Get all saved networks
     std::vector<WiFiCredentials> savedNetworks = getAllStoredNetworks();
     
@@ -354,46 +352,34 @@ void WiFiManager::handleWiFiEvent(WiFiEvent_t event, WiFiEventInfo_t info) {
             Serial.println("WiFi disconnected!");
             rgbLed.turn_led_off();
 
+            resetWiFiState();            
             // Attempt to reconnect
-            delay(200); // Wait a bit before reconnecting
             connectToStoredWiFi();
+            break;
+
+        case ARDUINO_EVENT_WIFI_STA_CONNECTED:
+            Serial.println("WiFi connected!");
             break;
 
         case ARDUINO_EVENT_WIFI_STA_GOT_IP:
             Serial.print("Got IP: ");
             Serial.println(WiFi.localIP());
             rgbLed.set_led_blue();
+            WebSocketManager::getInstance().connectToWebSocket();
+            break;
+            
+        case ARDUINO_EVENT_WIFI_SCAN_DONE:
+            Serial.println("WiFi scan completed");
             break;
     }
 }
 
-bool WiFiManager::hardResetWiFi() {
-    Serial.println("Performing hard WiFi reset...");
-
-    // Complete WiFi shutdown
-    WiFi.disconnect(true, true);  // Disconnect and clear credentials
+void WiFiManager::resetWiFiState() {
+    WiFi.disconnect(true, true);
     WiFi.scanDelete();
-    esp_wifi_stop();              // Stop WiFi at driver level
-    esp_wifi_deinit();            // Complete deinitialization
     delay(500);
-    
-    // Reinitialize WiFi from scratch
-    wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
-    esp_err_t err = esp_wifi_init(&cfg);
-    if (err != ESP_OK) {
-        Serial.printf("WiFi init failed with error %d\n", err);
-        return false;
-    }
-    
-    err = esp_wifi_start();
-    if (err != ESP_OK) {
-        Serial.printf("WiFi start failed with error %d\n", err);
-        return false;
-    }
-    
+    WiFi.mode(WIFI_OFF);
+    delay(1000);
     WiFi.mode(WIFI_STA);
-    delay(500);
-    
-    Serial.println("WiFi hard reset complete");
-    return true;
+    delay(1000);
 }
