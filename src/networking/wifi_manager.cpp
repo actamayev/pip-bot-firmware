@@ -35,11 +35,13 @@ void WiFiManager::connectToStoredWiFi() {
     // Try to connect directly to any saved network without scanning
     bool connectionStatus = attemptDirectConnectionToSavedNetworks();
 
-    if (connectionStatus) return;
+    if (connectionStatus) {
+        return; //WebSocketManager::getInstance().connectToWebSocket();
+    }
 
     // If direct connection failed, do a full scan for all networks
     auto networks = scanWiFiNetworkInfos();
-    
+
     if (networks.empty()) {
         // If no networks found
         Serial.println("No networks found in full scan.");
@@ -310,12 +312,13 @@ void WiFiManager::handleWiFiEvent(WiFiEvent_t event, WiFiEventInfo_t info) {
 }
 
 void WiFiManager::resetWiFiState() {
-    Serial.println("Resetting wifi state");
-    WiFi.disconnect(true, true);
-    WiFi.scanDelete();
-    delay(500);
-    WiFi.mode(WIFI_OFF);
-    delay(1000);
-    WiFi.mode(WIFI_STA);
-    delay(1000);
+    Serial.println("Placeholder");
+    // Serial.println("Resetting wifi state");
+    // WiFi.disconnect(true);
+    // WiFi.scanDelete();
+    // delay(500);
+    // WiFi.mode(WIFI_OFF);
+    // delay(1000);
+    // WiFi.mode(WIFI_STA);
+    // delay(1000);
 }
