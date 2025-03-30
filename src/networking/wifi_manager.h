@@ -25,20 +25,16 @@ class WiFiManager : public Singleton<WiFiManager> {
 
 		void storeWiFiCredentials(const String& ssid, const String& password, int index);
 		std::vector<WiFiCredentials> getAllStoredNetworks();
-		WiFiNetworkInfo scanForSpecificNetwork(const String& ssid);
-		bool connectToStrongestSavedNetwork();
 	private:
 		WiFiManager();
 		void initializeWiFi();
-
-		esp_event_handler_instance_t wifi_event_instance;
-		esp_event_handler_instance_t ip_event_instance;
 
 		std::vector<WiFiNetworkInfo> _availableNetworks;
 		int _selectedNetworkIndex = 0;
 
 		void handleWiFiEvent(WiFiEvent_t event, WiFiEventInfo_t info);
 		void resetWiFiState();
+		bool attemptDirectConnectionToSavedNetworks();
 };
 
 extern Preferences preferences;
