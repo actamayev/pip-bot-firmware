@@ -35,7 +35,9 @@ void WiFiManager::connectToStoredWiFi() {
     // Try to connect directly to any saved network without scanning
     bool connectionStatus = attemptDirectConnectionToSavedNetworks();
 
-    if (connectionStatus) return;
+    if (connectionStatus) {
+        return WebSocketManager::getInstance().connectToWebSocket();
+    }
 
     // If direct connection failed, do a full scan for all networks
     auto networks = scanWiFiNetworkInfos();
@@ -64,7 +66,7 @@ bool WiFiManager::attemptDirectConnectionToSavedNetworks() {
         Serial.println("No saved networks found");
         return false;
     }
-    
+
     Serial.println("Attempting direct connection to saved networks...");
     
     // Try to connect to each saved network without scanning first
@@ -294,6 +296,7 @@ void WiFiManager::handleWiFiEvent(WiFiEvent_t event, WiFiEventInfo_t info) {
 
         case ARDUINO_EVENT_WIFI_STA_CONNECTED:
             Serial.println("WiFi connected!");
+            WebSocketManager::getInstance().connectToWebSocket();
             break;
 
         case ARDUINO_EVENT_WIFI_STA_GOT_IP:
@@ -302,7 +305,7 @@ void WiFiManager::handleWiFiEvent(WiFiEvent_t event, WiFiEventInfo_t info) {
             rgbLed.set_led_blue();
             WebSocketManager::getInstance().connectToWebSocket();
             break;
-            
+
         case ARDUINO_EVENT_WIFI_SCAN_DONE:
             Serial.println("WiFi scan completed");
             break;
