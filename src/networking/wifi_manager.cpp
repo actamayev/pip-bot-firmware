@@ -375,6 +375,7 @@ void WiFiManager::handleWiFiEvent(WiFiEvent_t event, WiFiEventInfo_t info) {
 }
 
 void WiFiManager::resetWiFiState() {
+    Serial.println("Resetting wifi state");
     WiFi.disconnect(true, true);
     WiFi.scanDelete();
     delay(500);

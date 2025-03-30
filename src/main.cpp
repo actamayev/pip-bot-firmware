@@ -62,7 +62,8 @@ void NetworkTask(void * parameter) {
         }
 
         // Short delay to yield to other tasks
-        delay(1); // Just enough delay to prevent hogging the CPU
+        // Small delay to avoid overwhelming the websocket and allow IMU data to be processed
+        delay(5);
     }
 }
 

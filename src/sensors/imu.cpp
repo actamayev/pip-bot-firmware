@@ -149,10 +149,8 @@ float ImuSensor::getMagneticFieldZ() {
 bool ImuSensor::updateAllSensorData() {
     if (!isInitialized) return false;
     
-    // Only proceed if cooldown period has elapsed
-    if (!shouldUpdate()) {
-        return false; // Too soon to update again
-    }
+    // Removed the cooldown check to ensure we always get fresh data when requested
+    // Each getter already calls this method, so the external rate limiting is sufficient
     
     // Enable all reports we need
     enableGameRotationVector();
@@ -163,8 +161,9 @@ bool ImuSensor::updateAllSensorData() {
     // Update each data type
     bool updated = false;
     
-    // Try to get each sensor type (limited number of attempts to avoid blocking too long)
-    for (int i = 0; i < 4; i++) {
+    // Increased attempts to ensure we get all data types in one call
+    // Since we're now skipping the internal rate limiting, this is more important
+    for (int i = 0; i < 8; i++) {
         if (getImuData()) {
             switch (sensorValue.sensorId) {
                 case SH2_GAME_ROTATION_VECTOR:
@@ -214,6 +213,10 @@ bool ImuSensor::updateAllSensorData() {
             }
         }
     }
+    
+    // Update the last read time regardless of success
+    // This prevents excessive polling when data isn't available
+    lastReadTime = millis();
     
     return updated;
 }
