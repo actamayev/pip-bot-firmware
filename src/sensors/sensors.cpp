@@ -4,9 +4,10 @@
 void Sensors::initialize() {
     // Initialize sensors
     // initializeMultizoneTof();
-    // initializeIMU();
+    initializeIMU();
     // initializeColorSensor();
     // initializeSideTimeOfFlights();
+    sensors_initialized = true;
 }
 
 void Sensors::initializeMultizoneTof() {

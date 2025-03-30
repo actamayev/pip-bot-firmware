@@ -6,8 +6,6 @@
 Preferences preferences;
 
 WiFiManager::WiFiManager() {
-	Serial.println("WiFiManager constructor");
-
     // Hard-coding Wifi creds during initialization (before we have encoders + screen)
     preferences.begin("wifi-creds", false);
     storeWiFiCredentials("Another Dimension", "Iforgotit123", 0);
@@ -19,19 +17,21 @@ void WiFiManager::initializeWiFi() {
     // Register event handler for WiFi events
 	// 1/10/25 TODO: The wifi event handler isn't registering correctly.
     esp_err_t err = esp_event_handler_instance_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &WiFiManager::onWiFiEvent, this, &wifi_event_instance);
-    // if (err != ESP_OK) {
-    //     Serial.print("Failed to register WiFi event handler. Error: ");
-    //     Serial.println(err);
-    // } else {
-    //     Serial.println("WiFi event handler registered successfully");
-    // }
+    if (err != ESP_OK) {
+        Serial.print("Failed to register WiFi event handler. Error: ");
+        Serial.println(err);
+    } else {
+        Serial.println("WiFi event handler registered successfully");
+    }
     esp_event_handler_instance_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &WiFiManager::onIpEvent, this, &ip_event_instance);
 	Serial.println("WiFi event handlers registered");
 }
 
 void WiFiManager::onWiFiEvent(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data) {
-    if (event_base != WIFI_EVENT || event_id == WIFI_EVENT_STA_DISCONNECTED) return;
-	wifi_event_sta_disconnected_t* event = (wifi_event_sta_disconnected_t*) event_data;
+    if (event_base != WIFI_EVENT || event_id != WIFI_EVENT_STA_DISCONNECTED) {
+        return;
+    }
+    wifi_event_sta_disconnected_t* event = (wifi_event_sta_disconnected_t*) event_data;
 	Serial.printf("WiFi disconnected! Reason: %d\n", event->reason);
 	rgbLed.turn_led_off();
 
@@ -53,9 +53,6 @@ void WiFiManager::onIpEvent(void* arg, esp_event_base_t event_base, int32_t even
 	// Print the IP address using the IPAddress class
 	Serial.println("WiFi connected! IP address: " + ip.toString());
 	rgbLed.set_led_blue();
-
-	// Now connect to the WebSocket
-    WebSocketManager::getInstance().connectToWebSocket();
 }
 
 WiFiCredentials WiFiManager::getStoredWiFiCredentials() {
@@ -68,21 +65,19 @@ WiFiCredentials WiFiManager::getStoredWiFiCredentials() {
 }
 
 void WiFiManager::connectToStoredWiFi() {
-    // Try to connect to strongest saved network
-    bool connectionStatus = connectToStrongestSavedNetwork();
+    // Try to connect directly to any saved network without scanning
+    bool connectionStatus = attemptDirectConnectionToSavedNetworks();
 
     if (connectionStatus) {
         return WebSocketManager::getInstance().connectToWebSocket();
     }
-    
-    // If no saved networks are in range or connection failed,
-    // do a full scan for all networks
+
+    // If direct connection failed, do a full scan for all networks
     auto networks = scanWiFiNetworkInfos();
-    
+
     if (networks.empty()) {
-        // If no networks found, start AP
-        Serial.println("No networks found in full scan, starting Access Point");
-        startAccessPoint();
+        // If no networks found
+        Serial.println("No networks found in full scan.");
         return;
     }
     
@@ -96,9 +91,38 @@ void WiFiManager::connectToStoredWiFi() {
     Serial.println("Use the right motor to scroll through networks");
 }
 
+bool WiFiManager::attemptDirectConnectionToSavedNetworks() {
+    // Get all saved networks
+    std::vector<WiFiCredentials> savedNetworks = getAllStoredNetworks();
+    
+    if (savedNetworks.empty()) {
+        Serial.println("No saved networks found");
+        return false;
+    }
+
+    Serial.println("Attempting direct connection to saved networks...");
+    
+    // Try to connect to each saved network without scanning first
+    for (const auto& network : savedNetworks) {
+        Serial.printf("Trying to connect to: %s\n", network.ssid.c_str());
+        
+        // Attempt connection
+        if (attemptNewWifiConnection(network)) {
+            // Successfully connected
+            return true;
+        }
+        
+        // Brief delay before trying the next network
+        delay(100);
+    }
+    
+    Serial.println("Failed to connect to any saved networks");
+    return false;
+}
+
 bool WiFiManager::attemptNewWifiConnection(WiFiCredentials wifiCredentials) {
     // Set WiFi mode to Station (client mode)
-    WiFi.mode(WIFI_AP_STA);
+    WiFi.mode(WIFI_STA);
 
     if (wifiCredentials.ssid.isEmpty()) {
         Serial.println("No SSID supplied.");
@@ -136,61 +160,60 @@ bool WiFiManager::attemptNewWifiConnection(WiFiCredentials wifiCredentials) {
     }
 }
 
-void WiFiManager::startAccessPoint() {
-	WiFi.disconnect(true);
-	WiFi.mode(WIFI_AP_STA);
-	WiFi.softAP(getAPSSID().c_str(), NULL);
-
-	IPAddress apIP(192, 168, 4, 1);
-	WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
-
-	Serial.println("Access Point started.");
-}
-
 std::vector<WiFiNetworkInfo> WiFiManager::scanWiFiNetworkInfos() {
     std::vector<WiFiNetworkInfo> networks;
-
+    int numNetworks = 0;
+    
+    Serial.println("Starting WiFi scan...");
+    
     WiFi.disconnect(true);
     WiFi.scanDelete();
     delay(100);
     // Set WiFi mode to station before scanning
     WiFi.mode(WIFI_STA);
 
-    // Turn on LED to indicate scanning 
     rgbLed.set_led_purple();
 
-    Serial.println("Scanning for WiFi networks...");
-    int numNetworks = WiFi.scanNetworks(false);
-    Serial.printf("Scan completed, found %d networks\n", numNetworks);
+    // Perform synchronous scan
+    numNetworks = WiFi.scanNetworks(false);
 
     // Turn off LED after scanning
     rgbLed.turn_led_off();
-
+    
+    // Handle scan results
     if (numNetworks <= 0) {
         if (numNetworks == 0) {
             Serial.println("No networks found");
         } else if (numNetworks == -1) {
-            Serial.println("No Scan currently running");
+            Serial.println("Scan still running");
         } else if (numNetworks == -2) {
             Serial.println("Error with scan");
         } else {
             Serial.printf("Unknown scan error: %d\n", numNetworks);
         }
-        return networks;
+        return networks;  // Return empty network list
     }
-
-    // Store the networks
+    
+    // Extract network information
     for (int i = 0; i < numNetworks; i++) {
         WiFiNetworkInfo network;
         network.ssid = WiFi.SSID(i);
         network.rssi = WiFi.RSSI(i);
         network.encryptionType = WiFi.encryptionType(i);
         networks.push_back(network);
+        
+        // Debug output
+        Serial.printf("  Network %d: %s (Signal: %d dBm)\n", 
+                     i + 1, network.ssid.c_str(), network.rssi);
     }
-
+    
+    // Clean up scan results to free memory
+    WiFi.scanDelete();
+    
     // Sort networks by signal strength
     sortNetworksBySignalStrength(networks);
     
+    // Update class members
     _availableNetworks = networks;
     _selectedNetworkIndex = 0;
     
@@ -296,94 +319,4 @@ std::vector<WiFiCredentials> WiFiManager::getAllStoredNetworks() {
     
     preferences.end();
     return networks;
-}
-
-struct WiFiNetworkInfo WiFiManager::scanForSpecificNetwork(const String& ssid) {
-    WiFiNetworkInfo result;
-    result.ssid = "";
-    result.rssi = -100; // Default weak signal
-    
-    // Disconnect to ensure clean scan state
-    WiFi.disconnect(true);
-    delay(100);
-    
-    Serial.printf("Scanning for network: %s\n", ssid.c_str());
-   
-    // Targeted scan for this SSID (faster than full scan)
-    int numNetworks = WiFi.scanNetworks(false, false, false, 300, 0, ssid.c_str());
-
-    if (numNetworks > 0) {
-        for (int i = 0; i < numNetworks; i++) {
-            if (WiFi.SSID(i) == ssid) {
-                result.ssid = WiFi.SSID(i);
-                result.rssi = WiFi.RSSI(i);
-                result.encryptionType = WiFi.encryptionType(i);
-                break;
-            }
-        }
-    }
-
-    // Clean up scan results
-    WiFi.scanDelete();
-    
-    return result;
-}
-
-bool WiFiManager::connectToStrongestSavedNetwork() {
-    // Turn on LED to indicate scanning
-    rgbLed.set_led_purple();
-    
-    // Get all saved networks
-    std::vector<WiFiCredentials> savedNetworks = getAllStoredNetworks();
-    
-    if (savedNetworks.empty()) {
-        Serial.println("No saved networks found");
-        rgbLed.turn_led_off();
-        return false;
-    }
-    
-    // Structure to track available networks with their signal strength
-    struct AvailableSavedNetwork {
-        WiFiCredentials credentials;
-        int32_t rssi;
-    };
-    std::vector<AvailableSavedNetwork> availableNetworks;
-    
-    // For each saved network, do a targeted scan
-    for (const auto& network : savedNetworks) {
-        // Scan specifically for this network
-        WiFiNetworkInfo scanResult = scanForSpecificNetwork(network.ssid);
-        
-        if (!scanResult.ssid.isEmpty()) {
-            // Found the network, add it to available networks
-            AvailableSavedNetwork available;
-            available.credentials = network;
-            available.rssi = scanResult.rssi;
-            availableNetworks.push_back(available);
-            
-            Serial.printf("Found saved network %s with signal strength %d dBm\n", 
-                      network.ssid.c_str(), scanResult.rssi);
-        }
-    }
-    
-    // Turn off scanning LED
-    rgbLed.turn_led_off();
-    
-    if (availableNetworks.empty()) {
-        Serial.println("None of the saved networks are in range");
-        return false;
-    }
-    
-    // Sort networks by signal strength (strongest first)
-    std::sort(availableNetworks.begin(), availableNetworks.end(),
-            [](const AvailableSavedNetwork& a, const AvailableSavedNetwork& b) {
-                return a.rssi > b.rssi;
-            });
-    
-    // Try to connect to the strongest network
-    Serial.printf("Connecting to strongest network: %s (signal: %d dBm)\n",
-                availableNetworks[0].credentials.ssid.c_str(),
-                availableNetworks[0].rssi);
-    
-    return attemptNewWifiConnection(availableNetworks[0].credentials);
 }
