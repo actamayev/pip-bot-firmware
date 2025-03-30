@@ -30,7 +30,6 @@ class MotorDriver {
         void start_haptic_feedback(int8_t direction, uint8_t strength, uint8_t duration_ms);
         void update_haptic_feedback();
 
-        // Add to motor_driver.h in the public section
         void set_motor_speeds(int16_t leftTarget, int16_t rightTarget);
         void update_motor_speeds();
 
@@ -52,13 +51,12 @@ class MotorDriver {
         unsigned long _finalBumpDuration = 0;  // Added for the final bump
         unsigned long _recoveryDuration = 0;
 
-
         int16_t _targetLeftSpeed = 0;
         int16_t _targetRightSpeed = 0;
         int16_t _currentLeftSpeed = 0;
         int16_t _currentRightSpeed = 0;
         unsigned long _lastSpeedUpdateTime = 0;
-        static constexpr int16_t SPEED_RAMP_STEP = 50;  // Changed from uint8_t to int16_t
+        static constexpr int16_t SPEED_RAMP_STEP = 50;
         static constexpr unsigned long SPEED_RAMP_INTERVAL = 15;  // ms between updates        
 
         bool _straightDrivingEnabled = false;
@@ -77,7 +75,6 @@ class MotorDriver {
 
         float addYawReadingAndGetAverage(float newYaw);
 
-        // Add to motor_driver.h
         float normalizeAngle(float angle);
         float shortestAnglePath(float from, float to);
 };
