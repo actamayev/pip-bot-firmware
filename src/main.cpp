@@ -38,7 +38,7 @@ void SensorAndUserCodeTask(void * parameter) {
         // DisplayScreen::getInstance().update();
         LabDemoManager::getInstance().processPendingCommands();
         user_code();
-        delay(2);
+        delay(5);
     }
 }
 

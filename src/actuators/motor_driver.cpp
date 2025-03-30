@@ -181,3 +181,59 @@ void MotorDriver::update_haptic_feedback() {
             break;
     }
 }
+
+void MotorDriver::set_motor_speeds(int16_t leftTarget, int16_t rightTarget) {
+    // Store target speeds but don't change actual speeds immediately
+    _targetLeftSpeed = constrain(leftTarget, -255, 255);
+    _targetRightSpeed = constrain(rightTarget, -255, 255);
+}
+
+void MotorDriver::update_motor_speeds() {
+    unsigned long currentTime = millis();
+    
+    // Only update at specified intervals
+    if (currentTime - _lastSpeedUpdateTime < SPEED_RAMP_INTERVAL) {
+        return;
+    }
+
+    _lastSpeedUpdateTime = currentTime;
+    bool speedsChanged = false;
+
+    // Gradually ramp left motor speed toward target
+    if (_currentLeftSpeed < _targetLeftSpeed) {
+        _currentLeftSpeed = min(static_cast<int16_t>(_currentLeftSpeed + SPEED_RAMP_STEP), _targetLeftSpeed);
+        speedsChanged = true;
+    } else if (_currentLeftSpeed > _targetLeftSpeed) {
+        _currentLeftSpeed = max(static_cast<int16_t>(_currentLeftSpeed - SPEED_RAMP_STEP), _targetLeftSpeed);
+        speedsChanged = true;
+    }
+    
+    // Gradually ramp right motor speed toward target
+    if (_currentRightSpeed < _targetRightSpeed) {
+        _currentRightSpeed = min(static_cast<int16_t>(_currentRightSpeed + SPEED_RAMP_STEP), _targetRightSpeed);
+        speedsChanged = true;
+    } else if (_currentRightSpeed > _targetRightSpeed) {
+        _currentRightSpeed = max(static_cast<int16_t>(_currentRightSpeed - SPEED_RAMP_STEP), _targetRightSpeed);
+        speedsChanged = true;
+    }
+    
+    // Only update motor controls if speeds have changed
+    if (speedsChanged) {
+        // Apply the current speeds
+        if (_currentLeftSpeed == 0) {
+            left_motor_stop();
+        } else if (_currentLeftSpeed > 0) {
+            left_motor_backward(_currentLeftSpeed);
+        } else {
+            left_motor_forward(-_currentLeftSpeed);
+        }
+        
+        if (_currentRightSpeed == 0) {
+            right_motor_stop();
+        } else if (_currentRightSpeed > 0) {
+            right_motor_backward(_currentRightSpeed);
+        } else {
+            right_motor_forward(-_currentRightSpeed);
+        }
+    }
+}
