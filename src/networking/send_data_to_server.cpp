@@ -47,7 +47,6 @@ void SendDataToServer::attachImuData(JsonObject& payload) {
     payload["mY"] = magnetometerData.mY;
     payload["mZ"] = magnetometerData.mZ;
     float yawValue = payload["yaw"];
-    Serial.printf("payload yaw %f\n", yawValue);
 }
 
 void SendDataToServer::attachColorSensorData(JsonObject& payload) {

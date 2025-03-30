@@ -32,8 +32,10 @@ class WiFiManager : public Singleton<WiFiManager> {
 		std::vector<WiFiNetworkInfo> _availableNetworks;
 		int _selectedNetworkIndex = 0;
 
-		void handleWiFiEvent(WiFiEvent_t event, WiFiEventInfo_t info);
-		void resetWiFiState();
+		static void onWiFiEvent(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data);
+		static void onIpEvent(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data);
+		esp_event_handler_instance_t wifi_event_instance;
+		esp_event_handler_instance_t ip_event_instance;
 		bool attemptDirectConnectionToSavedNetworks();
 };
 

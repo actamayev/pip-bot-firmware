@@ -14,12 +14,46 @@ WiFiManager::WiFiManager() {
 }
 
 void WiFiManager::initializeWiFi() {
-    // Register event handler for all WiFi events
-    WiFi.onEvent([this](WiFiEvent_t event, WiFiEventInfo_t info) {
-        this->handleWiFiEvent(event, info);
-    });
-    
-    Serial.println("WiFi event handler registered");
+    // Register event handler for WiFi events
+	// 1/10/25 TODO: The wifi event handler isn't registering correctly.
+    esp_err_t err = esp_event_handler_instance_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &WiFiManager::onWiFiEvent, this, &wifi_event_instance);
+    // if (err != ESP_OK) {
+    //     Serial.print("Failed to register WiFi event handler. Error: ");
+    //     Serial.println(err);
+    // } else {
+    //     Serial.println("WiFi event handler registered successfully");
+    // }
+    esp_event_handler_instance_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &WiFiManager::onIpEvent, this, &ip_event_instance);
+	Serial.println("WiFi event handlers registered");
+}
+
+void WiFiManager::onWiFiEvent(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data) {
+    if (event_base != WIFI_EVENT || event_id == WIFI_EVENT_STA_DISCONNECTED) return;
+	wifi_event_sta_disconnected_t* event = (wifi_event_sta_disconnected_t*) event_data;
+	Serial.printf("WiFi disconnected! Reason: %d\n", event->reason);
+	rgbLed.turn_led_off();
+
+	// Reconnect to WiFi
+	WiFiManager* wifiManager = static_cast<WiFiManager*>(arg);
+	wifiManager->connectToStoredWiFi();
+}
+
+void WiFiManager::onIpEvent(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data) {
+    if (WiFi.getMode() != WIFI_STA || event_base != IP_EVENT || event_id != IP_EVENT_STA_GOT_IP) {
+		return;
+	}
+	// Extract IP information from the event data
+	ip_event_got_ip_t* event = static_cast<ip_event_got_ip_t*>(event_data);
+
+	// Convert the esp_ip4_addr_t to IPAddress
+	IPAddress ip(event->ip_info.ip.addr);  // Use the addr directly to create an IPAddress object
+
+	// Print the IP address using the IPAddress class
+	Serial.println("WiFi connected! IP address: " + ip.toString());
+	rgbLed.set_led_blue();
+
+	// Now connect to the WebSocket
+    WebSocketManager::getInstance().connectToWebSocket();
 }
 
 WiFiCredentials WiFiManager::getStoredWiFiCredentials() {
@@ -36,7 +70,7 @@ void WiFiManager::connectToStoredWiFi() {
     bool connectionStatus = attemptDirectConnectionToSavedNetworks();
 
     if (connectionStatus) {
-        return; //WebSocketManager::getInstance().connectToWebSocket();
+        return WebSocketManager::getInstance().connectToWebSocket();
     }
 
     // If direct connection failed, do a full scan for all networks
@@ -133,12 +167,17 @@ std::vector<WiFiNetworkInfo> WiFiManager::scanWiFiNetworkInfos() {
     
     Serial.println("Starting WiFi scan...");
     
-    resetWiFiState();
+    WiFi.disconnect(true);
+    WiFi.scanDelete();
+    delay(100);
+    // Set WiFi mode to station before scanning
+    WiFi.mode(WIFI_STA);
+
     rgbLed.set_led_purple();
-    
+
     // Perform synchronous scan
     numNetworks = WiFi.scanNetworks(false);
-    
+
     // Turn off LED after scanning
     rgbLed.turn_led_off();
     
@@ -281,44 +320,4 @@ std::vector<WiFiCredentials> WiFiManager::getAllStoredNetworks() {
     
     preferences.end();
     return networks;
-}
-
-void WiFiManager::handleWiFiEvent(WiFiEvent_t event, WiFiEventInfo_t info) {
-    switch (event) {
-        case ARDUINO_EVENT_WIFI_STA_DISCONNECTED:
-            Serial.println("WiFi disconnected!");
-            rgbLed.turn_led_off();
-
-            resetWiFiState();            
-            // Attempt to reconnect
-            connectToStoredWiFi();
-            break;
-
-        case ARDUINO_EVENT_WIFI_STA_CONNECTED:
-            Serial.println("WiFi connected!");
-            break;
-
-        case ARDUINO_EVENT_WIFI_STA_GOT_IP:
-            Serial.print("Got IP: ");
-            Serial.println(WiFi.localIP());
-            rgbLed.set_led_blue();
-            WebSocketManager::getInstance().connectToWebSocket();
-            break;
-
-        case ARDUINO_EVENT_WIFI_SCAN_DONE:
-            Serial.println("WiFi scan completed");
-            break;
-    }
-}
-
-void WiFiManager::resetWiFiState() {
-    Serial.println("Placeholder");
-    // Serial.println("Resetting wifi state");
-    // WiFi.disconnect(true);
-    // WiFi.scanDelete();
-    // delay(500);
-    // WiFi.mode(WIFI_OFF);
-    // delay(1000);
-    // WiFi.mode(WIFI_STA);
-    // delay(1000);
 }
