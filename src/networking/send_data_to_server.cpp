@@ -46,7 +46,6 @@ void SendDataToServer::attachImuData(JsonObject& payload) {
     payload["mX"] = magnetometerData.mX;
     payload["mY"] = magnetometerData.mY;
     payload["mZ"] = magnetometerData.mZ;
-    float yawValue = payload["yaw"];
 }
 
 void SendDataToServer::attachColorSensorData(JsonObject& payload) {
@@ -58,7 +57,7 @@ void SendDataToServer::attachColorSensorData(JsonObject& payload) {
 }
 
 void SendDataToServer::sendSensorDataToServer() {
-    // if (!sendSensorData) return;
+    if (!sendSensorData) return;
 
     unsigned long currentTime = millis();
     if (currentTime - lastSendTime < SEND_INTERVAL) return;
