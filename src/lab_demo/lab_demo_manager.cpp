@@ -114,6 +114,10 @@ void LabDemoManager::executeCommand(int16_t leftSpeed, int16_t rightSpeed) {
 }
 
 void LabDemoManager::processPendingCommands() {
+    if (_balancingEnabled == BalanceStatus::BALANCED) {
+        return updateBalancing();
+    }
+
     motorDriver.update_motor_speeds();
     if (!isExecutingCommand) {
         // If we have a next command, execute it
@@ -165,5 +169,99 @@ void LabDemoManager::processPendingCommands() {
             executeCommand(nextLeftSpeed, nextRightSpeed);
             hasNextCommand = false;
         }
+    }
+}
+
+void LabDemoManager::handleBalanceCommand(BalanceStatus status) {
+    if (status == BalanceStatus::BALANCED && _balancingEnabled == BalanceStatus::UNBALANCED) {
+        // Starting balance mode
+        _balancingEnabled = BalanceStatus::BALANCED;
+        
+        // Reset PID variables
+        _errorSum = 0.0f;
+        _lastError = 0.0f;
+        _lastBalanceUpdateTime = millis();
+        
+        // Disable straight driving correction as we're taking control
+        motorDriver.disable_straight_driving();
+        
+        // Set LED to indicate balancing mode
+        rgbLed.set_led_purple(); // Assuming you have this color method
+        
+        Serial.println("Balance mode enabled");
+    } else if (status == BalanceStatus::UNBALANCED && _balancingEnabled == BalanceStatus::BALANCED) {
+        // Stopping balance mode
+        _balancingEnabled = BalanceStatus::UNBALANCED;
+        
+        // Stop motors immediately
+        motorDriver.stop_both_motors();
+        
+        // Indicate mode change
+        rgbLed.turn_led_off();
+        
+        Serial.println("Balance mode disabled");
+    }
+}
+
+void LabDemoManager::updateBalancing() {
+    if (_balancingEnabled == BalanceStatus::UNBALANCED) return;
+    
+    unsigned long currentTime = millis();
+    if (currentTime - _lastBalanceUpdateTime < BALANCE_UPDATE_INTERVAL) {
+        return; // Maintain update rate at 100Hz
+    }
+    _lastBalanceUpdateTime = currentTime;
+    
+    // Get current roll (which is actually pitch in your system)
+    float currentAngle = Sensors::getInstance().getPitch();
+    
+    // Safety check - disable if tilted too far
+    if (abs(currentAngle - _targetAngle) > MAX_SAFE_ANGLE_DEVIATION) {
+        Serial.printf("Safety cutoff triggered: Angle %.2f exceeds limits\n", currentAngle);
+        handleBalanceCommand(BalanceStatus::UNBALANCED); // Turn off balancing
+        return;
+    }
+    
+    // Calculate PID terms
+    float error = _targetAngle - currentAngle;
+    float deltaTime = BALANCE_UPDATE_INTERVAL / 1000.0f; // Convert to seconds
+    
+    // Update integral term with anti-windup
+    _errorSum += error * deltaTime;
+    _errorSum = constrain(_errorSum, -10.0f, 10.0f); // Prevent excessive buildup
+    
+    // If error crosses zero, reduce integral term to prevent oscillation
+    if ((error > 0 && _lastError < 0) || (error < 0 && _lastError > 0)) {
+        _errorSum *= 0.8f; // Reduce by 20% when crossing zero
+    }
+    
+    // Calculate derivative term
+    float errorRate = (error - _lastError) / deltaTime;
+    _lastError = error;
+    
+    // Use angular rate directly from gyro for better derivative term
+    float gyroRate = Sensors::getInstance().getYRotationRate(); // Assuming this is the pitch rate axis
+    
+    // Calculate motor power using PID formula
+    float proportionalTerm = BALANCE_P_GAIN * error;
+    float integralTerm = BALANCE_I_GAIN * _errorSum;
+    float derivativeTerm = BALANCE_D_GAIN * -gyroRate; // Negative because we want to counter rotation
+    
+    int16_t motorPower = constrain(
+        (int16_t)(proportionalTerm + integralTerm + derivativeTerm),
+        -MAX_BALANCE_POWER, 
+        MAX_BALANCE_POWER
+    );
+    
+    // Apply motor power - may need to reverse direction based on your motor configuration
+    motorDriver.set_motor_speeds(-motorPower, -motorPower);
+    motorDriver.update_motor_speeds(); // Force immediate update
+    
+    // Debug output (limit frequency to avoid overloading Serial)
+    static unsigned long lastDebugTime = 0;
+    if (currentTime - lastDebugTime > 100) { // Print every 100ms
+        Serial.printf("Angle: %.2f, Error: %.2f, P: %.2f, I: %.2f, D: %.2f, Power: %d\n",
+                     currentAngle, error, proportionalTerm, integralTerm, derivativeTerm, motorPower);
+        lastDebugTime = currentTime;
     }
 }

@@ -2,6 +2,7 @@
 
 #include <Arduino.h>
 #include "../utils/singleton.h"
+#include "../sensors/sensors.h"
 #include "../networking/protocol.h"
 
 class LabDemoManager : public Singleton<LabDemoManager> {
@@ -15,6 +16,10 @@ class LabDemoManager : public Singleton<LabDemoManager> {
         void handleMotorControl(const uint8_t* data);
         void handleSoundCommand(SoundType soundType);
         void handleSpeakerMute(SpeakerStatus status);
+
+        void handleBalanceCommand(BalanceStatus enableBalancing);
+        void updateBalancing();
+        BalanceStatus isBalancing() const { return _balancingEnabled; }
 
     private:
         void updateMotorSpeeds(int16_t leftSpeed, int16_t rightSpeed);
@@ -34,4 +39,25 @@ class LabDemoManager : public Singleton<LabDemoManager> {
 
         // Constants
         static constexpr uint8_t MIN_ENCODER_PULSES = 10;
+
+        BalanceStatus _balancingEnabled = BalanceStatus::UNBALANCED;
+        float _targetAngle = 90.0f; // Target is vertical (90 degrees)
+        unsigned long _lastBalanceUpdateTime = 0;
+        float _lastError = 0.0f;
+        float _errorSum = 0.0f;
+
+        // PID Constants for balancing - will need tuning
+        static constexpr float BALANCE_P_GAIN = 5.0f;  // Start conservative
+        static constexpr float BALANCE_I_GAIN = 0.1f;  // Start small
+        static constexpr float BALANCE_D_GAIN = 1.0f;  // Start with some damping
+
+        // Limits and safety parameters
+        static constexpr float MAX_SAFE_ANGLE_DEVIATION = 15.0f; // ±15° safety range
+        static constexpr int16_t MAX_BALANCE_POWER = 200; // Cap motor power for safety
+        static constexpr unsigned long BALANCE_UPDATE_INTERVAL = 10; // 10ms (100Hz)
+
+        static constexpr uint8_t ANGLE_BUFFER_SIZE = 10;
+        float _angleBuffer[ANGLE_BUFFER_SIZE] = {0};
+        uint8_t _angleBufferIndex = 0;
+        uint8_t _angleBufferCount = 0;
 };

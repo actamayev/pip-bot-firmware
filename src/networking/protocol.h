@@ -6,7 +6,8 @@ enum class DataMessageType : uint8_t {
     FIRMWARE_CHUNK = 0,
     MOTOR_CONTROL = 1,
     SOUND_COMMAND = 2,
-    SPEAKER_MUTE = 3
+    SPEAKER_MUTE = 3,
+    BALANCE_CONTROL = 4
 };
 
 // Sound types
@@ -20,4 +21,9 @@ enum class SoundType : uint8_t {
 enum class SpeakerStatus : uint8_t {
     UNMUTED = 0,
     MUTED = 1
+};
+
+enum class BalanceStatus : uint8_t {
+    UNBALANCED = 0,
+    BALANCED = 1
 };

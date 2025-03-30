@@ -150,7 +150,7 @@ void WebSocketManager::handleBinaryMessage(WebsocketsMessage message) {
                 Serial.println("Invalid motor control message length");
             }
             break;
-            
+
         case DataMessageType::SOUND_COMMAND:
             if (length == 2) {
                 SoundType soundType = static_cast<SoundType>(data[1]);
@@ -159,7 +159,7 @@ void WebSocketManager::handleBinaryMessage(WebsocketsMessage message) {
                 Serial.println("Invalid sound command message length");
             }
             break;
-            
+
         case DataMessageType::SPEAKER_MUTE:
             if (length == 2) {
                 SpeakerStatus status = static_cast<SpeakerStatus>(data[1]);
@@ -168,7 +168,14 @@ void WebSocketManager::handleBinaryMessage(WebsocketsMessage message) {
                 Serial.println("Invalid speaker mute message length");
             }
             break;
-            
+        case DataMessageType::BALANCE_CONTROL:
+            if (length == 2) {
+                BalanceStatus status = static_cast<BalanceStatus>(data[1]);
+                Serial.print("Balance Status: ");
+                Serial.println(status == BalanceStatus::BALANCED ? "BALANCED" : "UNBALANCED");
+                LabDemoManager::getInstance().handleBalanceCommand(status);
+            }
+            break;
         default:
             Serial.printf("Unknown message type: %d\n", static_cast<int>(messageType));
             break;
