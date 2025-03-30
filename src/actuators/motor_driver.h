@@ -65,7 +65,7 @@ class MotorDriver {
         float _initialYaw = 0.0f;
         float _lastYawError = 0.0f;
         float _integralError = 0.0f;
-        static constexpr float YAW_P_GAIN = 1.5f;
+        static constexpr float YAW_P_GAIN = 5.0f;
         static constexpr float YAW_I_GAIN = 0.05f;
         static constexpr float YAW_D_GAIN = 0.5f;
         static constexpr float YAW_I_MAX = 100.0f;

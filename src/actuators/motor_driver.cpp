@@ -345,7 +345,7 @@ void MotorDriver::update_straight_driving() {
         
         // Limit correction rate of change (slew rate limiting)
         static int16_t lastCorrection = 0;
-        int16_t maxChange = 10; // Maximum change per update
+        int16_t maxChange = 20; // Maximum change per update
         
         if (correction - lastCorrection > maxChange) {
             correction = lastCorrection + maxChange;
@@ -417,7 +417,6 @@ float MotorDriver::addYawReadingAndGetAverage(float newYaw) {
     return sum / _yawBufferCount;
 }
 
-// Add to motor_driver.cpp
 float MotorDriver::normalizeAngle(float angle) {
     // Normalize angle to range [-180, 180]
     while (angle > 180.0f) angle -= 360.0f;
