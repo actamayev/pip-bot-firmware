@@ -2,28 +2,22 @@
 
 #include <Arduino.h>
 #include "../utils/singleton.h"
+#include "../networking/protocol.h"
 
 class LabDemoManager : public Singleton<LabDemoManager> {
     friend class Singleton<LabDemoManager>;
 
     public:
-        void handleBinaryMessage(const char* data);
-        void updateMotorSpeeds(int16_t leftSpeed, int16_t rightSpeed);
-        void handleChimeCommand(); // New method for chime command
         void processPendingCommands();
         LabDemoManager();
 
-        enum TuneType {
-            TUNE_ALERT = 0,
-            TUNE_BEEP = 1,
-            TUNE_CHIME = 2
-        };
-        
         // Add this method declaration
-        void handleSoundMessage(const char* data);
-        void handleSpeakerMuteMessage(const char* data);
+        void handleMotorControl(const uint8_t* data);
+        void handleSoundCommand(SoundType soundType);
+        void handleSpeakerMute(SpeakerStatus status);
 
     private:
+        void updateMotorSpeeds(int16_t leftSpeed, int16_t rightSpeed);
         void executeCommand(int16_t leftSpeed, int16_t rightSpeed);
 
         // Simple command tracking

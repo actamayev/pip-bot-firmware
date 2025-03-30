@@ -16,7 +16,6 @@
 // Task to handle sensors and user code on Core 0
 void SensorAndUserCodeTask(void * parameter) {
     disableCore0WDT();
-    Wire.begin(I2C_SDA, I2C_SCL, I2C_CLOCK_SPEED);
     delay(10);
     // Initialize sensors on Core 0
     Serial.println("Initializing sensors on Core 0...");
@@ -72,6 +71,9 @@ void setup() {
     Serial.begin(115200);
     // Only needed if we need to see the setup serial logs:
     delay(2000);
+    Wire.setPins(I2C_SDA, I2C_SCL);
+    Wire.begin(I2C_SDA, I2C_SCL, I2C_CLOCK_SPEED);
+    delay(10);
 
     rgbLed.turn_led_off();
 

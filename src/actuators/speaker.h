@@ -2,10 +2,10 @@
 #include "Arduino.h"
 #include "../utils/config.h"
 
-class Speaker {
+class Speaker  {
     public:
         Speaker();
-        
+
         // Play a chime sound in a non-blocking way
         void chime();
         

@@ -3,7 +3,7 @@
 #include "../actuators/rgb_led.h"
 #include "../actuators/motor_driver.h"
 #include "../sensors/encoder_manager.h"
-// #include "../actuators/speaker.h"
+#include "../actuators/speaker.h"
 
 LabDemoManager::LabDemoManager() 
     : isExecutingCommand(false), 
@@ -16,60 +16,50 @@ LabDemoManager::LabDemoManager()
       startRightCount(0) {
 }
 
-void LabDemoManager::handleBinaryMessage(const char* data) {
-    if (data[0] != 1) {  // 1 = motor control
-        Serial.printf("Unknown message type: %d\n", data[0]);
-        return;
-    }
-
+void LabDemoManager::handleMotorControl(const uint8_t* data) {
     // Extract 16-bit signed integers (little-endian)
-    int16_t leftSpeed = (static_cast<uint8_t>(data[2]) << 8) | static_cast<uint8_t>(data[1]);
-    int16_t rightSpeed = (static_cast<uint8_t>(data[4]) << 8) | static_cast<uint8_t>(data[3]);
+    int16_t leftSpeed = static_cast<int16_t>(data[1] | (data[2] << 8));
+    int16_t rightSpeed = static_cast<int16_t>(data[3] | (data[4] << 8));
     
     updateMotorSpeeds(leftSpeed, rightSpeed);
 }
 
 // Add this to lab_demo_manager.cpp
-void LabDemoManager::handleSoundMessage(const char* data) {
-    uint8_t tuneType = static_cast<uint8_t>(data[1]);
-
+void LabDemoManager::handleSoundCommand(SoundType soundType) {
     // Play the requested tune
-    switch(tuneType) {
-        case TUNE_ALERT:
+    switch(soundType) {
+        case SoundType::ALERT:
             Serial.println("Playing Alert sound");
             // Call your alert sound function
             // speaker.alert();
             break;
 
-        case TUNE_BEEP:
+        case SoundType::BEEP:
             Serial.println("Playing Beep sound");
             // Call your beep sound function
             // speaker.beep();
             break;
 
-        case TUNE_CHIME:
+        case SoundType::CHIME:
             Serial.println("Playing Chime sound");
-            // speaker.chime();
+            speaker.chime();
             break;
 
         default:
-            Serial.printf("Unknown tune type: %d\n", tuneType);
+            Serial.printf("Unknown tune type: %d\n", static_cast<int>(soundType));
             break;
     }
 }
 
-void LabDemoManager::handleSpeakerMuteMessage(const char* data) {
-    // Get mute state (0 = mute, 1 = unmute)
-    uint8_t muteState = static_cast<uint8_t>(data[1]);
-    
-    if (muteState == 0) {
+void LabDemoManager::handleSpeakerMute(SpeakerStatus status) {
+    if (status == SpeakerStatus::MUTED) {
         Serial.println("Muting speaker");
-        // speaker.mute();
-    } else if (muteState == 1) {
+        speaker.mute();
+    } else if (status == SpeakerStatus::UNMUTED) {
         Serial.println("Unmuting speaker");
-        // speaker.unmute();
+        speaker.unmute();
     } else {
-        Serial.printf("Unknown mute state: %d\n", muteState);
+        Serial.printf("Unknown mute state: %d\n", static_cast<int>(status));
     }
 }
 
@@ -176,11 +166,4 @@ void LabDemoManager::processPendingCommands() {
             hasNextCommand = false;
         }
     }
-}
-
-void LabDemoManager::handleChimeCommand() {
-    // Play the chime sound
-    // speaker.chime();
-
-    Serial.println("Chime command executed");
 }
