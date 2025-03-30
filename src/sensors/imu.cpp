@@ -148,16 +148,13 @@ float ImuSensor::getMagneticFieldZ() {
 // Add this implementation to imu.cpp:
 bool ImuSensor::updateAllSensorData() {
     if (!isInitialized) return false;
-    
-    // Removed the cooldown check to ensure we always get fresh data when requested
-    // Each getter already calls this method, so the external rate limiting is sufficient
-    
+
     // Enable all reports we need
     enableGameRotationVector();
     enableAccelerometer();
     enableGyroscope();
     enableMagneticField();
-    
+
     // Update each data type
     bool updated = false;
     
@@ -213,10 +210,6 @@ bool ImuSensor::updateAllSensorData() {
             }
         }
     }
-    
-    // Update the last read time regardless of success
-    // This prevents excessive polling when data isn't available
-    lastReadTime = millis();
     
     return updated;
 }

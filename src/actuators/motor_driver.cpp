@@ -247,9 +247,21 @@ void MotorDriver::update_motor_speeds() {
 
 void MotorDriver::enable_straight_driving() {
     _straightDrivingEnabled = true;
-    // Store the initial yaw as our reference point
-    _initialYaw = Sensors::getInstance().getYaw();
+    
+    // Reset the yaw buffer
+    _yawBufferIndex = 0;
+    _yawBufferCount = 0;
+
+    // Fill the buffer with the current yaw reading to start
+    float currentYaw = Sensors::getInstance().getYaw();
+    for (uint8_t i = 0; i < YAW_BUFFER_SIZE; i++) {
+        _yawBuffer[i] = currentYaw;
+    }
+    
+    // Store the initial average yaw as our reference point
+    _initialYaw = currentYaw;
     _lastYawError = 0.0f;
+    
     Serial.printf("Straight driving enabled. Initial yaw: %.2f\n", _initialYaw);
 }
 
@@ -260,17 +272,20 @@ void MotorDriver::disable_straight_driving() {
 
 void MotorDriver::update_straight_driving() {
     if (!_straightDrivingEnabled) return;
-
+    
     // Only apply corrections if both motors are moving in the same direction
     if ((_targetLeftSpeed > 0 && _targetRightSpeed > 0) || 
         (_targetLeftSpeed < 0 && _targetRightSpeed < 0)) {
         
         // Get current yaw from the IMU
-        float currentYaw = Sensors::getInstance().getYaw();
-        
+        float rawYaw = Sensors::getInstance().getYaw();
+
+        // Add to buffer and get the filtered average
+        float filteredYaw = addYawReadingAndGetAverage(rawYaw);
+
         // Calculate error (how far we've deviated from straight)
-        float yawError = currentYaw - _initialYaw;
-        
+        float yawError = filteredYaw - _initialYaw;
+
         // Normalize error to -180 to 180 range
         while (yawError > 180.0f) yawError -= 360.0f;
         while (yawError < -180.0f) yawError += 360.0f;
@@ -316,9 +331,30 @@ void MotorDriver::update_straight_driving() {
         } else {
             right_motor_forward(-rightAdjusted);
         }
-
-        // Optional: Debug output (uncomment if needed)
-        Serial.printf("Yaw: %.2f, Error: %.2f, Correction: %d, L: %d, R: %d\n", 
-                     currentYaw, yawError, correction, leftAdjusted, rightAdjusted);
+        
+        // Optional debugging
+        Serial.printf("Raw Yaw: %.2f, Filtered Yaw: %.2f, Error: %.2f, Correction: %d, L: %d, R: %d\n", 
+                    rawYaw, filteredYaw, yawError, correction, leftAdjusted, rightAdjusted);
     }
+}
+
+float MotorDriver::addYawReadingAndGetAverage(float newYaw) {
+    // Add new reading to the buffer
+    _yawBuffer[_yawBufferIndex] = newYaw;
+    
+    // Update buffer index
+    _yawBufferIndex = (_yawBufferIndex + 1) % YAW_BUFFER_SIZE;
+    
+    // Update count of valid readings
+    if (_yawBufferCount < YAW_BUFFER_SIZE) {
+        _yawBufferCount++;
+    }
+    
+    // Calculate average from valid readings
+    float sum = 0.0f;
+    for (uint8_t i = 0; i < _yawBufferCount; i++) {
+        sum += _yawBuffer[i];
+    }
+    
+    return sum / _yawBufferCount;
 }

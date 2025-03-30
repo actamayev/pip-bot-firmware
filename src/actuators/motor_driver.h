@@ -66,6 +66,13 @@ class MotorDriver {
         float _lastYawError = 0.0f;
         static constexpr float YAW_P_GAIN = 5.0f;  // Proportional gain
         static constexpr float YAW_D_GAIN = 2.0f;  // Derivative gain
+
+        static constexpr uint8_t YAW_BUFFER_SIZE = 10;
+        float _yawBuffer[YAW_BUFFER_SIZE] = {0};
+        uint8_t _yawBufferIndex = 0;
+        uint8_t _yawBufferCount = 0;
+
+        float addYawReadingAndGetAverage(float newYaw);
 };
 
 extern MotorDriver motorDriver;

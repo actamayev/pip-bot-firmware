@@ -56,19 +56,6 @@ class ImuSensor {
         GyroscopeData currentGyroData;
         MagnetometerData currentMagnetometer;
 
-        unsigned long lastReadTime = 0;
-        const unsigned long READ_INTERVAL_MILLIS = 20; // 20 millisecond cooldown between reads
-
-        bool shouldUpdate() {
-            unsigned long currentMillis = millis();
-            // Check if enough time has passed or if this is the first read
-            if (currentMillis - lastReadTime >= READ_INTERVAL_MILLIS || lastReadTime == 0) {
-                lastReadTime = currentMillis;
-                return true;
-            }
-            return false;
-        }
-
         // New method to update all sensor data at once
         bool updateAllSensorData();
 };
