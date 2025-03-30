@@ -1,4 +1,5 @@
 #include "./motor_driver.h"
+#include "../sensors/sensors.h"
 
 MotorDriver motorDriver;
 
@@ -216,7 +217,13 @@ void MotorDriver::update_motor_speeds() {
         _currentRightSpeed = max(static_cast<int16_t>(_currentRightSpeed - SPEED_RAMP_STEP), _targetRightSpeed);
         speedsChanged = true;
     }
-    
+
+    // If straight driving is enabled, it will handle the motor control
+    if (_straightDrivingEnabled) {
+        update_straight_driving();
+        return;
+    }
+
     // Only update motor controls if speeds have changed
     if (speedsChanged) {
         // Apply the current speeds
@@ -227,7 +234,7 @@ void MotorDriver::update_motor_speeds() {
         } else {
             left_motor_forward(-_currentLeftSpeed);
         }
-        
+
         if (_currentRightSpeed == 0) {
             right_motor_stop();
         } else if (_currentRightSpeed > 0) {
@@ -235,5 +242,83 @@ void MotorDriver::update_motor_speeds() {
         } else {
             right_motor_forward(-_currentRightSpeed);
         }
+    }
+}
+
+void MotorDriver::enable_straight_driving() {
+    _straightDrivingEnabled = true;
+    // Store the initial yaw as our reference point
+    _initialYaw = Sensors::getInstance().getYaw();
+    _lastYawError = 0.0f;
+    Serial.printf("Straight driving enabled. Initial yaw: %.2f\n", _initialYaw);
+}
+
+void MotorDriver::disable_straight_driving() {
+    _straightDrivingEnabled = false;
+    Serial.println("Straight driving disabled");
+}
+
+void MotorDriver::update_straight_driving() {
+    if (!_straightDrivingEnabled) return;
+
+    // Only apply corrections if both motors are moving in the same direction
+    if ((_targetLeftSpeed > 0 && _targetRightSpeed > 0) || 
+        (_targetLeftSpeed < 0 && _targetRightSpeed < 0)) {
+        
+        // Get current yaw from the IMU
+        float currentYaw = Sensors::getInstance().getYaw();
+        
+        // Calculate error (how far we've deviated from straight)
+        float yawError = currentYaw - _initialYaw;
+        
+        // Normalize error to -180 to 180 range
+        while (yawError > 180.0f) yawError -= 360.0f;
+        while (yawError < -180.0f) yawError += 360.0f;
+        
+        // Calculate derivative (rate of change of error)
+        float yawDerivative = yawError - _lastYawError;
+        _lastYawError = yawError;
+        
+        // Calculate correction using PD controller
+        int16_t correction = static_cast<int16_t>(YAW_P_GAIN * yawError + YAW_D_GAIN * yawDerivative);
+        
+        // Apply correction to motor speeds
+        int16_t leftAdjustment = -correction;
+        int16_t rightAdjustment = correction;
+        
+        // Forward motion: positive _targetSpeed means backward motor direction in your setup
+        if (_targetLeftSpeed > 0) {
+            leftAdjustment = -leftAdjustment;
+            rightAdjustment = -rightAdjustment;
+        }
+        
+        // Apply adjustments but preserve the average speed
+        int16_t leftAdjusted = _currentLeftSpeed + leftAdjustment;
+        int16_t rightAdjusted = _currentRightSpeed + rightAdjustment;
+        
+        // Constrain to valid range
+        leftAdjusted = constrain(leftAdjusted, -255, 255);
+        rightAdjusted = constrain(rightAdjusted, -255, 255);
+        
+        // Apply the corrected speeds directly to motors
+        if (leftAdjusted == 0) {
+            left_motor_stop();
+        } else if (leftAdjusted > 0) {
+            left_motor_backward(leftAdjusted);
+        } else {
+            left_motor_forward(-leftAdjusted);
+        }
+        
+        if (rightAdjusted == 0) {
+            right_motor_stop();
+        } else if (rightAdjusted > 0) {
+            right_motor_backward(rightAdjusted);
+        } else {
+            right_motor_forward(-rightAdjusted);
+        }
+
+        // Optional: Debug output (uncomment if needed)
+        Serial.printf("Yaw: %.2f, Error: %.2f, Correction: %d, L: %d, R: %d\n", 
+                     currentYaw, yawError, correction, leftAdjusted, rightAdjusted);
     }
 }

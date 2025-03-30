@@ -34,6 +34,10 @@ class MotorDriver {
         void set_motor_speeds(int16_t leftTarget, int16_t rightTarget);
         void update_motor_speeds();
 
+        void enable_straight_driving();
+        void disable_straight_driving();
+        void update_straight_driving();
+
     private:
         HapticState _hapticState = HAPTIC_IDLE;
         int8_t _hapticDirection = 0;
@@ -56,6 +60,12 @@ class MotorDriver {
         unsigned long _lastSpeedUpdateTime = 0;
         static constexpr int16_t SPEED_RAMP_STEP = 50;  // Changed from uint8_t to int16_t
         static constexpr unsigned long SPEED_RAMP_INTERVAL = 15;  // ms between updates        
+
+        bool _straightDrivingEnabled = false;
+        float _initialYaw = 0.0f;
+        float _lastYawError = 0.0f;
+        static constexpr float YAW_P_GAIN = 5.0f;  // Proportional gain
+        static constexpr float YAW_D_GAIN = 2.0f;  // Derivative gain
 };
 
 extern MotorDriver motorDriver;
