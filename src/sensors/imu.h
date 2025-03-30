@@ -52,15 +52,10 @@ class ImuSensor {
         bool getImuData();
 
         QuaternionData currentQuaternion;
-        bool updateQuaternion();
-        const QuaternionData& getQuaternion();
-
         AccelerometerData currentAccelData;
-        bool updateAccelerometer();
-
         GyroscopeData currentGyroData;
-        bool updateGyroscope();
-
         MagnetometerData currentMagnetometer;
-        bool updateMagnetometer();
+
+        // New method to update all sensor data at once
+        bool updateAllSensorData();
 };

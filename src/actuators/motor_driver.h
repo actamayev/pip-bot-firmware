@@ -30,6 +30,13 @@ class MotorDriver {
         void start_haptic_feedback(int8_t direction, uint8_t strength, uint8_t duration_ms);
         void update_haptic_feedback();
 
+        void set_motor_speeds(int16_t leftTarget, int16_t rightTarget);
+        void update_motor_speeds();
+
+        void enable_straight_driving();
+        void disable_straight_driving();
+        void update_straight_driving();
+
     private:
         HapticState _hapticState = HAPTIC_IDLE;
         int8_t _hapticDirection = 0;
@@ -43,6 +50,33 @@ class MotorDriver {
         unsigned long _centeringDuration = 0;
         unsigned long _finalBumpDuration = 0;  // Added for the final bump
         unsigned long _recoveryDuration = 0;
+
+        int16_t _targetLeftSpeed = 0;
+        int16_t _targetRightSpeed = 0;
+        int16_t _currentLeftSpeed = 0;
+        int16_t _currentRightSpeed = 0;
+        unsigned long _lastSpeedUpdateTime = 0;
+        static constexpr int16_t SPEED_RAMP_STEP = 50;
+        static constexpr unsigned long SPEED_RAMP_INTERVAL = 15;  // ms between updates        
+
+        bool _straightDrivingEnabled = false;
+        float _initialYaw = 0.0f;
+        float _lastYawError = 0.0f;
+        float _integralError = 0.0f;
+        static constexpr float YAW_P_GAIN = 5.0f;
+        static constexpr float YAW_I_GAIN = 0.05f;
+        static constexpr float YAW_D_GAIN = 0.5f;
+        static constexpr float YAW_I_MAX = 100.0f;
+
+        static constexpr uint8_t YAW_BUFFER_SIZE = 10;
+        float _yawBuffer[YAW_BUFFER_SIZE] = {0};
+        uint8_t _yawBufferIndex = 0;
+        uint8_t _yawBufferCount = 0;
+
+        float addYawReadingAndGetAverage(float newYaw);
+
+        float normalizeAngle(float angle);
+        float shortestAnglePath(float from, float to);
 };
 
 extern MotorDriver motorDriver;
