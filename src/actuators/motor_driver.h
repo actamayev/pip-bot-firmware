@@ -64,12 +64,12 @@ class MotorDriver {
         bool _straightDrivingEnabled = false;
         float _initialYaw = 0.0f;
         float _lastYawError = 0.0f;
-        float _integralError = 0.0f;  // Add this for integral control
-        static constexpr float YAW_P_GAIN = 5.0f;  // Proportional gain
-        static constexpr float YAW_I_GAIN = 1.0f;  // Integral gain - start with a low value
-        static constexpr float YAW_D_GAIN = 2.0f;  // Derivative gain
-        static constexpr float YAW_I_MAX = 100.0f; // Maximum integral contribution to prevent windup
-        
+        float _integralError = 0.0f;
+        static constexpr float YAW_P_GAIN = 1.5f;
+        static constexpr float YAW_I_GAIN = 0.05f;
+        static constexpr float YAW_D_GAIN = 0.5f;
+        static constexpr float YAW_I_MAX = 100.0f;
+
         static constexpr uint8_t YAW_BUFFER_SIZE = 10;
         float _yawBuffer[YAW_BUFFER_SIZE] = {0};
         uint8_t _yawBufferIndex = 0;

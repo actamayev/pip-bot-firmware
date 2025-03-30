@@ -335,16 +335,11 @@ void MotorDriver::update_straight_driving() {
         // Limit derivative value to prevent spikes
         if (yawDerivative > 10.0f) yawDerivative = 10.0f;
         if (yawDerivative < -10.0f) yawDerivative = -10.0f;
-        
-        // Use lower gains - these are too high currently
-        static constexpr float REDUCED_P_GAIN = 1.5f;  // Was 5.0
-        static constexpr float REDUCED_I_GAIN = 0.05f; // Was 0.2
-        static constexpr float REDUCED_D_GAIN = 0.5f;  // Was 2.0
-        
+    
         // Calculate correction using PID controller with reduced gains
-        int16_t proportionalTerm = static_cast<int16_t>(REDUCED_P_GAIN * yawError);
-        int16_t integralTerm = static_cast<int16_t>(REDUCED_I_GAIN * _integralError);
-        int16_t derivativeTerm = static_cast<int16_t>(REDUCED_D_GAIN * yawDerivative);
+        int16_t proportionalTerm = static_cast<int16_t>(YAW_P_GAIN * yawError);
+        int16_t integralTerm = static_cast<int16_t>(YAW_I_GAIN * _integralError);
+        int16_t derivativeTerm = static_cast<int16_t>(YAW_D_GAIN * yawDerivative);
         
         int16_t correction = proportionalTerm + integralTerm + derivativeTerm;
         
