@@ -251,7 +251,10 @@ void MotorDriver::enable_straight_driving() {
     // Reset the yaw buffer
     _yawBufferIndex = 0;
     _yawBufferCount = 0;
-
+    
+    // Reset integral error
+    _integralError = 0.0f;
+    
     // Fill the buffer with the current yaw reading to start
     float currentYaw = Sensors::getInstance().getYaw();
     for (uint8_t i = 0; i < YAW_BUFFER_SIZE; i++) {
@@ -272,30 +275,46 @@ void MotorDriver::disable_straight_driving() {
 
 void MotorDriver::update_straight_driving() {
     if (!_straightDrivingEnabled) return;
-    
+
     // Only apply corrections if both motors are moving in the same direction
     if ((_targetLeftSpeed > 0 && _targetRightSpeed > 0) || 
         (_targetLeftSpeed < 0 && _targetRightSpeed < 0)) {
         
         // Get current yaw from the IMU
         float rawYaw = Sensors::getInstance().getYaw();
-
+        
         // Add to buffer and get the filtered average
         float filteredYaw = addYawReadingAndGetAverage(rawYaw);
-
+        
         // Calculate error (how far we've deviated from straight)
         float yawError = filteredYaw - _initialYaw;
-
+        
         // Normalize error to -180 to 180 range
         while (yawError > 180.0f) yawError -= 360.0f;
         while (yawError < -180.0f) yawError += 360.0f;
+        
+        // Calculate integral component
+        _integralError += yawError;
+        
+        // Anti-windup: limit the integral error
+        if (_integralError > YAW_I_MAX) _integralError = YAW_I_MAX;
+        if (_integralError < -YAW_I_MAX) _integralError = -YAW_I_MAX;
+        
+        // Reset integral when crossing zero (optional, helps prevent oscillation)
+        if ((yawError > 0 && _lastYawError < 0) || (yawError < 0 && _lastYawError > 0)) {
+            _integralError *= 0.5f;  // Reduce rather than completely reset
+        }
         
         // Calculate derivative (rate of change of error)
         float yawDerivative = yawError - _lastYawError;
         _lastYawError = yawError;
         
-        // Calculate correction using PD controller
-        int16_t correction = static_cast<int16_t>(YAW_P_GAIN * yawError + YAW_D_GAIN * yawDerivative);
+        // Calculate correction using PID controller
+        int16_t proportionalTerm = static_cast<int16_t>(YAW_P_GAIN * yawError);
+        int16_t integralTerm = static_cast<int16_t>(YAW_I_GAIN * _integralError);
+        int16_t derivativeTerm = static_cast<int16_t>(YAW_D_GAIN * yawDerivative);
+        
+        int16_t correction = proportionalTerm + integralTerm + derivativeTerm;
         
         // Apply correction to motor speeds
         int16_t leftAdjustment = -correction;
@@ -333,8 +352,9 @@ void MotorDriver::update_straight_driving() {
         }
         
         // Optional debugging
-        Serial.printf("Raw Yaw: %.2f, Filtered Yaw: %.2f, Error: %.2f, Correction: %d, L: %d, R: %d\n", 
-                    rawYaw, filteredYaw, yawError, correction, leftAdjusted, rightAdjusted);
+        Serial.printf("Raw: %.2f, Filtered: %.2f, Error: %.2f, P: %d, I: %d, D: %d, L: %d, R: %d\n", 
+                    rawYaw, filteredYaw, yawError, proportionalTerm, integralTerm, 
+                    derivativeTerm, leftAdjusted, rightAdjusted);
     }
 }
 
