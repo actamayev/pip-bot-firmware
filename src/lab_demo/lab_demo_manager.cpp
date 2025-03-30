@@ -181,7 +181,16 @@ void LabDemoManager::handleBalanceCommand(BalanceStatus status) {
         _errorSum = 0.0f;
         _lastError = 0.0f;
         _lastBalanceUpdateTime = millis();
-        
+
+        float currentAngle = Sensors::getInstance().getPitch();
+        _lastValidAngle = currentAngle; // Set initial valid reading
+
+        for (uint8_t i = 0; i < ANGLE_BUFFER_SIZE; i++) {
+            _angleBuffer[i] = currentAngle;
+        }
+        _angleBufferIndex = 0;
+        _angleBufferCount = ANGLE_BUFFER_SIZE; // Start with a full buffer
+
         // Disable straight driving correction as we're taking control
         motorDriver.disable_straight_driving();
         
@@ -204,8 +213,8 @@ void LabDemoManager::handleBalanceCommand(BalanceStatus status) {
 }
 
 void LabDemoManager::updateBalancing() {
-    if (_balancingEnabled == BalanceStatus::UNBALANCED) return;
-    
+    if (_balancingEnabled != BalanceStatus::BALANCED) return;
+
     unsigned long currentTime = millis();
     if (currentTime - _lastBalanceUpdateTime < BALANCE_UPDATE_INTERVAL) {
         return; // Maintain update rate at 100Hz
@@ -213,35 +222,78 @@ void LabDemoManager::updateBalancing() {
     _lastBalanceUpdateTime = currentTime;
     
     // Get current roll (which is actually pitch in your system)
-    float currentAngle = Sensors::getInstance().getPitch();
-    
-    // Safety check - disable if tilted too far
-    if (abs(currentAngle - _targetAngle) > MAX_SAFE_ANGLE_DEVIATION) {
-        Serial.printf("Safety cutoff triggered: Angle %.2f exceeds limits\n", currentAngle);
+    float rawAngle = Sensors::getInstance().getPitch();
+    float currentAngle = rawAngle; // Will be either raw or last valid reading
+
+    Serial.printf("rawAngle %f\n", rawAngle);
+
+    // Calculate average from buffer for validation
+    float averageAngle = 0.0f;
+    if (_angleBufferCount > 0) {
+        float sum = 0.0f;
+        for (uint8_t i = 0; i < _angleBufferCount; i++) {
+            sum += _angleBuffer[i];
+        }
+        averageAngle = sum / _angleBufferCount;
+    }
+
+    // Validate reading against average
+    float deviation = abs(rawAngle - averageAngle);
+    if (deviation > _outlierDeviation && _angleBufferCount > 0) {
+        // Reading differs too much from average - use last valid reading
+        currentAngle = _lastValidAngle;
+        Serial.printf("Rejecting outlier: %.2f (avg: %.2f, dev: %.2f)\n", 
+                    rawAngle, averageAngle, deviation);
+    } else {
+        // Reading is valid - update last valid angle
+        _lastValidAngle = rawAngle;
+        
+        // Add to running average buffer
+        _angleBuffer[_angleBufferIndex] = rawAngle;
+        _angleBufferIndex = (_angleBufferIndex + 1) % ANGLE_BUFFER_SIZE;
+        if (_angleBufferCount < ANGLE_BUFFER_SIZE) _angleBufferCount++;
+    }
+
+    // Safety check - disable if average angle is tilted too far
+    // Calculate average of last 5 angles (or fewer if buffer isn't full yet)
+    float safetyCheckAverage = 0.0f;
+    int samplesToUse = min(5, (int)_angleBufferCount);
+    if (samplesToUse > 0) {
+        float sum = 0.0f;
+        // Start from the most recent entries in the circular buffer
+        for (int i = 0; i < samplesToUse; i++) {
+            // Calculate index going backward from current position in circular buffer
+            int idx = (_angleBufferIndex - 1 - i + ANGLE_BUFFER_SIZE) % ANGLE_BUFFER_SIZE;
+            sum += _angleBuffer[idx];
+        }
+        safetyCheckAverage = sum / samplesToUse;
+    }
+
+    // Check if average angle exceeds safety limits
+    if (abs(safetyCheckAverage - _targetAngle) > MAX_SAFE_ANGLE_DEVIATION) {
+        Serial.printf("Safety cutoff triggered: Avg Angle %.2f exceeds limits\n", safetyCheckAverage);
         handleBalanceCommand(BalanceStatus::UNBALANCED); // Turn off balancing
         return;
+    } else {
+        rgbLed.set_led_green();
     }
     
-    // Calculate PID terms
+    // Calculate PID terms using validated angle (not the average)
     float error = _targetAngle - currentAngle;
     float deltaTime = BALANCE_UPDATE_INTERVAL / 1000.0f; // Convert to seconds
     
-    // Update integral term with anti-windup
+    // Rest of PID calculation remains the same...
     _errorSum += error * deltaTime;
     _errorSum = constrain(_errorSum, -10.0f, 10.0f); // Prevent excessive buildup
-    
+
     // If error crosses zero, reduce integral term to prevent oscillation
     if ((error > 0 && _lastError < 0) || (error < 0 && _lastError > 0)) {
         _errorSum *= 0.8f; // Reduce by 20% when crossing zero
     }
-    
-    // Calculate derivative term
-    float errorRate = (error - _lastError) / deltaTime;
-    _lastError = error;
-    
-    // Use angular rate directly from gyro for better derivative term
-    float gyroRate = Sensors::getInstance().getYRotationRate(); // Assuming this is the pitch rate axis
-    
+
+    // Get gyro rate directly
+    float gyroRate = Sensors::getInstance().getYRotationRate(); 
+
     // Calculate motor power using PID formula
     float proportionalTerm = BALANCE_P_GAIN * error;
     float integralTerm = BALANCE_I_GAIN * _errorSum;
@@ -252,16 +304,20 @@ void LabDemoManager::updateBalancing() {
         -MAX_BALANCE_POWER, 
         MAX_BALANCE_POWER
     );
-    
-    // Apply motor power - may need to reverse direction based on your motor configuration
-    motorDriver.set_motor_speeds(-motorPower, -motorPower);
+
+    // Apply motor power
+    motorDriver.set_motor_speeds(motorPower, motorPower);
     motorDriver.update_motor_speeds(); // Force immediate update
+
+    // Store this error for next iteration
+    _lastError = error;
     
     // Debug output (limit frequency to avoid overloading Serial)
     static unsigned long lastDebugTime = 0;
     if (currentTime - lastDebugTime > 100) { // Print every 100ms
-        Serial.printf("Angle: %.2f, Error: %.2f, P: %.2f, I: %.2f, D: %.2f, Power: %d\n",
-                     currentAngle, error, proportionalTerm, integralTerm, derivativeTerm, motorPower);
+        Serial.printf("Raw: %.2f, Used: %.2f, Avg: %.2f, Error: %.2f, P: %.2f, I: %.2f, D: %.2f, Power: %d\n",
+                     rawAngle, currentAngle, averageAngle, error, 
+                     proportionalTerm, integralTerm, derivativeTerm, motorPower);
         lastDebugTime = currentTime;
     }
 }

@@ -47,17 +47,19 @@ class LabDemoManager : public Singleton<LabDemoManager> {
         float _errorSum = 0.0f;
 
         // PID Constants for balancing - will need tuning
-        static constexpr float BALANCE_P_GAIN = 5.0f;  // Start conservative
+        static constexpr float BALANCE_P_GAIN = 12.0f;  // Start conservative
         static constexpr float BALANCE_I_GAIN = 0.1f;  // Start small
         static constexpr float BALANCE_D_GAIN = 1.0f;  // Start with some damping
 
         // Limits and safety parameters
-        static constexpr float MAX_SAFE_ANGLE_DEVIATION = 15.0f; // ±15° safety range
-        static constexpr int16_t MAX_BALANCE_POWER = 200; // Cap motor power for safety
+        static constexpr float MAX_SAFE_ANGLE_DEVIATION = 20.0f; // ±15° safety range
+        static constexpr int16_t MAX_BALANCE_POWER = 255; // Cap motor power for safety
         static constexpr unsigned long BALANCE_UPDATE_INTERVAL = 10; // 10ms (100Hz)
 
         static constexpr uint8_t ANGLE_BUFFER_SIZE = 10;
         float _angleBuffer[ANGLE_BUFFER_SIZE] = {0};
         uint8_t _angleBufferIndex = 0;
         uint8_t _angleBufferCount = 0;
+        float _lastValidAngle = 0.0f; // Store the last valid reading
+        float _outlierDeviation = 5.0f; // Store the last valid reading
 };
