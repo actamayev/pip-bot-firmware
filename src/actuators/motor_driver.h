@@ -66,7 +66,7 @@ class MotorDriver {
         float _lastYawError = 0.0f;
         float _integralError = 0.0f;  // Add this for integral control
         static constexpr float YAW_P_GAIN = 5.0f;  // Proportional gain
-        static constexpr float YAW_I_GAIN = 0.2f;  // Integral gain - start with a low value
+        static constexpr float YAW_I_GAIN = 1.0f;  // Integral gain - start with a low value
         static constexpr float YAW_D_GAIN = 2.0f;  // Derivative gain
         static constexpr float YAW_I_MAX = 100.0f; // Maximum integral contribution to prevent windup
         
@@ -76,6 +76,10 @@ class MotorDriver {
         uint8_t _yawBufferCount = 0;
 
         float addYawReadingAndGetAverage(float newYaw);
+
+        // Add to motor_driver.h
+        float normalizeAngle(float angle);
+        float shortestAnglePath(float from, float to);
 };
 
 extern MotorDriver motorDriver;

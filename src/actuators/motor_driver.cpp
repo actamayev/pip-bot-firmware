@@ -283,40 +283,83 @@ void MotorDriver::update_straight_driving() {
         // Get current yaw from the IMU
         float rawYaw = Sensors::getInstance().getYaw();
         
-        // Add to buffer and get the filtered average
-        float filteredYaw = addYawReadingAndGetAverage(rawYaw);
+        // Reject outliers (sudden large changes in raw readings)
+        static float lastRawYaw = rawYaw;
+        float yawDelta = abs(shortestAnglePath(lastRawYaw, rawYaw));
+        if (yawDelta > 90.0f && _yawBufferCount > 0) {
+            // Skip this reading - likely an outlier
+            Serial.printf("Rejecting outlier: %.2f (last: %.2f, delta: %.2f)\n", 
+                        rawYaw, lastRawYaw, yawDelta);
+        } else {
+            // Add to buffer and get the filtered average
+            _yawBuffer[_yawBufferIndex] = rawYaw;
+            _yawBufferIndex = (_yawBufferIndex + 1) % YAW_BUFFER_SIZE;
+            if (_yawBufferCount < YAW_BUFFER_SIZE) _yawBufferCount++;
+            lastRawYaw = rawYaw;
+        }
         
-        // Calculate error (how far we've deviated from straight)
-        float yawError = filteredYaw - _initialYaw;
+        // Calculate circular mean (proper way to average angles)
+        float sumSin = 0.0f;
+        float sumCos = 0.0f;
+        for (uint8_t i = 0; i < _yawBufferCount; i++) {
+            float angleRad = _yawBuffer[i] * PI / 180.0f;
+            sumSin += sin(angleRad);
+            sumCos += cos(angleRad);
+        }
+        float filteredYaw = atan2(sumSin, sumCos) * 180.0f / PI;
         
-        // Normalize error to -180 to 180 range
-        while (yawError > 180.0f) yawError -= 360.0f;
-        while (yawError < -180.0f) yawError += 360.0f;
+        // Calculate error using shortest path
+        float yawError = shortestAnglePath(_initialYaw, filteredYaw);
+
+        // Add deadband to ignore small errors
+        if (abs(yawError) < 1.0f) {
+            yawError = 0.0f;
+            // Reset integral when in deadband to prevent buildup
+            _integralError *= 0.9f;
+        }
         
-        // Calculate integral component
+        // Calculate integral with anti-windup
         _integralError += yawError;
-        
-        // Anti-windup: limit the integral error
         if (_integralError > YAW_I_MAX) _integralError = YAW_I_MAX;
         if (_integralError < -YAW_I_MAX) _integralError = -YAW_I_MAX;
         
-        // Reset integral when crossing zero (optional, helps prevent oscillation)
+        // Reset integral when crossing zero
         if ((yawError > 0 && _lastYawError < 0) || (yawError < 0 && _lastYawError > 0)) {
-            _integralError *= 0.5f;  // Reduce rather than completely reset
+            _integralError *= 0.5f;
         }
         
-        // Calculate derivative (rate of change of error)
+        // Calculate derivative with filtering
         float yawDerivative = yawError - _lastYawError;
         _lastYawError = yawError;
         
-        // Calculate correction using PID controller
-        int16_t proportionalTerm = static_cast<int16_t>(YAW_P_GAIN * yawError);
-        int16_t integralTerm = static_cast<int16_t>(YAW_I_GAIN * _integralError);
-        int16_t derivativeTerm = static_cast<int16_t>(YAW_D_GAIN * yawDerivative);
+        // Limit derivative value to prevent spikes
+        if (yawDerivative > 10.0f) yawDerivative = 10.0f;
+        if (yawDerivative < -10.0f) yawDerivative = -10.0f;
+        
+        // Use lower gains - these are too high currently
+        static constexpr float REDUCED_P_GAIN = 1.5f;  // Was 5.0
+        static constexpr float REDUCED_I_GAIN = 0.05f; // Was 0.2
+        static constexpr float REDUCED_D_GAIN = 0.5f;  // Was 2.0
+        
+        // Calculate correction using PID controller with reduced gains
+        int16_t proportionalTerm = static_cast<int16_t>(REDUCED_P_GAIN * yawError);
+        int16_t integralTerm = static_cast<int16_t>(REDUCED_I_GAIN * _integralError);
+        int16_t derivativeTerm = static_cast<int16_t>(REDUCED_D_GAIN * yawDerivative);
         
         int16_t correction = proportionalTerm + integralTerm + derivativeTerm;
         
-        // Apply correction to motor speeds
+        // Limit correction rate of change (slew rate limiting)
+        static int16_t lastCorrection = 0;
+        int16_t maxChange = 10; // Maximum change per update
+        
+        if (correction - lastCorrection > maxChange) {
+            correction = lastCorrection + maxChange;
+        } else if (lastCorrection - correction > maxChange) {
+            correction = lastCorrection - maxChange;
+        }
+        lastCorrection = correction;
+        
+        // Apply correction to motor speeds (rest remains the same)
         int16_t leftAdjustment = -correction;
         int16_t rightAdjustment = correction;
         
@@ -377,4 +420,18 @@ float MotorDriver::addYawReadingAndGetAverage(float newYaw) {
     }
     
     return sum / _yawBufferCount;
+}
+
+// Add to motor_driver.cpp
+float MotorDriver::normalizeAngle(float angle) {
+    // Normalize angle to range [-180, 180]
+    while (angle > 180.0f) angle -= 360.0f;
+    while (angle < -180.0f) angle += 360.0f;
+    return angle;
+}
+
+float MotorDriver::shortestAnglePath(float from, float to) {
+    // Find the shortest angular distance between two angles
+    float diff = normalizeAngle(to - from);
+    return diff;
 }
