@@ -17,19 +17,21 @@ void WiFiManager::initializeWiFi() {
     // Register event handler for WiFi events
 	// 1/10/25 TODO: The wifi event handler isn't registering correctly.
     esp_err_t err = esp_event_handler_instance_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &WiFiManager::onWiFiEvent, this, &wifi_event_instance);
-    // if (err != ESP_OK) {
-    //     Serial.print("Failed to register WiFi event handler. Error: ");
-    //     Serial.println(err);
-    // } else {
-    //     Serial.println("WiFi event handler registered successfully");
-    // }
+    if (err != ESP_OK) {
+        Serial.print("Failed to register WiFi event handler. Error: ");
+        Serial.println(err);
+    } else {
+        Serial.println("WiFi event handler registered successfully");
+    }
     esp_event_handler_instance_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &WiFiManager::onIpEvent, this, &ip_event_instance);
 	Serial.println("WiFi event handlers registered");
 }
 
 void WiFiManager::onWiFiEvent(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data) {
-    if (event_base != WIFI_EVENT || event_id == WIFI_EVENT_STA_DISCONNECTED) return;
-	wifi_event_sta_disconnected_t* event = (wifi_event_sta_disconnected_t*) event_data;
+    if (event_base != WIFI_EVENT || event_id != WIFI_EVENT_STA_DISCONNECTED) {
+        return;
+    }
+    wifi_event_sta_disconnected_t* event = (wifi_event_sta_disconnected_t*) event_data;
 	Serial.printf("WiFi disconnected! Reason: %d\n", event->reason);
 	rgbLed.turn_led_off();
 
@@ -51,9 +53,6 @@ void WiFiManager::onIpEvent(void* arg, esp_event_base_t event_base, int32_t even
 	// Print the IP address using the IPAddress class
 	Serial.println("WiFi connected! IP address: " + ip.toString());
 	rgbLed.set_led_blue();
-
-	// Now connect to the WebSocket
-    WebSocketManager::getInstance().connectToWebSocket();
 }
 
 WiFiCredentials WiFiManager::getStoredWiFiCredentials() {
