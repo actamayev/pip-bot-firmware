@@ -61,8 +61,6 @@ void SendDataToServer::sendSensorDataToServer() {
 
     unsigned long currentTime = millis();
     if (currentTime - lastSendTime < SEND_INTERVAL) return;
-    
-    lastSendTime = currentTime;
 
     // Create a JSON document with both routing information and payload
     StaticJsonDocument<256> doc;
@@ -82,7 +80,9 @@ void SendDataToServer::sendSensorDataToServer() {
     // Serialize and send
     String jsonString;
     serializeJson(doc, jsonString);
-    
+
     // Send the JSON string to the WebSocket
     WebSocketManager::getInstance().wsClient.send(jsonString);
+
+    lastSendTime = currentTime;
 }

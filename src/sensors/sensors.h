@@ -40,6 +40,8 @@ class Sensors : public Singleton<Sensors> {
 
         // Side TOFs:
         SideTofDistances getBothSideTofDistances();
+
+        bool sensors_initialized = false;
     private:
         ImuSensor imu;
         MultizoneTofSensor multizoneTofSensor;

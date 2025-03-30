@@ -22,22 +22,23 @@ void SensorAndUserCodeTask(void * parameter) {
     Serial.println("Initializing sensors on Core 0...");
     Sensors::getInstance();
     EncoderManager::getInstance();
-    if (!DisplayScreen::getInstance().init(Wire)) {
-        Serial.println("Display initialization failed");
-    }
+    // if (!DisplayScreen::getInstance().init(Wire)) {
+    //     Serial.println("Display initialization failed");
+    // }
     Serial.println("Sensors initialized on Core 0");
 
     enableCore0WDT();
 
     // Main sensor and user code loop
     for(;;) {
+        if (!Sensors::getInstance().sensors_initialized) continue;
         // multizoneTofLogger();
         // imuLogger();
         // sideTofsLogger();
-        DisplayScreen::getInstance().update();
+        // DisplayScreen::getInstance().update();
         LabDemoManager::getInstance().processPendingCommands();
         user_code();
-        delay(1);
+        delay(5);
     }
 }
 
@@ -61,7 +62,8 @@ void NetworkTask(void * parameter) {
         }
 
         // Short delay to yield to other tasks
-        delay(1); // Just enough delay to prevent hogging the CPU
+        // Small delay to avoid overwhelming the websocket and allow IMU data to be processed
+        delay(5);
     }
 }
 

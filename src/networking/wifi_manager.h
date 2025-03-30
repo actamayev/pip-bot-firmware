@@ -15,7 +15,6 @@ class WiFiManager : public Singleton<WiFiManager> {
 		void connectToStoredWiFi();
 		WiFiCredentials getStoredWiFiCredentials();
 		bool attemptNewWifiConnection(WiFiCredentials wifiCredentials);
-		void startAccessPoint();
 
 		std::vector<WiFiNetworkInfo> scanWiFiNetworkInfos();
 		void sortNetworksBySignalStrength(std::vector<WiFiNetworkInfo>& networks);
@@ -26,19 +25,18 @@ class WiFiManager : public Singleton<WiFiManager> {
 
 		void storeWiFiCredentials(const String& ssid, const String& password, int index);
 		std::vector<WiFiCredentials> getAllStoredNetworks();
-		WiFiNetworkInfo scanForSpecificNetwork(const String& ssid);
-		bool connectToStrongestSavedNetwork();
 	private:
 		WiFiManager();
 		void initializeWiFi();
 
-		static void onWiFiEvent(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data);
-		static void onIpEvent(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data);
-		esp_event_handler_instance_t wifi_event_instance;
-		esp_event_handler_instance_t ip_event_instance;
-
 		std::vector<WiFiNetworkInfo> _availableNetworks;
 		int _selectedNetworkIndex = 0;
+
+		esp_event_handler_instance_t wifi_event_instance;
+		esp_event_handler_instance_t ip_event_instance;
+		static void onWiFiEvent(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data);
+		static void onIpEvent(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data);
+		bool attemptDirectConnectionToSavedNetworks();
 };
 
 extern Preferences preferences;
