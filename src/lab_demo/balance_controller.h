@@ -30,9 +30,9 @@ class BalanceController : public Singleton<BalanceController> {
         static constexpr float TARGET_ANGLE = 91.5f; // Fixed target angle
 
         // PID Constants - fixed in the class as requested
-        static constexpr float P_GAIN = 30.0f;
+        static constexpr float P_GAIN = 33.0f;
         static constexpr float I_GAIN = 0.0f;  // Non-zero to improve steady-state error
-        static constexpr float D_GAIN = 30.0f;
+        static constexpr float D_GAIN = 33.0f;
 
         // Limits and safety parameters
         static constexpr float MAX_SAFE_ANGLE_DEVIATION = 20.0f;
