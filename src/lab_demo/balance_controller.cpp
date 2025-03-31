@@ -104,17 +104,19 @@ void BalanceController::update() {
         _lastError = error;
         return;
     }
-    
+
     // If not in deadband, continue with normal PID control
     float deltaTime = UPDATE_INTERVAL / 1000.0f; // Convert to seconds
-    
+
     // Calculate motor power using PID formula
     float proportionalTerm = P_GAIN * error;
     float integralTerm = I_GAIN * _errorSum;
     float derivativeTerm = D_GAIN * -gyroRate; 
-    
+    float yAccel = Sensors::getInstance().getYAccel();
+    float feedforwardTerm = FF_GAIN * yAccel;
+
     int16_t motorPower = constrain(
-        (int16_t)(proportionalTerm + integralTerm + derivativeTerm),
+        (int16_t)(proportionalTerm + integralTerm + derivativeTerm + feedforwardTerm),
         -MAX_BALANCE_POWER, 
         MAX_BALANCE_POWER
     );

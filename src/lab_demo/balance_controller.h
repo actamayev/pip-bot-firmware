@@ -33,6 +33,7 @@ class BalanceController : public Singleton<BalanceController> {
         static constexpr float P_GAIN = 33.0f;
         static constexpr float I_GAIN = 0.0f;
         static constexpr float D_GAIN = 36.0f;
+        static constexpr float FF_GAIN = 5.0f;
 
         // Limits and safety parameters
         static constexpr float MAX_SAFE_ANGLE_DEVIATION = 20.0f;
@@ -50,6 +51,6 @@ class BalanceController : public Singleton<BalanceController> {
         uint8_t _safetyBufferIndex = 0;
         uint8_t _safetyBufferCount = 0;
 
-        static constexpr float DEADBAND_ANGLE = 0.25f;
+        static constexpr float DEADBAND_ANGLE = 0.5f;
         static constexpr float MAX_STABLE_ROTATION = 0.1f; // degrees/second
 };
