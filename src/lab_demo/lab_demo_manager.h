@@ -41,20 +41,20 @@ class LabDemoManager : public Singleton<LabDemoManager> {
         static constexpr uint8_t MIN_ENCODER_PULSES = 10;
 
         BalanceStatus _balancingEnabled = BalanceStatus::UNBALANCED;
-        float _targetAngle = 93.0f; // Target is vertical (90 degrees)
+        float _targetAngle = 93.5f; // Target is vertical (90 degrees)
         unsigned long _lastBalanceUpdateTime = 0;
         float _lastError = 0.0f;
         float _errorSum = 0.0f;
 
         // PID Constants for balancing - will need tuning
-        static constexpr float BALANCE_P_GAIN = 25.0f;  // Start conservative
+        static constexpr float BALANCE_P_GAIN = 33.0f;  // Start conservative
         static constexpr float BALANCE_I_GAIN = 0.0f;  // Start small
-        static constexpr float BALANCE_D_GAIN = 5.0f;  // Start with some damping
+        static constexpr float BALANCE_D_GAIN = 4.5f;  // Start with some damping
 
         // Limits and safety parameters
-        static constexpr float MAX_SAFE_ANGLE_DEVIATION = 20.0f; // ±15° safety range
+        static constexpr float MAX_SAFE_ANGLE_DEVIATION = 20.0f; // ±20° safety range
         static constexpr int16_t MAX_BALANCE_POWER = 255; // Cap motor power for safety
-        static constexpr unsigned long BALANCE_UPDATE_INTERVAL = 6; // 10ms (100Hz)
+        static constexpr unsigned long BALANCE_UPDATE_INTERVAL = 5; // 5ms (200Hz)
 
         static constexpr uint8_t ANGLE_BUFFER_SIZE = 10;
         float _angleBuffer[ANGLE_BUFFER_SIZE] = {0};

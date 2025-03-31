@@ -224,7 +224,7 @@ void LabDemoManager::updateBalancing() {
         return; // Maintain update rate at 100Hz
     }
     _lastBalanceUpdateTime = currentTime;
-    
+
     // Get current roll (which is actually pitch in your system)
     float rawAngle = Sensors::getInstance().getPitch();
     float currentAngle = rawAngle; // Will be either raw or last valid reading

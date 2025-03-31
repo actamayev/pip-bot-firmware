@@ -28,9 +28,10 @@ void SendDataToServer::attachIRData(JsonObject& payload) {
 
 void SendDataToServer::attachImuData(JsonObject& payload) {
     const EulerAngles& eulerAngles = Sensors::getInstance().getEulerAngles();
-    payload["pitch"] = eulerAngles.pitch;
+    //ROLL AND PITCH ARE SWITCHED ON PURPOSE
+    payload["pitch"] = eulerAngles.roll;
     payload["yaw"] = eulerAngles.yaw;
-    payload["roll"] = eulerAngles.roll;
+    payload["roll"] = eulerAngles.pitch;
 
     const AccelerometerData& accelerometerData = Sensors::getInstance().getAccelerometerData();
     payload["aX"] = accelerometerData.aX;
