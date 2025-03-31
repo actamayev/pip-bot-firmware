@@ -29,9 +29,9 @@ class BalanceController : public Singleton<BalanceController> {
         // Fixed parameters - not configurable as per your request
         static constexpr float TARGET_ANGLE = 91.5f; // Fixed target angle
 
-        // PID Constants - fixed in the class as requested
+        // PID Constants
         static constexpr float P_GAIN = 33.0f;
-        static constexpr float I_GAIN = 0.0f;  // Non-zero to improve steady-state error
+        static constexpr float I_GAIN = 0.0f;
         static constexpr float D_GAIN = 36.0f;
 
         // Limits and safety parameters
