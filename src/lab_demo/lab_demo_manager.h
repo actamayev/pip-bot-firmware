@@ -41,25 +41,33 @@ class LabDemoManager : public Singleton<LabDemoManager> {
         static constexpr uint8_t MIN_ENCODER_PULSES = 10;
 
         BalanceStatus _balancingEnabled = BalanceStatus::UNBALANCED;
-        float _targetAngle = 90.0f; // Target is vertical (90 degrees)
+        float _targetAngle = 93.0f; // Target is vertical (90 degrees)
         unsigned long _lastBalanceUpdateTime = 0;
         float _lastError = 0.0f;
         float _errorSum = 0.0f;
 
         // PID Constants for balancing - will need tuning
-        static constexpr float BALANCE_P_GAIN = 12.0f;  // Start conservative
+        static constexpr float BALANCE_P_GAIN = 24.0f;  // Start conservative
         static constexpr float BALANCE_I_GAIN = 0.1f;  // Start small
-        static constexpr float BALANCE_D_GAIN = 1.0f;  // Start with some damping
+        static constexpr float BALANCE_D_GAIN = 0.0f;  // Start with some damping
 
         // Limits and safety parameters
         static constexpr float MAX_SAFE_ANGLE_DEVIATION = 20.0f; // ±15° safety range
         static constexpr int16_t MAX_BALANCE_POWER = 255; // Cap motor power for safety
-        static constexpr unsigned long BALANCE_UPDATE_INTERVAL = 10; // 10ms (100Hz)
+        static constexpr unsigned long BALANCE_UPDATE_INTERVAL = 6; // 10ms (100Hz)
 
         static constexpr uint8_t ANGLE_BUFFER_SIZE = 10;
         float _angleBuffer[ANGLE_BUFFER_SIZE] = {0};
         uint8_t _angleBufferIndex = 0;
         uint8_t _angleBufferCount = 0;
         float _lastValidAngle = 0.0f; // Store the last valid reading
-        float _outlierDeviation = 5.0f; // Store the last valid reading
+
+        float _controlBuffer[ANGLE_BUFFER_SIZE] = {0};
+        uint8_t _controlBufferIndex = 0;
+        uint8_t _controlBufferCount = 0;
+
+        // Safety (unfiltered) buffer for tilt monitoring
+        float _safetyBuffer[ANGLE_BUFFER_SIZE] = {0};
+        uint8_t _safetyBufferIndex = 0;
+        uint8_t _safetyBufferCount = 0;
 };

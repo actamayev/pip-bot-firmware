@@ -176,24 +176,28 @@ void LabDemoManager::handleBalanceCommand(BalanceStatus status) {
     if (status == BalanceStatus::BALANCED && _balancingEnabled == BalanceStatus::UNBALANCED) {
         // Starting balance mode
         _balancingEnabled = BalanceStatus::BALANCED;
-        
+
         // Reset PID variables
         _errorSum = 0.0f;
         _lastError = 0.0f;
         _lastBalanceUpdateTime = millis();
 
         float currentAngle = Sensors::getInstance().getPitch();
-        _lastValidAngle = currentAngle; // Set initial valid reading
+        _lastValidAngle = currentAngle;
 
+        // Initialize both buffers with the current angle
         for (uint8_t i = 0; i < ANGLE_BUFFER_SIZE; i++) {
-            _angleBuffer[i] = currentAngle;
+            _controlBuffer[i] = currentAngle;
+            _safetyBuffer[i] = currentAngle;
         }
-        _angleBufferIndex = 0;
-        _angleBufferCount = ANGLE_BUFFER_SIZE; // Start with a full buffer
+        _controlBufferIndex = 0;
+        _controlBufferCount = ANGLE_BUFFER_SIZE;
+        _safetyBufferIndex = 0;
+        _safetyBufferCount = ANGLE_BUFFER_SIZE;
 
         // Disable straight driving correction as we're taking control
         motorDriver.disable_straight_driving();
-        
+
         // Set LED to indicate balancing mode
         rgbLed.set_led_purple(); // Assuming you have this color method
         
@@ -227,73 +231,73 @@ void LabDemoManager::updateBalancing() {
 
     Serial.printf("rawAngle %f\n", rawAngle);
 
-    // Calculate average from buffer for validation
-    float averageAngle = 0.0f;
-    if (_angleBufferCount > 0) {
+    // 1. Update safety monitoring buffer (always accepts all readings)
+    _safetyBuffer[_safetyBufferIndex] = rawAngle;
+    _safetyBufferIndex = (_safetyBufferIndex + 1) % ANGLE_BUFFER_SIZE;
+    if (_safetyBufferCount < ANGLE_BUFFER_SIZE) _safetyBufferCount++;
+    
+    // Calculate safety buffer average
+    float safetyAverage = 0.0f;
+    if (_safetyBufferCount > 0) {
         float sum = 0.0f;
-        for (uint8_t i = 0; i < _angleBufferCount; i++) {
-            sum += _angleBuffer[i];
+        for (uint8_t i = 0; i < _safetyBufferCount; i++) {
+            sum += _safetyBuffer[i];
         }
-        averageAngle = sum / _angleBufferCount;
+        safetyAverage = sum / _safetyBufferCount;
     }
-
-    // Validate reading against average
-    float deviation = abs(rawAngle - averageAngle);
-    if (deviation > _outlierDeviation && _angleBufferCount > 0) {
+    
+    // 2. Calculate average of control buffer (for outlier detection)
+    float controlAverage = 0.0f;
+    if (_controlBufferCount > 0) {
+        float sum = 0.0f;
+        for (uint8_t i = 0; i < _controlBufferCount; i++) {
+            sum += _controlBuffer[i];
+        }
+        controlAverage = sum / _controlBufferCount;
+    }
+    
+    // 3. Validate reading against control average for PID input
+    float deviation = abs(rawAngle - controlAverage);
+    if (deviation > MAX_SAFE_ANGLE_DEVIATION / 3 && _controlBufferCount > 0) {
         // Reading differs too much from average - use last valid reading
         currentAngle = _lastValidAngle;
         Serial.printf("Rejecting outlier: %.2f (avg: %.2f, dev: %.2f)\n", 
-                    rawAngle, averageAngle, deviation);
+                    rawAngle, controlAverage, deviation);
     } else {
-        // Reading is valid - update last valid angle
+        // Reading is valid - update last valid angle and control buffer
         _lastValidAngle = rawAngle;
         
-        // Add to running average buffer
-        _angleBuffer[_angleBufferIndex] = rawAngle;
-        _angleBufferIndex = (_angleBufferIndex + 1) % ANGLE_BUFFER_SIZE;
-        if (_angleBufferCount < ANGLE_BUFFER_SIZE) _angleBufferCount++;
+        // Add to control buffer
+        _controlBuffer[_controlBufferIndex] = rawAngle;
+        _controlBufferIndex = (_controlBufferIndex + 1) % ANGLE_BUFFER_SIZE;
+        if (_controlBufferCount < ANGLE_BUFFER_SIZE) _controlBufferCount++;
     }
 
-    // Safety check - disable if average angle is tilted too far
-    // Calculate average of last 5 angles (or fewer if buffer isn't full yet)
-    float safetyCheckAverage = 0.0f;
-    int samplesToUse = min(5, (int)_angleBufferCount);
-    if (samplesToUse > 0) {
-        float sum = 0.0f;
-        // Start from the most recent entries in the circular buffer
-        for (int i = 0; i < samplesToUse; i++) {
-            // Calculate index going backward from current position in circular buffer
-            int idx = (_angleBufferIndex - 1 - i + ANGLE_BUFFER_SIZE) % ANGLE_BUFFER_SIZE;
-            sum += _angleBuffer[idx];
-        }
-        safetyCheckAverage = sum / samplesToUse;
-    }
-
-    // Check if average angle exceeds safety limits
-    if (abs(safetyCheckAverage - _targetAngle) > MAX_SAFE_ANGLE_DEVIATION) {
-        Serial.printf("Safety cutoff triggered: Avg Angle %.2f exceeds limits\n", safetyCheckAverage);
+    // 4. Safety check using unfiltered safety buffer
+    if (abs(safetyAverage - _targetAngle) > MAX_SAFE_ANGLE_DEVIATION) {
+        Serial.printf("Safety cutoff triggered: Avg Angle %.2f exceeds limits\n", safetyAverage);
         handleBalanceCommand(BalanceStatus::UNBALANCED); // Turn off balancing
         return;
     } else {
         rgbLed.set_led_green();
     }
     
-    // Calculate PID terms using validated angle (not the average)
+    // 5. PID calculation using filtered angle for control
     float error = _targetAngle - currentAngle;
     float deltaTime = BALANCE_UPDATE_INTERVAL / 1000.0f; // Convert to seconds
     
-    // Rest of PID calculation remains the same...
+    // Update integral term with anti-windup
     _errorSum += error * deltaTime;
     _errorSum = constrain(_errorSum, -10.0f, 10.0f); // Prevent excessive buildup
-
+    
     // If error crosses zero, reduce integral term to prevent oscillation
     if ((error > 0 && _lastError < 0) || (error < 0 && _lastError > 0)) {
         _errorSum *= 0.8f; // Reduce by 20% when crossing zero
     }
-
+    
     // Get gyro rate directly
     float gyroRate = Sensors::getInstance().getYRotationRate(); 
-
+    
     // Calculate motor power using PID formula
     float proportionalTerm = BALANCE_P_GAIN * error;
     float integralTerm = BALANCE_I_GAIN * _errorSum;
@@ -304,19 +308,19 @@ void LabDemoManager::updateBalancing() {
         -MAX_BALANCE_POWER, 
         MAX_BALANCE_POWER
     );
-
+    
     // Apply motor power
     motorDriver.set_motor_speeds(motorPower, motorPower);
     motorDriver.update_motor_speeds(); // Force immediate update
-
+    
     // Store this error for next iteration
     _lastError = error;
     
     // Debug output (limit frequency to avoid overloading Serial)
     static unsigned long lastDebugTime = 0;
     if (currentTime - lastDebugTime > 100) { // Print every 100ms
-        Serial.printf("Raw: %.2f, Used: %.2f, Avg: %.2f, Error: %.2f, P: %.2f, I: %.2f, D: %.2f, Power: %d\n",
-                     rawAngle, currentAngle, averageAngle, error, 
+        Serial.printf("Raw: %.2f, Control: %.2f, Safety: %.2f, Error: %.2f, P: %.2f, I: %.2f, D: %.2f, Power: %d\n",
+                     rawAngle, currentAngle, safetyAverage, error, 
                      proportionalTerm, integralTerm, derivativeTerm, motorPower);
         lastDebugTime = currentTime;
     }
