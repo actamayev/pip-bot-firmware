@@ -33,6 +33,7 @@ void RgbLed::set_led_purple() {
 
 void RgbLed::set_led_to_color(uint8_t red, uint8_t green, uint8_t blue) {
     // strip.setPixelColor(0, strip.Color(red, green, blue));
+    // stripe.show();
 
     // Set all LEDs to the same color
     for(int i = 0; i < NUM_LEDS1; i++) {

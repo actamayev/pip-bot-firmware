@@ -19,7 +19,6 @@ void LabDemoManager::handleMotorControl(const uint8_t* data) {
     updateMotorSpeeds(leftSpeed, rightSpeed);
 }
 
-// Add this to lab_demo_manager.cpp
 void LabDemoManager::handleSoundCommand(SoundType soundType) {
     // Play the requested tune
     switch(soundType) {

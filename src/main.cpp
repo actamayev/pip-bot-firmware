@@ -12,6 +12,7 @@
 #include "./lab_demo/lab_demo_manager.h"
 #include "./networking/websocket_manager.h"
 #include "./networking/send_data_to_server.h"
+#include "./networking/haptic_feedback_manager.h"
 
 // Task to handle sensors and user code on Core 0
 void SensorAndUserCodeTask(void * parameter) {
@@ -51,7 +52,7 @@ void NetworkTask(void * parameter) {
 
     // Main network loop
     for(;;) {
-        motorDriver.update_haptic_feedback();
+        HapticFeedbackManager::getInstance().update();
         if (WiFi.status() == WL_CONNECTED) {
             // Other network operations can use internal timing
             WebSocketManager::getInstance().pollWebSocket();
