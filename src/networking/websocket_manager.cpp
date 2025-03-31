@@ -172,6 +172,8 @@ void WebSocketManager::handleBinaryMessage(WebsocketsMessage message) {
                 Serial.print("Balance Status: ");
                 Serial.println(status == BalanceStatus::BALANCED ? "BALANCED" : "UNBALANCED");
                 LabDemoManager::getInstance().handleBalanceCommand(status);
+            } else {
+                Serial.println("Invalid balance control message length");
             }
             break;
         case DataMessageType::UPDATE_BALANCE_PIDS:
@@ -180,6 +182,8 @@ void WebSocketManager::handleBinaryMessage(WebsocketsMessage message) {
                 // Copy the 9 bytes starting at data[1] into the struct
                 memcpy(&newBalancePids, &data[1], sizeof(NewBalancePids));
                 LabDemoManager::getInstance().handleChangePidsCommand(newBalancePids);
+            } else {
+                Serial.println("Invalid update balance pids message length");
             }
             break;
         default:
