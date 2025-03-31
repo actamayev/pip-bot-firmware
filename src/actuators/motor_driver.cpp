@@ -76,33 +76,48 @@ void MotorDriver::set_motor_speeds(int16_t leftTarget, int16_t rightTarget) {
     _targetRightSpeed = constrain(rightTarget, -255, 255);
 }
 
-void MotorDriver::update_motor_speeds() {
+void MotorDriver::update_motor_speeds(bool should_ramp_up, int16_t speed_ramp_interval) {
+    // TODO: Consider deleting this section: currentTime - _lastSpeedUpdateTime < speed_ramp_interval
+    // We're callling it from within functions that have their own non-blocking delays
     unsigned long currentTime = millis();
-    
+
     // Only update at specified intervals
-    if (currentTime - _lastSpeedUpdateTime < SPEED_RAMP_INTERVAL) {
+    if (currentTime - _lastSpeedUpdateTime < speed_ramp_interval) {
         return;
     }
 
     _lastSpeedUpdateTime = currentTime;
     bool speedsChanged = false;
 
-    // Gradually ramp left motor speed toward target
-    if (_currentLeftSpeed < _targetLeftSpeed) {
-        _currentLeftSpeed = min(static_cast<int16_t>(_currentLeftSpeed + SPEED_RAMP_STEP), _targetLeftSpeed);
-        speedsChanged = true;
-    } else if (_currentLeftSpeed > _targetLeftSpeed) {
-        _currentLeftSpeed = max(static_cast<int16_t>(_currentLeftSpeed - SPEED_RAMP_STEP), _targetLeftSpeed);
-        speedsChanged = true;
-    }
-    
-    // Gradually ramp right motor speed toward target
-    if (_currentRightSpeed < _targetRightSpeed) {
-        _currentRightSpeed = min(static_cast<int16_t>(_currentRightSpeed + SPEED_RAMP_STEP), _targetRightSpeed);
-        speedsChanged = true;
-    } else if (_currentRightSpeed > _targetRightSpeed) {
-        _currentRightSpeed = max(static_cast<int16_t>(_currentRightSpeed - SPEED_RAMP_STEP), _targetRightSpeed);
-        speedsChanged = true;
+    if (should_ramp_up) {
+        // Gradually ramp left motor speed toward target
+        if (_currentLeftSpeed < _targetLeftSpeed) {
+            _currentLeftSpeed = min(static_cast<int16_t>(_currentLeftSpeed + SPEED_RAMP_STEP), _targetLeftSpeed);
+            speedsChanged = true;
+        } else if (_currentLeftSpeed > _targetLeftSpeed) {
+            _currentLeftSpeed = max(static_cast<int16_t>(_currentLeftSpeed - SPEED_RAMP_STEP), _targetLeftSpeed);
+            speedsChanged = true;
+        }
+
+        // Gradually ramp right motor speed toward target
+        if (_currentRightSpeed < _targetRightSpeed) {
+            _currentRightSpeed = min(static_cast<int16_t>(_currentRightSpeed + SPEED_RAMP_STEP), _targetRightSpeed);
+            speedsChanged = true;
+        } else if (_currentRightSpeed > _targetRightSpeed) {
+            _currentRightSpeed = max(static_cast<int16_t>(_currentRightSpeed - SPEED_RAMP_STEP), _targetRightSpeed);
+            speedsChanged = true;
+        }
+    } else {
+        // Skip ramping and set speeds immediately
+        if (_currentLeftSpeed != _targetLeftSpeed) {
+            _currentLeftSpeed = _targetLeftSpeed;
+            speedsChanged = true;
+        }
+        
+        if (_currentRightSpeed != _targetRightSpeed) {
+            _currentRightSpeed = _targetRightSpeed;
+            speedsChanged = true;
+        }
     }
 
     int16_t leftAdjusted = _currentLeftSpeed;

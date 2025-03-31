@@ -21,7 +21,7 @@ class MotorDriver {
         void right_motor_stop();
 
         void set_motor_speeds(int16_t leftTarget, int16_t rightTarget);
-        void update_motor_speeds();
+        void update_motor_speeds(bool should_ramp_up, int16_t speed_ramp_interval = SPEED_RAMP_INTERVAL);
 
     private:
         int16_t _targetLeftSpeed = 0;

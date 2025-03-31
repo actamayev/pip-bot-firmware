@@ -116,11 +116,11 @@ void BalanceController::update() {
         -MAX_BALANCE_POWER, 
         MAX_BALANCE_POWER
     );
-    
+
     // Apply motor power
     motorDriver.set_motor_speeds(motorPower, motorPower);
-    motorDriver.update_motor_speeds();
-    
+    motorDriver.update_motor_speeds(false, UPDATE_INTERVAL);
+
     // Store error for next iteration
     _lastError = error;
     

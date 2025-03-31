@@ -113,7 +113,7 @@ void LabDemoManager::processPendingCommands() {
         return;
     }
 
-    motorDriver.update_motor_speeds();
+    motorDriver.update_motor_speeds(true);
     if (!isExecutingCommand) {
         // If we have a next command, execute it
         if (hasNextCommand) {
