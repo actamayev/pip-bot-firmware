@@ -28,7 +28,7 @@ void BalanceController::enable() {
     _safetyBufferCount = ANGLE_BUFFER_SIZE;
 
     // Disable straight driving correction
-    motorDriver.disable_straight_driving();
+    StraightLineDrive::getInstance().disable();
 
     // Set LED to indicate balancing mode
     rgbLed.set_led_green();

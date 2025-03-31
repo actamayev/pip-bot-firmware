@@ -1,7 +1,9 @@
 #pragma once
 #include <Arduino.h>
 #include "../utils/config.h"
+#include "../sensors/sensors.h"
 #include "../sensors/encoder_manager.h"
+#include "../lab_demo/straight_line_drive.h"
 
 class MotorDriver {
     public:
@@ -33,9 +35,9 @@ class MotorDriver {
         void set_motor_speeds(int16_t leftTarget, int16_t rightTarget);
         void update_motor_speeds();
 
-        void enable_straight_driving();
-        void disable_straight_driving();
-        void update_straight_driving();
+        // void enable_straight_driving();
+        // void disable_straight_driving();
+        // void update_straight_driving();
 
     private:
         HapticState _hapticState = HAPTIC_IDLE;
@@ -58,23 +60,6 @@ class MotorDriver {
         unsigned long _lastSpeedUpdateTime = 0;
         static constexpr int16_t SPEED_RAMP_STEP = 50;
         static constexpr unsigned long SPEED_RAMP_INTERVAL = 15;  // ms between updates        
-
-        bool _straightDrivingEnabled = false;
-        float _initialYaw = 0.0f;
-        float _lastYawError = 0.0f;
-        float _integralError = 0.0f;
-        static constexpr float YAW_P_GAIN = 5.0f;
-        static constexpr float YAW_I_GAIN = 0.05f;
-        static constexpr float YAW_D_GAIN = 0.5f;
-        static constexpr float YAW_I_MAX = 100.0f;
-
-        static constexpr uint8_t YAW_BUFFER_SIZE = 10;
-        float _yawBuffer[YAW_BUFFER_SIZE] = {0};
-        uint8_t _yawBufferIndex = 0;
-        uint8_t _yawBufferCount = 0;
-
-        float normalizeAngle(float angle);
-        float shortestAnglePath(float from, float to);
 };
 
 extern MotorDriver motorDriver;

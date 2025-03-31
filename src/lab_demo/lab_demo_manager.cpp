@@ -94,9 +94,9 @@ void LabDemoManager::executeCommand(int16_t leftSpeed, int16_t rightSpeed) {
 
     // Enable straight driving correction for forward/backward movement
     if ((leftSpeed > 0 && rightSpeed > 0) || (leftSpeed < 0 && rightSpeed < 0)) {
-        motorDriver.enable_straight_driving();
+        StraightLineDrive::getInstance().enable();
     } else {
-        motorDriver.disable_straight_driving();
+        StraightLineDrive::getInstance().disable();
     }
 
     // Update LED based on motor direction (unchanged)
