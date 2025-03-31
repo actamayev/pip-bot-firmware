@@ -73,8 +73,6 @@ class MotorDriver {
         uint8_t _yawBufferIndex = 0;
         uint8_t _yawBufferCount = 0;
 
-        float addYawReadingAndGetAverage(float newYaw);
-
         float normalizeAngle(float angle);
         float shortestAnglePath(float from, float to);
 };

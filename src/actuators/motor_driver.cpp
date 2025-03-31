@@ -396,27 +396,6 @@ void MotorDriver::update_straight_driving() {
     }
 }
 
-float MotorDriver::addYawReadingAndGetAverage(float newYaw) {
-    // Add new reading to the buffer
-    _yawBuffer[_yawBufferIndex] = newYaw;
-    
-    // Update buffer index
-    _yawBufferIndex = (_yawBufferIndex + 1) % YAW_BUFFER_SIZE;
-    
-    // Update count of valid readings
-    if (_yawBufferCount < YAW_BUFFER_SIZE) {
-        _yawBufferCount++;
-    }
-    
-    // Calculate average from valid readings
-    float sum = 0.0f;
-    for (uint8_t i = 0; i < _yawBufferCount; i++) {
-        sum += _yawBuffer[i];
-    }
-    
-    return sum / _yawBufferCount;
-}
-
 float MotorDriver::normalizeAngle(float angle) {
     // Normalize angle to range [-180, 180]
     while (angle > 180.0f) angle -= 360.0f;

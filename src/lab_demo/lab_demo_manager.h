@@ -57,9 +57,6 @@ class LabDemoManager : public Singleton<LabDemoManager> {
         static constexpr unsigned long BALANCE_UPDATE_INTERVAL = 5; // 5ms (200Hz)
 
         static constexpr uint8_t ANGLE_BUFFER_SIZE = 10;
-        float _angleBuffer[ANGLE_BUFFER_SIZE] = {0};
-        uint8_t _angleBufferIndex = 0;
-        uint8_t _angleBufferCount = 0;
         float _lastValidAngle = 0.0f; // Store the last valid reading
 
         float _controlBuffer[ANGLE_BUFFER_SIZE] = {0};
