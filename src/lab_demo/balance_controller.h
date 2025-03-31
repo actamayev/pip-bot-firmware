@@ -15,7 +15,7 @@ class BalanceController : public Singleton<BalanceController> {
         void disable();
         void update();
         bool isEnabled() const { return _balancingEnabled == BalanceStatus::BALANCED; }
-        
+
     private:
         BalanceController();
         
@@ -30,7 +30,7 @@ class BalanceController : public Singleton<BalanceController> {
         static constexpr float TARGET_ANGLE = 91.5f; // Fixed target angle
 
         // PID Constants - fixed in the class as requested
-        static constexpr float P_GAIN = 38.0f;
+        static constexpr float P_GAIN = 30.0f;
         static constexpr float I_GAIN = 0.0f;  // Non-zero to improve steady-state error
         static constexpr float D_GAIN = 30.0f;
 
@@ -40,7 +40,7 @@ class BalanceController : public Singleton<BalanceController> {
         static constexpr unsigned long UPDATE_INTERVAL = 5; // 5ms (200Hz)
 
         // Filtering buffers
-        static constexpr uint8_t ANGLE_BUFFER_SIZE = 10;
+        static constexpr uint8_t ANGLE_BUFFER_SIZE = 5;
         float _angleBuffer[ANGLE_BUFFER_SIZE] = {0};
         uint8_t _angleBufferIndex = 0;
         uint8_t _angleBufferCount = 0;
