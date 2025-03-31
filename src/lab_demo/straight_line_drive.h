@@ -6,8 +6,6 @@
 #include "../sensors/sensors.h"
 #include "../actuators/motor_driver.h"
 
-// class MotorDriver;  // Forward declaration
-
 class StraightLineDrive : public Singleton<StraightLineDrive> {
     friend class Singleton<StraightLineDrive>;
 
