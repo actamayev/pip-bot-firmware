@@ -32,12 +32,12 @@ class BalanceController : public Singleton<BalanceController> {
         // PID Constants - fixed in the class as requested
         static constexpr float P_GAIN = 33.0f;
         static constexpr float I_GAIN = 0.0f;  // Non-zero to improve steady-state error
-        static constexpr float D_GAIN = 33.0f;
+        static constexpr float D_GAIN = 36.0f;
 
         // Limits and safety parameters
         static constexpr float MAX_SAFE_ANGLE_DEVIATION = 20.0f;
         static constexpr int16_t MAX_BALANCE_POWER = 255;
-        static constexpr unsigned long UPDATE_INTERVAL = 5; // 5ms (200Hz)
+        static constexpr unsigned long UPDATE_INTERVAL = 3; // 5ms (200Hz)
 
         // Filtering buffers
         static constexpr uint8_t ANGLE_BUFFER_SIZE = 5;
