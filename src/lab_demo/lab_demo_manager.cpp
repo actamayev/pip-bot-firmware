@@ -180,3 +180,7 @@ void LabDemoManager::handleBalanceCommand(BalanceStatus status) {
         BalanceController::getInstance().disable();
     }
 }
+
+void LabDemoManager::handleChangePidsCommand(NewBalancePids newBalancePids) {
+    BalanceController::getInstance().updateBalancePids(newBalancePids);
+}

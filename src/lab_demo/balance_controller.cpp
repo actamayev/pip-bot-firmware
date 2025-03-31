@@ -137,3 +137,15 @@ void BalanceController::update() {
         lastDebugTime = currentTime;
     }
 }
+
+void BalanceController::updateBalancePids(NewBalancePids newBalancePids) {
+    P_GAIN = newBalancePids.pValue;                    // 0-255
+    I_GAIN = newBalancePids.iValue;                    // 0-255
+    D_GAIN = newBalancePids.dValue;                    // 0-255
+    FF_GAIN = newBalancePids.ffValue;                  // 0-255
+    TARGET_ANGLE = newBalancePids.targetAngle;         // 0-255
+    MAX_SAFE_ANGLE_DEVIATION = newBalancePids.maxSafeAngleDeviation; // 0-255
+    UPDATE_INTERVAL = newBalancePids.updateInterval;   // 0-255
+    DEADBAND_ANGLE = newBalancePids.deadbandAngle;     // 0-255
+    MAX_STABLE_ROTATION = newBalancePids.maxStableRotation; // 0-255
+}

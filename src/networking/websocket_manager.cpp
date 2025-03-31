@@ -176,6 +176,14 @@ void WebSocketManager::handleBinaryMessage(WebsocketsMessage message) {
                 LabDemoManager::getInstance().handleBalanceCommand(status);
             }
             break;
+        case DataMessageType::UPDATE_BALANCE_PIDS:
+            if (length == 10) {
+                NewBalancePids newBalancePids;
+                // Copy the 9 bytes starting at data[1] into the struct
+                memcpy(&newBalancePids, &data[1], sizeof(NewBalancePids));
+                LabDemoManager::getInstance().handleChangePidsCommand(newBalancePids);
+            }
+            break;
         default:
             Serial.printf("Unknown message type: %d\n", static_cast<int>(messageType));
             break;

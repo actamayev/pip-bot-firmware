@@ -17,8 +17,9 @@ class LabDemoManager : public Singleton<LabDemoManager> {
         void handleMotorControl(const uint8_t* data);
         void handleSoundCommand(SoundType soundType);
         void handleSpeakerMute(SpeakerStatus status);
-
         void handleBalanceCommand(BalanceStatus enableBalancing);
+        void handleChangePidsCommand(NewBalancePids newBalancePids);
+
     private:
         void updateMotorSpeeds(int16_t leftSpeed, int16_t rightSpeed);
         void executeCommand(int16_t leftSpeed, int16_t rightSpeed);
