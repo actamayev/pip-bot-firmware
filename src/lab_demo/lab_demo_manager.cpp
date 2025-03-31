@@ -1,9 +1,4 @@
-#include "../utils/config.h"
 #include "./lab_demo_manager.h"
-#include "../actuators/rgb_led.h"
-#include "../actuators/motor_driver.h"
-#include "../sensors/encoder_manager.h"
-#include "../actuators/speaker.h"
 
 LabDemoManager::LabDemoManager() 
     : isExecutingCommand(false), 

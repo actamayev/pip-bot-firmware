@@ -1,7 +1,12 @@
 #pragma once
 
 #include <ArduinoJson.h>
+#include "../utils/config.h"
+#include "../sensors/sensors.h"
 #include "../utils/singleton.h"
+#include "../sensors/ir_sensor.h"
+#include "../sensors/encoder_manager.h"
+#include "../networking/websocket_manager.h"
 
 class SendDataToServer : public Singleton<SendDataToServer> {
     friend class Singleton<SendDataToServer>;

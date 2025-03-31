@@ -1,5 +1,4 @@
 #include "./rgb_led.h"
-#include "../utils/config.h"
 
 RgbLed rgbLed;
 

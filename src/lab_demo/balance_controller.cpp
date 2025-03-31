@@ -1,8 +1,4 @@
 #include "./balance_controller.h"
-#include "../actuators/rgb_led.h"
-#include "../actuators/motor_driver.h"
-
-BalanceController::BalanceController() {}
 
 void BalanceController::enable() {
     if (_balancingEnabled == BalanceStatus::BALANCED) return;

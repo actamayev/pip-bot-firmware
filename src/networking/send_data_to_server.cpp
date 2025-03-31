@@ -1,9 +1,4 @@
-#include "../utils/config.h"
-#include "../sensors/sensors.h"
-#include "../sensors/ir_sensor.h"
 #include "./send_data_to_server.h"
-#include "../sensors/encoder_manager.h"
-#include "../networking/websocket_manager.h"
 
 // Add RPM data to the provided JSON payload
 void SendDataToServer::attachRPMData(JsonObject& payload) {

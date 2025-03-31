@@ -1,5 +1,6 @@
 #pragma once
 #include "Arduino.h"
+#include "../sounds/chime.h"
 #include "../utils/config.h"
 
 class Speaker  {

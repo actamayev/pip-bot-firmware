@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Adafruit_NeoPixel.h>
+#include "../utils/config.h"
 
 class RgbLed {
     public:

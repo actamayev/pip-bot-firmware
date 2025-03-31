@@ -1,6 +1,4 @@
 #include "./speaker.h"
-#include "../sounds/chime.h"
-#include "../utils/config.h"
 
 Speaker speaker;
 
