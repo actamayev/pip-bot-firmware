@@ -47,9 +47,9 @@ class LabDemoManager : public Singleton<LabDemoManager> {
         float _errorSum = 0.0f;
 
         // PID Constants for balancing - will need tuning
-        static constexpr float BALANCE_P_GAIN = 24.0f;  // Start conservative
+        static constexpr float BALANCE_P_GAIN = 30.0f;  // Start conservative
         static constexpr float BALANCE_I_GAIN = 0.1f;  // Start small
-        static constexpr float BALANCE_D_GAIN = 0.0f;  // Start with some damping
+        static constexpr float BALANCE_D_GAIN = 5.0f;  // Start with some damping
 
         // Limits and safety parameters
         static constexpr float MAX_SAFE_ANGLE_DEVIATION = 20.0f; // ±15° safety range
