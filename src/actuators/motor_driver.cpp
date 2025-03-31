@@ -297,17 +297,9 @@ void MotorDriver::update_straight_driving() {
             if (_yawBufferCount < YAW_BUFFER_SIZE) _yawBufferCount++;
             lastRawYaw = rawYaw;
         }
-        
-        // Calculate circular mean (proper way to average angles)
-        float sumSin = 0.0f;
-        float sumCos = 0.0f;
-        for (uint8_t i = 0; i < _yawBufferCount; i++) {
-            float angleRad = _yawBuffer[i] * PI / 180.0f;
-            sumSin += sin(angleRad);
-            sumCos += cos(angleRad);
-        }
-        float filteredYaw = atan2(sumSin, sumCos) * 180.0f / PI;
-        
+
+        float filteredYaw = calculateCircularMean(_yawBuffer, _yawBufferCount);
+
         // Calculate error using shortest path
         float yawError = shortestAnglePath(_initialYaw, filteredYaw);
 
@@ -397,10 +389,9 @@ void MotorDriver::update_straight_driving() {
 }
 
 float MotorDriver::normalizeAngle(float angle) {
-    // Normalize angle to range [-180, 180]
-    while (angle > 180.0f) angle -= 360.0f;
-    while (angle < -180.0f) angle += 360.0f;
-    return angle;
+    angle = fmod(angle + 180.0f, 360.0f);
+    if (angle < 0) angle += 360.0f;
+    return angle - 180.0f;
 }
 
 float MotorDriver::shortestAnglePath(float from, float to) {

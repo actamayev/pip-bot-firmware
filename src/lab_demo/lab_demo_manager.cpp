@@ -236,25 +236,9 @@ void LabDemoManager::updateBalancing() {
     if (_safetyBufferCount < ANGLE_BUFFER_SIZE) _safetyBufferCount++;
     
     // Calculate safety buffer average
-    float safetyAverage = 0.0f;
-    if (_safetyBufferCount > 0) {
-        float sum = 0.0f;
-        for (uint8_t i = 0; i < _safetyBufferCount; i++) {
-            sum += _safetyBuffer[i];
-        }
-        safetyAverage = sum / _safetyBufferCount;
-    }
-    
-    // 2. Calculate average of control buffer (for outlier detection)
-    float controlAverage = 0.0f;
-    if (_controlBufferCount > 0) {
-        float sum = 0.0f;
-        for (uint8_t i = 0; i < _controlBufferCount; i++) {
-            sum += _controlBuffer[i];
-        }
-        controlAverage = sum / _controlBufferCount;
-    }
-    
+    float safetyAverage = calculateCircularMean(_safetyBuffer, _safetyBufferCount);
+    float controlAverage = calculateCircularMean(_controlBuffer, _controlBufferCount);
+
     // 3. Validate reading against control average for PID input
     float deviation = abs(rawAngle - controlAverage);
     if (deviation > MAX_SAFE_ANGLE_DEVIATION / 3 && _controlBufferCount > 0) {
