@@ -12,11 +12,11 @@
 #include "./lab_demo/lab_demo_manager.h"
 #include "./networking/websocket_manager.h"
 #include "./networking/send_data_to_server.h"
+#include "./networking/haptic_feedback_manager.h"
 
 // Task to handle sensors and user code on Core 0
 void SensorAndUserCodeTask(void * parameter) {
     disableCore0WDT();
-    Wire.begin(I2C_SDA, I2C_SCL, I2C_CLOCK_SPEED);
     delay(10);
     // Initialize sensors on Core 0
     Serial.println("Initializing sensors on Core 0...");
@@ -52,7 +52,7 @@ void NetworkTask(void * parameter) {
 
     // Main network loop
     for(;;) {
-        motorDriver.update_haptic_feedback();
+        HapticFeedbackManager::getInstance().update();
         if (WiFi.status() == WL_CONNECTED) {
             // Other network operations can use internal timing
             WebSocketManager::getInstance().pollWebSocket();
@@ -72,6 +72,9 @@ void setup() {
     Serial.begin(115200);
     // Only needed if we need to see the setup serial logs:
     delay(2000);
+    Wire.setPins(I2C_SDA, I2C_SCL);
+    Wire.begin(I2C_SDA, I2C_SCL, I2C_CLOCK_SPEED);
+    delay(10);
 
     rgbLed.turn_led_off();
 

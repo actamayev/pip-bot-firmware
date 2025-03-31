@@ -1,4 +1,7 @@
 #pragma once
+#include "./utils.h"
+#include "../sensors/sensors.h"
+#include "../actuators/display_screen.h"
 
 void multizoneTofLogger();
 void imuLogger();

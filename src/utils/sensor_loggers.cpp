@@ -1,6 +1,4 @@
-#include "./utils.h"
-#include "../sensors/sensors.h"
-#include "../actuators/display_screen.h"
+#include "./sensor_loggers.h"
 
 void multizoneTofLogger() {
     static unsigned long lastPrintTime = 0;

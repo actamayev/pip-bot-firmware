@@ -68,3 +68,22 @@ void scanI2C() {
   }
   Serial.println();
 }
+
+float calculateCircularMean(const float angles[], uint8_t count) {
+    if (count == 0) return 0.0f;
+    
+    float sumSin = 0.0f;
+    float sumCos = 0.0f;
+    
+    for (uint8_t i = 0; i < count; i++) {
+        // Convert angle to radians for trigonometric functions
+        float angleRad = angles[i] * PI / 180.0f;
+        sumSin += sin(angleRad);
+        sumCos += cos(angleRad);
+    }
+    
+    // Calculate mean angle in radians and convert back to degrees
+    float meanAngle = atan2(sumSin, sumCos) * 180.0f / PI;
+    
+    return meanAngle;
+}

@@ -155,7 +155,7 @@ void EncoderManager::updateNetworkSelection() {
         // Store current encoder value BEFORE starting haptic feedback
         
         // Apply haptic feedback
-        motorDriver.start_haptic_feedback(direction, hapticStrength, hapticDuration);
+        HapticFeedbackManager::getInstance().startFeedback(direction, hapticStrength, hapticDuration);
         
         // Start cooldown period
         _scrollingEnabled = false;

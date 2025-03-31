@@ -1,9 +1,4 @@
-#include "../utils/config.h"
-#include "../sensors/sensors.h"
-#include "../sensors/ir_sensor.h"
 #include "./send_data_to_server.h"
-#include "../sensors/encoder_manager.h"
-#include "../networking/websocket_manager.h"
 
 // Add RPM data to the provided JSON payload
 void SendDataToServer::attachRPMData(JsonObject& payload) {
@@ -28,9 +23,10 @@ void SendDataToServer::attachIRData(JsonObject& payload) {
 
 void SendDataToServer::attachImuData(JsonObject& payload) {
     const EulerAngles& eulerAngles = Sensors::getInstance().getEulerAngles();
-    payload["pitch"] = eulerAngles.pitch;
+    //ROLL AND PITCH ARE SWITCHED ON PURPOSE
+    payload["pitch"] = eulerAngles.roll;
     payload["yaw"] = eulerAngles.yaw;
-    payload["roll"] = eulerAngles.roll;
+    payload["roll"] = eulerAngles.pitch;
 
     const AccelerometerData& accelerometerData = Sensors::getInstance().getAccelerometerData();
     payload["aX"] = accelerometerData.aX;
