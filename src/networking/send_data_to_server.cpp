@@ -3,7 +3,7 @@
 // Add RPM data to the provided JSON payload
 void SendDataToServer::attachRPMData(JsonObject& payload) {
     // Get the RPM values
-    WheelRPMs wheelRpms = EncoderManager::getInstance().getBothWheelRPMs();
+    WheelRPMs wheelRpms = encoderManager.getBothWheelRPMs();
     payload["leftWheelRPM"] = wheelRpms.leftWheelRPM;
     payload["rightWheelRPM"] = wheelRpms.rightWheelRPM;
 }

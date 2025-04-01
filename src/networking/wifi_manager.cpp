@@ -1,7 +1,4 @@
-#include "../utils/config.h"
-#include "../actuators/rgb_led.h"
 #include "./wifi_manager.h"
-#include "./websocket_manager.h"
 
 Preferences preferences;
 
@@ -86,8 +83,8 @@ void WiFiManager::connectToStoredWiFi() {
     setSelectedNetworkIndex(0);
     
     // Init encoder for network selection
-    EncoderManager::getInstance().initNetworkSelection();
-    
+    WifiSelectionManager::getInstance().initNetworkSelection();
+
     Serial.println("Use the right motor to scroll through networks");
 }
 

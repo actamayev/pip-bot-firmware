@@ -13,7 +13,8 @@
 #include "./lab_demo/lab_demo_manager.h"
 #include "./networking/websocket_manager.h"
 #include "./networking/send_data_to_server.h"
-#include "./networking/haptic_feedback_manager.h"
+#include "./wifi_selection/wifi_selection_manager.h"
+#include "./wifi_selection/haptic_feedback_manager.h"
 
 // Task to handle sensors and user code on Core 0
 void SensorAndUserCodeTask(void * parameter) {
@@ -57,12 +58,12 @@ void NetworkTask(void * parameter) {
     // Main network loop
     for(;;) {
         HapticFeedbackManager::getInstance().update();
-        if (WiFi.status() == WL_CONNECTED) {
+        if (WiFi.status() != WL_CONNECTED) {
+            WifiSelectionManager::getInstance().processNetworkSelection();
+        } else {
             // Other network operations can use internal timing
             WebSocketManager::getInstance().pollWebSocket();
             SendDataToServer::getInstance().sendSensorDataToServer();
-        } else {
-            EncoderManager::getInstance().processNetworkSelection();
         }
 
         // Short delay to yield to other tasks
