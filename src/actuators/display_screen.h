@@ -1,6 +1,6 @@
 #pragma once
 #include <Wire.h>
-#include "Arduino.h"
+#include <Arduino.h>
 #include <Adafruit_SSD1306.h>
 #include "../utils/config.h"
 #include "../utils/structs.h"

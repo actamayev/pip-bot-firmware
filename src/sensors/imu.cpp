@@ -94,7 +94,7 @@ const MagnetometerData& ImuSensor::getMagnetometerData() {
 }
 
 float ImuSensor::getPitch() {
-    return getEulerAngles().pitch;
+    return getEulerAngles().roll;
 }
 
 float ImuSensor::getYaw() {
@@ -102,7 +102,7 @@ float ImuSensor::getYaw() {
 }
 
 float ImuSensor::getRoll() {
-    return getEulerAngles().roll;
+    return getEulerAngles().pitch;
 }
 
 float ImuSensor::getXAccel() {

@@ -1,6 +1,4 @@
-#include "./utils.h"
-#include "../sensors/sensors.h"
-#include "../actuators/display_screen.h"
+#include "./sensor_loggers.h"
 
 void multizoneTofLogger() {
     static unsigned long lastPrintTime = 0;
@@ -58,5 +56,40 @@ void sideTofsLogger() {
     // Serial.print(tofDistances.rightDistance);
     // Serial.println(" mm");
 
+    lastPrintTime = millis();
+}
+
+void setupButtonLoggers() {
+    Buttons::getInstance().setButton1ClickHandler([](Button2& btn) {
+        Serial.println("Button 1 clicked!");
+    });
+    
+    Buttons::getInstance().setButton2ClickHandler([](Button2& btn) {
+        Serial.println("Button 2 clicked!");
+    });
+    
+    Buttons::getInstance().setButton1LongPressHandler([](Button2& btn) {
+        Serial.println("Button 1 long pressed for " + String(btn.wasPressedFor()) + " ms");
+    });
+    
+    Buttons::getInstance().setButton2LongPressHandler([](Button2& btn) {
+        Serial.println("Button 2 long pressed for " + String(btn.wasPressedFor()) + " ms");
+    });
+}
+
+void log_motor_rpm() {
+    static unsigned long lastPrintTime = 0;
+    const unsigned long PRINT_INTERVAL = 500; // Print every 500ms
+    // Check if 10ms has elapsed since last log
+    if (millis() - lastPrintTime < PRINT_INTERVAL) return;
+
+    // Get latest RPM values
+    auto rpms = encoderManager.getBothWheelRPMs();
+
+    // Log the values
+    Serial.printf("Left wheel RPM: %.2f\n", rpms.leftWheelRPM);
+    Serial.printf("Right wheel RPM: %.2f\n", rpms.rightWheelRPM);
+    
+    // Update last log time
     lastPrintTime = millis();
 }
