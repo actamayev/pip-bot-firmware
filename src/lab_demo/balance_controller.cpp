@@ -116,8 +116,16 @@ void BalanceController::update() {
         MAX_BALANCE_POWER
     );
 
+    int16_t MIN_EFFECTIVE_PWM = 36;
+    int adjustedPWM = motorPower;
+    if (motorPower > 0) {
+        adjustedPWM = constrain(motorPower, MIN_EFFECTIVE_PWM, 255);
+    } else if (motorPower < 0) {
+        adjustedPWM = constrain(motorPower, -255, -MIN_EFFECTIVE_PWM);
+    }
+
     // Apply motor power
-    motorDriver.set_motor_speeds(motorPower, motorPower);
+    motorDriver.set_motor_speeds(adjustedPWM, adjustedPWM);
     motorDriver.update_motor_speeds(false, UPDATE_INTERVAL);
 
     // Store error for next iteration

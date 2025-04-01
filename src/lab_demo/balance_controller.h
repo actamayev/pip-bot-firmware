@@ -29,12 +29,12 @@ class BalanceController : public Singleton<BalanceController> {
         unsigned long _lastUpdateTime = 0;
 
         // Fixed parameters - not configurable as per your request
-        float TARGET_ANGLE = 94.0f; // Fixed target angle
+        float TARGET_ANGLE = 93.75f; // Fixed target angle
 
         // PID Constants
-        float P_GAIN = 34.75f;
+        float P_GAIN = 30.0f;
         float I_GAIN = 0.0f;
-        float D_GAIN = 15.0f;
+        float D_GAIN = 25.0f;
         float FF_GAIN = 0.0f;
 
         // Limits and safety parameters
