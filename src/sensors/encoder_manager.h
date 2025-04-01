@@ -26,12 +26,11 @@ class EncoderManager {
 
         // Timing
         unsigned long _lastUpdateTime;
-        unsigned long _lastLogTime;
 
         // Constants for calculations
         static constexpr float GEAR_RATIO = 297.924;
         static constexpr uint8_t ENCODER_CPR = 3;
-        static constexpr unsigned long RPM_CALC_INTERVAL = 100; // ms
+        static constexpr unsigned long RPM_CALC_INTERVAL = 20; // ms
 
         // Update speed calculations - call this periodically
         void update();

@@ -27,26 +27,25 @@ void EncoderManager::update() {
     unsigned long currentTime = millis();
     unsigned long elapsedTime = currentTime - _lastUpdateTime;
     
-    // Debug pulse counts
+    // Only update if enough time has passed
+    if (elapsedTime < RPM_CALC_INTERVAL) return;
+    
     int64_t leftPulses = _leftEncoder.getCount();
     int64_t rightPulses = _rightEncoder.getCount();
-    
-    // Only update if enough time has passed
-    if (elapsedTime >= RPM_CALC_INTERVAL) {
-        // Calculate motor shaft RPM - NOTE: Using elapsedTime in seconds
-        float leftMotorShaftRPM = (float)(leftPulses * 60) / (ENCODER_CPR * (elapsedTime / 1000.0));
-        float rightMotorShaftRPM = (float)(rightPulses * 60) / (ENCODER_CPR * (elapsedTime / 1000.0));
 
-        // Calculate wheel RPM
-        _leftWheelRPM = leftMotorShaftRPM / GEAR_RATIO;
-        _rightWheelRPM = rightMotorShaftRPM / GEAR_RATIO;
+    // Calculate motor shaft RPM - NOTE: Using elapsedTime in seconds
+    float leftMotorShaftRPM = (float)(leftPulses * 60) / (ENCODER_CPR * (elapsedTime / 1000.0));
+    float rightMotorShaftRPM = (float)(rightPulses * 60) / (ENCODER_CPR * (elapsedTime / 1000.0));
 
-        // Reset pulse counters for next interval
-        _leftEncoder.clearCount();
-        _rightEncoder.clearCount();
+    // Calculate wheel RPM
+    _leftWheelRPM = leftMotorShaftRPM / GEAR_RATIO;
+    _rightWheelRPM = rightMotorShaftRPM / GEAR_RATIO;
 
-        _lastUpdateTime = currentTime;
-    }
+    // Reset pulse counters for next interval
+    _leftEncoder.clearCount();
+    _rightEncoder.clearCount();
+
+    _lastUpdateTime = currentTime;
 }
 
 WheelRPMs EncoderManager::getBothWheelRPMs() {
