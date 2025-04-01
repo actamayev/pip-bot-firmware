@@ -33,8 +33,8 @@ const uint8_t LEFT_MOTOR_ENCODER_B = 10;
 
 const uint8_t RIGHT_MOTOR_PIN_IN_1 = 21;
 const uint8_t RIGHT_MOTOR_PIN_IN_2 = 47;
-const uint8_t RIGHT_MOTOR_ENCODER_A = 2;
-const uint8_t RIGHT_MOTOR_ENCODER_B = 1;
+const uint8_t RIGHT_MOTOR_ENCODER_A = 1;
+const uint8_t RIGHT_MOTOR_ENCODER_B = 2;
 
 // Display Screen
 const uint8_t SCREEN_WIDTH = 128;

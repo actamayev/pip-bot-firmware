@@ -29,18 +29,18 @@ class BalanceController : public Singleton<BalanceController> {
         unsigned long _lastUpdateTime = 0;
 
         // Fixed parameters - not configurable as per your request
-        float TARGET_ANGLE = 91.75f; // Fixed target angle
+        float TARGET_ANGLE = 94.0f; // Fixed target angle
 
         // PID Constants
         float P_GAIN = 34.75f;
         float I_GAIN = 0.0f;
-        float D_GAIN = 3.5f;
+        float D_GAIN = 15.0f;
         float FF_GAIN = 0.0f;
 
         // Limits and safety parameters
         float MAX_SAFE_ANGLE_DEVIATION = 30.0f;
         static constexpr int16_t MAX_BALANCE_POWER = 255;
-        unsigned long UPDATE_INTERVAL = 3; // 5ms (200Hz)
+        unsigned long UPDATE_INTERVAL = 3; // 3ms (333Hz)
 
         // Filtering buffers
         static constexpr uint8_t ANGLE_BUFFER_SIZE = 5;
@@ -53,6 +53,6 @@ class BalanceController : public Singleton<BalanceController> {
         uint8_t _safetyBufferIndex = 0;
         uint8_t _safetyBufferCount = 0;
 
-        float DEADBAND_ANGLE = 0.25f;
+        float DEADBAND_ANGLE = 1.0f;
         float MAX_STABLE_ROTATION = 0.1f; // degrees/second
 };

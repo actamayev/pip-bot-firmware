@@ -58,10 +58,10 @@ void BalanceController::update() {
     _safetyBufferIndex = (_safetyBufferIndex + 1) % ANGLE_BUFFER_SIZE;
     if (_safetyBufferCount < ANGLE_BUFFER_SIZE) _safetyBufferCount++;
     
-    // Calculate safety buffer average using circular mean from utils
+    // Calculate safety buffer average using circular mean
     float safetyAverage = calculateCircularMean(_safetyBuffer, _safetyBufferCount);
     
-    // Calculate control buffer average using circular mean from utils
+    // Calculate control buffer average using circular mean
     float controlAverage = calculateCircularMean(_angleBuffer, _angleBufferCount);
     
     // Validate reading against control average for PID input

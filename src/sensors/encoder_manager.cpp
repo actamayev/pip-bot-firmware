@@ -76,6 +76,7 @@ void EncoderManager::log_motor_rpm() {
     _lastLogTime = currentTime;
 }
 
+// TODO: Move these methods into haptic feedback manager:
 void EncoderManager::initNetworkSelection() {
     // Reset encoder position
     _rightEncoder.clearCount();
