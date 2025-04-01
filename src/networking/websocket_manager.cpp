@@ -107,7 +107,7 @@ void WebSocketManager::handleFirmwareMetadata(const char* json, int tokenCount) 
 }
 
 void WebSocketManager::handleBinaryMessage(WebsocketsMessage message) {
-    const char* data = message.c_str();
+    const uint8_t* data = (const uint8_t*)message.c_str();
     size_t length = message.length();
     
     // If expecting a firmware chunk, handle it
@@ -134,20 +134,60 @@ void WebSocketManager::handleBinaryMessage(WebsocketsMessage message) {
         return;
     }
 
-    // Not expecting firmware, check if it's a motor control message (2 bytes)
-    if (length == 5) {
-        // It's a motor control message
-        LabDemoManager::getInstance().handleBinaryMessage(data);
-    } else if (length == 2) {
-        if (data[0] == 2) {
-            // It's a sound message
-            LabDemoManager::getInstance().handleSoundMessage(data);
-        } else if (data[0] == 3) {
-            // It's a mute/unmute message
-            LabDemoManager::getInstance().handleSpeakerMuteMessage(data);
-        }
-    } else {
-        Serial.printf("Unexpected binary message of length %d\n", length);
+    if (length < 1) {
+        Serial.println("Binary message too short");
+        return;
+    }
+    
+    // Extract the message type from the first byte
+    DataMessageType messageType = static_cast<DataMessageType>(data[0]);
+
+    switch (messageType) {
+        case DataMessageType::MOTOR_CONTROL:
+            if (length != 5) {
+                Serial.println("Invalid motor control message length");
+            } else {
+                LabDemoManager::getInstance().handleMotorControl(data);
+            }
+            break;
+        case DataMessageType::SOUND_COMMAND:
+            if (length != 2) {
+                Serial.println("Invalid sound command message length");
+            } else {
+                SoundType soundType = static_cast<SoundType>(data[1]);
+                LabDemoManager::getInstance().handleSoundCommand(soundType);
+            }
+            break;
+        case DataMessageType::SPEAKER_MUTE:
+            if (length != 2) {
+                Serial.println("Invalid speaker mute message length");
+            } else {
+                SpeakerStatus status = static_cast<SpeakerStatus>(data[1]);
+                LabDemoManager::getInstance().handleSpeakerMute(status);
+            }
+            break;
+        case DataMessageType::BALANCE_CONTROL:
+            if (length != 2) {
+                Serial.println("Invalid balance control message length");
+            } else {
+                BalanceStatus status = static_cast<BalanceStatus>(data[1]);
+                Serial.print("Balance Status: ");
+                Serial.println(status == BalanceStatus::BALANCED ? "BALANCED" : "UNBALANCED");
+                LabDemoManager::getInstance().handleBalanceCommand(status);
+            }
+            break;
+            case DataMessageType::UPDATE_BALANCE_PIDS:
+            if (length != 37) { // 1 byte for type + 36 bytes for the struct (9 floats × 4 bytes)
+                Serial.println("Invalid update balance pids message length");
+            } else {
+                NewBalancePids newBalancePids;
+                memcpy(&newBalancePids, &data[1], sizeof(NewBalancePids));
+                LabDemoManager::getInstance().handleChangePidsCommand(newBalancePids);
+            }
+            break;
+        default:
+            Serial.printf("Unknown message type: %d\n", static_cast<int>(messageType));
+            break;
     }
 }
 

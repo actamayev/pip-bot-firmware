@@ -5,6 +5,7 @@
 #include <ArduinoWebsockets.h>
 #define JSMN_HEADER
 #include "./jsmn.h"
+#include "./protocol.h"
 #include "../utils/singleton.h"
 #include "./firmware_updater.h"
 #include "../lab_demo/lab_demo_manager.h"

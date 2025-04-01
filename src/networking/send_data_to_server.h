@@ -1,7 +1,12 @@
 #pragma once
 
 #include <ArduinoJson.h>
+#include "../utils/config.h"
+#include "../sensors/sensors.h"
 #include "../utils/singleton.h"
+#include "../sensors/ir_sensor.h"
+#include "../sensors/encoder_manager.h"
+#include "../networking/websocket_manager.h"
 
 class SendDataToServer : public Singleton<SendDataToServer> {
     friend class Singleton<SendDataToServer>;
@@ -20,5 +25,5 @@ class SendDataToServer : public Singleton<SendDataToServer> {
         void attachImuData(JsonObject& payload);
 
         unsigned long lastSendTime = 0;
-        const unsigned long SEND_INTERVAL = 200; // Poll every 50ms for more responsive data
+        const unsigned long SEND_INTERVAL = 10; // Poll every 50ms for more responsive data
 };

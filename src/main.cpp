@@ -1,6 +1,7 @@
 #include <esp32-hal-timer.h>
 #include "./utils/config.h"
 #include "./sensors/sensors.h"
+#include "./actuators/buttons.h"
 #include "./actuators/rgb_led.h"
 #include "./actuators/speaker.h"
 #include "./user_code/user_code.h"
@@ -12,16 +13,18 @@
 #include "./lab_demo/lab_demo_manager.h"
 #include "./networking/websocket_manager.h"
 #include "./networking/send_data_to_server.h"
+#include "./wifi_selection/wifi_selection_manager.h"
+#include "./wifi_selection/haptic_feedback_manager.h"
 
 // Task to handle sensors and user code on Core 0
 void SensorAndUserCodeTask(void * parameter) {
     disableCore0WDT();
-    Wire.begin(I2C_SDA, I2C_SCL, I2C_CLOCK_SPEED);
     delay(10);
     // Initialize sensors on Core 0
     Serial.println("Initializing sensors on Core 0...");
     Sensors::getInstance();
-    EncoderManager::getInstance();
+    Buttons::getInstance().begin();  // Initialize the buttons
+    setupButtonLoggers();
     // if (!DisplayScreen::getInstance().init(Wire)) {
     //     Serial.println("Display initialization failed");
     // }
@@ -32,6 +35,7 @@ void SensorAndUserCodeTask(void * parameter) {
     // Main sensor and user code loop
     for(;;) {
         if (!Sensors::getInstance().sensors_initialized) continue;
+        Buttons::getInstance().update();  // Update button states
         // multizoneTofLogger();
         // imuLogger();
         // sideTofsLogger();
@@ -52,13 +56,13 @@ void NetworkTask(void * parameter) {
 
     // Main network loop
     for(;;) {
-        motorDriver.update_haptic_feedback();
-        if (WiFi.status() == WL_CONNECTED) {
+        HapticFeedbackManager::getInstance().update();
+        if (WiFi.status() != WL_CONNECTED) {
+            WifiSelectionManager::getInstance().processNetworkSelection();
+        } else {
             // Other network operations can use internal timing
             WebSocketManager::getInstance().pollWebSocket();
             SendDataToServer::getInstance().sendSensorDataToServer();
-        } else {
-            EncoderManager::getInstance().processNetworkSelection();
         }
 
         // Short delay to yield to other tasks
@@ -72,6 +76,9 @@ void setup() {
     Serial.begin(115200);
     // Only needed if we need to see the setup serial logs:
     delay(2000);
+    Wire.setPins(I2C_SDA, I2C_SCL);
+    Wire.begin(I2C_SDA, I2C_SCL, I2C_CLOCK_SPEED);
+    delay(10);
 
     rgbLed.turn_led_off();
 

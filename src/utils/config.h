@@ -55,6 +55,10 @@ extern const uint8_t PIN_IR_EN;
 //Speaker
 extern const uint8_t AUDIO_PIN;
 
+// Buttons
+extern const uint8_t BUTTON_PIN_1;
+extern const uint8_t BUTTON_PIN_2;
+
 // Assign Stack sizes for the two cores
 extern const uint32_t SENSOR_STACK_SIZE;
 extern const uint32_t NETWORK_STACK_SIZE;
