@@ -24,7 +24,7 @@ void SensorAndUserCodeTask(void * parameter) {
     Sensors::getInstance();
     EncoderManager::getInstance();
     Buttons::getInstance().begin();  // Initialize the buttons
-   setupButtonLoggers();
+    setupButtonLoggers();
     // if (!DisplayScreen::getInstance().init(Wire)) {
     //     Serial.println("Display initialization failed");
     // }
