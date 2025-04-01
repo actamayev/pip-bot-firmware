@@ -1,6 +1,7 @@
 #include <esp32-hal-timer.h>
 #include "./utils/config.h"
 #include "./sensors/sensors.h"
+#include "./actuators/buttons.h"
 #include "./actuators/rgb_led.h"
 #include "./actuators/speaker.h"
 #include "./user_code/user_code.h"
@@ -22,6 +23,8 @@ void SensorAndUserCodeTask(void * parameter) {
     Serial.println("Initializing sensors on Core 0...");
     Sensors::getInstance();
     EncoderManager::getInstance();
+    Buttons::getInstance().begin();  // Initialize the buttons
+   setupButtonLoggers();
     // if (!DisplayScreen::getInstance().init(Wire)) {
     //     Serial.println("Display initialization failed");
     // }
@@ -32,6 +35,7 @@ void SensorAndUserCodeTask(void * parameter) {
     // Main sensor and user code loop
     for(;;) {
         if (!Sensors::getInstance().sensors_initialized) continue;
+        Buttons::getInstance().update();  // Update button states
         // multizoneTofLogger();
         // imuLogger();
         // sideTofsLogger();
