@@ -58,10 +58,10 @@ void BalanceController::update() {
     _safetyBufferIndex = (_safetyBufferIndex + 1) % ANGLE_BUFFER_SIZE;
     if (_safetyBufferCount < ANGLE_BUFFER_SIZE) _safetyBufferCount++;
     
-    // Calculate safety buffer average using circular mean from utils
+    // Calculate safety buffer average using circular mean
     float safetyAverage = calculateCircularMean(_safetyBuffer, _safetyBufferCount);
     
-    // Calculate control buffer average using circular mean from utils
+    // Calculate control buffer average using circular mean
     float controlAverage = calculateCircularMean(_angleBuffer, _angleBufferCount);
     
     // Validate reading against control average for PID input
@@ -90,7 +90,6 @@ void BalanceController::update() {
     float error = TARGET_ANGLE - currentAngle;
     float gyroRate = Sensors::getInstance().getYRotationRate();
 
-    // DEADBAND CHECK - New code
     // If within deadband angle and rotation rate is low, stop motors
     if (abs(error) < DEADBAND_ANGLE && abs(gyroRate) < MAX_STABLE_ROTATION) {
         // Within deadband and stable - stop motors
@@ -117,8 +116,15 @@ void BalanceController::update() {
         MAX_BALANCE_POWER
     );
 
+    int adjustedPWM = motorPower;
+    if (motorPower > 0) {
+        adjustedPWM = constrain(motorPower, MIN_EFFECTIVE_PWM, 255);
+    } else if (motorPower < 0) {
+        adjustedPWM = constrain(motorPower, -255, -MIN_EFFECTIVE_PWM);
+    }
+
     // Apply motor power
-    motorDriver.set_motor_speeds(motorPower, motorPower);
+    motorDriver.set_motor_speeds(adjustedPWM, adjustedPWM);
     motorDriver.update_motor_speeds(false, UPDATE_INTERVAL);
 
     // Store error for next iteration

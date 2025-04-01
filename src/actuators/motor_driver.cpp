@@ -35,7 +35,6 @@ void MotorDriver::rotate_counterclockwise(uint8_t speed) {
     right_motor_forward(speed);
 }
 
-// TODO 3/27/25: Change all analog writes with ledcWrite
 void MotorDriver::left_motor_forward(uint8_t speed) {
     analogWrite(LEFT_MOTOR_PIN_IN_1, 0); // Explicitly clear backward pin
     digitalWrite(LEFT_MOTOR_PIN_IN_1, LOW);

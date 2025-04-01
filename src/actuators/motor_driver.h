@@ -2,7 +2,6 @@
 #include <Arduino.h>
 #include "../utils/config.h"
 #include "../sensors/sensors.h"
-#include "../sensors/encoder_manager.h"
 #include "../lab_demo/straight_line_drive.h"
 
 class MotorDriver {
