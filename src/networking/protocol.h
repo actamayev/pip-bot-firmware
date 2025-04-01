@@ -30,13 +30,14 @@ enum class BalanceStatus : uint8_t {
 };
 
 struct NewBalancePids {
-    uint8_t pValue;              // Byte 1
-    uint8_t iValue;              // Byte 2
-    uint8_t dValue;              // Byte 3
-    uint8_t ffValue;             // Byte 4
-    uint8_t targetAngle;         // Byte 5
-    uint8_t maxSafeAngleDeviation; // Byte 6
-    uint8_t updateInterval;      // Byte 7
-    uint8_t deadbandAngle;       // Byte 8
-    uint8_t maxStableRotation;   // Byte 9
+    float pValue;               // 4 bytes
+    float iValue;               // 4 bytes
+    float dValue;               // 4 bytes
+    float ffValue;              // 4 bytes
+    float targetAngle;          // 4 bytes
+    float maxSafeAngleDeviation; // 4 bytes
+    float updateInterval;       // 4 bytes
+    float deadbandAngle;        // 4 bytes
+    float maxStableRotation;    // 4 bytes
 };
+

@@ -144,42 +144,41 @@ void WebSocketManager::handleBinaryMessage(WebsocketsMessage message) {
 
     switch (messageType) {
         case DataMessageType::MOTOR_CONTROL:
-            if (length == 5) {
-                LabDemoManager::getInstance().handleMotorControl(data);
-            } else {
+            if (length != 5) {
                 Serial.println("Invalid motor control message length");
+            } else {
+                LabDemoManager::getInstance().handleMotorControl(data);
             }
             break;
         case DataMessageType::SOUND_COMMAND:
-            if (length == 2) {
+            if (length != 2) {
+                Serial.println("Invalid sound command message length");
+            } else {
                 SoundType soundType = static_cast<SoundType>(data[1]);
                 LabDemoManager::getInstance().handleSoundCommand(soundType);
-            } else {
-                Serial.println("Invalid sound command message length");
             }
             break;
         case DataMessageType::SPEAKER_MUTE:
-            if (length == 2) {
+            if (length != 2) {
+                Serial.println("Invalid speaker mute message length");
+            } else {
                 SpeakerStatus status = static_cast<SpeakerStatus>(data[1]);
                 LabDemoManager::getInstance().handleSpeakerMute(status);
-            } else {
-                Serial.println("Invalid speaker mute message length");
             }
             break;
         case DataMessageType::BALANCE_CONTROL:
-            if (length == 2) {
+            if (length != 2) {
+                Serial.println("Invalid balance control message length");
+            } else {
                 BalanceStatus status = static_cast<BalanceStatus>(data[1]);
                 Serial.print("Balance Status: ");
                 Serial.println(status == BalanceStatus::BALANCED ? "BALANCED" : "UNBALANCED");
                 LabDemoManager::getInstance().handleBalanceCommand(status);
-            } else {
-                Serial.println("Invalid balance control message length");
             }
             break;
-        case DataMessageType::UPDATE_BALANCE_PIDS:
-            if (length == 10) {
+            case DataMessageType::UPDATE_BALANCE_PIDS:
+            if (length == 37) { // 1 byte for type + 36 bytes for the struct (9 floats × 4 bytes)
                 NewBalancePids newBalancePids;
-                // Copy the 9 bytes starting at data[1] into the struct
                 memcpy(&newBalancePids, &data[1], sizeof(NewBalancePids));
                 LabDemoManager::getInstance().handleChangePidsCommand(newBalancePids);
             } else {

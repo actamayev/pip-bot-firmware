@@ -90,7 +90,6 @@ void BalanceController::update() {
     float error = TARGET_ANGLE - currentAngle;
     float gyroRate = Sensors::getInstance().getYRotationRate();
 
-    // DEADBAND CHECK - New code
     // If within deadband angle and rotation rate is low, stop motors
     if (abs(error) < DEADBAND_ANGLE && abs(gyroRate) < MAX_STABLE_ROTATION) {
         // Within deadband and stable - stop motors
