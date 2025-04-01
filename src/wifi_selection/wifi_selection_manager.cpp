@@ -19,16 +19,15 @@ void WifiSelectionManager::updateNetworkSelection() {
     // Check if we're in a cooldown period
     if (!_scrollingEnabled) {
         // Wait for the cooldown to finish
-        if (currentTime - _scrollCooldownTime >= _scrollCooldownDuration) {
-            _scrollingEnabled = true;
-            // Reset encoder position once cooldown is complete
-            encoderManager._rightEncoder.clearCount();
-            _lastRightEncoderValue = 0;
-            Serial.println("Scrolling re-enabled after cooldown");
-        } else {
+        if (currentTime - _scrollCooldownTime < _scrollCooldownDuration) {
             // We're still in cooldown, don't process scrolling
             return;
-        }
+        } 
+        _scrollingEnabled = true;
+        // Reset encoder position once cooldown is complete
+        encoderManager._rightEncoder.clearCount();
+        _lastRightEncoderValue = 0;
+        Serial.println("Scrolling re-enabled after cooldown");
     }
 
     // Get current encoder value
