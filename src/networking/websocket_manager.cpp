@@ -177,12 +177,12 @@ void WebSocketManager::handleBinaryMessage(WebsocketsMessage message) {
             }
             break;
             case DataMessageType::UPDATE_BALANCE_PIDS:
-            if (length == 37) { // 1 byte for type + 36 bytes for the struct (9 floats × 4 bytes)
+            if (length != 37) { // 1 byte for type + 36 bytes for the struct (9 floats × 4 bytes)
+                Serial.println("Invalid update balance pids message length");
+            } else {
                 NewBalancePids newBalancePids;
                 memcpy(&newBalancePids, &data[1], sizeof(NewBalancePids));
                 LabDemoManager::getInstance().handleChangePidsCommand(newBalancePids);
-            } else {
-                Serial.println("Invalid update balance pids message length");
             }
             break;
         default:
