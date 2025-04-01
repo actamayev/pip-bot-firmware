@@ -23,7 +23,6 @@ void SensorAndUserCodeTask(void * parameter) {
     // Initialize sensors on Core 0
     Serial.println("Initializing sensors on Core 0...");
     Sensors::getInstance();
-    EncoderManager::getInstance();
     Buttons::getInstance().begin();  // Initialize the buttons
     setupButtonLoggers();
     // if (!DisplayScreen::getInstance().init(Wire)) {

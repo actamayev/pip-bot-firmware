@@ -2,14 +2,12 @@
 #include <Arduino.h>
 #include <ESP32Encoder.h>
 #include "./utils/structs.h"
-#include "./utils/singleton.h"
 #include "../actuators/motor_driver.h"
 #include "../networking/wifi_manager.h"
 #include "../wifi_selection/wifi_selection_manager.h"
 #include "../wifi_selection/haptic_feedback_manager.h"
 
-class EncoderManager : public Singleton<EncoderManager> {
-    friend class Singleton<EncoderManager>;
+class EncoderManager {
     friend class LabDemoManager;  // Allows LabDemoManager to access private members
     friend class WifiSelectionManager;  // Allows WifiSelectionManager to access private members
 
