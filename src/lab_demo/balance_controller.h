@@ -55,4 +55,6 @@ class BalanceController : public Singleton<BalanceController> {
 
         float DEADBAND_ANGLE = 1.0f;
         float MAX_STABLE_ROTATION = 0.1f; // degrees/second
+
+        static constexpr int16_t MIN_EFFECTIVE_PWM = 36; 
 };
