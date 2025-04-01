@@ -58,3 +58,21 @@ void sideTofsLogger() {
 
     lastPrintTime = millis();
 }
+
+void setupButtonLoggers() {
+    Buttons::getInstance().setButton1ClickHandler([](Button2& btn) {
+        Serial.println("Button 1 clicked!");
+    });
+    
+    Buttons::getInstance().setButton2ClickHandler([](Button2& btn) {
+        Serial.println("Button 2 clicked!");
+    });
+    
+    Buttons::getInstance().setButton1LongPressHandler([](Button2& btn) {
+        Serial.println("Button 1 long pressed for " + String(btn.wasPressedFor()) + " ms");
+    });
+    
+    Buttons::getInstance().setButton2LongPressHandler([](Button2& btn) {
+        Serial.println("Button 2 long pressed for " + String(btn.wasPressedFor()) + " ms");
+    });
+}
