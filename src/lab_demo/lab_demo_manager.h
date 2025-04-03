@@ -42,5 +42,5 @@ class LabDemoManager : public Singleton<LabDemoManager> {
         int16_t nextRightSpeed;
 
         // Constants
-        static constexpr uint8_t MIN_ENCODER_PULSES = 10;
+        static constexpr uint8_t MIN_ENCODER_PULSES = 1;
 };
