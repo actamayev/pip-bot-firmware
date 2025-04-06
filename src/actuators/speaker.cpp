@@ -42,6 +42,7 @@ void IRAM_ATTR onChimeTimer() {
 Speaker::Speaker() {
     // Initialize audio pin with PWM
     ledcSetup(0, 50000, 8); // Channel 0, 50kHz PWM, 8-bit resolution
+    ledcWrite(0, 0); // mute on startup
     ledcAttachPin(AUDIO_PIN, 0);
     
     // Set up timer interrupt for audio playback
@@ -53,35 +54,32 @@ Speaker::Speaker() {
     timerAlarmEnable(chimeTimer);
     
     // Output silence initially
-    ledcWrite(0, 128);
     
     // Initialize mute state
-    isMuted = false;
-    isSpeakerMuted = false;
+    isMuted = true;
+    isSpeakerMuted = true;
 }
 
 void Speaker::mute() {
-    if (!isMuted) {
-        isMuted = true;
-        isSpeakerMuted = true;
-        
-        // Immediately silence the speaker
-        ledcWrite(0, 0);
-        
-        Serial.println("Speaker muted");
-    }
+    if (isMuted) return;
+    isMuted = true;
+    isSpeakerMuted = true;
+    
+    // Immediately silence the speaker
+    ledcWrite(0, 0);
+    
+    Serial.println("Speaker muted");
 }
 
 void Speaker::unmute() {
-    if (isMuted) {
-        isMuted = false;
-        isSpeakerMuted = false;
-        
-        // Set to mid-level to avoid pop when unmuting
-        ledcWrite(0, 128);
-        
-        Serial.println("Speaker unmuted");
-    }
+    if (!isMuted) return;
+    isMuted = false;
+    isSpeakerMuted = false;
+    
+    // Set to mid-level to avoid pop when unmuting
+    ledcWrite(0, 128);
+    
+    Serial.println("Speaker unmuted");
 }
 
 void Speaker::setMuted(bool muted) {

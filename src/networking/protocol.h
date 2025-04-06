@@ -39,5 +39,6 @@ struct NewBalancePids {
     float updateInterval;       // 4 bytes
     float deadbandAngle;        // 4 bytes
     float maxStableRotation;    // 4 bytes
+    float minEffectivePwm;    // 4 bytes
 };
 
