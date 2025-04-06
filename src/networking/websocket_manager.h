@@ -66,4 +66,9 @@ class WebSocketManager : public Singleton<WebSocketManager> {
 
         unsigned long lastPollTime = 0;
         const unsigned long POLL_INTERVAL = 50; // Poll every 50ms
+
+        bool reconnectEnabled = true;
+        bool wasConnected = false;
+        unsigned long lastReconnectAttempt = 0;
+        const unsigned long RECONNECT_INTERVAL = 3000; // 3 seconds between reconnection attempts
 };

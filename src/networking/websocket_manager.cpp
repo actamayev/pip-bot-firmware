@@ -206,13 +206,15 @@ void WebSocketManager::connectToWebSocket() {
         this->handleMessage(message);
     });
 
-    wsClient.onEvent([](WebsocketsEvent event, String data) {
+    wsClient.onEvent([this](WebsocketsEvent event, String data) {
         switch (event) {
             case WebsocketsEvent::ConnectionOpened:
                 Serial.println("WebSocket connected");
+                this->wasConnected = true;
                 break;
             case WebsocketsEvent::ConnectionClosed:
                 Serial.println("WebSocket disconnected");
+                this->wasConnected = false;
                 break;
             case WebsocketsEvent::GotPing:
                 Serial.println("Got ping");
@@ -227,6 +229,7 @@ void WebSocketManager::connectToWebSocket() {
     Serial.println("Attempt 1: Connecting to WebSocket...");
     if (wsClient.connect(getWsServerUrl())) {
         sendInitialData();
+        wasConnected = true;
         return;
     }
 
@@ -239,12 +242,14 @@ void WebSocketManager::connectToWebSocket() {
     while (retryCount <= MAX_RETRIES && !connected) {
         if (attemptConnection()) {
             connected = true;
+            wasConnected = true;
             break;
         }
     }
 
     if (!connected) {
         Serial.println("All connection attempts failed");
+        // We'll now rely on the pollWebSocket reconnection mechanism
     }
 }
 
@@ -313,10 +318,29 @@ void WebSocketManager::pollWebSocket() {
 
     updater.checkTimeout();
 
+    // Check if we need to reconnect
+    if (reconnectEnabled && !wsClient.available() && (currentTime - lastReconnectAttempt >= RECONNECT_INTERVAL)) {
+        lastReconnectAttempt = currentTime;
+        
+        if (wasConnected) {
+            Serial.println("WebSocket disconnected. Attempting to reconnect...");
+        }
+        
+        if (wsClient.connect(getWsServerUrl())) {
+            Serial.println("WebSocket reconnected successfully");
+            wasConnected = true;
+            sendInitialData();
+        } else {
+            Serial.println("WebSocket reconnection failed. Will try again in 3 seconds");
+        }
+        return;
+    }
+
     if (!wsClient.available()) return;
     try {
         wsClient.poll();
     } catch (const std::exception& e) {
         Serial.printf("Error during WebSocket poll: %s\n", e.what());
+        wasConnected = false;  // Mark as disconnected to trigger reconnect
     }
 }
