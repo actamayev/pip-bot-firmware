@@ -35,6 +35,10 @@ void RgbLed::set_led_to_color(uint8_t red, uint8_t green, uint8_t blue) {
     // strip.setPixelColor(0, strip.Color(red, green, blue));
     // stripe.show();
 
+    currentRed = red;
+    currentGreen = green;
+    currentBlue = blue;
+
     // Set all LEDs to the same color
     for(int i = 0; i < NUM_LEDS1; i++) {
         strip1.setPixelColor(i, strip1.Color(red, green, blue));
@@ -50,22 +54,15 @@ void RgbLed::update() {
     if (!isBreathing) return;
     
     unsigned long currentTime = millis();
-    
-    // Calculate the time for each step based on the total cycle time
-    // We want to complete a full sine wave (0 to 2π) in the given time
-    // breatheSpeed is now the time for a full min-to-max transition in milliseconds
     unsigned long timePerStep = breatheSpeed / 255;
-    
-    // Ensure we have at least 1ms per step
     timePerStep = max(1UL, timePerStep);
     
-    // Only update if enough time has passed
     if (currentTime - lastBreathUpdate < timePerStep) return;
     lastBreathUpdate = currentTime;
     
-    // Calculate current color based on breath progress
     float factor;
-    // We'll use a sine wave for smooth transitions in both directions
+    
+    // Calculate the breathing factor
     factor = (sin(breathProgress * PI) + 1.0) / 2.0;
     
     // Interpolate between min and max for each color
@@ -76,16 +73,26 @@ void RgbLed::update() {
     // Set the color
     set_led_to_color(r, g, b);
     
-    // Update progress - we're now using a continuous cycle
+    // Update progress
     float progressStep = 1.0 / 255.0;
     breathProgress += progressStep;
     
-    // Reset progress when we complete a full cycle
+    // Check if we're fading out and have reached the bottom of the cycle
+    if (isFadingOut && breathProgress >= 1.0) {
+        // We've faded out completely, stop breathing and ensure LEDs are off
+        isBreathing = false;
+        isFadingOut = false;
+        set_led_to_color(0, 0, 0);
+        return;
+    }
+    
+    // For normal breathing, reset when we complete a full cycle
     if (breathProgress >= 2.0) {
         breathProgress = 0.0;
     }
 }
 
+// TODO: Starts at the max brightness
 // Modified start breathing function with min/max ranges
 void RgbLed::startBreathing(uint8_t redMin, uint8_t redMax, 
                            uint8_t greenMin, uint8_t greenMax, 
@@ -110,4 +117,31 @@ void RgbLed::startBreathing(uint8_t redMin, uint8_t redMax,
 void RgbLed::stopBreathing() {
     isBreathing = false;
     turn_led_off();
+}
+
+void RgbLed::pauseBreathing() {
+    isBreathing = false;
+    // Note: We don't turn off the LED, just stop updating it
+    // Current color values are preserved
+}
+
+// TODO: This doesn't work correctly - turns off too quickly.
+void RgbLed::fadeOut() {
+    // Set min values to 0 and max values to current
+    breathMin[0] = 0;
+    breathMin[1] = 0;
+    breathMin[2] = 0;
+    
+    breathMax[0] = currentRed;
+    breathMax[1] = currentGreen;
+    breathMax[2] = currentBlue;
+    
+    // Start at the "top" of the breath cycle
+    breathProgress = 0.0;
+    
+    // Start breathing to fade out
+    isBreathing = true;
+    
+    // Add the isFadingOut flag as suggested in previous solution
+    isFadingOut = true;
 }

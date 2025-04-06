@@ -178,8 +178,12 @@ void LabDemoManager::handleBalanceCommand(BalanceStatus status) {
 void LabDemoManager::handleLightCommand(LightStatus lightStatus) {
     if (lightStatus == LightStatus::BREATHING) {
         rgbLed.startBreathing(15, 200, 15, 200, 15, 200, 2000);
-    } else if (lightStatus == LightStatus::STOP_BREATHING) {
+    } else if (lightStatus == LightStatus::TURN_OFF) {
         rgbLed.stopBreathing();
+    } else if (lightStatus == LightStatus::FADE_OUT) {
+        rgbLed.fadeOut();
+    } else if (lightStatus == LightStatus::PAUSE_BREATHING) {
+        rgbLed.pauseBreathing();
     }
 }
 

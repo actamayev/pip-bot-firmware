@@ -32,7 +32,9 @@ enum class BalanceStatus : uint8_t {
 
 enum class LightStatus : uint8_t {
     BREATHING = 0,
-    STOP_BREATHING = 1
+    TURN_OFF = 1,
+    FADE_OUT = 2,
+    PAUSE_BREATHING = 3
 };
 
 struct NewBalancePids {
