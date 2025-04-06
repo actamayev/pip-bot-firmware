@@ -8,7 +8,8 @@ enum class DataMessageType : uint8_t {
     SOUND_COMMAND = 2,
     SPEAKER_MUTE = 3,
     BALANCE_CONTROL = 4,
-    UPDATE_BALANCE_PIDS = 5
+    UPDATE_BALANCE_PIDS = 5,
+    UPDATE_LIGHTS = 6
 };
 
 // Sound types
@@ -27,6 +28,11 @@ enum class SpeakerStatus : uint8_t {
 enum class BalanceStatus : uint8_t {
     UNBALANCED = 0,
     BALANCED = 1
+};
+
+enum class LightStatus : uint8_t {
+    BREATHING = 0,
+    STOP_BREATHING = 1
 };
 
 struct NewBalancePids {

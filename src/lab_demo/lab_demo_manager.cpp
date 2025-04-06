@@ -175,6 +175,14 @@ void LabDemoManager::handleBalanceCommand(BalanceStatus status) {
     }
 }
 
+void LabDemoManager::handleLightCommand(LightStatus lightStatus) {
+    if (lightStatus == LightStatus::BREATHING) {
+        rgbLed.startBreathing(15, 200, 15, 200, 15, 200, 2000);
+    } else if (lightStatus == LightStatus::STOP_BREATHING) {
+        rgbLed.stopBreathing();
+    }
+}
+
 void LabDemoManager::handleChangePidsCommand(NewBalancePids newBalancePids) {
     BalanceController::getInstance().updateBalancePids(newBalancePids);
 }

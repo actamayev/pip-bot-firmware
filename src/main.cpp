@@ -34,6 +34,7 @@ void SensorAndUserCodeTask(void * parameter) {
 
     // Main sensor and user code loop
     for(;;) {
+        rgbLed.update();
         if (!Sensors::getInstance().sensors_initialized) continue;
         Buttons::getInstance().update();  // Update button states
         // multizoneTofLogger();

@@ -171,6 +171,16 @@ void WebSocketManager::handleBinaryMessage(WebsocketsMessage message) {
                 LabDemoManager::getInstance().handleBalanceCommand(status);
             }
             break;
+        case DataMessageType::UPDATE_LIGHTS:
+            if (length != 2) {
+                Serial.println("Invalid balance control message length");
+            } else {
+                LightStatus lightStatus = static_cast<LightStatus>(data[1]);
+                Serial.print("Light Status: ");
+                Serial.println(lightStatus == LightStatus::BREATHING ? "Breathing" : "Not breathing");
+                LabDemoManager::getInstance().handleLightCommand(lightStatus);
+            }
+            break;
         case DataMessageType::UPDATE_BALANCE_PIDS:
             if (length != 41) { // 1 byte for type + 40 bytes for the struct (10 floats × 4 bytes)
                 Serial.println("Invalid update balance pids message length");
