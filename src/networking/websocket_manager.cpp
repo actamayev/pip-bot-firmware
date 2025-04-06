@@ -54,13 +54,6 @@ void WebSocketManager::handleJsonMessage(WebsocketsMessage message) {
                 handleFirmwareMetadata(json, tokenCount);
                 break;
             }
-            // else if (eventType == "start-sending-sensor-data") {
-            //     SendDataToServer::getInstance().sendSensorData = true;
-            //     break;
-            // } else if (eventType == "stop-sending-sensor-data") {
-            //     SendDataToServer::getInstance().sendSensorData = false;
-            //     break;
-            // } 
         }
     }
 }
