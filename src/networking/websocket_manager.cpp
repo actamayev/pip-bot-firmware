@@ -5,6 +5,8 @@
 MessageTokens tokenPositions;
 
 WebSocketManager::WebSocketManager() {
+    wsConnected = false;
+    lastConnectionAttempt = 0;
     if (DEFAULT_ENVIRONMENT == "local") return;
     wsClient.setCACert(rootCACertificate);
 }
@@ -210,11 +212,11 @@ void WebSocketManager::connectToWebSocket() {
         switch (event) {
             case WebsocketsEvent::ConnectionOpened:
                 Serial.println("WebSocket connected");
-                this->wasConnected = true;
+                this->wsConnected = true;
                 break;
             case WebsocketsEvent::ConnectionClosed:
                 Serial.println("WebSocket disconnected");
-                this->wasConnected = false;
+                this->wsConnected = false;
                 break;
             case WebsocketsEvent::GotPing:
                 Serial.println("Got ping");
@@ -225,32 +227,9 @@ void WebSocketManager::connectToWebSocket() {
         }
     });
 
-    // First attempt
-    Serial.println("Attempt 1: Connecting to WebSocket...");
-    if (wsClient.connect(getWsServerUrl())) {
-        sendInitialData();
-        wasConnected = true;
-        return;
-    }
-
-    Serial.println("WebSocket connection failed. Starting retry sequence...");
-    startAttemptTime = millis();
-    retryCount = 1;  // First retry (second attempt overall)
-    connected = false;
-
-    // Retry loop
-    while (retryCount <= MAX_RETRIES && !connected) {
-        if (attemptConnection()) {
-            connected = true;
-            wasConnected = true;
-            break;
-        }
-    }
-
-    if (!connected) {
-        Serial.println("All connection attempts failed");
-        // We'll now rely on the pollWebSocket reconnection mechanism
-    }
+    // Initial connection attempt - but actual connection will be managed by pollWebSocket
+    Serial.println("WebSocket connection will be managed by the polling mechanism");
+    lastConnectionAttempt = 0; // Force an immediate connection attempt in the next poll
 }
 
 void WebSocketManager::sendInitialData() {
@@ -264,31 +243,6 @@ void WebSocketManager::sendInitialData() {
 
     WiFi.mode(WIFI_STA);
     wsClient.send(jsonString);
-}
-
-bool WebSocketManager::attemptConnection() {
-    unsigned long currentTime = millis();
-    unsigned long delayPeriod = retryCount * 1000UL;  // Increasing delays: 1s, 2s, 3s, 4s
-
-    if (currentTime - startAttemptTime >= delayPeriod) {
-        Serial.printf("Attempt %d: Connecting to WebSocket...\n", retryCount + 1);
-
-        if (wsClient.connect(getWsServerUrl())) {
-            sendInitialData();
-            return true;
-        }
-
-        Serial.printf("WebSocket connection failed on attempt %d\n", retryCount + 1);
-        if (retryCount < MAX_RETRIES) {
-            Serial.printf("Will retry in %d seconds...\n", retryCount + 1);
-        }
-
-        startAttemptTime = currentTime;
-        retryCount++;
-    }
-
-    yield();
-    return false;
 }
 
 void WebSocketManager::processChunk(uint8_t* chunkData, size_t chunkDataLength,
@@ -312,35 +266,35 @@ void WebSocketManager::pollWebSocket() {
     lastPollTime = currentTime;
     
     if (WiFi.status() != WL_CONNECTED) {
-        Serial.println("WiFi disconnected, cannot poll WebSocket");
+        Serial.println("WiFi disconnected, cannot connect to WebSocket");
         return;
     }
 
     updater.checkTimeout();
 
-    // Check if we need to reconnect
-    if (reconnectEnabled && !wsClient.available() && (currentTime - lastReconnectAttempt >= RECONNECT_INTERVAL)) {
-        lastReconnectAttempt = currentTime;
+    // Connection management - try to connect if not connected
+    if (!wsConnected && (currentTime - lastConnectionAttempt >= CONNECTION_INTERVAL)) {
+        lastConnectionAttempt = currentTime;
         
-        if (wasConnected) {
-            Serial.println("WebSocket disconnected. Attempting to reconnect...");
-        }
+        Serial.println("Attempting to connect to WebSocket...");
         
         if (wsClient.connect(getWsServerUrl())) {
-            Serial.println("WebSocket reconnected successfully");
-            wasConnected = true;
+            Serial.println("WebSocket connected successfully");
+            wsConnected = true;
             sendInitialData();
         } else {
-            Serial.println("WebSocket reconnection failed. Will try again in 3 seconds");
+            Serial.println("WebSocket connection failed. Will try again in 3 seconds");
         }
         return;
     }
 
-    if (!wsClient.available()) return;
-    try {
-        wsClient.poll();
-    } catch (const std::exception& e) {
-        Serial.printf("Error during WebSocket poll: %s\n", e.what());
-        wasConnected = false;  // Mark as disconnected to trigger reconnect
+    // Only poll if connected
+    if (wsConnected) {
+        try {
+            wsClient.poll();
+        } catch (const std::exception& e) {
+            Serial.printf("Error during WebSocket poll: %s\n", e.what());
+            wsConnected = false;  // Mark as disconnected to trigger reconnect
+        }
     }
 }

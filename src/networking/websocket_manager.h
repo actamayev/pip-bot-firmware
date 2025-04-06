@@ -8,8 +8,8 @@
 #include "./protocol.h"
 #include "../utils/singleton.h"
 #include "./firmware_updater.h"
-#include "../lab_demo/lab_demo_manager.h"
 #include "./send_data_to_server.h"
+#include "../lab_demo/lab_demo_manager.h"
 
 using namespace websockets;
 
@@ -57,18 +57,12 @@ class WebSocketManager : public Singleton<WebSocketManager> {
         void handleJsonMessage(WebsocketsMessage message);
         void handleFirmwareMetadata(const char* json, int tokenCount);
         void handleBinaryMessage(WebsocketsMessage message);
-        bool attemptConnection();
-        static const uint8_t MAX_RETRIES = 8;
-        uint8_t retryCount;
-        unsigned long startAttemptTime;
-        bool connected;
         void sendInitialData();
 
         unsigned long lastPollTime = 0;
         const unsigned long POLL_INTERVAL = 50; // Poll every 50ms
 
-        bool reconnectEnabled = true;
-        bool wasConnected = false;
-        unsigned long lastReconnectAttempt = 0;
-        const unsigned long RECONNECT_INTERVAL = 3000; // 3 seconds between reconnection attempts
+        bool wsConnected = false;
+        unsigned long lastConnectionAttempt = 0;
+        const unsigned long CONNECTION_INTERVAL = 3000; // 3 seconds between connection attempts    
 };
