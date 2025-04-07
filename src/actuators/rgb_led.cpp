@@ -105,7 +105,7 @@ void RgbLed::update() {
     }
 
     // Handle strobe animation
-    if (isStrobing) {
+    else if (isStrobing) {
         if (currentTime - lastStrobeUpdate >= strobeSpeed) {
             lastStrobeUpdate = currentTime;
             strobeState = !strobeState;
@@ -121,24 +121,34 @@ void RgbLed::update() {
     }
     
     // Handle rainbow animation
-    if (isRainbow) {
+    else if (isRainbow) {
         if (currentTime - lastRainbowUpdate >= rainbowSpeed) {
             lastRainbowUpdate = currentTime;
             
-            // Increment hue to cycle through the rainbow
+            // Slowly rotate the entire rainbow pattern
             rainbowHue = (rainbowHue + 1) % 256;
             
-            // Convert HSV to RGB - simplified rainbow effect
-            // Based on FastLED's rainbow algorithm
-            for (int i = 0; i < NUM_LEDS1; i++) {
-                int pixelHue = (rainbowHue + (i * 256 / NUM_LEDS1)) % 256;
-                strip1.setPixelColor(i, colorHSV(pixelHue));
-            }
+            // Define base hues for a 6-LED rainbow
+            // These values create the ROYGBIV spectrum spread across 6 LEDs
+            uint8_t baseHues[6] = {
+                0,    // Red
+                32,   // Orange
+                64,   // Yellow
+                96,   // Green
+                160,  // Blue
+                224   // Violet
+            };
             
-            for (int i = 0; i < NUM_LEDS2; i++) {
-                int pixelHue = (rainbowHue + (i * 256 / NUM_LEDS2)) % 256;
-                strip2.setPixelColor(i, colorHSV(pixelHue));
-            }
+            // Set each LED to its rainbow color
+            // Top LEDs (strip1)
+            strip1.setPixelColor(0, colorHSV((baseHues[0] + rainbowHue) % 256));  // top_left
+            strip1.setPixelColor(1, colorHSV((baseHues[1] + rainbowHue) % 256));  // top_right
+            
+            // Middle and back LEDs (strip2)
+            strip2.setPixelColor(0, colorHSV((baseHues[2] + rainbowHue) % 256));  // middle_left
+            strip2.setPixelColor(1, colorHSV((baseHues[3] + rainbowHue) % 256));  // middle_right
+            strip2.setPixelColor(2, colorHSV((baseHues[4] + rainbowHue) % 256));  // back_left
+            strip2.setPixelColor(3, colorHSV((baseHues[5] + rainbowHue) % 256));  // back_right
             
             strip1.show();
             strip2.show();
