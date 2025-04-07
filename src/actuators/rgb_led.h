@@ -38,9 +38,19 @@ class RgbLed {
         void startStrobe(uint8_t red, uint8_t green, uint8_t blue, int speed);
         void startRainbow(int speed);
         void stopAllAnimations();
+        void set_all_leds_to_color(uint8_t red, uint8_t green, uint8_t blue);  
+
+        uint8_t defaultColors[6][3] = {
+            {0, 0, 0}, // top_left    - R,G,B
+            {0, 0, 0}, // top_right   - R,G,B
+            {0, 0, 0}, // middle_left - R,G,B
+            {0, 0, 0}, // middle_right- R,G,B
+            {0, 0, 0}, // back_left   - R,G,B
+            {0, 0, 0}  // back_right  - R,G,B
+        };
+        bool defaultColorsSet[6] = {false, false, false, false, false, false};
 
     private:
-        void set_all_leds_to_color(uint8_t red, uint8_t green, uint8_t blue);  
         uint8_t breathMin[3] = {0, 0, 0}; // Minimum RGB values
         uint8_t breathMax[3] = {0, 0, 0}; // Maximum RGB values
         float breathProgress = 0.0; // 0.0 to 1.0 to track position in the cycle
