@@ -77,6 +77,7 @@ class RgbLed {
 
         uint32_t colorHSV(uint8_t h, uint8_t s = 255, uint8_t v = 255);
         void updateBreathingColor();
+        void updateStrobeColor();
         bool processLedUpdate(int ledIndex, uint8_t red, uint8_t green, uint8_t blue);
     };
 

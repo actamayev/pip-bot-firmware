@@ -63,7 +63,7 @@ void RgbLed::startRainbow(int speed) {
 // Modify the update method to include strobe and rainbow animations
 void RgbLed::update() {
     unsigned long currentTime = millis();
-    
+
     // Handle breathing animation
     if (isBreathing) {
         unsigned long timePerStep = breatheSpeed / 255;
@@ -103,7 +103,7 @@ void RgbLed::update() {
             breathProgress = 0.0;
         }
     }
-    
+
     // Handle strobe animation
     if (isStrobing) {
         if (currentTime - lastStrobeUpdate >= strobeSpeed) {
@@ -266,15 +266,22 @@ void RgbLed::fadeOut() {
 // Add to rgb_led.cpp
 void RgbLed::updateBreathingColor() {
     // Use top-left LED's default color for breathing
-    if (defaultColorsSet[0]) {
-        breathMin[0] = 0.1 * defaultColors[0][0]; // starts at 10% brightness
-        breathMin[1] = 0.1 * defaultColors[0][1];
-        breathMin[2] = 0.1 * defaultColors[0][2];
+    if (!defaultColorsSet[0]) return;
+    breathMin[0] = 0.1 * defaultColors[0][0]; // starts at 10% brightness
+    breathMin[1] = 0.1 * defaultColors[0][1];
+    breathMin[2] = 0.1 * defaultColors[0][2];
 
-        breathMax[0] = defaultColors[0][0];
-        breathMax[1] = defaultColors[0][1];
-        breathMax[2] = defaultColors[0][2];
-    }
+    breathMax[0] = defaultColors[0][0];
+    breathMax[1] = defaultColors[0][1];
+    breathMax[2] = defaultColors[0][2];
+}
+
+void RgbLed::updateStrobeColor() {
+    // Use top-left LED's default color for strobing
+    if (!defaultColorsSet[0]) return;
+    strobeColor[0] = defaultColors[0][0];
+    strobeColor[1] = defaultColors[0][1];
+    strobeColor[2] = defaultColors[0][2];
 }
 
 void RgbLed::set_top_left_led(uint8_t red, uint8_t green, uint8_t blue) {
@@ -318,7 +325,7 @@ void RgbLed::set_back_right_led(uint8_t red, uint8_t green, uint8_t blue) {
     strip2.setPixelColor(3, strip2.Color(red, green, blue));
     strip2.show();
 }
-// Add to rgb_led.h in the private section
+
 bool RgbLed::processLedUpdate(int ledIndex, uint8_t red, uint8_t green, uint8_t blue) {
     if (isRainbow) return false;
     
@@ -327,11 +334,15 @@ bool RgbLed::processLedUpdate(int ledIndex, uint8_t red, uint8_t green, uint8_t 
     defaultColors[ledIndex][2] = blue;
     defaultColorsSet[ledIndex] = true;
     
-    if (isBreathing) updateBreathingColor();
+    // Update animation colors if active and this is the top-left LED (our reference LED)
+    if (ledIndex == 0) {
+        if (isBreathing) updateBreathingColor();
+        if (isStrobing) updateStrobeColor();
+    }
     
     return true;
 }
-// Updated stopAllAnimations method to restore all LED defaults
+
 void RgbLed::stopAllAnimations() {
     isBreathing = false;
     isStrobing = false;
