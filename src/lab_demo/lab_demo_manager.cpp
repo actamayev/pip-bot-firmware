@@ -190,3 +190,38 @@ void LabDemoManager::handleLightCommand(LightStatus lightStatus) {
 void LabDemoManager::handleChangePidsCommand(NewBalancePids newBalancePids) {
     BalanceController::getInstance().updateBalancePids(newBalancePids);
 }
+
+void LabDemoManager::handleNewLightColors(NewLightColors newLightColors) {
+    // Cast from float to uint8_t, assuming values are already in 0-255 range
+    uint8_t topLeftR = (uint8_t)newLightColors.topLeftRed;
+    uint8_t topLeftG = (uint8_t)newLightColors.topLeftGreen;
+    uint8_t topLeftB = (uint8_t)newLightColors.topLeftBlue;
+    
+    uint8_t topRightR = (uint8_t)newLightColors.topRightRed;
+    uint8_t topRightG = (uint8_t)newLightColors.topRightGreen;
+    uint8_t topRightB = (uint8_t)newLightColors.topRightBlue;
+    
+    uint8_t middleLeftR = (uint8_t)newLightColors.middleLeftRed;
+    uint8_t middleLeftG = (uint8_t)newLightColors.middleLeftGreen;
+    uint8_t middleLeftB = (uint8_t)newLightColors.middleLeftBlue;
+    
+    uint8_t middleRightR = (uint8_t)newLightColors.middleRightRed;
+    uint8_t middleRightG = (uint8_t)newLightColors.middleRightGreen;
+    uint8_t middleRightB = (uint8_t)newLightColors.middleRightBlue;
+    
+    uint8_t backLeftR = (uint8_t)newLightColors.backLeftRed;
+    uint8_t backLeftG = (uint8_t)newLightColors.backLeftGreen;
+    uint8_t backLeftB = (uint8_t)newLightColors.backLeftBlue;
+    
+    uint8_t backRightR = (uint8_t)newLightColors.backRightRed;
+    uint8_t backRightG = (uint8_t)newLightColors.backRightGreen;
+    uint8_t backRightB = (uint8_t)newLightColors.backRightBlue;
+    
+    // Set each LED to its corresponding color
+    rgbLed.set_top_left_led(topLeftR, topLeftG, topLeftB);
+    rgbLed.set_top_right_led(topRightR, topRightG, topRightB);
+    rgbLed.set_middle_left_led(middleLeftR, middleLeftG, middleLeftB);
+    rgbLed.set_middle_right_led(middleRightR, middleRightG, middleRightB);
+    rgbLed.set_back_left_led(backLeftR, backLeftG, backLeftB);
+    rgbLed.set_back_right_led(backRightR, backRightG, backRightB);
+}

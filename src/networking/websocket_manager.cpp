@@ -171,7 +171,7 @@ void WebSocketManager::handleBinaryMessage(WebsocketsMessage message) {
                 LabDemoManager::getInstance().handleBalanceCommand(status);
             }
             break;
-        case DataMessageType::UPDATE_LIGHTS:
+        case DataMessageType::UPDATE_LIGHT_ANIMATION:
             if (length != 2) {
                 Serial.println("Invalid balance control message length");
             } else {
@@ -179,6 +179,15 @@ void WebSocketManager::handleBinaryMessage(WebsocketsMessage message) {
                 Serial.print("Light Status: ");
                 Serial.println(lightStatus == LightStatus::BREATHING ? "Breathing" : "Not breathing");
                 LabDemoManager::getInstance().handleLightCommand(lightStatus);
+            }
+            break;
+        case DataMessageType::UPDATE_LED_COLORS:
+            if (length != 19) {
+                Serial.println("Invalid update led colors message length");
+            } else {
+                NewLightColors newlightColors;
+                memcpy(&newlightColors, &data[1], sizeof(NewLightColors));
+                LabDemoManager::getInstance().handleNewLightColors(newlightColors);
             }
             break;
         case DataMessageType::UPDATE_BALANCE_PIDS:

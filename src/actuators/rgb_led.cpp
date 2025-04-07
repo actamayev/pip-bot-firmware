@@ -8,30 +8,30 @@ Adafruit_NeoPixel strip1 = Adafruit_NeoPixel(NUM_LEDS1, ESP_LED_PIN1, NEO_GRB + 
 Adafruit_NeoPixel strip2 = Adafruit_NeoPixel(NUM_LEDS2, ESP_LED_PIN2, NEO_GRB + NEO_KHZ800);
 
 void RgbLed::turn_led_off() {
-    set_led_to_color(0, 0, 0);
+    set_all_leds_to_color(0, 0, 0);
 }
 
 void RgbLed::set_led_red() {
-    set_led_to_color(255, 0, 0);
+    set_all_leds_to_color(255, 0, 0);
 }
 
 void RgbLed::set_led_green() {
-    set_led_to_color(0, 255, 0);
+    set_all_leds_to_color(0, 255, 0);
 }
 
 void RgbLed::set_led_blue() {
-    set_led_to_color(0, 0, 255);
+    set_all_leds_to_color(0, 0, 255);
 }
 
 void RgbLed::set_led_white() {
-    set_led_to_color(255, 255, 255);
+    set_all_leds_to_color(255, 255, 255);
 }
 
 void RgbLed::set_led_purple() {
-    set_led_to_color(255, 0, 255);
+    set_all_leds_to_color(255, 0, 255);
 }
 
-void RgbLed::set_led_to_color(uint8_t red, uint8_t green, uint8_t blue) {
+void RgbLed::set_all_leds_to_color(uint8_t red, uint8_t green, uint8_t blue) {
     // strip.setPixelColor(0, strip.Color(red, green, blue));
     // stripe.show();
 
@@ -71,7 +71,7 @@ void RgbLed::update() {
     uint8_t b = breathMin[2] + factor * (breathMax[2] - breathMin[2]);
     
     // Set the color
-    set_led_to_color(r, g, b);
+    set_all_leds_to_color(r, g, b);
     
     // Update progress
     float progressStep = 1.0 / 255.0;
@@ -82,7 +82,7 @@ void RgbLed::update() {
         // We've faded out completely, stop breathing and ensure LEDs are off
         isBreathing = false;
         isFadingOut = false;
-        set_led_to_color(0, 0, 0);
+        set_all_leds_to_color(0, 0, 0);
         return;
     }
     
@@ -144,4 +144,41 @@ void RgbLed::fadeOut() {
     
     // Add the isFadingOut flag as suggested in previous solution
     isFadingOut = true;
+}
+
+// Implementation of individual LED control methods
+void RgbLed::set_top_left_led(uint8_t red, uint8_t green, uint8_t blue) {
+    // Assuming strip1[0] is top left LED
+    strip1.setPixelColor(0, strip1.Color(red, green, blue));
+    strip1.show();
+}
+
+void RgbLed::set_top_right_led(uint8_t red, uint8_t green, uint8_t blue) {
+    // Assuming strip1[1] is top right LED
+    strip1.setPixelColor(1, strip1.Color(red, green, blue));
+    strip1.show();
+}
+
+void RgbLed::set_middle_left_led(uint8_t red, uint8_t green, uint8_t blue) {
+    // Assuming strip2[0] is middle left LED
+    strip2.setPixelColor(0, strip2.Color(red, green, blue));
+    strip2.show();
+}
+
+void RgbLed::set_middle_right_led(uint8_t red, uint8_t green, uint8_t blue) {
+    // Assuming strip2[1] is middle right LED
+    strip2.setPixelColor(1, strip2.Color(red, green, blue));
+    strip2.show();
+}
+
+void RgbLed::set_back_left_led(uint8_t red, uint8_t green, uint8_t blue) {
+    // Assuming strip2[2] is back left LED
+    strip2.setPixelColor(2, strip2.Color(red, green, blue));
+    strip2.show();
+}
+
+void RgbLed::set_back_right_led(uint8_t red, uint8_t green, uint8_t blue) {
+    // Assuming strip2[3] is back right LED
+    strip2.setPixelColor(3, strip2.Color(red, green, blue));
+    strip2.show();
 }

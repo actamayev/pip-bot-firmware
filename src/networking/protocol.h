@@ -9,7 +9,8 @@ enum class DataMessageType : uint8_t {
     SPEAKER_MUTE = 3,
     BALANCE_CONTROL = 4,
     UPDATE_BALANCE_PIDS = 5,
-    UPDATE_LIGHTS = 6
+    UPDATE_LIGHT_ANIMATION = 6,
+    UPDATE_LED_COLORS = 7
 };
 
 // Sound types
@@ -48,5 +49,31 @@ struct NewBalancePids {
     float deadbandAngle;        // 4 bytes
     float maxStableRotation;    // 4 bytes
     float minEffectivePwm;    // 4 bytes
+};
+
+struct NewLightColors { 
+    uint8_t topLeftRed;
+    uint8_t topLeftGreen;
+    uint8_t topLeftBlue;
+    
+    uint8_t topRightRed;
+    uint8_t topRightGreen;
+    uint8_t topRightBlue;
+    
+    uint8_t middleLeftRed;
+    uint8_t middleLeftGreen;
+    uint8_t middleLeftBlue;
+    
+    uint8_t middleRightRed;
+    uint8_t middleRightGreen;
+    uint8_t middleRightBlue;
+    
+    uint8_t backLeftRed;
+    uint8_t backLeftGreen;
+    uint8_t backLeftBlue;
+    
+    uint8_t backRightRed;
+    uint8_t backRightGreen;
+    uint8_t backRightBlue;
 };
 

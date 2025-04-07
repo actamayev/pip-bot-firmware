@@ -29,8 +29,14 @@ class RgbLed {
         void pauseBreathing();
         void fadeOut();
 
+        void set_top_left_led(uint8_t red, uint8_t green, uint8_t blue);
+        void set_top_right_led(uint8_t red, uint8_t green, uint8_t blue);
+        void set_middle_left_led(uint8_t red, uint8_t green, uint8_t blue);
+        void set_middle_right_led(uint8_t red, uint8_t green, uint8_t blue);
+        void set_back_left_led(uint8_t red, uint8_t green, uint8_t blue);
+        void set_back_right_led(uint8_t red, uint8_t green, uint8_t blue);
     private:
-        void set_led_to_color(uint8_t red, uint8_t green, uint8_t blue);  
+        void set_all_leds_to_color(uint8_t red, uint8_t green, uint8_t blue);  
         uint8_t breathMin[3] = {0, 0, 0}; // Minimum RGB values
         uint8_t breathMax[3] = {0, 0, 0}; // Maximum RGB values
         float breathProgress = 0.0; // 0.0 to 1.0 to track position in the cycle
