@@ -76,6 +76,8 @@ class RgbLed {
         int rainbowHue = 0;
 
         uint32_t colorHSV(uint8_t h, uint8_t s = 255, uint8_t v = 255);
+        void updateBreathingColor();
+        bool processLedUpdate(int ledIndex, uint8_t red, uint8_t green, uint8_t blue);
     };
 
 extern RgbLed rgbLed;

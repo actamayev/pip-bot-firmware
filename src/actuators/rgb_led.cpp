@@ -189,27 +189,14 @@ void RgbLed::startBreathing(uint8_t redMin, uint8_t redMax,
     uint8_t blueMin, uint8_t blueMax, 
     int speed
 ) {
-    // Check if top-left LED has a default color set
-    if (defaultColorsSet[0]) {
-        breathMin[0] = 0.1 * defaultColors[0][0]; // starts at 10% brightness
-        breathMin[1] = 0.1 * defaultColors[0][1];
-        breathMin[2] = 0.1 * defaultColors[0][2];
-
-        // Use top-left LED color as max values
-        breathMax[0] = defaultColors[0][0];
-        breathMax[1] = defaultColors[0][1];
-        breathMax[2] = defaultColors[0][2];
-    } else {
-        // Fall back to provided parameters
-        breathMin[0] = redMin;
-        breathMin[1] = greenMin;
-        breathMin[2] = blueMin;
-
-        breathMax[0] = redMax;
-        breathMax[1] = greenMax;
-        breathMax[2] = blueMax;
-    }
-
+    // Stop other animations
+    isStrobing = false;
+    isRainbow = false;
+    isFadingOut = false;
+    
+    // Use default colors from the top-left LED
+    updateBreathingColor();
+    
     breatheSpeed = speed;
     breathProgress = 0.0;
     breatheDirection = true;
@@ -276,85 +263,74 @@ void RgbLed::fadeOut() {
     isFadingOut = true;
 }
 
-// Implementation of individual LED control methods
-void RgbLed::set_top_left_led(uint8_t red, uint8_t green, uint8_t blue) {
-    // If we're not in an animation, store the default color for this LED
-    if (!isBreathing && !isRainbow && !isStrobing && !isFadingOut) {
-        defaultColors[0][0] = red;
-        defaultColors[0][1] = green;
-        defaultColors[0][2] = blue;
-        defaultColorsSet[0] = true;
+// Add to rgb_led.cpp
+void RgbLed::updateBreathingColor() {
+    // Use top-left LED's default color for breathing
+    if (defaultColorsSet[0]) {
+        breathMin[0] = 0.1 * defaultColors[0][0]; // starts at 10% brightness
+        breathMin[1] = 0.1 * defaultColors[0][1];
+        breathMin[2] = 0.1 * defaultColors[0][2];
+
+        breathMax[0] = defaultColors[0][0];
+        breathMax[1] = defaultColors[0][1];
+        breathMax[2] = defaultColors[0][2];
     }
-    
+}
+
+void RgbLed::set_top_left_led(uint8_t red, uint8_t green, uint8_t blue) {
+    if (!processLedUpdate(0, red, green, blue)) return;
+
     strip1.setPixelColor(0, strip1.Color(red, green, blue));
     strip1.show();
 }
 
 void RgbLed::set_top_right_led(uint8_t red, uint8_t green, uint8_t blue) {
-    // If we're not in an animation, store the default color for this LED
-    if (!isBreathing && !isRainbow && !isStrobing && !isFadingOut) {
-        defaultColors[1][0] = red;
-        defaultColors[1][1] = green;
-        defaultColors[1][2] = blue;
-        defaultColorsSet[1] = true;
-    }
+    if (!processLedUpdate(1, red, green, blue)) return;
     
     strip1.setPixelColor(1, strip1.Color(red, green, blue));
     strip1.show();
 }
 
 void RgbLed::set_middle_left_led(uint8_t red, uint8_t green, uint8_t blue) {
-    // If we're not in an animation, store the default color for this LED
-    if (!isBreathing && !isRainbow && !isStrobing && !isFadingOut) {
-        defaultColors[2][0] = red;
-        defaultColors[2][1] = green;
-        defaultColors[2][2] = blue;
-        defaultColorsSet[2] = true;
-    }
+    if (!processLedUpdate(2, red, green, blue)) return;
     
     strip2.setPixelColor(0, strip2.Color(red, green, blue));
     strip2.show();
 }
 
 void RgbLed::set_middle_right_led(uint8_t red, uint8_t green, uint8_t blue) {
-    // If we're not in an animation, store the default color for this LED
-    if (!isBreathing && !isRainbow && !isStrobing && !isFadingOut) {
-        defaultColors[3][0] = red;
-        defaultColors[3][1] = green;
-        defaultColors[3][2] = blue;
-        defaultColorsSet[3] = true;
-    }
+    if (!processLedUpdate(3, red, green, blue)) return;
     
     strip2.setPixelColor(1, strip2.Color(red, green, blue));
     strip2.show();
 }
 
 void RgbLed::set_back_left_led(uint8_t red, uint8_t green, uint8_t blue) {
-    // If we're not in an animation, store the default color for this LED
-    if (!isBreathing && !isRainbow && !isStrobing && !isFadingOut) {
-        defaultColors[4][0] = red;
-        defaultColors[4][1] = green;
-        defaultColors[4][2] = blue;
-        defaultColorsSet[4] = true;
-    }
+    if (!processLedUpdate(4, red, green, blue)) return;
     
     strip2.setPixelColor(2, strip2.Color(red, green, blue));
     strip2.show();
 }
 
 void RgbLed::set_back_right_led(uint8_t red, uint8_t green, uint8_t blue) {
-    // If we're not in an animation, store the default color for this LED
-    if (!isBreathing && !isRainbow && !isStrobing && !isFadingOut) {
-        defaultColors[5][0] = red;
-        defaultColors[5][1] = green;
-        defaultColors[5][2] = blue;
-        defaultColorsSet[5] = true;
-    }
-    
+    if (!processLedUpdate(5, red, green, blue)) return;
+
     strip2.setPixelColor(3, strip2.Color(red, green, blue));
     strip2.show();
 }
-
+// Add to rgb_led.h in the private section
+bool RgbLed::processLedUpdate(int ledIndex, uint8_t red, uint8_t green, uint8_t blue) {
+    if (isRainbow) return false;
+    
+    defaultColors[ledIndex][0] = red;
+    defaultColors[ledIndex][1] = green;
+    defaultColors[ledIndex][2] = blue;
+    defaultColorsSet[ledIndex] = true;
+    
+    if (isBreathing) updateBreathingColor();
+    
+    return true;
+}
 // Updated stopAllAnimations method to restore all LED defaults
 void RgbLed::stopAllAnimations() {
     isBreathing = false;
