@@ -175,15 +175,23 @@ void LabDemoManager::handleBalanceCommand(BalanceStatus status) {
     }
 }
 
-void LabDemoManager::handleLightCommand(LightStatus lightStatus) {
-    if (lightStatus == LightStatus::BREATHING) {
+void LabDemoManager::handleLightCommand(LightAnimationStatus lightAnimationStatus) {
+    if (lightAnimationStatus == LightAnimationStatus::BREATHING) {
         rgbLed.startBreathing(15, 200, 15, 200, 15, 200, 2000);
-    } else if (lightStatus == LightStatus::TURN_OFF) {
+    } else if (lightAnimationStatus == LightAnimationStatus::TURN_OFF) {
         rgbLed.stopBreathing();
-    } else if (lightStatus == LightStatus::FADE_OUT) {
+    } else if (lightAnimationStatus == LightAnimationStatus::FADE_OUT) {
         rgbLed.fadeOut();
-    } else if (lightStatus == LightStatus::PAUSE_BREATHING) {
+    } else if (lightAnimationStatus == LightAnimationStatus::PAUSE_BREATHING) {
         rgbLed.pauseBreathing();
+    } else if (lightAnimationStatus == LightAnimationStatus::STROBE) {
+        // Strobe white at 100ms interval
+        rgbLed.startStrobe(255, 255, 255, 100);
+    } else if (lightAnimationStatus == LightAnimationStatus::RAINBOW) {
+        // Rainbow animation with 20ms per step
+        rgbLed.startRainbow(20);
+    } else if (lightAnimationStatus == LightAnimationStatus::NO_ANIMATION) {
+        rgbLed.stopAllAnimations();
     }
 }
 

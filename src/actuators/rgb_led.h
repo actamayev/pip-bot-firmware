@@ -35,6 +35,10 @@ class RgbLed {
         void set_middle_right_led(uint8_t red, uint8_t green, uint8_t blue);
         void set_back_left_led(uint8_t red, uint8_t green, uint8_t blue);
         void set_back_right_led(uint8_t red, uint8_t green, uint8_t blue);
+        void startStrobe(uint8_t red, uint8_t green, uint8_t blue, int speed);
+        void startRainbow(int speed);
+        void stopAllAnimations();
+
     private:
         void set_all_leds_to_color(uint8_t red, uint8_t green, uint8_t blue);  
         uint8_t breathMin[3] = {0, 0, 0}; // Minimum RGB values
@@ -50,6 +54,18 @@ class RgbLed {
         uint8_t getCurrentBlue() { return currentBlue; }
 
         bool isFadingOut = false;  // Add this new flag
-};
+
+        bool isStrobing = false;
+        bool isRainbow = false;
+        unsigned long lastStrobeUpdate = 0;
+        unsigned long lastRainbowUpdate = 0;
+        int strobeSpeed = 0;
+        int rainbowSpeed = 0;
+        uint8_t strobeColor[3] = {0, 0, 0};
+        bool strobeState = false;
+        int rainbowHue = 0;
+
+        uint32_t colorHSV(uint8_t h, uint8_t s = 255, uint8_t v = 255);
+    };
 
 extern RgbLed rgbLed;

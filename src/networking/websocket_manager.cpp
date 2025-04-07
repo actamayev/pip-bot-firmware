@@ -175,10 +175,8 @@ void WebSocketManager::handleBinaryMessage(WebsocketsMessage message) {
             if (length != 2) {
                 Serial.println("Invalid balance control message length");
             } else {
-                LightStatus lightStatus = static_cast<LightStatus>(data[1]);
-                Serial.print("Light Status: ");
-                Serial.println(lightStatus == LightStatus::BREATHING ? "Breathing" : "Not breathing");
-                LabDemoManager::getInstance().handleLightCommand(lightStatus);
+                LightAnimationStatus lightAnimationStatus = static_cast<LightAnimationStatus>(data[1]);
+                LabDemoManager::getInstance().handleLightCommand(lightAnimationStatus);
             }
             break;
         case DataMessageType::UPDATE_LED_COLORS:

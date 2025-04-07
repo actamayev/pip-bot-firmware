@@ -24,7 +24,7 @@ class LabDemoManager : public Singleton<LabDemoManager> {
         void handleSpeakerMute(SpeakerStatus status);
         void handleBalanceCommand(BalanceStatus enableBalancing);
         void handleChangePidsCommand(NewBalancePids newBalancePids);
-        void handleLightCommand(LightStatus lightStatus);
+        void handleLightCommand(LightAnimationStatus lightAnimationStatus);
         void handleNewLightColors(NewLightColors newLightColors);
 
     private:

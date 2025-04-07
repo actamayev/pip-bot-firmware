@@ -31,11 +31,14 @@ enum class BalanceStatus : uint8_t {
     BALANCED = 1
 };
 
-enum class LightStatus : uint8_t {
-    BREATHING = 0,
-    TURN_OFF = 1,
-    FADE_OUT = 2,
-    PAUSE_BREATHING = 3
+enum class LightAnimationStatus : uint8_t {
+    NO_ANIMATION = 0,
+    BREATHING = 1,
+    RAINBOW = 2,
+    STROBE = 3,
+    TURN_OFF = 4,
+    FADE_OUT = 5,
+    PAUSE_BREATHING = 6
 };
 
 struct NewBalancePids {

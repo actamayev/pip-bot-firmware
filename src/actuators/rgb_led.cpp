@@ -50,46 +50,166 @@ void RgbLed::set_all_leds_to_color(uint8_t red, uint8_t green, uint8_t blue) {
     strip2.show();
 }
 
+void RgbLed::startStrobe(uint8_t red, uint8_t green, uint8_t blue, int speed) {
+    // Stop other animations
+    isBreathing = false;
+    isRainbow = false;
+    isFadingOut = false;
+    
+    // Set up strobe parameters
+    strobeColor[0] = red;
+    strobeColor[1] = green;
+    strobeColor[2] = blue;
+    strobeSpeed = speed;
+    strobeState = false;
+    isStrobing = true;
+    lastStrobeUpdate = millis();
+}
+
+void RgbLed::startRainbow(int speed) {
+    // Stop other animations
+    isBreathing = false;
+    isStrobing = false;
+    isFadingOut = false;
+    
+    // Set up rainbow parameters
+    rainbowSpeed = speed;
+    rainbowHue = 0;
+    isRainbow = true;
+    lastRainbowUpdate = millis();
+}
+
+void RgbLed::stopAllAnimations() {
+    isBreathing = false;
+    isStrobing = false;
+    isRainbow = false;
+    isFadingOut = false;
+    
+    // Keep the current color displayed (don't turn off LEDs)
+}
+
+// Modify the update method to include strobe and rainbow animations
 void RgbLed::update() {
-    if (!isBreathing) return;
-    
     unsigned long currentTime = millis();
-    unsigned long timePerStep = breatheSpeed / 255;
-    timePerStep = max(1UL, timePerStep);
     
-    if (currentTime - lastBreathUpdate < timePerStep) return;
-    lastBreathUpdate = currentTime;
-    
-    float factor;
-    
-    // Calculate the breathing factor
-    factor = (sin(breathProgress * PI) + 1.0) / 2.0;
-    
-    // Interpolate between min and max for each color
-    uint8_t r = breathMin[0] + factor * (breathMax[0] - breathMin[0]);
-    uint8_t g = breathMin[1] + factor * (breathMax[1] - breathMin[1]);
-    uint8_t b = breathMin[2] + factor * (breathMax[2] - breathMin[2]);
-    
-    // Set the color
-    set_all_leds_to_color(r, g, b);
-    
-    // Update progress
-    float progressStep = 1.0 / 255.0;
-    breathProgress += progressStep;
-    
-    // Check if we're fading out and have reached the bottom of the cycle
-    if (isFadingOut && breathProgress >= 1.0) {
-        // We've faded out completely, stop breathing and ensure LEDs are off
-        isBreathing = false;
-        isFadingOut = false;
-        set_all_leds_to_color(0, 0, 0);
-        return;
+    // Handle breathing animation
+    if (isBreathing) {
+        unsigned long timePerStep = breatheSpeed / 255;
+        timePerStep = max(1UL, timePerStep);
+        
+        if (currentTime - lastBreathUpdate < timePerStep) return;
+        lastBreathUpdate = currentTime;
+        
+        float factor;
+        
+        // Calculate the breathing factor
+        factor = (sin(breathProgress * PI) + 1.0) / 2.0;
+        
+        // Interpolate between min and max for each color
+        uint8_t r = breathMin[0] + factor * (breathMax[0] - breathMin[0]);
+        uint8_t g = breathMin[1] + factor * (breathMax[1] - breathMin[1]);
+        uint8_t b = breathMin[2] + factor * (breathMax[2] - breathMin[2]);
+        
+        // Set the color
+        set_all_leds_to_color(r, g, b);
+        
+        // Update progress
+        float progressStep = 1.0 / 255.0;
+        breathProgress += progressStep;
+        
+        // Check if we're fading out and have reached the bottom of the cycle
+        if (isFadingOut && breathProgress >= 1.0) {
+            // We've faded out completely, stop breathing and ensure LEDs are off
+            isBreathing = false;
+            isFadingOut = false;
+            set_all_leds_to_color(0, 0, 0);
+            return;
+        }
+        
+        // For normal breathing, reset when we complete a full cycle
+        if (breathProgress >= 2.0) {
+            breathProgress = 0.0;
+        }
     }
     
-    // For normal breathing, reset when we complete a full cycle
-    if (breathProgress >= 2.0) {
-        breathProgress = 0.0;
+    // Handle strobe animation
+    if (isStrobing) {
+        if (currentTime - lastStrobeUpdate >= strobeSpeed) {
+            lastStrobeUpdate = currentTime;
+            strobeState = !strobeState;
+            
+            if (strobeState) {
+                // ON state - use the set color
+                set_all_leds_to_color(strobeColor[0], strobeColor[1], strobeColor[2]);
+            } else {
+                // OFF state
+                set_all_leds_to_color(0, 0, 0);
+            }
+        }
     }
+    
+    // Handle rainbow animation
+    if (isRainbow) {
+        if (currentTime - lastRainbowUpdate >= rainbowSpeed) {
+            lastRainbowUpdate = currentTime;
+            
+            // Increment hue to cycle through the rainbow
+            rainbowHue = (rainbowHue + 1) % 256;
+            
+            // Convert HSV to RGB - simplified rainbow effect
+            // Based on FastLED's rainbow algorithm
+            for (int i = 0; i < NUM_LEDS1; i++) {
+                int pixelHue = (rainbowHue + (i * 256 / NUM_LEDS1)) % 256;
+                strip1.setPixelColor(i, colorHSV(pixelHue));
+            }
+            
+            for (int i = 0; i < NUM_LEDS2; i++) {
+                int pixelHue = (rainbowHue + (i * 256 / NUM_LEDS2)) % 256;
+                strip2.setPixelColor(i, colorHSV(pixelHue));
+            }
+            
+            strip1.show();
+            strip2.show();
+        }
+    }
+}
+// Helper function to convert HSV to RGB
+// h: 0-255, s: 0-255, v: 0-255
+// Implementation with default parameters (only one function needed)
+uint32_t RgbLed::colorHSV(uint8_t h, uint8_t s, uint8_t v) {
+    // Convert HSV to RGB
+    uint8_t region, remainder, p, q, t;
+    uint8_t r, g, b;
+    
+    region = h / 43;
+    remainder = (h - (region * 43)) * 6; 
+    
+    p = (v * (255 - s)) >> 8;
+    q = (v * (255 - ((s * remainder) >> 8))) >> 8;
+    t = (v * (255 - ((s * (255 - remainder)) >> 8))) >> 8;
+    
+    switch (region) {
+        case 0:
+            r = v; g = t; b = p;
+            break;
+        case 1:
+            r = q; g = v; b = p;
+            break;
+        case 2:
+            r = p; g = v; b = t;
+            break;
+        case 3:
+            r = p; g = q; b = v;
+            break;
+        case 4:
+            r = t; g = p; b = v;
+            break;
+        default:
+            r = v; g = p; b = q;
+            break;
+    }
+    
+    return strip1.Color(r, g, b);
 }
 
 // TODO: Starts at the max brightness
