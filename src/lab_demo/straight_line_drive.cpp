@@ -113,11 +113,11 @@ void StraightLineDrive::update(int16_t& leftSpeed, int16_t& rightSpeed) {
         leftAdjustment = -leftAdjustment;
         rightAdjustment = -rightAdjustment;
     }
-    
+
     // Apply adjustments but preserve the average speed
-    leftSpeed = leftSpeed + leftAdjustment;
-    rightSpeed = rightSpeed + rightAdjustment;
-    
+    leftSpeed += leftAdjustment;
+    rightSpeed += rightAdjustment;
+
     // Constrain to valid range
     leftSpeed = constrain(leftSpeed, -255, 255);
     rightSpeed = constrain(rightSpeed, -255, 255);
