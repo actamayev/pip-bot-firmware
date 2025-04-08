@@ -5,7 +5,7 @@
 #include "../utils/singleton.h"
 #include "../sensors/sensors.h"
 #include "./balance_controller.h"  
-#include "../actuators/rgb_led.h"
+#include "../actuators/led/rgb_led.h"
 #include "../actuators/speaker.h"
 #include "../networking/protocol.h"
 #include "../actuators/motor_driver.h"

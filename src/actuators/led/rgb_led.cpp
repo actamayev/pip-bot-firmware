@@ -47,14 +47,20 @@ void RgbLed::startStrobe(uint8_t red, uint8_t green, uint8_t blue, int speed) {
     lastStrobeUpdate = millis();
 }
 
-void RgbLed::startRainbow(int speed) {
+void RgbLed::startRainbow(int cycleTime) {
     // Stop other animations
     isBreathing = false;
     isStrobing = false;
     isFadingOut = false;
     
     // Set up rainbow parameters
-    rainbowSpeed = speed;
+    rainbowCycleTime = cycleTime;
+    
+    // Calculate step time based on cycle time
+    // For a full rainbow cycle (256 steps), distribute them over the cycle time
+    rainbowStepTime = rainbowCycleTime / 256;
+    rainbowStepTime = max(1UL, rainbowStepTime); // Ensure minimum 1ms step time
+    
     rainbowHue = 0;
     isRainbow = true;
     lastRainbowUpdate = millis();
@@ -122,7 +128,7 @@ void RgbLed::update() {
     
     // Handle rainbow animation
     else if (isRainbow) {
-        if (currentTime - lastRainbowUpdate >= rainbowSpeed) {
+        if (currentTime - lastRainbowUpdate >= rainbowStepTime) {
             lastRainbowUpdate = currentTime;
             
             // Slowly rotate the entire rainbow pattern
@@ -194,11 +200,7 @@ uint32_t RgbLed::colorHSV(uint8_t h, uint8_t s, uint8_t v) {
     return strip1.Color(r, g, b);
 }
 
-void RgbLed::startBreathing(uint8_t redMin, uint8_t redMax, 
-    uint8_t greenMin, uint8_t greenMax, 
-    uint8_t blueMin, uint8_t blueMax, 
-    int speed
-) {
+void RgbLed::startBreathing(int speed) {
     // Stop other animations
     isStrobing = false;
     isRainbow = false;

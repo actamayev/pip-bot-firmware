@@ -4,7 +4,7 @@
 #include "../utils/utils.h"
 #include "../utils/singleton.h"
 #include "../sensors/sensors.h"
-#include "../actuators/rgb_led.h"
+#include "../actuators/led/rgb_led.h"
 #include "../networking/protocol.h"
 #include "../actuators/motor_driver.h"
 

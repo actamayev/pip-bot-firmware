@@ -166,9 +166,7 @@ void LabDemoManager::handleBalanceCommand(BalanceStatus status) {
 
 void LabDemoManager::handleLightCommand(LightAnimationStatus lightAnimationStatus) {
     if (lightAnimationStatus == LightAnimationStatus::BREATHING) {
-        // Use the same speed (2000) but let the modified startBreathing 
-        // method choose the right colors based on top-left LED's default color
-        rgbLed.startBreathing(0, 0, 0, 0, 0, 0, 2000);
+        rgbLed.startBreathing(2000);
     } else if (lightAnimationStatus == LightAnimationStatus::TURN_OFF) {
         rgbLed.stopBreathing();
     } else if (lightAnimationStatus == LightAnimationStatus::FADE_OUT) {
@@ -190,7 +188,7 @@ void LabDemoManager::handleLightCommand(LightAnimationStatus lightAnimationStatu
         }
     } else if (lightAnimationStatus == LightAnimationStatus::RAINBOW) {
         // Rainbow animation with 20ms per step
-        rgbLed.startRainbow(20);
+        rgbLed.startRainbow(2000);
     } else if (lightAnimationStatus == LightAnimationStatus::NO_ANIMATION) {
         rgbLed.stopAllAnimations();
         // The stopAllAnimations method now handles restoring individual LED default colors

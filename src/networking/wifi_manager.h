@@ -8,7 +8,7 @@
 #include "../utils/structs.h"
 #include "../utils/singleton.h"
 #include "./websocket_manager.h"
-#include "../actuators/rgb_led.h"
+#include "../actuators/led/rgb_led.h"
 #include "../sensors/encoder_manager.h"
 #include "../wifi_selection/wifi_selection_manager.h"
 
