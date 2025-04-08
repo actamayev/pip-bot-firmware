@@ -67,10 +67,8 @@ class LedAnimations {
         void updateBreathing();
         void updateStrobing();
         void updateRainbow();
-        uint32_t colorHSV(uint8_t h, uint8_t s = maxBrightness, uint8_t v = maxBrightness);
+        uint32_t colorHSV(uint8_t h, uint8_t s = MAX_LED_BRIGHTNESS, uint8_t v = MAX_LED_BRIGHTNESS);
         void setAllLeds(uint8_t red, uint8_t green, uint8_t blue);
-
-        const static int maxBrightness = 150;
 };
 
 extern LedAnimations ledAnimations;

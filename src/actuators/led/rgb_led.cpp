@@ -12,23 +12,23 @@ void RgbLed::turn_led_off() {
 }
 
 void RgbLed::set_led_red() {
-    set_all_leds_to_color(255, 0, 0);
+    set_all_leds_to_color(MAX_LED_BRIGHTNESS, 0, 0);
 }
 
 void RgbLed::set_led_green() {
-    set_all_leds_to_color(0, 255, 0);
+    set_all_leds_to_color(0, MAX_LED_BRIGHTNESS, 0);
 }
 
 void RgbLed::set_led_blue() {
-    set_all_leds_to_color(0, 0, 255);
+    set_all_leds_to_color(0, 0, MAX_LED_BRIGHTNESS);
 }
 
 void RgbLed::set_led_white() {
-    set_all_leds_to_color(255, 255, 255);
+    set_all_leds_to_color(MAX_LED_BRIGHTNESS, MAX_LED_BRIGHTNESS, MAX_LED_BRIGHTNESS);
 }
 
 void RgbLed::set_led_purple() {
-    set_all_leds_to_color(255, 0, 255);
+    set_all_leds_to_color(MAX_LED_BRIGHTNESS, 0, MAX_LED_BRIGHTNESS);
 }
 
 void RgbLed::set_all_leds_to_color(uint8_t red, uint8_t green, uint8_t blue) {
