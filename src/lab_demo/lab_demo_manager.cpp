@@ -93,17 +93,6 @@ void LabDemoManager::executeCommand(int16_t leftSpeed, int16_t rightSpeed) {
         StraightLineDrive::getInstance().disable();
     }
 
-    // Update LED based on motor direction (unchanged)
-    if (leftSpeed == 0 && rightSpeed == 0) {
-        rgbLed.turn_led_off();
-    } else if (leftSpeed > 0 && rightSpeed > 0) {
-        rgbLed.set_led_blue();
-    } else if (leftSpeed < 0 && rightSpeed < 0) {
-        rgbLed.set_led_red();
-    } else {
-        rgbLed.set_led_green();
-    }
-    
     isExecutingCommand = true;
 }
 

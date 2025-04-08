@@ -38,7 +38,8 @@ enum class LightAnimationStatus : uint8_t {
     STROBE = 3,
     TURN_OFF = 4,
     FADE_OUT = 5,
-    PAUSE_BREATHING = 6
+    PAUSE_BREATHING = 6,
+    SNAKE = 7
 };
 
 struct NewBalancePids {
