@@ -6,11 +6,11 @@
 #include "./user_code/user_code.h"
 #include "./utils/show_chip_info.h"
 #include "./utils/sensor_loggers.h"
-#include "./actuators/led/rgb_led.h"
 #include "./sensors/encoder_manager.h"
 #include "./networking/wifi_manager.h"
 #include "./actuators/display_screen.h"
 #include "./lab_demo/lab_demo_manager.h"
+#include "./actuators/led/rgb_led.h"
 #include "./networking/websocket_manager.h"
 #include "./networking/send_data_to_server.h"
 #include "./wifi_selection/wifi_selection_manager.h"
@@ -34,7 +34,7 @@ void SensorAndUserCodeTask(void * parameter) {
 
     // Main sensor and user code loop
     for(;;) {
-        rgbLed.update();
+        ledAnimations.update();
         if (!Sensors::getInstance().sensors_initialized) continue;
         Buttons::getInstance().update();  // Update button states
         // multizoneTofLogger();
