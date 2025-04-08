@@ -179,13 +179,6 @@ void WebSocketManager::handleBinaryMessage(WebsocketsMessage message) {
                 LabDemoManager::getInstance().handleLightCommand(lightAnimationStatus);
             }
             break;
-        case DataMessageType::UPDATE_MAX_DRIVE_SPEED:
-            if (length != 2) {
-                Serial.println("Invalid update max drive speed");
-            } else {
-                LabDemoManager::getInstance().handleChangeMaxSpeedCommand(data[1]);
-            }
-            break;
         case DataMessageType::UPDATE_LED_COLORS:
             if (length != 19) {
                 Serial.println("Invalid update led colors message length");

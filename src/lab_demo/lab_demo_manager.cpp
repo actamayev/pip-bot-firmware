@@ -234,7 +234,3 @@ void LabDemoManager::handleNewLightColors(NewLightColors newLightColors) {
     rgbLed.set_back_left_led(backLeftR, backLeftG, backLeftB);
     rgbLed.set_back_right_led(backRightR, backRightG, backRightB);
 }
-
-void LabDemoManager::handleChangeMaxSpeedCommand(uint8_t newMaxSpeed) {
-    motorDriver.update_max_motor_speed(newMaxSpeed);
-}

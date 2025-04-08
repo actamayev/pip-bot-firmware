@@ -119,11 +119,8 @@ void MotorDriver::update_motor_speeds(bool should_ramp_up, int16_t speed_ramp_in
         }
     }
 
-    float speedRatio = static_cast<float>(_maxMotorSpeedPercent) / 100.0f;
-    
-    // Apply the ratio to the speeds
-    int16_t leftAdjusted = static_cast<int16_t>(_currentLeftSpeed * speedRatio);
-    int16_t rightAdjusted = static_cast<int16_t>(_currentRightSpeed * speedRatio);
+    int16_t leftAdjusted = _currentLeftSpeed;
+    int16_t rightAdjusted = _currentRightSpeed;
 
     // If straight driving is enabled, it will handle the motor control
     if (StraightLineDrive::getInstance().isEnabled()) {
@@ -149,8 +146,4 @@ void MotorDriver::update_motor_speeds(bool should_ramp_up, int16_t speed_ramp_in
             right_motor_forward(-rightAdjusted);
         }
     }
-}
-
-void MotorDriver::update_max_motor_speed(uint8_t newMaxSpeed) {
-    _maxMotorSpeedPercent = constrain(newMaxSpeed, 0, 100);
 }
