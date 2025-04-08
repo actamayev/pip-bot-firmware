@@ -26,6 +26,7 @@ class LabDemoManager : public Singleton<LabDemoManager> {
         void handleChangePidsCommand(NewBalancePids newBalancePids);
         void handleLightCommand(LightAnimationStatus lightAnimationStatus);
         void handleNewLightColors(NewLightColors newLightColors);
+        void handleChangeMaxSpeedCommand(uint8_t newMaxSpeed);
 
     private:
         void updateMotorSpeeds(int16_t leftSpeed, int16_t rightSpeed);

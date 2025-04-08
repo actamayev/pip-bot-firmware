@@ -180,8 +180,6 @@ void LabDemoManager::handleLightCommand(LightAnimationStatus lightAnimationStatu
         ledAnimations.startRainbow(2000);
     } else if (lightAnimationStatus == LightAnimationStatus::NO_ANIMATION) {
         ledAnimations.stopAnimation();
-    } else if (lightAnimationStatus == LightAnimationStatus::SNAKE) {
-        ledAnimations.startSnake();
     }
 }
 
@@ -222,4 +220,8 @@ void LabDemoManager::handleNewLightColors(NewLightColors newLightColors) {
     rgbLed.set_middle_right_led(middleRightR, middleRightG, middleRightB);
     rgbLed.set_back_left_led(backLeftR, backLeftG, backLeftB);
     rgbLed.set_back_right_led(backRightR, backRightG, backRightB);
+}
+
+void LabDemoManager::handleChangeMaxSpeedCommand(uint8_t newMaxSpeed) {
+    motorDriver.update_max_motor_speed(newMaxSpeed);
 }

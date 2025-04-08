@@ -14,7 +14,6 @@ class LedAnimations {
             BREATHING,
             STROBING,
             RAINBOW,
-            SNAKE
         };
         
         // Set the current animation
@@ -22,7 +21,6 @@ class LedAnimations {
         void startStrobing(int speed = 100);
         void startRainbow(int cycleTime = 2000);
         void stopBreathing();
-        void startSnake(int speed = 2000);
 
         // Manage animations
         void stopAnimation();
@@ -37,7 +35,6 @@ class LedAnimations {
         // Update animation colors
         void updateBreathingColor();
         void updateStrobeColor();
-        void updateSnakeColor();
     private:
         Adafruit_NeoPixel& strip1;
         Adafruit_NeoPixel& strip2;
@@ -65,15 +62,6 @@ class LedAnimations {
         unsigned long rainbowStepTime = 0;
         uint8_t rainbowHue = 0;
         unsigned long lastRainbowUpdate = 0;
-        
-        // Snake
-        int snakeSpeed = 100000;
-        unsigned long lastSnakeUpdate = 0;
-        int snakeHeadPosition = 0;
-        uint8_t snakeColor[3] = {0, 0, 0};
-
-        // Add to private methods
-        void updateSnake();
 
         // Helper methods
         void updateBreathing();

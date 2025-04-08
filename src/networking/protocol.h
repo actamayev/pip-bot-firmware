@@ -10,7 +10,8 @@ enum class DataMessageType : uint8_t {
     BALANCE_CONTROL = 4,
     UPDATE_BALANCE_PIDS = 5,
     UPDATE_LIGHT_ANIMATION = 6,
-    UPDATE_LED_COLORS = 7
+    UPDATE_LED_COLORS = 7,
+    UPDATE_MAX_DRIVE_SPEED = 8
 };
 
 // Sound types
@@ -38,8 +39,7 @@ enum class LightAnimationStatus : uint8_t {
     STROBE = 3,
     TURN_OFF = 4,
     FADE_OUT = 5,
-    PAUSE_BREATHING = 6,
-    SNAKE = 7
+    PAUSE_BREATHING = 6
 };
 
 struct NewBalancePids {
