@@ -31,7 +31,7 @@ class MotorDriver {
         unsigned long _lastSpeedUpdateTime = 0;
         static constexpr int16_t SPEED_RAMP_STEP = 50;
         static constexpr unsigned long SPEED_RAMP_INTERVAL = 5;  // ms between updates
-        uint8_t _maxMotorSpeed = 255; // Default to full speed
+        uint8_t _maxMotorSpeedPercent = 100; // Default to full speed
 
 };
 

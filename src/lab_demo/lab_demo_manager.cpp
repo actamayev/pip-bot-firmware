@@ -8,7 +8,8 @@ LabDemoManager::LabDemoManager()
       nextLeftSpeed(0),
       nextRightSpeed(0),
       startLeftCount(0),
-      startRightCount(0) {
+      startRightCount(0),
+      commandStartTime(0) {
 }
 
 void LabDemoManager::handleMotorControl(const uint8_t* data) {
@@ -82,6 +83,9 @@ void LabDemoManager::executeCommand(int16_t leftSpeed, int16_t rightSpeed) {
     startLeftCount = encoderManager._leftEncoder.getCount();
     startRightCount = encoderManager._rightEncoder.getCount();
 
+    // Start the command timer
+    commandStartTime = millis();
+
     Serial.printf("Motors updated - Left: %d, Right: %d\n", leftSpeed, rightSpeed);
 
     motorDriver.set_motor_speeds(leftSpeed, rightSpeed);
@@ -142,10 +146,19 @@ void LabDemoManager::processPendingCommands() {
         lastDebugTime = millis();
     }
     
-    // Command is complete if either encoder has moved enough
-    if (leftDelta >= MIN_ENCODER_PULSES || rightDelta >= MIN_ENCODER_PULSES) {
-        Serial.printf("Command completed with pulses - Left: %lld, Right: %lld\n", 
-                     leftDelta, rightDelta);
+    // Check for command completion conditions:
+    // 1. Either encoder has moved enough
+    // 2. Command has timed out (1 second)
+    bool encoderThresholdMet = (leftDelta >= MIN_ENCODER_PULSES || rightDelta >= MIN_ENCODER_PULSES);
+    bool commandTimedOut = (millis() - commandStartTime) >= COMMAND_TIMEOUT_MS;
+    
+    if (encoderThresholdMet || commandTimedOut) {
+        if (commandTimedOut) {
+            Serial.println("Command timed out after 1 second - possible motor stall");
+        } else {
+            Serial.printf("Command completed with pulses - Left: %lld, Right: %lld\n", 
+                        leftDelta, rightDelta);
+        }
         
         isExecutingCommand = false;
         

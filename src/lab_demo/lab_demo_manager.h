@@ -39,6 +39,9 @@ class LabDemoManager : public Singleton<LabDemoManager> {
         int64_t startLeftCount;
         int64_t startRightCount;
 
+        unsigned long commandStartTime;
+        static constexpr unsigned long COMMAND_TIMEOUT_MS = 1000; // 1 second timeout
+    
         // Next command (if any)
         bool hasNextCommand;
         int16_t nextLeftSpeed;

@@ -119,7 +119,7 @@ void MotorDriver::update_motor_speeds(bool should_ramp_up, int16_t speed_ramp_in
         }
     }
 
-    float speedRatio = static_cast<float>(_maxMotorSpeed) / 255.0f;
+    float speedRatio = static_cast<float>(_maxMotorSpeedPercent) / 100.0f;
     
     // Apply the ratio to the speeds
     int16_t leftAdjusted = static_cast<int16_t>(_currentLeftSpeed * speedRatio);
@@ -152,5 +152,5 @@ void MotorDriver::update_motor_speeds(bool should_ramp_up, int16_t speed_ramp_in
 }
 
 void MotorDriver::update_max_motor_speed(uint8_t newMaxSpeed) {
-    _maxMotorSpeed = constrain(newMaxSpeed, 0, 255);
+    _maxMotorSpeedPercent = constrain(newMaxSpeed, 0, 100);
 }
