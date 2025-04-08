@@ -91,6 +91,99 @@ void LedAnimations::startRainbow(int cycleTime) {
     lastRainbowUpdate = millis();
 }
 
+void LedAnimations::startSnake(int speed) {
+    // Stop any current animation
+    currentAnimation = NONE;
+    
+    updateSnakeColor();
+    
+    snakeSpeed = speed;
+    snakeHeadPosition = 0;
+    
+    // Set as current animation
+    currentAnimation = SNAKE;
+    isPaused = false;
+    isFadingOut = false;
+    lastSnakeUpdate = millis();
+}
+
+void LedAnimations::updateSnakeColor() {
+    // Use current RGB LED color for the snake head
+    snakeColor[0] = rgbLed.getCurrentRed();
+    snakeColor[1] = rgbLed.getCurrentGreen();
+    snakeColor[2] = rgbLed.getCurrentBlue();
+    
+    // If current color is 0,0,0, use white
+    if (snakeColor[0] == 0 && snakeColor[1] == 0 && snakeColor[2] == 0) {
+        snakeColor[0] = MAX_LED_BRIGHTNESS;
+        snakeColor[1] = MAX_LED_BRIGHTNESS;
+        snakeColor[2] = MAX_LED_BRIGHTNESS;
+    }
+}
+
+void LedAnimations::updateSnake() {
+    unsigned long currentTime = millis();
+    
+    if (currentTime - lastSnakeUpdate < snakeSpeed) return;
+    lastSnakeUpdate = currentTime;
+    
+    // Move the snake head position
+    snakeHeadPosition = (snakeHeadPosition + 1) % 6;
+    
+    // First clear all LEDs
+    setAllLeds(0, 0, 0);
+    
+    // Define the LED mapping (which strip and pixel for each snake position)
+    struct LedMapping {
+        int stripIndex; // 1 for strip1, 2 for strip2
+        int pixelIndex; // pixel index within the strip
+    };
+    
+    LedMapping ledMap[6] = {
+        {1, 1}, // Position 0: Top right    - strip1, pixel 1
+        {1, 0}, // Position 1: Top left     - strip1, pixel 0
+        {2, 0}, // Position 2: Middle left  - strip2, pixel 0
+        {2, 2}, // Position 3: Bottom left  - strip2, pixel 2
+        {2, 3}, // Position 4: Bottom right - strip2, pixel 3
+        {2, 1}  // Position 5: Middle right - strip2, pixel 1
+    };
+    
+    // For each position in the snake (0=head, 5=tail)
+    for (int snakePos = 0; snakePos < 6; snakePos++) {
+        // Calculate which physical position this part of the snake is at
+        int physicalPos = (snakeHeadPosition + snakePos) % 6;
+        
+        // Calculate brightness factor (100%, 80%, 60%, 40%, 20%, 10%)
+        float factor;
+        if (snakePos == 0) {
+            factor = 1.0; // Head at 100%
+        } else if (snakePos == 5) {
+            factor = 0.1; // Tail at 10%
+        } else {
+            factor = 1.0 - (snakePos * 0.2); // Linear decrease
+        }
+        
+        // Calculate brightness-adjusted color
+        uint8_t r = factor * snakeColor[0];
+        uint8_t g = factor * snakeColor[1];
+        uint8_t b = factor * snakeColor[2];
+        
+        // Get the strip and pixel for this physical position
+        LedMapping mapping = ledMap[physicalPos];
+        
+        // Set the LED
+        if (mapping.stripIndex == 1) {
+            strip1.setPixelColor(mapping.pixelIndex, strip1.Color(r, g, b));
+        } else {
+            strip2.setPixelColor(mapping.pixelIndex, strip2.Color(r, g, b));
+        }
+    }
+    
+    // Show the updated strips
+    strip1.show();
+    strip2.show();
+}
+
 void LedAnimations::stopAnimation() {
     currentAnimation = NONE;
     isPaused = false;
@@ -136,6 +229,9 @@ void LedAnimations::update() {
             break;
         case RAINBOW:
             updateRainbow();
+            break;
+        case SNAKE:
+            updateSnake();
             break;
         default:
             break;

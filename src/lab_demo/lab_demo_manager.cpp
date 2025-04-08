@@ -180,7 +180,8 @@ void LabDemoManager::handleLightCommand(LightAnimationStatus lightAnimationStatu
         ledAnimations.startRainbow(2000);
     } else if (lightAnimationStatus == LightAnimationStatus::NO_ANIMATION) {
         ledAnimations.stopAnimation();
-        // The stopAllAnimations method now handles restoring individual LED default colors
+    } else if (lightAnimationStatus == LightAnimationStatus::SNAKE) {
+        ledAnimations.startSnake();
     }
 }
 
