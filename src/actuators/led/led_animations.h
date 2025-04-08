@@ -32,6 +32,9 @@ class LedAnimations {
         AnimationType getCurrentAnimation() const { return currentAnimation; }
         bool isAnimating() const { return currentAnimation != NONE; }
         
+        // Update animation colors
+        void updateBreathingColor();
+        void updateStrobeColor();
     private:
         Adafruit_NeoPixel& strip1;
         Adafruit_NeoPixel& strip2;
@@ -66,9 +69,6 @@ class LedAnimations {
         void updateRainbow();
         uint32_t colorHSV(uint8_t h, uint8_t s = maxBrightness, uint8_t v = maxBrightness);
         void setAllLeds(uint8_t red, uint8_t green, uint8_t blue);
-
-        void updateBreathingColor();
-        void updateStrobeColor();
 
         const static int maxBrightness = 150;
 };

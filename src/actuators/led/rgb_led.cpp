@@ -64,15 +64,29 @@ bool RgbLed::processLedUpdate(int ledIndex, uint8_t red, uint8_t green, uint8_t 
         return false;
     }
     
-    // Stop any other animations
-    ledAnimations.stopAnimation();
+    // Store the current animation type
+    LedAnimations::AnimationType currentAnim = ledAnimations.getCurrentAnimation();
     
+    // Update the default color for this LED
     defaultColors[ledIndex][0] = red;
     defaultColors[ledIndex][1] = green;
     defaultColors[ledIndex][2] = blue;
     defaultColorsSet[ledIndex] = true;
     
-    return true;
+    // If we're in breathing or strobing mode, update the animation colors
+    if (currentAnim == LedAnimations::BREATHING) {
+        ledAnimations.updateBreathingColor();
+        return (ledIndex == 0); // Only return true for top-left LED, which controls breathing color
+    } 
+    else if (currentAnim == LedAnimations::STROBING) {
+        ledAnimations.updateStrobeColor();
+        return (ledIndex == 0); // Only return true for top-left LED, which controls strobe color
+    }
+    else {
+        // For other cases (including NONE), stop animations
+        ledAnimations.stopAnimation();
+        return true;
+    }
 }
 
 void RgbLed::set_top_left_led(uint8_t red, uint8_t green, uint8_t blue) {
