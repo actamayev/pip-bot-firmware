@@ -6,12 +6,12 @@
 #include "./user_code/user_code.h"
 #include "./utils/show_chip_info.h"
 #include "./utils/sensor_loggers.h"
-#include "./actuators/led/led_animations.h"
 #include "./sensors/encoder_manager.h"
 #include "./networking/wifi_manager.h"
 #include "./actuators/display_screen.h"
 #include "./lab_demo/lab_demo_manager.h"
 #include "./networking/websocket_manager.h"
+#include "./actuators/led/led_animations.h"
 #include "./networking/send_data_to_server.h"
 #include "./wifi_selection/wifi_selection_manager.h"
 #include "./wifi_selection/haptic_feedback_manager.h"
@@ -52,13 +52,13 @@ void NetworkTask(void * parameter) {
     // Initialize WiFi and networking components
     Serial.println("Initializing WiFi on Core 1...");
     WiFiManager::getInstance();
-    WiFiManager::getInstance().connectToStoredWiFi();
     Serial.println("WiFi initialization complete on Core 1");
 
     // Main network loop
     for(;;) {
-        HapticFeedbackManager::getInstance().update();
         if (WiFi.status() != WL_CONNECTED) {
+            WiFiManager::getInstance().checkAndReconnectWiFi();
+            HapticFeedbackManager::getInstance().update();
             WifiSelectionManager::getInstance().processNetworkSelection();
         } else {
             // Other network operations can use internal timing
@@ -66,7 +66,6 @@ void NetworkTask(void * parameter) {
             SendDataToServer::getInstance().sendSensorDataToServer();
         }
 
-        // Short delay to yield to other tasks
         // Small delay to avoid overwhelming the websocket and allow IMU data to be processed
         delay(5);
     }

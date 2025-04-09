@@ -8,49 +8,7 @@ WiFiManager::WiFiManager() {
     storeWiFiCredentials("Another Dimension", "Iforgotit123", 0);
     storeWiFiCredentials("NETGEAR08", "breezyshoe123", 1);
 
-	initializeWiFi();
-}
-
-void WiFiManager::initializeWiFi() {
-    // Register event handler for WiFi events
-	// 1/10/25 TODO: The wifi event handler isn't registering correctly.
-    esp_err_t err = esp_event_handler_instance_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &WiFiManager::onWiFiEvent, this, &wifi_event_instance);
-    if (err != ESP_OK) {
-        Serial.print("Failed to register WiFi event handler. Error: ");
-        Serial.println(err);
-    } else {
-        Serial.println("WiFi event handler registered successfully");
-    }
-    esp_event_handler_instance_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &WiFiManager::onIpEvent, this, &ip_event_instance);
-	Serial.println("WiFi event handlers registered");
-}
-
-void WiFiManager::onWiFiEvent(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data) {
-    if (event_base != WIFI_EVENT || event_id != WIFI_EVENT_STA_DISCONNECTED) {
-        return;
-    }
-    wifi_event_sta_disconnected_t* event = (wifi_event_sta_disconnected_t*) event_data;
-	Serial.printf("WiFi disconnected! Reason: %d\n", event->reason);
-	rgbLed.turn_led_off();
-
-	// Reconnect to WiFi
-	WiFiManager* wifiManager = static_cast<WiFiManager*>(arg);
-	wifiManager->connectToStoredWiFi();
-}
-
-void WiFiManager::onIpEvent(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data) {
-    if (WiFi.getMode() != WIFI_STA || event_base != IP_EVENT || event_id != IP_EVENT_STA_GOT_IP) {
-		return;
-	}
-	// Extract IP information from the event data
-	ip_event_got_ip_t* event = static_cast<ip_event_got_ip_t*>(event_data);
-
-	// Convert the esp_ip4_addr_t to IPAddress
-	IPAddress ip(event->ip_info.ip.addr);  // Use the addr directly to create an IPAddress object
-
-	// Print the IP address using the IPAddress class
-	Serial.println("WiFi connected! IP address: " + ip.toString());
-	rgbLed.set_led_blue();
+	connectToStoredWiFi();
 }
 
 WiFiCredentials WiFiManager::getStoredWiFiCredentials() {
@@ -120,6 +78,7 @@ bool WiFiManager::attemptDirectConnectionToSavedNetworks() {
 
 bool WiFiManager::attemptNewWifiConnection(WiFiCredentials wifiCredentials) {
     // Set WiFi mode to Station (client mode)
+    _isConnecting = true;
     WiFi.mode(WIFI_STA);
 
     if (wifiCredentials.ssid.isEmpty()) {
@@ -134,10 +93,9 @@ bool WiFiManager::attemptNewWifiConnection(WiFiCredentials wifiCredentials) {
 
     unsigned long startAttemptTime = millis();
     unsigned long lastPrintTime = startAttemptTime;
-    const unsigned long timeout = 10000;  // 10-second timeout
     const unsigned long printInterval = 100;  // Print dots every 100ms
 
-    while (WiFi.status() != WL_CONNECTED && (millis() - startAttemptTime < timeout)) {
+    while (WiFi.status() != WL_CONNECTED && (millis() - startAttemptTime < CONNECT_TO_SINGLE_NETWORK_TIMEOUT)) {
         // Non-blocking print of dots
         unsigned long currentTime = millis();
         if (currentTime - lastPrintTime >= printInterval) {
@@ -146,6 +104,8 @@ bool WiFiManager::attemptNewWifiConnection(WiFiCredentials wifiCredentials) {
             yield();  // Allow the ESP32 to handle background tasks
         }
     }
+
+    _isConnecting = false;
 
     if (WiFi.status() == WL_CONNECTED) {
         Serial.println("Connected to Wi-Fi!");
@@ -317,4 +277,32 @@ std::vector<WiFiCredentials> WiFiManager::getAllStoredNetworks() {
     
     preferences.end();
     return networks;
+}
+
+void WiFiManager::checkAndReconnectWiFi() {
+    // Check if WiFi is connected or already attempting connection
+    if (WiFi.status() == WL_CONNECTED || _isConnecting) return;
+    unsigned long currentTime = millis();
+
+    if (currentTime - _lastReconnectAttempt < WIFI_RECONNECT_TIMEOUT) return;
+    Serial.println("WiFi disconnected, attempting to reconnect...");
+    
+    // Update last reconnect attempt time
+    _lastReconnectAttempt = currentTime;
+    
+    // Turn off LED to indicate disconnection
+    rgbLed.turn_led_off();
+    
+    // Set connecting flag
+    _isConnecting = true;
+    
+    // Try to reconnect to stored WiFi
+    bool connectionStatus = attemptDirectConnectionToSavedNetworks();
+    
+    // Reset connecting flag
+    _isConnecting = false;
+    
+    if (connectionStatus) {
+        WebSocketManager::getInstance().connectToWebSocket();
+    }
 }
