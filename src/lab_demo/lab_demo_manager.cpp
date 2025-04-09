@@ -178,21 +178,18 @@ void LabDemoManager::handleBalanceCommand(BalanceStatus status) {
 }
 
 void LabDemoManager::handleLightCommand(LightAnimationStatus lightAnimationStatus) {
-    if (lightAnimationStatus == LightAnimationStatus::BREATHING) {
+    if (lightAnimationStatus == LightAnimationStatus::NO_ANIMATION) {
+        ledAnimations.stopAnimation();
+    } else if (lightAnimationStatus == LightAnimationStatus::BREATHING) {
         ledAnimations.startBreathing(2000);
-    } else if (lightAnimationStatus == LightAnimationStatus::TURN_OFF) {
-        ledAnimations.stopBreathing();
-    } else if (lightAnimationStatus == LightAnimationStatus::FADE_OUT) {
-        ledAnimations.fadeOut();
-    } else if (lightAnimationStatus == LightAnimationStatus::PAUSE_BREATHING) {
-        ledAnimations.pauseAnimation();
+    } else if (lightAnimationStatus == LightAnimationStatus::RAINBOW) {
+        ledAnimations.startRainbow(2000);
     } else if (lightAnimationStatus == LightAnimationStatus::STROBE) {
         ledAnimations.startStrobing(100);
-    } else if (lightAnimationStatus == LightAnimationStatus::RAINBOW) {
-        // Rainbow animation with 20ms per step
-        ledAnimations.startRainbow(2000);
-    } else if (lightAnimationStatus == LightAnimationStatus::NO_ANIMATION) {
-        ledAnimations.stopAnimation();
+    } else if (lightAnimationStatus == LightAnimationStatus::TURN_OFF) {
+        ledAnimations.turnOff();
+    } else if (lightAnimationStatus == LightAnimationStatus::FADE_OUT) {
+        ledAnimations.fadeOut();
     }
 }
 

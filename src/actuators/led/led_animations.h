@@ -20,11 +20,10 @@ class LedAnimations {
         void startBreathing(int speed = 2000);
         void startStrobing(int speed = 100);
         void startRainbow(int cycleTime = 2000);
-        void stopBreathing();
+        void turnOff();
 
         // Manage animations
         void stopAnimation();
-        void pauseAnimation();
         void fadeOut();
         void update();
         

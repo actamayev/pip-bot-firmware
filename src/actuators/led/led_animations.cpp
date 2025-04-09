@@ -97,11 +97,6 @@ void LedAnimations::stopAnimation() {
     isFadingOut = false;
 }
 
-void LedAnimations::pauseAnimation() {
-    isPaused = true;
-    // Current LED state is preserved
-}
-
 void LedAnimations::fadeOut() {
     // Set fade parameters
     breathMin[0] = 0;
@@ -268,7 +263,7 @@ uint32_t LedAnimations::colorHSV(uint8_t h, uint8_t s, uint8_t v) {
     return strip1.Color(r, g, b);
 }
 
-void LedAnimations::stopBreathing() {
+void LedAnimations::turnOff() {
     currentAnimation = NONE;
     rgbLed.turn_led_off();
 }
