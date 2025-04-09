@@ -5,6 +5,8 @@
 MessageTokens tokenPositions;
 
 WebSocketManager::WebSocketManager() {
+    wsConnected = false;
+    lastConnectionAttempt = 0;
     if (DEFAULT_ENVIRONMENT == "local") return;
     wsClient.setCACert(rootCACertificate);
 }
@@ -54,13 +56,6 @@ void WebSocketManager::handleJsonMessage(WebsocketsMessage message) {
                 handleFirmwareMetadata(json, tokenCount);
                 break;
             }
-            // else if (eventType == "start-sending-sensor-data") {
-            //     SendDataToServer::getInstance().sendSensorData = true;
-            //     break;
-            // } else if (eventType == "stop-sending-sensor-data") {
-            //     SendDataToServer::getInstance().sendSensorData = false;
-            //     break;
-            // } 
         }
     }
 }
@@ -147,7 +142,7 @@ void WebSocketManager::handleBinaryMessage(WebsocketsMessage message) {
             if (length != 5) {
                 Serial.println("Invalid motor control message length");
             } else {
-                LabDemoManager::getInstance().handleMotorControl(data);
+                MessageProcessor::getInstance().handleMotorControl(data);
             }
             break;
         case DataMessageType::SOUND_COMMAND:
@@ -155,7 +150,7 @@ void WebSocketManager::handleBinaryMessage(WebsocketsMessage message) {
                 Serial.println("Invalid sound command message length");
             } else {
                 SoundType soundType = static_cast<SoundType>(data[1]);
-                LabDemoManager::getInstance().handleSoundCommand(soundType);
+                MessageProcessor::getInstance().handleSoundCommand(soundType);
             }
             break;
         case DataMessageType::SPEAKER_MUTE:
@@ -163,7 +158,7 @@ void WebSocketManager::handleBinaryMessage(WebsocketsMessage message) {
                 Serial.println("Invalid speaker mute message length");
             } else {
                 SpeakerStatus status = static_cast<SpeakerStatus>(data[1]);
-                LabDemoManager::getInstance().handleSpeakerMute(status);
+                MessageProcessor::getInstance().handleSpeakerMute(status);
             }
             break;
         case DataMessageType::BALANCE_CONTROL:
@@ -173,16 +168,33 @@ void WebSocketManager::handleBinaryMessage(WebsocketsMessage message) {
                 BalanceStatus status = static_cast<BalanceStatus>(data[1]);
                 Serial.print("Balance Status: ");
                 Serial.println(status == BalanceStatus::BALANCED ? "BALANCED" : "UNBALANCED");
-                LabDemoManager::getInstance().handleBalanceCommand(status);
+                MessageProcessor::getInstance().handleBalanceCommand(status);
             }
             break;
-            case DataMessageType::UPDATE_BALANCE_PIDS:
-            if (length != 37) { // 1 byte for type + 36 bytes for the struct (9 floats × 4 bytes)
+        case DataMessageType::UPDATE_LIGHT_ANIMATION:
+            if (length != 2) {
+                Serial.println("Invalid balance control message length");
+            } else {
+                LightAnimationStatus lightAnimationStatus = static_cast<LightAnimationStatus>(data[1]);
+                MessageProcessor::getInstance().handleLightCommand(lightAnimationStatus);
+            }
+            break;
+        case DataMessageType::UPDATE_LED_COLORS:
+            if (length != 19) {
+                Serial.println("Invalid update led colors message length");
+            } else {
+                NewLightColors newlightColors;
+                memcpy(&newlightColors, &data[1], sizeof(NewLightColors));
+                MessageProcessor::getInstance().handleNewLightColors(newlightColors);
+            }
+            break;
+        case DataMessageType::UPDATE_BALANCE_PIDS:
+            if (length != 41) { // 1 byte for type + 40 bytes for the struct (10 floats × 4 bytes)
                 Serial.println("Invalid update balance pids message length");
             } else {
                 NewBalancePids newBalancePids;
                 memcpy(&newBalancePids, &data[1], sizeof(NewBalancePids));
-                LabDemoManager::getInstance().handleChangePidsCommand(newBalancePids);
+                MessageProcessor::getInstance().handleChangePidsCommand(newBalancePids);
             }
             break;
         default:
@@ -213,13 +225,15 @@ void WebSocketManager::connectToWebSocket() {
         this->handleMessage(message);
     });
 
-    wsClient.onEvent([](WebsocketsEvent event, String data) {
+    wsClient.onEvent([this](WebsocketsEvent event, String data) {
         switch (event) {
             case WebsocketsEvent::ConnectionOpened:
                 Serial.println("WebSocket connected");
+                this->wsConnected = true;
                 break;
             case WebsocketsEvent::ConnectionClosed:
                 Serial.println("WebSocket disconnected");
+                this->wsConnected = false;
                 break;
             case WebsocketsEvent::GotPing:
                 Serial.println("Got ping");
@@ -230,29 +244,9 @@ void WebSocketManager::connectToWebSocket() {
         }
     });
 
-    // First attempt
-    Serial.println("Attempt 1: Connecting to WebSocket...");
-    if (wsClient.connect(getWsServerUrl())) {
-        sendInitialData();
-        return;
-    }
-
-    Serial.println("WebSocket connection failed. Starting retry sequence...");
-    startAttemptTime = millis();
-    retryCount = 1;  // First retry (second attempt overall)
-    connected = false;
-
-    // Retry loop
-    while (retryCount <= MAX_RETRIES && !connected) {
-        if (attemptConnection()) {
-            connected = true;
-            break;
-        }
-    }
-
-    if (!connected) {
-        Serial.println("All connection attempts failed");
-    }
+    // Initial connection attempt - but actual connection will be managed by pollWebSocket
+    Serial.println("WebSocket connection will be managed by the polling mechanism");
+    lastConnectionAttempt = 0; // Force an immediate connection attempt in the next poll
 }
 
 void WebSocketManager::sendInitialData() {
@@ -266,31 +260,6 @@ void WebSocketManager::sendInitialData() {
 
     WiFi.mode(WIFI_STA);
     wsClient.send(jsonString);
-}
-
-bool WebSocketManager::attemptConnection() {
-    unsigned long currentTime = millis();
-    unsigned long delayPeriod = retryCount * 1000UL;  // Increasing delays: 1s, 2s, 3s, 4s
-
-    if (currentTime - startAttemptTime >= delayPeriod) {
-        Serial.printf("Attempt %d: Connecting to WebSocket...\n", retryCount + 1);
-
-        if (wsClient.connect(getWsServerUrl())) {
-            sendInitialData();
-            return true;
-        }
-
-        Serial.printf("WebSocket connection failed on attempt %d\n", retryCount + 1);
-        if (retryCount < MAX_RETRIES) {
-            Serial.printf("Will retry in %d seconds...\n", retryCount + 1);
-        }
-
-        startAttemptTime = currentTime;
-        retryCount++;
-    }
-
-    yield();
-    return false;
 }
 
 void WebSocketManager::processChunk(uint8_t* chunkData, size_t chunkDataLength,
@@ -314,16 +283,35 @@ void WebSocketManager::pollWebSocket() {
     lastPollTime = currentTime;
     
     if (WiFi.status() != WL_CONNECTED) {
-        Serial.println("WiFi disconnected, cannot poll WebSocket");
+        Serial.println("WiFi disconnected, cannot connect to WebSocket");
         return;
     }
 
     updater.checkTimeout();
 
-    if (!wsClient.available()) return;
-    try {
-        wsClient.poll();
-    } catch (const std::exception& e) {
-        Serial.printf("Error during WebSocket poll: %s\n", e.what());
+    // Connection management - try to connect if not connected
+    if (!wsConnected && (currentTime - lastConnectionAttempt >= CONNECTION_INTERVAL)) {
+        lastConnectionAttempt = currentTime;
+        
+        Serial.println("Attempting to connect to WebSocket...");
+        
+        if (wsClient.connect(getWsServerUrl())) {
+            Serial.println("WebSocket connected successfully");
+            wsConnected = true;
+            sendInitialData();
+        } else {
+            Serial.println("WebSocket connection failed. Will try again in 3 seconds");
+        }
+        return;
+    }
+
+    // Only poll if connected
+    if (wsConnected) {
+        try {
+            wsClient.poll();
+        } catch (const std::exception& e) {
+            Serial.printf("Error during WebSocket poll: %s\n", e.what());
+            wsConnected = false;  // Mark as disconnected to trigger reconnect
+        }
     }
 }

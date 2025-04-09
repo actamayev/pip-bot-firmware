@@ -1,15 +1,41 @@
 #include "./imu.h"
 
-bool ImuSensor::initialize() {
-    if (!imu.begin_I2C(IMU_DEFAULT_ADDRESS)) {
-        Serial.println("Failed to find BNO08x chip");
-        scanI2C();
-        return false;
+bool ImuSensor::canRetryInitialization() const {
+    if (isInitialized) return false;
+
+    unsigned long currentTime = millis();
+    if (currentTime - lastInitAttempt < INIT_RETRY_INTERVAL) {
+        return false; // Too soon to retry
     }
 
-    Serial.println("BNO08x Found!");
-    isInitialized = true;
+    if (initRetryCount >= MAX_INIT_RETRIES) {
+        return false; // Too many retries
+    }
+
     return true;
+}
+
+bool ImuSensor::initialize() {
+    lastInitAttempt = millis();
+    initRetryCount++;
+    
+    // Add a delay before trying to initialize
+    delay(50);
+    
+    // Try a few times with short delays in between
+    for (int attempt = 0; attempt < 3; attempt++) {
+        if (imu.begin_I2C(IMU_DEFAULT_ADDRESS)) {
+            Serial.println("BNO08x Found!");
+            isInitialized = true;
+            return true;
+        }
+        delay(20);
+    }
+    
+    Serial.printf("Failed to find BNO08x chip (retry %d of %d)\n", 
+                 initRetryCount, MAX_INIT_RETRIES);
+    scanI2C();
+    return false;
 }
 
 bool ImuSensor::enableGameRotationVector() {

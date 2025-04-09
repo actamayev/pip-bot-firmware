@@ -42,6 +42,8 @@ class Sensors : public Singleton<Sensors> {
         SideTofDistances getBothSideTofDistances();
 
         bool sensors_initialized = false;
+
+        bool tryInitializeIMU();
     private:
         ImuSensor imu;
         MultizoneTofSensor multizoneTofSensor;
@@ -59,4 +61,5 @@ class Sensors : public Singleton<Sensors> {
         void initializeIMU();
         void initializeColorSensor();
         void initializeSideTimeOfFlights();
+        bool isImuInitialized() const;
 };

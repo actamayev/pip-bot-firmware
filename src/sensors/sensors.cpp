@@ -7,7 +7,9 @@ void Sensors::initialize() {
     initializeIMU();
     // initializeColorSensor();
     // initializeSideTimeOfFlights();
-    sensors_initialized = true;
+    
+    // Only set sensors_initialized if IMU is initialized
+    sensors_initialized = isImuInitialized();
 }
 
 void Sensors::initializeMultizoneTof() {
@@ -53,6 +55,33 @@ void Sensors::initializeSideTimeOfFlights() {
         return;
     }
     Serial.println("Side TOF setup complete");
+}
+
+bool Sensors::isImuInitialized() const {
+    return !imu.needsInitialization();
+}
+
+bool Sensors::tryInitializeIMU() {
+    if (!imu.needsInitialization()) {
+        return true; // Already initialized
+    }
+    
+    if (!imu.canRetryInitialization()) {
+        return false; // Can't retry yet
+    }
+    
+    Serial.println("Retrying IMU initialization...");
+    bool success = imu.initialize();
+    
+    if (success) {
+        Serial.println("IMU retry initialization successful!");
+        // Update sensors_initialized flag if it was false
+        if (!sensors_initialized) {
+            sensors_initialized = true;
+        }
+    }
+    
+    return success;
 }
 
 VL53L5CX_ResultsData Sensors::getMultizoneTofData() {

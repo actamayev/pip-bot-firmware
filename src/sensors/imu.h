@@ -35,6 +35,9 @@ class ImuSensor {
         float getMagneticFieldZ();
         const MagnetometerData& getMagnetometerData();
 
+        bool needsInitialization() const { return !isInitialized; }
+        bool canRetryInitialization() const;
+
     private:
         Adafruit_BNO08x imu;
         sh2_SensorValue_t sensorValue;
@@ -58,4 +61,9 @@ class ImuSensor {
 
         // New method to update all sensor data at once
         bool updateAllSensorData();
+
+        uint8_t initRetryCount = 0;
+        const uint8_t MAX_INIT_RETRIES = 10;
+        unsigned long lastInitAttempt = 0;
+        const unsigned long INIT_RETRY_INTERVAL = 1000; // 1 second between retry attempts
 };

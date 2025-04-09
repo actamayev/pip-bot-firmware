@@ -8,7 +8,7 @@
 #include "../wifi_selection/haptic_feedback_manager.h"
 
 class EncoderManager {
-    friend class LabDemoManager;  // Allows LabDemoManager to access private members
+    friend class MessageProcessor;  // Allows MessageProcessor to access private members
     friend class WifiSelectionManager;  // Allows WifiSelectionManager to access private members
 
     public:
