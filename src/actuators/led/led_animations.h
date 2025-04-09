@@ -7,7 +7,7 @@
 class LedAnimations {
     public:
         LedAnimations(Adafruit_NeoPixel& strip1, Adafruit_NeoPixel& strip2);
-        
+
         // Animation types
         enum AnimationType {
             NONE,
@@ -15,7 +15,7 @@ class LedAnimations {
             STROBING,
             RAINBOW,
         };
-        
+
         // Set the current animation
         void startBreathing(int speed = 2000);
         void startStrobing(int speed = 100);
@@ -29,7 +29,6 @@ class LedAnimations {
         
         // Get current animation state
         AnimationType getCurrentAnimation() const { return currentAnimation; }
-        bool isAnimating() const { return currentAnimation != NONE; }
         
         // Update animation colors
         void updateBreathingColor();
