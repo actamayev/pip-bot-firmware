@@ -4,8 +4,8 @@
 #include "../utils/utils.h"
 #include "../utils/singleton.h"
 #include "../sensors/sensors.h"
-#include "../actuators/rgb_led.h"
 #include "../networking/protocol.h"
+#include "../actuators/led/rgb_led.h"
 #include "../actuators/motor_driver.h"
 
 class BalanceController : public Singleton<BalanceController> {
@@ -56,5 +56,5 @@ class BalanceController : public Singleton<BalanceController> {
         float DEADBAND_ANGLE = 1.0f;
         float MAX_STABLE_ROTATION = 0.1f; // degrees/second
 
-        static constexpr int16_t MIN_EFFECTIVE_PWM = 36; 
+        float MIN_EFFECTIVE_PWM = 44; 
 };

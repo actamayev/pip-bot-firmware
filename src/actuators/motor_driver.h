@@ -2,7 +2,7 @@
 #include <Arduino.h>
 #include "../utils/config.h"
 #include "../sensors/sensors.h"
-#include "../lab_demo/straight_line_drive.h"
+#include "../demos/straight_line_drive.h"
 
 class MotorDriver {
     public:
@@ -29,7 +29,8 @@ class MotorDriver {
         int16_t _currentRightSpeed = 0;
         unsigned long _lastSpeedUpdateTime = 0;
         static constexpr int16_t SPEED_RAMP_STEP = 50;
-        static constexpr unsigned long SPEED_RAMP_INTERVAL = 15;  // ms between updates        
+        static constexpr unsigned long SPEED_RAMP_INTERVAL = 5;  // ms between updates
+
 };
 
 extern MotorDriver motorDriver;

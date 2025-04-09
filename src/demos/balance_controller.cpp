@@ -150,4 +150,5 @@ void BalanceController::updateBalancePids(NewBalancePids newBalancePids) {
     UPDATE_INTERVAL = newBalancePids.updateInterval;   // 0-255
     DEADBAND_ANGLE = newBalancePids.deadbandAngle;     // 0-255
     MAX_STABLE_ROTATION = newBalancePids.maxStableRotation; // 0-255
+    MIN_EFFECTIVE_PWM = newBalancePids.minEffectivePwm;
 }

@@ -6,6 +6,7 @@ const uint8_t ESP_LED_PIN1 = 38;
 const uint8_t NUM_LEDS1 = 2;
 const uint8_t ESP_LED_PIN2 = 4;
 const uint8_t NUM_LEDS2 = 4;
+const uint8_t MAX_LED_BRIGHTNESS = 150;
 
 //I2C
 const uint8_t I2C_SDA = 18;
@@ -100,7 +101,7 @@ const char* getEnvironment() {
 const char* getServerUrl() {
     const char* env = getEnvironment();
     if (env == nullptr || std::string(env) == "local") {
-        return "http://10.147.126.40:8080";  // local default
+        return "http://10.84.243.40:8080";  // local default
     } else if (std::string(env) == "staging") {
         return "staging-api.bluedotrobots.com";  // staging default
     }
@@ -110,7 +111,7 @@ const char* getServerUrl() {
 const char* getWsServerUrl() {
     const char* env = getEnvironment();
     if (env == nullptr || std::string(env) == "local") {
-        return "ws://10.147.126.40:8080/esp32";  // local default
+        return "ws://10.84.243.40:8080/esp32";  // local default
     } else if (std::string(env) == "staging") {
         return "wss://staging-api.bluedotrobots.com/esp32";  // staging default
     }

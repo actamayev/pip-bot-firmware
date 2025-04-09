@@ -1,6 +1,6 @@
-#include "./lab_demo_manager.h"
+#include "./message_processor.h"
 
-LabDemoManager::LabDemoManager() 
+MessageProcessor::MessageProcessor() 
     : isExecutingCommand(false), 
       hasNextCommand(false),
       currentLeftSpeed(0),
@@ -8,10 +8,11 @@ LabDemoManager::LabDemoManager()
       nextLeftSpeed(0),
       nextRightSpeed(0),
       startLeftCount(0),
-      startRightCount(0) {
+      startRightCount(0),
+      commandStartTime(0) {
 }
 
-void LabDemoManager::handleMotorControl(const uint8_t* data) {
+void MessageProcessor::handleMotorControl(const uint8_t* data) {
     // Extract 16-bit signed integers (little-endian)
     int16_t leftSpeed = static_cast<int16_t>(data[1] | (data[2] << 8));
     int16_t rightSpeed = static_cast<int16_t>(data[3] | (data[4] << 8));
@@ -19,7 +20,7 @@ void LabDemoManager::handleMotorControl(const uint8_t* data) {
     updateMotorSpeeds(leftSpeed, rightSpeed);
 }
 
-void LabDemoManager::handleSoundCommand(SoundType soundType) {
+void MessageProcessor::handleSoundCommand(SoundType soundType) {
     // Play the requested tune
     switch(soundType) {
         case SoundType::ALERT:
@@ -45,7 +46,7 @@ void LabDemoManager::handleSoundCommand(SoundType soundType) {
     }
 }
 
-void LabDemoManager::handleSpeakerMute(SpeakerStatus status) {
+void MessageProcessor::handleSpeakerMute(SpeakerStatus status) {
     if (status == SpeakerStatus::MUTED) {
         Serial.println("Muting speaker");
         speaker.mute();
@@ -57,7 +58,7 @@ void LabDemoManager::handleSpeakerMute(SpeakerStatus status) {
     }
 }
 
-void LabDemoManager::updateMotorSpeeds(int16_t leftSpeed, int16_t rightSpeed) {
+void MessageProcessor::updateMotorSpeeds(int16_t leftSpeed, int16_t rightSpeed) {
     // Constrain speeds
     leftSpeed = constrain(leftSpeed, -255, 255);
     rightSpeed = constrain(rightSpeed, -255, 255);
@@ -73,7 +74,7 @@ void LabDemoManager::updateMotorSpeeds(int16_t leftSpeed, int16_t rightSpeed) {
     }
 }
 
-void LabDemoManager::executeCommand(int16_t leftSpeed, int16_t rightSpeed) {
+void MessageProcessor::executeCommand(int16_t leftSpeed, int16_t rightSpeed) {
     // Save command details
     currentLeftSpeed = leftSpeed;
     currentRightSpeed = rightSpeed;
@@ -81,6 +82,9 @@ void LabDemoManager::executeCommand(int16_t leftSpeed, int16_t rightSpeed) {
     // Get initial encoder counts directly
     startLeftCount = encoderManager._leftEncoder.getCount();
     startRightCount = encoderManager._rightEncoder.getCount();
+
+    // Start the command timer
+    commandStartTime = millis();
 
     Serial.printf("Motors updated - Left: %d, Right: %d\n", leftSpeed, rightSpeed);
 
@@ -93,21 +97,10 @@ void LabDemoManager::executeCommand(int16_t leftSpeed, int16_t rightSpeed) {
         StraightLineDrive::getInstance().disable();
     }
 
-    // Update LED based on motor direction (unchanged)
-    if (leftSpeed == 0 && rightSpeed == 0) {
-        rgbLed.turn_led_off();
-    } else if (leftSpeed > 0 && rightSpeed > 0) {
-        rgbLed.set_led_blue();
-    } else if (leftSpeed < 0 && rightSpeed < 0) {
-        rgbLed.set_led_red();
-    } else {
-        rgbLed.set_led_green();
-    }
-    
     isExecutingCommand = true;
 }
 
-void LabDemoManager::processPendingCommands() {
+void MessageProcessor::processPendingCommands() {
     if (BalanceController::getInstance().isEnabled()) {
         BalanceController::getInstance().update();
         return;
@@ -153,10 +146,19 @@ void LabDemoManager::processPendingCommands() {
         lastDebugTime = millis();
     }
     
-    // Command is complete if either encoder has moved enough
-    if (leftDelta >= MIN_ENCODER_PULSES || rightDelta >= MIN_ENCODER_PULSES) {
-        Serial.printf("Command completed with pulses - Left: %lld, Right: %lld\n", 
-                     leftDelta, rightDelta);
+    // Check for command completion conditions:
+    // 1. Either encoder has moved enough
+    // 2. Command has timed out (1 second)
+    bool encoderThresholdMet = (leftDelta >= MIN_ENCODER_PULSES || rightDelta >= MIN_ENCODER_PULSES);
+    bool commandTimedOut = (millis() - commandStartTime) >= COMMAND_TIMEOUT_MS;
+    
+    if (encoderThresholdMet || commandTimedOut) {
+        if (commandTimedOut) {
+            Serial.println("Command timed out after 1 second - possible motor stall");
+        } else {
+            Serial.printf("Command completed with pulses - Left: %lld, Right: %lld\n", 
+                        leftDelta, rightDelta);
+        }
         
         isExecutingCommand = false;
         
@@ -167,7 +169,7 @@ void LabDemoManager::processPendingCommands() {
     }
 }
 
-void LabDemoManager::handleBalanceCommand(BalanceStatus status) {
+void MessageProcessor::handleBalanceCommand(BalanceStatus status) {
     if (status == BalanceStatus::BALANCED) {
         BalanceController::getInstance().enable();
     } else {
@@ -175,6 +177,57 @@ void LabDemoManager::handleBalanceCommand(BalanceStatus status) {
     }
 }
 
-void LabDemoManager::handleChangePidsCommand(NewBalancePids newBalancePids) {
+void MessageProcessor::handleLightCommand(LightAnimationStatus lightAnimationStatus) {
+    if (lightAnimationStatus == LightAnimationStatus::NO_ANIMATION) {
+        ledAnimations.stopAnimation();
+    } else if (lightAnimationStatus == LightAnimationStatus::BREATHING) {
+        ledAnimations.startBreathing(2000);
+    } else if (lightAnimationStatus == LightAnimationStatus::RAINBOW) {
+        ledAnimations.startRainbow(2000);
+    } else if (lightAnimationStatus == LightAnimationStatus::STROBE) {
+        ledAnimations.startStrobing(100);
+    } else if (lightAnimationStatus == LightAnimationStatus::TURN_OFF) {
+        ledAnimations.turnOff();
+    } else if (lightAnimationStatus == LightAnimationStatus::FADE_OUT) {
+        ledAnimations.fadeOut();
+    }
+}
+
+void MessageProcessor::handleChangePidsCommand(NewBalancePids newBalancePids) {
     BalanceController::getInstance().updateBalancePids(newBalancePids);
+}
+
+void MessageProcessor::handleNewLightColors(NewLightColors newLightColors) {
+    // Cast from float to uint8_t, assuming values are already in 0-255 range
+    uint8_t topLeftR = (uint8_t)newLightColors.topLeftRed;
+    uint8_t topLeftG = (uint8_t)newLightColors.topLeftGreen;
+    uint8_t topLeftB = (uint8_t)newLightColors.topLeftBlue;
+    
+    uint8_t topRightR = (uint8_t)newLightColors.topRightRed;
+    uint8_t topRightG = (uint8_t)newLightColors.topRightGreen;
+    uint8_t topRightB = (uint8_t)newLightColors.topRightBlue;
+    
+    uint8_t middleLeftR = (uint8_t)newLightColors.middleLeftRed;
+    uint8_t middleLeftG = (uint8_t)newLightColors.middleLeftGreen;
+    uint8_t middleLeftB = (uint8_t)newLightColors.middleLeftBlue;
+    
+    uint8_t middleRightR = (uint8_t)newLightColors.middleRightRed;
+    uint8_t middleRightG = (uint8_t)newLightColors.middleRightGreen;
+    uint8_t middleRightB = (uint8_t)newLightColors.middleRightBlue;
+    
+    uint8_t backLeftR = (uint8_t)newLightColors.backLeftRed;
+    uint8_t backLeftG = (uint8_t)newLightColors.backLeftGreen;
+    uint8_t backLeftB = (uint8_t)newLightColors.backLeftBlue;
+    
+    uint8_t backRightR = (uint8_t)newLightColors.backRightRed;
+    uint8_t backRightG = (uint8_t)newLightColors.backRightGreen;
+    uint8_t backRightB = (uint8_t)newLightColors.backRightBlue;
+    
+    // Set each LED to its corresponding color
+    rgbLed.set_top_left_led(topLeftR, topLeftG, topLeftB);
+    rgbLed.set_top_right_led(topRightR, topRightG, topRightB);
+    rgbLed.set_middle_left_led(middleLeftR, middleLeftG, middleLeftB);
+    rgbLed.set_middle_right_led(middleRightR, middleRightG, middleRightB);
+    rgbLed.set_back_left_led(backLeftR, backLeftG, backLeftB);
+    rgbLed.set_back_right_led(backRightR, backRightG, backRightB);
 }
