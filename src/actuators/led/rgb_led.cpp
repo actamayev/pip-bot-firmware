@@ -130,19 +130,3 @@ void RgbLed::set_back_right_led(uint8_t red, uint8_t green, uint8_t blue) {
     strip2.setPixelColor(3, strip2.Color(red, green, blue));
     strip2.show();
 }
-
-void RgbLed::restoreDefaultColors() {
-    // Restore each LED to its default color if set
-    for (int i = 0; i < 6; i++) {
-        if (defaultColorsSet[i]) {
-            switch (i) {
-                case 0: set_top_left_led(defaultColors[i][0], defaultColors[i][1], defaultColors[i][2]); break;
-                case 1: set_top_right_led(defaultColors[i][0], defaultColors[i][1], defaultColors[i][2]); break;
-                case 2: set_middle_left_led(defaultColors[i][0], defaultColors[i][1], defaultColors[i][2]); break;
-                case 3: set_middle_right_led(defaultColors[i][0], defaultColors[i][1], defaultColors[i][2]); break;
-                case 4: set_back_left_led(defaultColors[i][0], defaultColors[i][1], defaultColors[i][2]); break;
-                case 5: set_back_right_led(defaultColors[i][0], defaultColors[i][1], defaultColors[i][2]); break;
-            }
-        }
-    }
-}

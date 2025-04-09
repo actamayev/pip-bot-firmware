@@ -22,9 +22,6 @@ class RgbLed {
         void set_back_left_led(uint8_t red, uint8_t green, uint8_t blue);
         void set_back_right_led(uint8_t red, uint8_t green, uint8_t blue);
         
-        // Restore default colors
-        void restoreDefaultColors();
-        
         // Get current color values
         uint8_t getCurrentRed() const { return currentRed; }
         uint8_t getCurrentGreen() const { return currentGreen; }
