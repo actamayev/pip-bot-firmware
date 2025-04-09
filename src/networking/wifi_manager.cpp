@@ -47,6 +47,7 @@ void WiFiManager::connectToStoredWiFi() {
     Serial.println("Use the right motor to scroll through networks");
 }
 
+// 4/9/25 TODO: Connect to the network we've most recently connected to first.
 bool WiFiManager::attemptDirectConnectionToSavedNetworks() {
     // Get all saved networks
     std::vector<WiFiCredentials> savedNetworks = getAllStoredNetworks();
@@ -63,10 +64,7 @@ bool WiFiManager::attemptDirectConnectionToSavedNetworks() {
         Serial.printf("Trying to connect to: %s\n", network.ssid.c_str());
         
         // Attempt connection
-        if (attemptNewWifiConnection(network)) {
-            // Successfully connected
-            return true;
-        }
+        if (attemptNewWifiConnection(network)) return true;
         
         // Brief delay before trying the next network
         delay(100);
