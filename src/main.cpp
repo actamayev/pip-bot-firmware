@@ -35,7 +35,11 @@ void SensorAndUserCodeTask(void * parameter) {
     // Main sensor and user code loop
     for(;;) {
         ledAnimations.update();
-        if (!Sensors::getInstance().sensors_initialized) continue;
+        if (!Sensors::getInstance().sensors_initialized && !Sensors::getInstance().tryInitializeIMU()) {
+            // If sensors not initialized AND initialization attempt failed, skip user code
+            delay(5);
+            continue;
+        }
         Buttons::getInstance().update();  // Update button states
         // multizoneTofLogger();
         // imuLogger();
