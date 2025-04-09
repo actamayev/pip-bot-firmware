@@ -4,19 +4,19 @@
 #include "../utils/config.h"
 #include "../utils/singleton.h"
 #include "../sensors/sensors.h"
-#include "./balance_controller.h"  
+#include "../demos/balance_controller.h"  
 #include "../actuators/speaker.h"
 #include "../networking/protocol.h"
 #include "../actuators/motor_driver.h"
 #include "../sensors/encoder_manager.h"
 #include "../actuators/led/led_animations.h"
 
-class LabDemoManager : public Singleton<LabDemoManager> {
-    friend class Singleton<LabDemoManager>;
+class MessageProcessor : public Singleton<MessageProcessor> {
+    friend class Singleton<MessageProcessor>;
 
     public:
         void processPendingCommands();
-        LabDemoManager();
+        MessageProcessor();
 
         // Add this method declaration
         void handleMotorControl(const uint8_t* data);

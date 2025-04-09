@@ -9,7 +9,7 @@
 #include "./sensors/encoder_manager.h"
 #include "./networking/wifi_manager.h"
 #include "./actuators/display_screen.h"
-#include "./lab_demo/lab_demo_manager.h"
+#include "./networking/message_processor.h"
 #include "./networking/websocket_manager.h"
 #include "./actuators/led/led_animations.h"
 #include "./networking/send_data_to_server.h"
@@ -45,7 +45,7 @@ void SensorAndUserCodeTask(void * parameter) {
         // imuLogger();
         // sideTofsLogger();
         // DisplayScreen::getInstance().update();
-        LabDemoManager::getInstance().processPendingCommands();
+        MessageProcessor::getInstance().processPendingCommands();
         user_code();
         delay(5);
     }

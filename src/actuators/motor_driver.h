@@ -2,7 +2,7 @@
 #include <Arduino.h>
 #include "../utils/config.h"
 #include "../sensors/sensors.h"
-#include "../lab_demo/straight_line_drive.h"
+#include "../demos/straight_line_drive.h"
 
 class MotorDriver {
     public:

@@ -142,7 +142,7 @@ void WebSocketManager::handleBinaryMessage(WebsocketsMessage message) {
             if (length != 5) {
                 Serial.println("Invalid motor control message length");
             } else {
-                LabDemoManager::getInstance().handleMotorControl(data);
+                MessageProcessor::getInstance().handleMotorControl(data);
             }
             break;
         case DataMessageType::SOUND_COMMAND:
@@ -150,7 +150,7 @@ void WebSocketManager::handleBinaryMessage(WebsocketsMessage message) {
                 Serial.println("Invalid sound command message length");
             } else {
                 SoundType soundType = static_cast<SoundType>(data[1]);
-                LabDemoManager::getInstance().handleSoundCommand(soundType);
+                MessageProcessor::getInstance().handleSoundCommand(soundType);
             }
             break;
         case DataMessageType::SPEAKER_MUTE:
@@ -158,7 +158,7 @@ void WebSocketManager::handleBinaryMessage(WebsocketsMessage message) {
                 Serial.println("Invalid speaker mute message length");
             } else {
                 SpeakerStatus status = static_cast<SpeakerStatus>(data[1]);
-                LabDemoManager::getInstance().handleSpeakerMute(status);
+                MessageProcessor::getInstance().handleSpeakerMute(status);
             }
             break;
         case DataMessageType::BALANCE_CONTROL:
@@ -168,7 +168,7 @@ void WebSocketManager::handleBinaryMessage(WebsocketsMessage message) {
                 BalanceStatus status = static_cast<BalanceStatus>(data[1]);
                 Serial.print("Balance Status: ");
                 Serial.println(status == BalanceStatus::BALANCED ? "BALANCED" : "UNBALANCED");
-                LabDemoManager::getInstance().handleBalanceCommand(status);
+                MessageProcessor::getInstance().handleBalanceCommand(status);
             }
             break;
         case DataMessageType::UPDATE_LIGHT_ANIMATION:
@@ -176,7 +176,7 @@ void WebSocketManager::handleBinaryMessage(WebsocketsMessage message) {
                 Serial.println("Invalid balance control message length");
             } else {
                 LightAnimationStatus lightAnimationStatus = static_cast<LightAnimationStatus>(data[1]);
-                LabDemoManager::getInstance().handleLightCommand(lightAnimationStatus);
+                MessageProcessor::getInstance().handleLightCommand(lightAnimationStatus);
             }
             break;
         case DataMessageType::UPDATE_LED_COLORS:
@@ -185,7 +185,7 @@ void WebSocketManager::handleBinaryMessage(WebsocketsMessage message) {
             } else {
                 NewLightColors newlightColors;
                 memcpy(&newlightColors, &data[1], sizeof(NewLightColors));
-                LabDemoManager::getInstance().handleNewLightColors(newlightColors);
+                MessageProcessor::getInstance().handleNewLightColors(newlightColors);
             }
             break;
         case DataMessageType::UPDATE_BALANCE_PIDS:
@@ -194,7 +194,7 @@ void WebSocketManager::handleBinaryMessage(WebsocketsMessage message) {
             } else {
                 NewBalancePids newBalancePids;
                 memcpy(&newBalancePids, &data[1], sizeof(NewBalancePids));
-                LabDemoManager::getInstance().handleChangePidsCommand(newBalancePids);
+                MessageProcessor::getInstance().handleChangePidsCommand(newBalancePids);
             }
             break;
         default:
