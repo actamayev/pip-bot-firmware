@@ -91,7 +91,10 @@ void MessageProcessor::executeCommand(int16_t leftSpeed, int16_t rightSpeed) {
     motorDriver.set_motor_speeds(leftSpeed, rightSpeed);
 
     // Enable straight driving correction for forward/backward movement
-    if ((leftSpeed == 255 && rightSpeed == 255) || (leftSpeed == -255 && rightSpeed == -255)) {
+    if (
+        ((leftSpeed > 0 && rightSpeed > 0) || (leftSpeed < 0 && rightSpeed < 0)) && 
+        (leftSpeed == rightSpeed)
+    ) {
         StraightLineDrive::getInstance().enable();
     } else {
         StraightLineDrive::getInstance().disable();

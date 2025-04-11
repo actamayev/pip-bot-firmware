@@ -1,8 +1,6 @@
 #include "./straight_line_drive.h"
 
 void StraightLineDrive::enable() {
-    if (_straightDrivingEnabled) return;
-    
     _straightDrivingEnabled = true;
     
     // Reset the yaw buffer
@@ -17,11 +15,12 @@ void StraightLineDrive::enable() {
     for (uint8_t i = 0; i < YAW_BUFFER_SIZE; i++) {
         _yawBuffer[i] = currentYaw;
     }
-    
+
     // Store the initial average yaw as our reference point
     _initialYaw = currentYaw;
     _lastYawError = 0.0f;
-    
+    _lastRawYaw = 0.0f;
+
     Serial.printf("Straight driving enabled. Initial yaw: %.2f\n", _initialYaw);
 }
 
@@ -41,18 +40,17 @@ void StraightLineDrive::update(int16_t& leftSpeed, int16_t& rightSpeed) {
     float rawYaw = Sensors::getInstance().getYaw();
 
     // Reject outliers (sudden large changes in raw readings)
-    static float lastRawYaw = rawYaw;
-    float yawDelta = abs(shortestAnglePath(lastRawYaw, rawYaw));
+    float yawDelta = abs(shortestAnglePath(_lastRawYaw, rawYaw));
     if (yawDelta > 90.0f && _yawBufferCount > 0) {
         // Skip this reading - likely an outlier
         Serial.printf("Rejecting outlier: %.2f (last: %.2f, delta: %.2f)\n", 
-                    rawYaw, lastRawYaw, yawDelta);
+                    rawYaw, _lastRawYaw, yawDelta);
     } else {
         // Add to buffer and get the filtered average
         _yawBuffer[_yawBufferIndex] = rawYaw;
         _yawBufferIndex = (_yawBufferIndex + 1) % YAW_BUFFER_SIZE;
         if (_yawBufferCount < YAW_BUFFER_SIZE) _yawBufferCount++;
-        lastRawYaw = rawYaw;
+        _lastRawYaw = rawYaw;
     }
     
     // Calculate circular mean (proper way to average angles)
@@ -94,14 +92,12 @@ void StraightLineDrive::update(int16_t& leftSpeed, int16_t& rightSpeed) {
     int16_t correction = proportionalTerm + integralTerm + derivativeTerm;
     
     // Limit correction rate of change (slew rate limiting)
-    static int16_t lastCorrection = 0;
-    
-    if (correction - lastCorrection > MAX_CORRECTION_PER_CYCLE) {
-        correction = lastCorrection + MAX_CORRECTION_PER_CYCLE;
-    } else if (lastCorrection - correction > MAX_CORRECTION_PER_CYCLE) {
-        correction = lastCorrection - MAX_CORRECTION_PER_CYCLE;
+    if (correction - _lastCorrection > MAX_CORRECTION_PER_CYCLE) {
+        correction = _lastCorrection + MAX_CORRECTION_PER_CYCLE;
+    } else if (_lastCorrection - correction > MAX_CORRECTION_PER_CYCLE) {
+        correction = _lastCorrection - MAX_CORRECTION_PER_CYCLE;
     }
-    lastCorrection = correction;
+    _lastCorrection = correction;
     
     // Apply correction to motor speeds
     int16_t leftAdjustment = -correction;

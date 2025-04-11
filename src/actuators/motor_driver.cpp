@@ -10,39 +10,19 @@ MotorDriver::MotorDriver() {
     pinMode(RIGHT_MOTOR_PIN_IN_2, OUTPUT);
 }
 
-void MotorDriver::both_motors_forward(uint8_t speed) {
-    left_motor_forward(speed);
-    right_motor_forward(speed);
-}
-
-void MotorDriver::both_motors_backward(uint8_t speed) {
-    left_motor_backward(speed);
-    right_motor_backward(speed);
-}
-
 void MotorDriver::stop_both_motors() {
     left_motor_stop();
     right_motor_stop();
 }
 
-void MotorDriver::rotate_clockwise(uint8_t speed) {
-    left_motor_forward(speed);
-    right_motor_backward(speed);
-}
-
-void MotorDriver::rotate_counterclockwise(uint8_t speed) {
-    left_motor_backward(speed);
-    right_motor_forward(speed);
-}
-
 void MotorDriver::left_motor_forward(uint8_t speed) {
-    analogWrite(LEFT_MOTOR_PIN_IN_1, 0); // Explicitly clear backward pin
-    analogWrite(LEFT_MOTOR_PIN_IN_2, speed);
+    analogWrite(LEFT_MOTOR_PIN_IN_2, 0); // Explicitly clear forward pin
+    analogWrite(LEFT_MOTOR_PIN_IN_1, speed);
 }
 
 void MotorDriver::left_motor_backward(uint8_t speed) {
-    analogWrite(LEFT_MOTOR_PIN_IN_2, 0); // Explicitly clear forward pin
-    analogWrite(LEFT_MOTOR_PIN_IN_1, speed);
+    analogWrite(LEFT_MOTOR_PIN_IN_1, 0); // Explicitly clear backward pin
+    analogWrite(LEFT_MOTOR_PIN_IN_2, speed);
 }
 
 void MotorDriver::left_motor_stop() {
@@ -51,13 +31,13 @@ void MotorDriver::left_motor_stop() {
 }
 
 void MotorDriver::right_motor_forward(uint8_t speed) {
-    analogWrite(RIGHT_MOTOR_PIN_IN_1, 0); // Explicitly clear backward pin
-    analogWrite(RIGHT_MOTOR_PIN_IN_2, speed);
+    analogWrite(RIGHT_MOTOR_PIN_IN_2, 0); // Explicitly clear forward pin
+    analogWrite(RIGHT_MOTOR_PIN_IN_1, speed);
 }
 
 void MotorDriver::right_motor_backward(uint8_t speed) {
-    analogWrite(RIGHT_MOTOR_PIN_IN_2, 0); // Explicitly clear forward pin
-    analogWrite(RIGHT_MOTOR_PIN_IN_1, speed);
+    analogWrite(RIGHT_MOTOR_PIN_IN_1, 0); // Explicitly clear backward pin
+    analogWrite(RIGHT_MOTOR_PIN_IN_2, speed);
 }
 
 void MotorDriver::right_motor_stop() {
@@ -118,17 +98,17 @@ void MotorDriver::update_motor_speeds(bool should_ramp_up, int16_t speed_ramp_in
         if (leftAdjusted == 0) {
             left_motor_stop();
         } else if (leftAdjusted > 0) {
-            left_motor_backward(leftAdjusted);
+            left_motor_forward(leftAdjusted);  // Changed from backward
         } else {
-            left_motor_forward(-leftAdjusted);
+            left_motor_backward(-leftAdjusted);  // Changed from forward
         }
 
         if (rightAdjusted == 0) {
             right_motor_stop();
         } else if (rightAdjusted > 0) {
-            right_motor_backward(rightAdjusted);
+            right_motor_forward(rightAdjusted);  // Changed from backward
         } else {
-            right_motor_forward(-rightAdjusted);
+            right_motor_backward(-rightAdjusted);  // Changed from forward
         }
     }
 }
