@@ -95,12 +95,11 @@ void StraightLineDrive::update(int16_t& leftSpeed, int16_t& rightSpeed) {
     
     // Limit correction rate of change (slew rate limiting)
     static int16_t lastCorrection = 0;
-    int16_t maxChange = 20; // Maximum change per update
     
-    if (correction - lastCorrection > maxChange) {
-        correction = lastCorrection + maxChange;
-    } else if (lastCorrection - correction > maxChange) {
-        correction = lastCorrection - maxChange;
+    if (correction - lastCorrection > MAX_CORRECTION_PER_CYCLE) {
+        correction = lastCorrection + MAX_CORRECTION_PER_CYCLE;
+    } else if (lastCorrection - correction > MAX_CORRECTION_PER_CYCLE) {
+        correction = lastCorrection - MAX_CORRECTION_PER_CYCLE;
     }
     lastCorrection = correction;
     
@@ -123,13 +122,13 @@ void StraightLineDrive::update(int16_t& leftSpeed, int16_t& rightSpeed) {
     rightSpeed = constrain(rightSpeed, -255, 255);
     
     // Optional debugging
-    static unsigned long lastDebugTime = 0;
-    if (millis() - lastDebugTime > 500) {
-        Serial.printf("SLD: Raw: %.2f, Filtered: %.2f, Error: %.2f, P: %d, I: %d, D: %d, L: %d, R: %d\n", 
-                    rawYaw, filteredYaw, yawError, proportionalTerm, integralTerm, 
-                    derivativeTerm, leftSpeed, rightSpeed);
-        lastDebugTime = millis();
-    }
+    // static unsigned long lastDebugTime = 0;
+    // if (millis() - lastDebugTime > 500) {
+    //     Serial.printf("SLD: Raw: %.2f, Filtered: %.2f, Error: %.2f, P: %d, I: %d, D: %d, L: %d, R: %d\n", 
+    //                 rawYaw, filteredYaw, yawError, proportionalTerm, integralTerm, 
+    //                 derivativeTerm, leftSpeed, rightSpeed);
+    //     lastDebugTime = millis();
+    // }
 }
 
 float StraightLineDrive::normalizeAngle(float angle) {

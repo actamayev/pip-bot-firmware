@@ -39,4 +39,6 @@ class StraightLineDrive : public Singleton<StraightLineDrive> {
         // Angle normalization utilities
         float normalizeAngle(float angle);
         float shortestAnglePath(float from, float to);
+
+        const int16_t MAX_CORRECTION_PER_CYCLE = 20;
 };
