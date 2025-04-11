@@ -76,16 +76,6 @@ void MotorDriver::set_motor_speeds(int16_t leftTarget, int16_t rightTarget) {
 }
 
 void MotorDriver::update_motor_speeds(bool should_ramp_up, int16_t speed_ramp_interval) {
-    // TODO: Consider deleting this section: currentTime - _lastSpeedUpdateTime < speed_ramp_interval
-    // We're callling it from within functions that have their own non-blocking delays
-    unsigned long currentTime = millis();
-
-    // Only update at specified intervals
-    if (currentTime - _lastSpeedUpdateTime < speed_ramp_interval) {
-        return;
-    }
-
-    _lastSpeedUpdateTime = currentTime;
     bool speedsChanged = false;
 
     if (should_ramp_up) {

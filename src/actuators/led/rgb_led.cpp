@@ -90,43 +90,43 @@ bool RgbLed::processLedUpdate(int ledIndex, uint8_t red, uint8_t green, uint8_t 
 }
 
 void RgbLed::set_top_left_led(uint8_t red, uint8_t green, uint8_t blue) {
-    if (!processLedUpdate(0, red, green, blue)) return;
-    
-    strip1.setPixelColor(0, strip1.Color(red, green, blue));
-    strip1.show();
-}
-
-void RgbLed::set_top_right_led(uint8_t red, uint8_t green, uint8_t blue) {
-    if (!processLedUpdate(1, red, green, blue)) return;
-    
-    strip1.setPixelColor(1, strip1.Color(red, green, blue));
-    strip1.show();
-}
-
-void RgbLed::set_middle_left_led(uint8_t red, uint8_t green, uint8_t blue) {
-    if (!processLedUpdate(2, red, green, blue)) return;
-    
-    strip2.setPixelColor(0, strip2.Color(red, green, blue));
-    strip2.show();
-}
-
-void RgbLed::set_middle_right_led(uint8_t red, uint8_t green, uint8_t blue) {
-    if (!processLedUpdate(3, red, green, blue)) return;
-    
-    strip2.setPixelColor(1, strip2.Color(red, green, blue));
-    strip2.show();
-}
-
-void RgbLed::set_back_left_led(uint8_t red, uint8_t green, uint8_t blue) {
     if (!processLedUpdate(4, red, green, blue)) return;
     
     strip2.setPixelColor(2, strip2.Color(red, green, blue));
     strip2.show();
 }
 
-void RgbLed::set_back_right_led(uint8_t red, uint8_t green, uint8_t blue) {
+void RgbLed::set_top_right_led(uint8_t red, uint8_t green, uint8_t blue) {
+    if (!processLedUpdate(3, red, green, blue)) return;
+    
+    strip2.setPixelColor(1, strip2.Color(red, green, blue));
+    strip2.show();
+}
+
+void RgbLed::set_middle_left_led(uint8_t red, uint8_t green, uint8_t blue) {
     if (!processLedUpdate(5, red, green, blue)) return;
     
     strip2.setPixelColor(3, strip2.Color(red, green, blue));
     strip2.show();
+}
+
+void RgbLed::set_middle_right_led(uint8_t red, uint8_t green, uint8_t blue) {
+    if (!processLedUpdate(2, red, green, blue)) return;
+    
+    strip2.setPixelColor(0, strip2.Color(red, green, blue));
+    strip2.show();
+}
+
+void RgbLed::set_back_left_led(uint8_t red, uint8_t green, uint8_t blue) {
+    if (!processLedUpdate(1, red, green, blue)) return;
+    
+    strip1.setPixelColor(1, strip1.Color(red, green, blue));
+    strip1.show();
+}
+
+void RgbLed::set_back_right_led(uint8_t red, uint8_t green, uint8_t blue) {
+    if (!processLedUpdate(0, red, green, blue)) return;
+    
+    strip1.setPixelColor(0, strip1.Color(red, green, blue));
+    strip1.show();
 }
