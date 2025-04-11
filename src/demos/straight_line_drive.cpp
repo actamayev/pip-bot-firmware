@@ -106,8 +106,7 @@ void StraightLineDrive::update(int16_t& leftSpeed, int16_t& rightSpeed) {
     // Apply correction to motor speeds
     int16_t leftAdjustment = -correction;
     int16_t rightAdjustment = correction;
-    
-    // Forward motion: positive _targetSpeed means backward motor direction in your setup
+
     if (leftSpeed > 0) {
         leftAdjustment = -leftAdjustment;
         rightAdjustment = -rightAdjustment;
@@ -120,15 +119,6 @@ void StraightLineDrive::update(int16_t& leftSpeed, int16_t& rightSpeed) {
     // Constrain to valid range
     leftSpeed = constrain(leftSpeed, -255, 255);
     rightSpeed = constrain(rightSpeed, -255, 255);
-    
-    // Optional debugging
-    // static unsigned long lastDebugTime = 0;
-    // if (millis() - lastDebugTime > 500) {
-    //     Serial.printf("SLD: Raw: %.2f, Filtered: %.2f, Error: %.2f, P: %d, I: %d, D: %d, L: %d, R: %d\n", 
-    //                 rawYaw, filteredYaw, yawError, proportionalTerm, integralTerm, 
-    //                 derivativeTerm, leftSpeed, rightSpeed);
-    //     lastDebugTime = millis();
-    // }
 }
 
 float StraightLineDrive::normalizeAngle(float angle) {
