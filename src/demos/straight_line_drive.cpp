@@ -33,9 +33,7 @@ void StraightLineDrive::update(int16_t& leftSpeed, int16_t& rightSpeed) {
     if (!_straightDrivingEnabled) return;
 
     // Only apply corrections if both motors are moving in the same direction
-    if (!((leftSpeed > 0 && rightSpeed > 0) || (leftSpeed < 0 && rightSpeed < 0))) {
-        return;
-    }
+    if (!(leftSpeed > 0 && rightSpeed > 0)) return;
     // Get current yaw from the IMU
     float rawYaw = Sensors::getInstance().getYaw();
 
@@ -98,19 +96,10 @@ void StraightLineDrive::update(int16_t& leftSpeed, int16_t& rightSpeed) {
         correction = _lastCorrection - MAX_CORRECTION_PER_CYCLE;
     }
     _lastCorrection = correction;
-    
-    // Apply correction to motor speeds
-    int16_t leftAdjustment = -correction;
-    int16_t rightAdjustment = correction;
 
-    if (leftSpeed > 0) {
-        leftAdjustment = -leftAdjustment;
-        rightAdjustment = -rightAdjustment;
-    }
-
-    // Apply adjustments but preserve the average speed
-    leftSpeed += leftAdjustment;
-    rightSpeed += rightAdjustment;
+    // Apply adjustments
+    leftSpeed += correction;
+    rightSpeed -= -correction;
 
     // Constrain to valid range
     leftSpeed = constrain(leftSpeed, -255, 255);

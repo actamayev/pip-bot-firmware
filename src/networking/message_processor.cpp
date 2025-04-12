@@ -51,7 +51,7 @@ void MessageProcessor::handleSpeakerMute(SpeakerStatus status) {
         Serial.println("Muting speaker");
         speaker.mute();
     } else if (status == SpeakerStatus::UNMUTED) {
-        Serial.println("Unmuting speaker");
+        Serial.println("Un-muting speaker");
         speaker.unmute();
     } else {
         Serial.printf("Unknown mute state: %d\n", static_cast<int>(status));
@@ -90,11 +90,9 @@ void MessageProcessor::executeCommand(int16_t leftSpeed, int16_t rightSpeed) {
 
     motorDriver.set_motor_speeds(leftSpeed, rightSpeed);
 
-    // Enable straight driving correction for forward/backward movement
-    if (
-        ((leftSpeed > 0 && rightSpeed > 0) || (leftSpeed < 0 && rightSpeed < 0)) && 
-        (leftSpeed == rightSpeed)
-    ) {
+    // Enable straight driving correction for forward movement only. 
+    // 4/12/25: Removing straight line drive for backward movement. need to bring back
+    if ((leftSpeed > 0 && rightSpeed > 0) && (leftSpeed == rightSpeed)) {
         StraightLineDrive::getInstance().enable();
     } else {
         StraightLineDrive::getInstance().disable();

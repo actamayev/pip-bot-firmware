@@ -98,17 +98,17 @@ void MotorDriver::update_motor_speeds(bool should_ramp_up, int16_t speed_ramp_in
         if (leftAdjusted == 0) {
             left_motor_stop();
         } else if (leftAdjusted > 0) {
-            left_motor_forward(leftAdjusted);  // Changed from backward
+            left_motor_forward(leftAdjusted);
         } else {
-            left_motor_backward(-leftAdjusted);  // Changed from forward
+            left_motor_backward(-leftAdjusted);
         }
 
         if (rightAdjusted == 0) {
             right_motor_stop();
         } else if (rightAdjusted > 0) {
-            right_motor_forward(rightAdjusted);  // Changed from backward
+            right_motor_forward(rightAdjusted);
         } else {
-            right_motor_backward(-rightAdjusted);  // Changed from forward
+            right_motor_backward(-rightAdjusted);
         }
     }
 }
