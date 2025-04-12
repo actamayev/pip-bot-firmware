@@ -99,7 +99,7 @@ void StraightLineDrive::update(int16_t& leftSpeed, int16_t& rightSpeed) {
 
     // Apply adjustments
     leftSpeed += correction;
-    rightSpeed -= -correction;
+    rightSpeed -= correction;
 
     // Constrain to valid range
     leftSpeed = constrain(leftSpeed, -255, 255);
