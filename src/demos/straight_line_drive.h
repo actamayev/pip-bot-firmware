@@ -23,6 +23,8 @@ class StraightLineDrive : public Singleton<StraightLineDrive> {
         float _initialYaw = 0.0f;
         float _lastYawError = 0.0f;
         float _integralError = 0.0f;
+        float _lastRawYaw = 0.0f;
+        int16_t _lastCorrection = 0;
 
         // PID Constants
         static constexpr float YAW_P_GAIN = 7.5f;
@@ -39,4 +41,6 @@ class StraightLineDrive : public Singleton<StraightLineDrive> {
         // Angle normalization utilities
         float normalizeAngle(float angle);
         float shortestAnglePath(float from, float to);
+
+        const int16_t MAX_CORRECTION_PER_CYCLE = 20;
 };

@@ -10,41 +10,19 @@ MotorDriver::MotorDriver() {
     pinMode(RIGHT_MOTOR_PIN_IN_2, OUTPUT);
 }
 
-void MotorDriver::both_motors_forward(uint8_t speed) {
-    left_motor_forward(speed);
-    right_motor_forward(speed);
-}
-
-void MotorDriver::both_motors_backward(uint8_t speed) {
-    left_motor_backward(speed);
-    right_motor_backward(speed);
-}
-
 void MotorDriver::stop_both_motors() {
     left_motor_stop();
     right_motor_stop();
 }
 
-void MotorDriver::rotate_clockwise(uint8_t speed) {
-    left_motor_forward(speed);
-    right_motor_backward(speed);
-}
-
-void MotorDriver::rotate_counterclockwise(uint8_t speed) {
-    left_motor_backward(speed);
-    right_motor_forward(speed);
-}
-
 void MotorDriver::left_motor_forward(uint8_t speed) {
-    analogWrite(LEFT_MOTOR_PIN_IN_1, 0); // Explicitly clear backward pin
-    digitalWrite(LEFT_MOTOR_PIN_IN_1, LOW);
-    analogWrite(LEFT_MOTOR_PIN_IN_2, speed);
+    analogWrite(LEFT_MOTOR_PIN_IN_2, 0); // Explicitly clear forward pin
+    analogWrite(LEFT_MOTOR_PIN_IN_1, speed);
 }
 
 void MotorDriver::left_motor_backward(uint8_t speed) {
-    analogWrite(LEFT_MOTOR_PIN_IN_2, 0); // Explicitly clear forward pin
-    digitalWrite(LEFT_MOTOR_PIN_IN_2, LOW);
-    analogWrite(LEFT_MOTOR_PIN_IN_1, speed);
+    analogWrite(LEFT_MOTOR_PIN_IN_1, 0); // Explicitly clear backward pin
+    analogWrite(LEFT_MOTOR_PIN_IN_2, speed);
 }
 
 void MotorDriver::left_motor_stop() {
@@ -53,15 +31,13 @@ void MotorDriver::left_motor_stop() {
 }
 
 void MotorDriver::right_motor_forward(uint8_t speed) {
-    analogWrite(RIGHT_MOTOR_PIN_IN_1, 0); // Explicitly clear backward pin
-    digitalWrite(RIGHT_MOTOR_PIN_IN_1, LOW);
-    analogWrite(RIGHT_MOTOR_PIN_IN_2, speed);
+    analogWrite(RIGHT_MOTOR_PIN_IN_2, 0); // Explicitly clear forward pin
+    analogWrite(RIGHT_MOTOR_PIN_IN_1, speed);
 }
 
 void MotorDriver::right_motor_backward(uint8_t speed) {
-    analogWrite(RIGHT_MOTOR_PIN_IN_2, 0); // Explicitly clear forward pin
-    digitalWrite(RIGHT_MOTOR_PIN_IN_2, LOW);
-    analogWrite(RIGHT_MOTOR_PIN_IN_1, speed);
+    analogWrite(RIGHT_MOTOR_PIN_IN_1, 0); // Explicitly clear backward pin
+    analogWrite(RIGHT_MOTOR_PIN_IN_2, speed);
 }
 
 void MotorDriver::right_motor_stop() {
@@ -76,16 +52,6 @@ void MotorDriver::set_motor_speeds(int16_t leftTarget, int16_t rightTarget) {
 }
 
 void MotorDriver::update_motor_speeds(bool should_ramp_up, int16_t speed_ramp_interval) {
-    // TODO: Consider deleting this section: currentTime - _lastSpeedUpdateTime < speed_ramp_interval
-    // We're callling it from within functions that have their own non-blocking delays
-    unsigned long currentTime = millis();
-
-    // Only update at specified intervals
-    if (currentTime - _lastSpeedUpdateTime < speed_ramp_interval) {
-        return;
-    }
-
-    _lastSpeedUpdateTime = currentTime;
     bool speedsChanged = false;
 
     if (should_ramp_up) {
@@ -122,7 +88,6 @@ void MotorDriver::update_motor_speeds(bool should_ramp_up, int16_t speed_ramp_in
     int16_t leftAdjusted = _currentLeftSpeed;
     int16_t rightAdjusted = _currentRightSpeed;
 
-    // If straight driving is enabled, it will handle the motor control
     if (StraightLineDrive::getInstance().isEnabled()) {
         StraightLineDrive::getInstance().update(leftAdjusted, rightAdjusted);
     }
@@ -133,17 +98,17 @@ void MotorDriver::update_motor_speeds(bool should_ramp_up, int16_t speed_ramp_in
         if (leftAdjusted == 0) {
             left_motor_stop();
         } else if (leftAdjusted > 0) {
-            left_motor_backward(leftAdjusted);
+            left_motor_forward(leftAdjusted);
         } else {
-            left_motor_forward(-leftAdjusted);
+            left_motor_backward(-leftAdjusted);
         }
 
         if (rightAdjusted == 0) {
             right_motor_stop();
         } else if (rightAdjusted > 0) {
-            right_motor_backward(rightAdjusted);
+            right_motor_forward(rightAdjusted);
         } else {
-            right_motor_forward(-rightAdjusted);
+            right_motor_backward(-rightAdjusted);
         }
     }
 }
