@@ -10,7 +10,8 @@ enum class DataMessageType : uint8_t {
     BALANCE_CONTROL = 4,
     UPDATE_BALANCE_PIDS = 5,
     UPDATE_LIGHT_ANIMATION = 6,
-    UPDATE_LED_COLORS = 7
+    UPDATE_LED_COLORS = 7,
+    BYTECODE_PROGRAM = 8
 };
 
 // Sound types
