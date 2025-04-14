@@ -55,9 +55,6 @@ void BytecodeVM::update() {
     pc++; // Move to next instruction
 }
 
-bool BytecodeVM::isRunning() const {
-    return program != nullptr && pc < programSize;
-}
 
 void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
     switch (instr.opcode) {
