@@ -116,9 +116,66 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             break;
         }
 
+        case OP_DECLARE_VAR: {
+            uint8_t regId = instr.operand1;
+            BytecodeVarType type = (BytecodeVarType)instr.operand2;
+            
+            if (regId < MAX_REGISTERS) {
+                registerTypes[regId] = type;
+                // Initialize with default values
+                switch (type) {
+                    case VAR_FLOAT:
+                        registers[regId].asFloat = 0.0f;
+                        break;
+                    case VAR_INT:
+                        registers[regId].asInt = 0;
+                        break;
+                    case VAR_BOOL:
+                        registers[regId].asBool = false;
+                        break;
+                }
+            }
+            break;
+        }
+        
+        case OP_SET_VAR: {
+            uint8_t regId = instr.operand1;
+            
+            if (regId < MAX_REGISTERS) {
+                switch (registerTypes[regId]) {
+                    case VAR_FLOAT: {
+                        // Reconstruct float from bytes (with some precision loss)
+                        registers[regId].asBytes[0] = instr.operand2;
+                        registers[regId].asBytes[1] = instr.operand3;
+                        registers[regId].asBytes[2] = instr.operand4;
+                        registers[regId].asBytes[3] = 0; // Missing byte
+                        break;
+                    }
+                    case VAR_INT: {
+                        // 24-bit integer reconstruction
+                        int32_t value = instr.operand2 | 
+                                      (instr.operand3 << 8) | 
+                                      (instr.operand4 << 16);
+                        // Sign extension for negative numbers
+                        if (instr.operand4 & 0x80) {
+                            value |= 0xFF000000;
+                        }
+                        registers[regId].asInt = value;
+                        break;
+                    }
+                    case VAR_BOOL:
+                        registers[regId].asBool = (instr.operand2 != 0);
+                        break;
+                }
+                registerInitialized[regId] = true;
+            }
+            break;
+        }
+
         default:
             // Unknown opcode, stop execution
             pc = programSize;
+            Serial.println("Unknown code - stopping execution");
             break;
     }
 }

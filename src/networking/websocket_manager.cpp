@@ -207,9 +207,9 @@ void WebSocketManager::handleBinaryMessage(WebsocketsMessage message) {
 
             // Send response
             if (success) {
-                sendJsonMessage("bytecode_status", "loaded");
+                SendDataToServer::getInstance().sendBytecodeMessage("Bytecode successfully loaded");
             } else {
-                sendJsonMessage("bytecode_status", "error", "Invalid bytecode format");
+                SendDataToServer::getInstance().sendBytecodeMessage("Error loading bytecode: invalid format!");
             }
             break;
         }

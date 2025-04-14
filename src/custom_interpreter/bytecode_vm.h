@@ -26,6 +26,20 @@ class BytecodeVM : public Singleton<BytecodeVM> {
         unsigned long delayUntil = 0; // For handling delays
         bool waitingForDelay = false;
         
-        // Execute the current instruction
+        static const uint8_t MAX_REGISTERS = 16;
+    
+        // Union to store different variable types in the same memory
+        union RegisterValue {
+            float asFloat;
+            int32_t asInt;
+            bool asBool;
+            uint8_t asBytes[4];
+        };
+        
+        RegisterValue registers[MAX_REGISTERS];
+        BytecodeVarType registerTypes[MAX_REGISTERS];
+        bool registerInitialized[MAX_REGISTERS] = {false};
+        
+        // Execute instruction implementation
         void executeInstruction(const BytecodeInstruction& instr);
 };

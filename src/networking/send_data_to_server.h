@@ -17,7 +17,8 @@ class SendDataToServer : public Singleton<SendDataToServer> {
         // Have the client send a message when the user is on a particular page (ie. demo page)
         bool sendSensorData = true;
         void sendSensorDataToServer();
-    
+        void sendBytecodeMessage(String message);
+
     private:
         void attachRPMData(JsonObject& payload);
         void attachIRData(JsonObject& payload);

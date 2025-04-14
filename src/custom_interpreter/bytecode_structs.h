@@ -15,6 +15,15 @@ enum BytecodeOpCode : uint8_t {
     OP_READ_SENSOR = 0x20,  // Reserved for sensors
     OP_COMPARE = 0x30,      // Reserved for conditionals
     OP_JUMP = 0x31,         // Reserved for control flow
+
+    OP_DECLARE_VAR = 0x40,
+    OP_SET_VAR = 0x41,
+};
+
+enum BytecodeVarType : uint8_t {
+    VAR_FLOAT = 0x01,
+    VAR_INT = 0x02,
+    VAR_BOOL = 0x03
 };
 
 // LED IDs
