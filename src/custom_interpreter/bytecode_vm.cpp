@@ -145,17 +145,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             int32_t rightValue = instr.operand3;
             
             lastComparisonResult = compareValues(op, leftValue, rightValue);
-            
-            #ifdef DEBUG_VM
-            Serial.print("COMPARE: ");
-            Serial.print(leftValue);
-            Serial.print(" op ");
-            Serial.print(op);
-            Serial.print(" ");
-            Serial.print(rightValue);
-            Serial.print(" = ");
-            Serial.println(lastComparisonResult ? "TRUE" : "FALSE");
-            #endif
+
             break;
         }
 
@@ -167,13 +157,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             // after this instruction executes
             uint16_t targetInstruction = pc + (jumpOffset / 5);
             pc = targetInstruction - 1;
-            
-            #ifdef DEBUG_VM
-            Serial.print("JUMP: ");
-            Serial.print(jumpOffset);
-            Serial.print(" bytes, to instruction ");
-            Serial.println(targetInstruction);
-            #endif
+        
             break;
         }
 
@@ -183,13 +167,6 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
                 uint16_t jumpOffset = instr.operand1 | (instr.operand2 << 8);
                 uint16_t targetInstruction = pc + (jumpOffset / 5);
                 pc = targetInstruction - 1;
-                
-                #ifdef DEBUG_VM
-                Serial.print("JUMP_IF_TRUE: ");
-                Serial.print(jumpOffset);
-                Serial.print(" bytes, to instruction ");
-                Serial.println(targetInstruction);
-                #endif
             }
             break;
         }
@@ -200,13 +177,6 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
                 uint16_t jumpOffset = instr.operand1 | (instr.operand2 << 8);
                 uint16_t targetInstruction = pc + (jumpOffset / 5);
                 pc = targetInstruction - 1;
-                
-                #ifdef DEBUG_VM
-                Serial.print("JUMP_IF_FALSE: ");
-                Serial.print(jumpOffset);
-                Serial.print(" bytes, to instruction ");
-                Serial.println(targetInstruction);
-                #endif
             }
             break;
         }
