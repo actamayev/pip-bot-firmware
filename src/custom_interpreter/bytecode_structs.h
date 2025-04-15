@@ -13,11 +13,26 @@ enum BytecodeOpCode : uint8_t {
     
     // Reserved for future extensions
     OP_READ_SENSOR = 0x20,  // Reserved for sensors
-    OP_COMPARE = 0x30,      // Reserved for conditionals
-    OP_JUMP = 0x31,         // Reserved for control flow
+    
+    // Control flow operations
+    OP_COMPARE = 0x30,      // Compare values
+    OP_JUMP = 0x31,         // Unconditional jump
+    OP_JUMP_IF_TRUE = 0x32, // Jump if comparison was true
+    OP_JUMP_IF_FALSE = 0x33, // Jump if comparison was false
 
+    // Variable operations
     OP_DECLARE_VAR = 0x40,
     OP_SET_VAR = 0x41,
+};
+
+// Comparison operators
+enum ComparisonOp : uint8_t {
+    OP_EQUAL = 0x01,          // ==
+    OP_NOT_EQUAL = 0x02,      // !=
+    OP_GREATER_THAN = 0x03,   // >
+    OP_LESS_THAN = 0x04,      // 
+    OP_GREATER_EQUAL = 0x05,  // >=
+    OP_LESS_EQUAL = 0x06,     // <=
 };
 
 enum BytecodeVarType : uint8_t {
@@ -37,11 +52,11 @@ enum BytecodeLedID : uint8_t {
     LED_BACK_RIGHT = 6
 };
 
-// A single bytecode instruction (4 bytes)
+// A single bytecode instruction (5 bytes)
 struct BytecodeInstruction {
     BytecodeOpCode opcode;  // What operation to perform
     uint8_t operand1;       // First parameter
     uint8_t operand2;       // Second parameter 
     uint8_t operand3;       // Third parameter
-    uint8_t operand4;       // Third parameter
+    uint8_t operand4;       // Fourth parameter
 };

@@ -33,6 +33,7 @@ bool BytecodeVM::loadProgram(const uint8_t* byteCode, uint16_t size) {
     // Reset VM state
     pc = 0;
     waitingForDelay = false;
+    lastComparisonResult = false;
     
     return true;
 }
@@ -55,6 +56,27 @@ void BytecodeVM::update() {
     pc++; // Move to next instruction
 }
 
+bool BytecodeVM::compareValues(ComparisonOp op, int32_t left, int32_t right) {
+    switch (op) {
+        case OP_EQUAL:
+            return left == right;
+        case OP_NOT_EQUAL:
+            return left != right;
+        case OP_GREATER_THAN:
+            return left > right;
+        case OP_LESS_THAN:
+            return left < right;
+        case OP_GREATER_EQUAL:
+            return left >= right;
+        case OP_LESS_EQUAL:
+            return left <= right;
+        default:
+            // Unknown operator, default to false
+            Serial.print("Unknown comparison operator: ");
+            Serial.println(op);
+            return false;
+    }
+}
 
 void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
     switch (instr.opcode) {
@@ -113,6 +135,79 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             uint8_t b = instr.operand3;
             // operand4 is unused for this operation
             rgbLed.set_all_leds_to_color(r, g, b);
+            break;
+        }
+
+        case OP_COMPARE: {
+            // Compare two values and store the result
+            ComparisonOp op = (ComparisonOp)instr.operand1;
+            int32_t leftValue = instr.operand2;
+            int32_t rightValue = instr.operand3;
+            
+            lastComparisonResult = compareValues(op, leftValue, rightValue);
+            
+            #ifdef DEBUG_VM
+            Serial.print("COMPARE: ");
+            Serial.print(leftValue);
+            Serial.print(" op ");
+            Serial.print(op);
+            Serial.print(" ");
+            Serial.print(rightValue);
+            Serial.print(" = ");
+            Serial.println(lastComparisonResult ? "TRUE" : "FALSE");
+            #endif
+            break;
+        }
+
+        case OP_JUMP: {
+            // Unconditional jump
+            uint16_t jumpOffset = instr.operand1 | (instr.operand2 << 8);
+            
+            // Calculate new PC - we need to subtract 1 because the PC will be incremented
+            // after this instruction executes
+            uint16_t targetInstruction = pc + (jumpOffset / 5);
+            pc = targetInstruction - 1;
+            
+            #ifdef DEBUG_VM
+            Serial.print("JUMP: ");
+            Serial.print(jumpOffset);
+            Serial.print(" bytes, to instruction ");
+            Serial.println(targetInstruction);
+            #endif
+            break;
+        }
+
+        case OP_JUMP_IF_TRUE: {
+            // Conditional jump if last comparison was true
+            if (lastComparisonResult) {
+                uint16_t jumpOffset = instr.operand1 | (instr.operand2 << 8);
+                uint16_t targetInstruction = pc + (jumpOffset / 5);
+                pc = targetInstruction - 1;
+                
+                #ifdef DEBUG_VM
+                Serial.print("JUMP_IF_TRUE: ");
+                Serial.print(jumpOffset);
+                Serial.print(" bytes, to instruction ");
+                Serial.println(targetInstruction);
+                #endif
+            }
+            break;
+        }
+
+        case OP_JUMP_IF_FALSE: {
+            // Conditional jump if last comparison was false
+            if (!lastComparisonResult) {
+                uint16_t jumpOffset = instr.operand1 | (instr.operand2 << 8);
+                uint16_t targetInstruction = pc + (jumpOffset / 5);
+                pc = targetInstruction - 1;
+                
+                #ifdef DEBUG_VM
+                Serial.print("JUMP_IF_FALSE: ");
+                Serial.print(jumpOffset);
+                Serial.print(" bytes, to instruction ");
+                Serial.println(targetInstruction);
+                #endif
+            }
             break;
         }
 

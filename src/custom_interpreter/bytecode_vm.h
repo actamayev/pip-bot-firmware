@@ -25,6 +25,7 @@ class BytecodeVM : public Singleton<BytecodeVM> {
         uint16_t pc = 0; // Program counter
         unsigned long delayUntil = 0; // For handling delays
         bool waitingForDelay = false;
+        bool lastComparisonResult = false; // Stores result of last comparison
         
         static const uint8_t MAX_REGISTERS = 16;
     
@@ -42,4 +43,7 @@ class BytecodeVM : public Singleton<BytecodeVM> {
         
         // Execute instruction implementation
         void executeInstruction(const BytecodeInstruction& instr);
+        
+        // Helper method for comparisons
+        bool compareValues(ComparisonOp op, int32_t left, int32_t right);
 };
