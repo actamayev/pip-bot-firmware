@@ -13,6 +13,7 @@
 #include "./networking/websocket_manager.h"
 #include "./actuators/led/led_animations.h"
 #include "./networking/send_data_to_server.h"
+#include "./custom_interpreter/bytecode_vm.h"
 #include "./wifi_selection/wifi_selection_manager.h"
 #include "./wifi_selection/haptic_feedback_manager.h"
 
@@ -41,6 +42,7 @@ void SensorAndUserCodeTask(void * parameter) {
             continue;
         }
         Buttons::getInstance().update();  // Update button states
+        BytecodeVM::getInstance().update();
         // multizoneTofLogger();
         // imuLogger();
         // sideTofsLogger();

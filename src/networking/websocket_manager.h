@@ -10,6 +10,7 @@
 #include "./firmware_updater.h"
 #include "./message_processor.h"
 #include "./send_data_to_server.h"
+#include "./custom_interpreter/bytecode_vm.h"
 
 using namespace websockets;
 
