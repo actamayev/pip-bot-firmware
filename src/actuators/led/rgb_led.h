@@ -21,6 +21,7 @@ class RgbLed {
         void set_middle_right_led(uint8_t red, uint8_t green, uint8_t blue);
         void set_back_left_led(uint8_t red, uint8_t green, uint8_t blue);
         void set_back_right_led(uint8_t red, uint8_t green, uint8_t blue);
+        void set_all_leds_to_color(uint8_t red, uint8_t green, uint8_t blue);  
         
         // Get current color values
         uint8_t getCurrentRed() const { return currentRed; }
@@ -39,7 +40,6 @@ class RgbLed {
         bool defaultColorsSet[6] = {false, false, false, false, false, false};
 
     private:
-        void set_all_leds_to_color(uint8_t red, uint8_t green, uint8_t blue);  
         bool processLedUpdate(int ledIndex, uint8_t red, uint8_t green, uint8_t blue);
         
         // Current LED state
