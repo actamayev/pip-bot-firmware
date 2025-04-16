@@ -197,6 +197,22 @@ void WebSocketManager::handleBinaryMessage(WebsocketsMessage message) {
                 MessageProcessor::getInstance().handleChangePidsCommand(newBalancePids);
             }
             break;
+        case DataMessageType::BYTECODE_PROGRAM: {
+            // First byte is the message type, the rest is bytecode
+            const uint8_t* bytecodeData = data + 1;
+            size_t bytecodeLength = length - 1;
+            
+            // Execute the bytecode
+            bool success = BytecodeVM::getInstance().loadProgram(bytecodeData, bytecodeLength);
+
+            // Send response
+            if (success) {
+                SendDataToServer::getInstance().sendBytecodeMessage("Bytecode successfully loaded");
+            } else {
+                SendDataToServer::getInstance().sendBytecodeMessage("Error loading bytecode: invalid format!");
+            }
+            break;
+        }
         default:
             Serial.printf("Unknown message type: %d\n", static_cast<int>(messageType));
             break;
