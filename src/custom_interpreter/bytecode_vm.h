@@ -18,7 +18,7 @@ class BytecodeVM : public Singleton<BytecodeVM> {
         void update();
 
     private:
-        static const uint16_t MAX_PROGRAM_SIZE = 128; // Max instructions
+        static const uint16_t MAX_PROGRAM_SIZE = 8192; // Max instructions
         
         BytecodeInstruction* program = nullptr;
         uint16_t programSize = 0;
@@ -27,7 +27,8 @@ class BytecodeVM : public Singleton<BytecodeVM> {
         bool waitingForDelay = false;
         bool lastComparisonResult = false; // Stores result of last comparison
         
-        static const uint8_t MAX_REGISTERS = 16;
+        static const uint16_t MAX_REGISTERS = 512; // Changed from uint8_t to uint16_t
+                                              // to handle values > 255
     
         // Union to store different variable types in the same memory
         union RegisterValue {
