@@ -19,6 +19,8 @@ enum BytecodeOpCode : uint8_t {
     OP_JUMP = 0x31,         // Unconditional jump
     OP_JUMP_IF_TRUE = 0x32, // Jump if comparison was true
     OP_JUMP_IF_FALSE = 0x33, // Jump if comparison was false
+    OP_WHILE_START = 0x34,  // Marks the start of a while loop
+    OP_WHILE_END = 0x35,    // End of while loop, jumps back to start
 
     // Variable operations
     OP_DECLARE_VAR = 0x40,

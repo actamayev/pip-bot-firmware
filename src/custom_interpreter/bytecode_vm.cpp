@@ -236,6 +236,27 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             }
             break;
         }
+        case OP_WHILE_START: {
+            // This is just a marker for the start of the loop
+            // No special action needed
+            break;
+        }
+
+        case OP_WHILE_END: {
+            // Jump back to the corresponding WHILE_START
+            uint16_t offsetToStart = instr.operand1 | (instr.operand2 << 8);
+            
+            // Calculate the new PC (jumping backwards)
+            // We need to make sure we don't go out of bounds
+            if (offsetToStart <= pc * 5) {
+                pc = pc - (offsetToStart / 5);
+            } else {
+                // Safety check - if offset is invalid, stop execution
+                pc = programSize;
+                Serial.println("Invalid loop jump - stopping execution");
+            }
+            break;
+        }
 
         default:
             // Unknown opcode, stop execution
