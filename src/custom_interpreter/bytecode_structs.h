@@ -25,6 +25,7 @@ enum BytecodeOpCode : uint8_t {
     OP_FOR_INIT = 0x36,     // Initialize loop counter
     OP_FOR_CONDITION = 0x37, // Check loop condition
     OP_FOR_INCREMENT = 0x38, // Increment loop counter
+    OP_JUMP_BACKWARD = 0x39, // Backward jump (for loops)
 
     // Variable operations
     OP_DECLARE_VAR = 0x40,

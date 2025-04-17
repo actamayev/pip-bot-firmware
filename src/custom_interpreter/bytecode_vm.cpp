@@ -161,6 +161,16 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             break;
         }
 
+        case OP_JUMP_BACKWARD: {
+            // Backward jump (used in for loops)
+            uint16_t jumpOffset = instr.operand1 | (instr.operand2 << 8);
+            
+            // For backward jumps, SUBTRACT the offset
+            uint16_t targetInstruction = pc - (jumpOffset / 5);
+            pc = targetInstruction - 1; // -1 because pc will be incremented after
+            break;
+        }
+
         case OP_JUMP_IF_TRUE: {
             // Conditional jump if last comparison was true
             if (lastComparisonResult) {
