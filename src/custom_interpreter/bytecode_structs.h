@@ -22,6 +22,10 @@ enum BytecodeOpCode : uint8_t {
     OP_WHILE_START = 0x34,  // Marks the start of a while loop
     OP_WHILE_END = 0x35,    // End of while loop, jumps back to start
 
+    OP_FOR_INIT = 0x36,     // Initialize loop counter
+    OP_FOR_CONDITION = 0x37, // Check loop condition
+    OP_FOR_INCREMENT = 0x38, // Increment loop counter
+
     // Variable operations
     OP_DECLARE_VAR = 0x40,
     OP_SET_VAR = 0x41,

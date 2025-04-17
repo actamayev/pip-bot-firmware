@@ -258,6 +258,61 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             break;
         }
 
+        case OP_FOR_INIT: {
+            // Initialize loop counter
+            uint8_t regId = instr.operand1;
+            
+            if (regId < MAX_REGISTERS) {
+                registerTypes[regId] = VAR_INT;
+                
+                // Reconstruct integer from bytes
+                int32_t initValue = instr.operand2 | 
+                                   (instr.operand3 << 8) | 
+                                   (instr.operand4 << 16);
+                // Sign extension for negative values
+                if (instr.operand4 & 0x80) {
+                    initValue |= 0xFF000000;
+                }
+                
+                registers[regId].asInt = initValue;
+                registerInitialized[regId] = true;
+            }
+            break;
+        }
+        
+        case OP_FOR_CONDITION: {
+            // Check if counter < end value
+            uint8_t regId = instr.operand1;
+            
+            if (regId < MAX_REGISTERS && registerInitialized[regId]) {
+                // Reconstruct end value
+                int32_t endValue = instr.operand2 | 
+                                  (instr.operand3 << 8) | 
+                                  (instr.operand4 << 16);
+                // Sign extension
+                if (instr.operand4 & 0x80) {
+                    endValue |= 0xFF000000;
+                }
+                
+                // Compare counter with end value
+                lastComparisonResult = (registers[regId].asInt < endValue);
+            } else {
+                // Invalid register, exit loop
+                lastComparisonResult = false;
+            }
+            break;
+        }
+
+        case OP_FOR_INCREMENT: {
+            // Increment counter by 1
+            uint8_t regId = instr.operand1;
+
+            if (regId < MAX_REGISTERS && registerInitialized[regId]) {
+                registers[regId].asInt++;
+            }
+            break;
+        }
+
         default:
             // Unknown opcode, stop execution
             pc = programSize;
