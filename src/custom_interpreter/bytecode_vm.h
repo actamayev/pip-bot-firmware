@@ -2,6 +2,7 @@
 #include <Arduino.h>
 #include "./bytecode_structs.h"
 #include "../utils/singleton.h"
+#include "../sensors/sensors.h"
 #include "../actuators/led/rgb_led.h"
 
 class BytecodeVM : public Singleton<BytecodeVM> {
@@ -46,5 +47,5 @@ class BytecodeVM : public Singleton<BytecodeVM> {
         void executeInstruction(const BytecodeInstruction& instr);
         
         // Helper method for comparisons
-        bool compareValues(ComparisonOp op, int32_t left, int32_t right);
+        bool compareValues(ComparisonOp op, uint8_t leftOperand, int32_t rightValue);
 };

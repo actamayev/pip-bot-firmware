@@ -42,6 +42,22 @@ enum ComparisonOp : uint8_t {
     OP_LESS_EQUAL = 0x06,     // <=
 };
 
+enum BytecodeSensorType : uint8_t {
+    SENSOR_PITCH = 0,
+    SENSOR_ROLL = 1,
+    SENSOR_YAW = 2,
+    SENSOR_ACCEL_X = 3,
+    SENSOR_ACCEL_Y = 4,
+    SENSOR_ACCEL_Z = 5,
+    SENSOR_ACCEL_MAG = 6,
+    SENSOR_ROT_RATE_X = 7,
+    SENSOR_ROT_RATE_Y = 8,
+    SENSOR_ROT_RATE_Z = 9,
+    SENSOR_MAG_FIELD_X = 10,
+    SENSOR_MAG_FIELD_Y = 11,
+    SENSOR_MAG_FIELD_Z = 12
+};
+
 enum BytecodeVarType : uint8_t {
     VAR_FLOAT = 0x01,
     VAR_INT = 0x02,

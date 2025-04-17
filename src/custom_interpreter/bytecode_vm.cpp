@@ -56,25 +56,39 @@ void BytecodeVM::update() {
     pc++; // Move to next instruction
 }
 
-bool BytecodeVM::compareValues(ComparisonOp op, int32_t left, int32_t right) {
+bool BytecodeVM::compareValues(ComparisonOp op, uint8_t leftOperand, int32_t rightValue) {
+    float leftValue;
+    
+    // Check if high bit is set, indicating a register
+    if (leftOperand & 0x80) {
+        uint8_t regId = leftOperand & 0x7F;  // Remove high bit to get register ID
+        
+        if (regId < MAX_REGISTERS && registerInitialized[regId]) {
+            // Get value from register
+            if (registerTypes[regId] == VAR_FLOAT) {
+                leftValue = registers[regId].asFloat;
+            } else if (registerTypes[regId] == VAR_INT) {
+                leftValue = registers[regId].asInt;
+            } else {
+                leftValue = registers[regId].asBool ? 1.0f : 0.0f;
+            }
+        } else {
+            return false;  // Invalid register
+        }
+    } else {
+        // Direct value
+        leftValue = leftOperand;
+    }
+    
+    // Perform comparison
     switch (op) {
-        case OP_EQUAL:
-            return left == right;
-        case OP_NOT_EQUAL:
-            return left != right;
-        case OP_GREATER_THAN:
-            return left > right;
-        case OP_LESS_THAN:
-            return left < right;
-        case OP_GREATER_EQUAL:
-            return left >= right;
-        case OP_LESS_EQUAL:
-            return left <= right;
-        default:
-            // Unknown operator, default to false
-            Serial.print("Unknown comparison operator: ");
-            Serial.println(op);
-            return false;
+        case OP_EQUAL: return leftValue == rightValue;
+        case OP_NOT_EQUAL: return leftValue != rightValue;
+        case OP_GREATER_THAN: return leftValue > rightValue;
+        case OP_LESS_THAN: return leftValue < rightValue;
+        case OP_GREATER_EQUAL: return leftValue >= rightValue;
+        case OP_LESS_EQUAL: return leftValue <= rightValue;
+        default: return false;
     }
 }
 
@@ -124,6 +138,69 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
                 case LED_BACK_RIGHT:
                     rgbLed.set_back_right_led(r, g, b);
                     break;
+            }
+            break;
+        }
+
+        case OP_READ_SENSOR: {
+            uint8_t sensorType = instr.operand1;  // Which sensor to read
+            uint8_t regId = instr.operand2;       // Register to store result
+            
+            if (regId < MAX_REGISTERS) {
+                float value = 0.0f;
+                
+                // Read the appropriate sensor
+                switch (sensorType) {
+                    case SENSOR_PITCH:
+                        value = Sensors::getInstance().getPitch();
+                        break;
+                    case SENSOR_ROLL:
+                        value = Sensors::getInstance().getRoll();
+                        break;
+                    case SENSOR_YAW:
+                        value = Sensors::getInstance().getYaw();
+                        break;
+                    case SENSOR_ACCEL_X:
+                        value = Sensors::getInstance().getXAccel();
+                        break;
+                    case SENSOR_ACCEL_Y:
+                        value = Sensors::getInstance().getYAccel();
+                        break;
+                    case SENSOR_ACCEL_Z:
+                        value = Sensors::getInstance().getZAccel();
+                        break;
+                    case SENSOR_ACCEL_MAG:
+                        value = Sensors::getInstance().getAccelMagnitude();
+                        break;
+                    case SENSOR_ROT_RATE_X:
+                        value = Sensors::getInstance().getXRotationRate();
+                        break;
+                    case SENSOR_ROT_RATE_Y:
+                        value = Sensors::getInstance().getYRotationRate();
+                        break;
+                    case SENSOR_ROT_RATE_Z:
+                        value = Sensors::getInstance().getZRotationRate();
+                        break;
+                    case SENSOR_MAG_FIELD_X:
+                        value = Sensors::getInstance().getMagneticFieldX();
+                        break;
+                    case SENSOR_MAG_FIELD_Y:
+                        value = Sensors::getInstance().getMagneticFieldY();
+                        break;
+                    case SENSOR_MAG_FIELD_Z:
+                        value = Sensors::getInstance().getMagneticFieldZ();
+                        break;
+                    default:
+                        // Unknown sensor type
+                        Serial.print("Unknown sensor type: ");
+                        Serial.println(sensorType);
+                        break;
+                }
+                
+                // Store the sensor value in the register
+                registers[regId].asFloat = value;
+                registerTypes[regId] = VAR_FLOAT;
+                registerInitialized[regId] = true;
             }
             break;
         }
