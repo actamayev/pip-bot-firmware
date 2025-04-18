@@ -1,7 +1,7 @@
 #pragma once
 
 // Operation codes (opcodes)
-enum BytecodeOpCode : uint8_t {
+enum BytecodeOpCode : uint16_t {
     // System operations
     OP_NOP = 0x00,      // No operation
     OP_END = 0x01,      // End sequence
@@ -75,11 +75,11 @@ enum BytecodeLedID : uint8_t {
     LED_BACK_RIGHT = 6
 };
 
-// A single bytecode instruction (5 bytes)
+// A single bytecode instruction (10 bytes)
 struct BytecodeInstruction {
-    BytecodeOpCode opcode;  // What operation to perform
-    uint8_t operand1;       // First parameter
-    uint8_t operand2;       // Second parameter 
-    uint8_t operand3;       // Third parameter
-    uint8_t operand4;       // Fourth parameter
+    BytecodeOpCode opcode;  // What operation to perform (2 bytes)
+    int16_t operand1;       // 2 bytes
+    int16_t operand2;       // 2 bytes
+    int16_t operand3;       // 2 bytes
+    int16_t operand4;       // 2 bytes
 };

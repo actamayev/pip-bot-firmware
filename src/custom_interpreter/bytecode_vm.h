@@ -47,5 +47,5 @@ class BytecodeVM : public Singleton<BytecodeVM> {
         void executeInstruction(const BytecodeInstruction& instr);
         
         // Helper method for comparisons
-        bool compareValues(ComparisonOp op, uint8_t leftOperand, int32_t rightValue);
+        bool compareValues(ComparisonOp op, int16_t leftOperand, int16_t rightValue);
 };
