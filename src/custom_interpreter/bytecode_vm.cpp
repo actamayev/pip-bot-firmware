@@ -223,7 +223,6 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             uint8_t g = static_cast<uint8_t>(instr.operand2);     // RGB values (0-255)
             uint8_t b = static_cast<uint8_t>(instr.operand3);        
 
-            Serial.printf("%d, %d, %d\n", r,g,b);
             // operand4 is unused for this operation
             rgbLed.set_all_leds_to_color(r, g, b);
             break;
