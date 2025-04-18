@@ -21,7 +21,6 @@ bool BytecodeVM::loadProgram(const uint8_t* byteCode, uint16_t size) {
     programSize = size / INSTRUCTION_SIZE;
     program = new BytecodeInstruction[programSize];
     
-    Serial.println("=== Bytecode Dump ===");
     // Iterate through program indices (0 to programSize-1)
     for (uint16_t i = 0; i < programSize; i++) {
         uint16_t offset = i * INSTRUCTION_SIZE;
