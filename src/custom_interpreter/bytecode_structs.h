@@ -1,7 +1,7 @@
 #pragma once
 
 // Operation codes (opcodes)
-enum BytecodeOpCode : uint8_t {
+enum BytecodeOpCode : uint32_t {
     // System operations
     OP_NOP = 0x00,      // No operation
     OP_END = 0x01,      // End sequence
@@ -22,6 +22,11 @@ enum BytecodeOpCode : uint8_t {
     OP_WHILE_START = 0x34,  // Marks the start of a while loop
     OP_WHILE_END = 0x35,    // End of while loop, jumps back to start
 
+    OP_FOR_INIT = 0x36,     // Initialize loop counter
+    OP_FOR_CONDITION = 0x37, // Check loop condition
+    OP_FOR_INCREMENT = 0x38, // Increment loop counter
+    OP_JUMP_BACKWARD = 0x39, // Backward jump (for loops)
+
     // Variable operations
     OP_DECLARE_VAR = 0x40,
     OP_SET_VAR = 0x41,
@@ -35,6 +40,22 @@ enum ComparisonOp : uint8_t {
     OP_LESS_THAN = 0x04,      // 
     OP_GREATER_EQUAL = 0x05,  // >=
     OP_LESS_EQUAL = 0x06,     // <=
+};
+
+enum BytecodeSensorType : uint8_t {
+    SENSOR_PITCH = 0,
+    SENSOR_ROLL = 1,
+    SENSOR_YAW = 2,
+    SENSOR_ACCEL_X = 3,
+    SENSOR_ACCEL_Y = 4,
+    SENSOR_ACCEL_Z = 5,
+    SENSOR_ACCEL_MAG = 6,
+    SENSOR_ROT_RATE_X = 7,
+    SENSOR_ROT_RATE_Y = 8,
+    SENSOR_ROT_RATE_Z = 9,
+    SENSOR_MAG_FIELD_X = 10,
+    SENSOR_MAG_FIELD_Y = 11,
+    SENSOR_MAG_FIELD_Z = 12
 };
 
 enum BytecodeVarType : uint8_t {
@@ -54,11 +75,11 @@ enum BytecodeLedID : uint8_t {
     LED_BACK_RIGHT = 6
 };
 
-// A single bytecode instruction (5 bytes)
+// A single bytecode instruction (10 bytes)
 struct BytecodeInstruction {
-    BytecodeOpCode opcode;  // What operation to perform
-    uint8_t operand1;       // First parameter
-    uint8_t operand2;       // Second parameter 
-    uint8_t operand3;       // Third parameter
-    uint8_t operand4;       // Fourth parameter
+    BytecodeOpCode opcode;  // What operation to perform (4 bytes)
+    float operand1;       // 4 bytes
+    float operand2;       // 4 bytes
+    float operand3;       // 4 bytes
+    float operand4;       // 4 bytes
 };
