@@ -63,16 +63,16 @@ void BytecodeVM::update() {
     pc++; // Move to next instruction
 }
 
-bool BytecodeVM::compareValues(ComparisonOp op, float leftOperand, float rightValue) {
+bool BytecodeVM::compareValues(ComparisonOp op, float leftOperand, float rightOperand) {
     float leftValue;
+    float rightValue;
     
-    // Check if high bit is set, indicating a register
-    // For int16_t, use bit 15 (the sign bit) as the register indicator
+    // Process left operand - check if high bit is set, indicating a register
     if (leftOperand >= 32768.0f) {
         uint16_t regId = static_cast<uint16_t>(leftOperand) & 0x7FFF;
         
         if (regId < MAX_REGISTERS && registerInitialized[regId]) {
-            // Get value from register (unchanged)
+            // Get value from register
             if (registerTypes[regId] == VAR_FLOAT) {
                 leftValue = registers[regId].asFloat;
             } else if (registerTypes[regId] == VAR_INT) {
@@ -88,7 +88,28 @@ bool BytecodeVM::compareValues(ComparisonOp op, float leftOperand, float rightVa
         leftValue = leftOperand;
     }
     
-    // Perform comparison (unchanged)
+    // Process right operand - check if high bit is set, indicating a register
+    if (rightOperand >= 32768.0f) {
+        uint16_t regId = static_cast<uint16_t>(rightOperand) & 0x7FFF;
+        
+        if (regId < MAX_REGISTERS && registerInitialized[regId]) {
+            // Get value from register
+            if (registerTypes[regId] == VAR_FLOAT) {
+                rightValue = registers[regId].asFloat;
+            } else if (registerTypes[regId] == VAR_INT) {
+                rightValue = registers[regId].asInt;
+            } else {
+                rightValue = registers[regId].asBool ? 1.0f : 0.0f;
+            }
+        } else {
+            return false;  // Invalid register
+        }
+    } else {
+        // Direct value
+        rightValue = rightOperand;
+    }
+    
+    // Perform comparison with retrieved values
     switch (op) {
         case OP_EQUAL: return leftValue == rightValue;
         case OP_NOT_EQUAL: return leftValue != rightValue;
