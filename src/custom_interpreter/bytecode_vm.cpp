@@ -13,35 +13,31 @@ bool BytecodeVM::loadProgram(const uint8_t* byteCode, uint16_t size) {
         program = nullptr;
     }
 
-    // Validate bytecode size (must be multiple of 10 now)
-    if (size % 10 != 0 || size / 10 > MAX_PROGRAM_SIZE) {
+    // Validate bytecode size (must be multiple of 20 now)
+    if (size % INSTRUCTION_SIZE != 0 || size / INSTRUCTION_SIZE > MAX_PROGRAM_SIZE) {
         return false;
     }
     
-    programSize = size / 10;
+    programSize = size / INSTRUCTION_SIZE;
     program = new BytecodeInstruction[programSize];
     
     Serial.println("=== Bytecode Dump ===");
     // Iterate through program indices (0 to programSize-1)
     for (uint16_t i = 0; i < programSize; i++) {
-        // Calculate byte offset for each instruction
-        uint16_t offset = i * 10;
+        uint16_t offset = i * INSTRUCTION_SIZE;
         
-        // Read opcode (2 bytes, little-endian)
-        program[i].opcode = (BytecodeOpCode)(byteCode[offset] | (byteCode[offset + 1] << 8));
+        // Read opcode (as float but cast to enum)
+        float opcodeFloat;
+        memcpy(&opcodeFloat, &byteCode[offset], sizeof(float));
+        program[i].opcode = static_cast<BytecodeOpCode>(static_cast<uint32_t>(opcodeFloat));
         
-        // Read operands (2 bytes each, little-endian)
-        program[i].operand1 = byteCode[offset + 2] | (byteCode[offset + 3] << 8);
-        program[i].operand2 = byteCode[offset + 4] | (byteCode[offset + 5] << 8);
-        program[i].operand3 = byteCode[offset + 6] | (byteCode[offset + 7] << 8);
-        program[i].operand4 = byteCode[offset + 8] | (byteCode[offset + 9] << 8);
-        
-        // Add detailed logging
-        Serial.printf("Instruction %d: opcode=%d operand1=%d operand2=%d operand3=%d operand4=%d\n", 
-                     i, program[i].opcode, program[i].operand1, program[i].operand2, 
-                     program[i].operand3, program[i].operand4);
+        // Read float operands - direct memory copy to preserve exact bit pattern
+        memcpy(&program[i].operand1, &byteCode[offset + 4], sizeof(float));
+        memcpy(&program[i].operand2, &byteCode[offset + 8], sizeof(float));
+        memcpy(&program[i].operand3, &byteCode[offset + 12], sizeof(float));
+        memcpy(&program[i].operand4, &byteCode[offset + 16], sizeof(float));
     }
-    
+
     // Reset VM state
     pc = 0;
     waitingForDelay = false;
@@ -68,13 +64,13 @@ void BytecodeVM::update() {
     pc++; // Move to next instruction
 }
 
-bool BytecodeVM::compareValues(ComparisonOp op, int16_t leftOperand, int16_t rightValue) {
+bool BytecodeVM::compareValues(ComparisonOp op, float leftOperand, float rightValue) {
     float leftValue;
     
     // Check if high bit is set, indicating a register
     // For int16_t, use bit 15 (the sign bit) as the register indicator
-    if (leftOperand & 0x8000) {
-        uint16_t regId = leftOperand & 0x7FFF;  // Use lower 15 bits for register ID
+    if (leftOperand >= 32768.0f) {
+        uint16_t regId = static_cast<uint16_t>(leftOperand) & 0x7FFF;
         
         if (regId < MAX_REGISTERS && registerInitialized[regId]) {
             // Get value from register (unchanged)
@@ -118,7 +114,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
 
         case OP_DELAY: {
             // Delay execution for specified milliseconds
-            uint16_t delayMs = instr.operand1;  // Now operand1 directly stores the delay time
+            uint32_t delayMs = static_cast<uint32_t>(instr.operand1);
             delayUntil = millis() + delayMs;
             waitingForDelay = true;
             break;
@@ -231,8 +227,8 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
         case OP_COMPARE: {
             // Compare two values and store the result
             ComparisonOp op = (ComparisonOp)static_cast<uint8_t>(instr.operand1);
-            int16_t leftValue = instr.operand2;
-            int16_t rightValue = instr.operand3;
+            float leftValue = instr.operand2;
+            float rightValue = instr.operand3;
             
             lastComparisonResult = compareValues(op, leftValue, rightValue);
 
@@ -241,11 +237,11 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
 
         case OP_JUMP: {
             // Unconditional jump
-            uint16_t jumpOffset = instr.operand1;  // Now operand1 directly stores the offset
+            uint16_t jumpOffset = static_cast<uint16_t>(instr.operand1);
             
             // Calculate new PC - we need to subtract 1 because the PC will be incremented
             // after this instruction executes
-            uint16_t targetInstruction = pc + (jumpOffset / 10);  // 10 bytes per instruction
+            uint16_t targetInstruction = pc + (jumpOffset / INSTRUCTION_SIZE);  // 20 bytes per instruction
             pc = targetInstruction - 1;
         
             break;
@@ -253,10 +249,10 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
 
         case OP_JUMP_BACKWARD: {
             // Backward jump (used in for loops)
-            uint16_t jumpOffset = instr.operand1;  // Now operand1 directly stores the offset
+            uint16_t jumpOffset = static_cast<uint16_t>(instr.operand1);
             
             // For backward jumps, SUBTRACT the offset
-            uint16_t targetInstruction = pc - (jumpOffset / 10);  // 10 bytes per instruction
+            uint16_t targetInstruction = pc - (jumpOffset / INSTRUCTION_SIZE);  // 20 bytes per instruction
             pc = targetInstruction - 1; // -1 because pc will be incremented after
             break;
         }
@@ -264,8 +260,8 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
         case OP_JUMP_IF_TRUE: {
             // Conditional jump if last comparison was true
             if (lastComparisonResult) {
-                uint16_t jumpOffset = instr.operand1;  // Now operand1 directly stores the offset
-                uint16_t targetInstruction = pc + (jumpOffset / 10);  // 10 bytes per instruction
+                uint16_t jumpOffset = static_cast<uint16_t>(instr.operand1);
+                uint16_t targetInstruction = pc + (jumpOffset / INSTRUCTION_SIZE);  // 20 bytes per instruction
                 pc = targetInstruction - 1;
             }
             break;
@@ -274,8 +270,8 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
         case OP_JUMP_IF_FALSE: {
             // Conditional jump if last comparison was false
             if (!lastComparisonResult) {
-                uint16_t jumpOffset = instr.operand1;  // Now operand1 directly stores the offset
-                uint16_t targetInstruction = pc + (jumpOffset / 10);  // 10 bytes per instruction
+                uint16_t jumpOffset = static_cast<uint16_t>(instr.operand1);
+                uint16_t targetInstruction = pc + (jumpOffset / INSTRUCTION_SIZE);  // 20 bytes per instruction
                 pc = targetInstruction - 1;
             }
             break;
@@ -305,27 +301,23 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
         }
         
         case OP_SET_VAR: {
-            uint16_t regId = instr.operand1; // Now can support more than 255 registers
+            uint16_t regId = static_cast<uint16_t>(instr.operand1);
             
             if (regId < MAX_REGISTERS) {
                 switch (registerTypes[regId]) {
                     case VAR_FLOAT: {
-                        // Reconstruct float from int16_t values (with some precision loss)
-                        // Using a simple approach: convert first two operands to a float
-                        float value = static_cast<float>(instr.operand2) + 
-                                     (static_cast<float>(instr.operand3) / 10000.0f);
-                        registers[regId].asFloat = value;
+                        // Direct assignment - no reconstruction needed
+                        registers[regId].asFloat = instr.operand2;
                         break;
                     }
                     case VAR_INT: {
-                        // Use operand2 and operand3 to create a 32-bit integer
-                        int32_t value = ((int32_t)instr.operand3 << 16) | 
-                                       (instr.operand2 & 0xFFFF);
-                        registers[regId].asInt = value;
+                        // Cast float to int directly
+                        registers[regId].asInt = static_cast<int32_t>(instr.operand2);
                         break;
                     }
                     case VAR_BOOL:
-                        registers[regId].asBool = (instr.operand2 != 0);
+                        // Cast float to bool (non-zero = true)
+                        registers[regId].asBool = (instr.operand2 != 0.0f);
                         break;
                 }
                 registerInitialized[regId] = true;
@@ -340,12 +332,12 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
 
         case OP_WHILE_END: {
             // Jump back to the corresponding WHILE_START
-            uint16_t offsetToStart = instr.operand1;  // Now operand1 directly stores the offset
+            uint16_t offsetToStart = static_cast<uint16_t>(instr.operand1);
             
             // Calculate the new PC (jumping backwards)
             // We need to make sure we don't go out of bounds
-            if (offsetToStart <= pc * 10) {  // 10 bytes per instruction
-                pc = pc - (offsetToStart / 10);
+            if (offsetToStart <= static_cast<float>(pc * INSTRUCTION_SIZE)) {  // 20 bytes per instruction
+                pc = pc - (offsetToStart / INSTRUCTION_SIZE);
             } else {
                 // Safety check - if offset is invalid, stop execution
                 pc = programSize;
@@ -356,16 +348,13 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
 
         case OP_FOR_INIT: {
             // Initialize loop counter
-            uint16_t regId = instr.operand1;
+            uint16_t regId = static_cast<uint16_t>(instr.operand1);
             
             if (regId < MAX_REGISTERS) {
                 registerTypes[regId] = VAR_INT;
                 
-                // Use operand2 and operand3 to create a 32-bit integer
-                int32_t initValue = ((int32_t)instr.operand3 << 16) | 
-                                   (instr.operand2 & 0xFFFF);
-                
-                registers[regId].asInt = initValue;
+                // Cast the float value to int
+                registers[regId].asInt = static_cast<int32_t>(instr.operand2);
                 registerInitialized[regId] = true;
             }
             break;
@@ -373,12 +362,11 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
         
         case OP_FOR_CONDITION: {
             // Check if counter < end value
-            uint16_t regId = instr.operand1;
+            uint16_t regId = static_cast<uint16_t>(instr.operand1);
             
             if (regId < MAX_REGISTERS && registerInitialized[regId]) {
-                // Use operand2 and operand3 to create a 32-bit integer
-                int32_t endValue = ((int32_t)instr.operand3 << 16) | 
-                                  (instr.operand2 & 0xFFFF);
+                // Cast the float value to int
+                int32_t endValue = static_cast<int32_t>(instr.operand2);
                 
                 // Compare counter with end value
                 lastComparisonResult = (registers[regId].asInt < endValue);
@@ -391,7 +379,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
 
         case OP_FOR_INCREMENT: {
             // Increment counter by 1
-            uint16_t regId = instr.operand1;
+            uint16_t regId = static_cast<uint16_t>(instr.operand1);
 
             if (regId < MAX_REGISTERS && registerInitialized[regId]) {
                 registers[regId].asInt++;

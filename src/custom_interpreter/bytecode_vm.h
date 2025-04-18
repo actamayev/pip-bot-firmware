@@ -31,6 +31,7 @@ class BytecodeVM : public Singleton<BytecodeVM> {
         static const uint16_t MAX_REGISTERS = 512; // Changed from uint8_t to uint16_t
                                               // to handle values > 255
     
+        static const uint8_t INSTRUCTION_SIZE = 20;
         // Union to store different variable types in the same memory
         union RegisterValue {
             float asFloat;
@@ -47,5 +48,5 @@ class BytecodeVM : public Singleton<BytecodeVM> {
         void executeInstruction(const BytecodeInstruction& instr);
         
         // Helper method for comparisons
-        bool compareValues(ComparisonOp op, int16_t leftOperand, int16_t rightValue);
+        bool compareValues(ComparisonOp op, float leftOperand, float rightValue);
 };
