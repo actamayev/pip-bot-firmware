@@ -67,6 +67,12 @@ bool Sensors::tryInitializeIMU() {
     }
     
     if (!imu.canRetryInitialization()) {
+        // Check if we've reached max retries and should restart
+        if (imu.getInitRetryCount() >= imu.getMaxInitRetries()) {
+            Serial.println("IMU initialization failed after maximum retries. Restarting ESP...");
+            delay(1000); // Give serial time to send
+            ESP.restart(); // Restart the ESP
+        }
         return false; // Can't retry yet
     }
     
