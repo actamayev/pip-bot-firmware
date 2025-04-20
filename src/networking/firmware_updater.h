@@ -5,6 +5,7 @@
 #include "../utils/singleton.h"
 
 // TODO: Delete this file if the alternate version works
+// After deleting, see what can be deleted (jsmnh, mbedtls, etc.))
 class FirmwareUpdater : public Singleton<FirmwareUpdater> {
     friend class Singleton<FirmwareUpdater>;
 

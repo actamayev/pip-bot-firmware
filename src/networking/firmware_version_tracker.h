@@ -1,18 +1,27 @@
 #pragma once
 
+#include <Preferences.h>
+#include <WiFi.h>
 #include <HTTPUpdate.h>
+#include "../utils/config.h"
 #include "../utils/singleton.h"
-#include "./wifi_manager.h"
 
 class FirmwareVersionTracker : public Singleton<FirmwareVersionTracker> {
     friend class Singleton<FirmwareVersionTracker>;
 
     public:
-        FirmwareVersionTracker();
-        uint8_t firmwareVersion = 0;
+        int getFirmwareVersion() { return firmwareVersion; }
+        void setFirmwareVersion(int version);
+        void setPendingVersion(int version);
         void retrieveLatestFirmwareFromServer();
-
+        bool isUpdating() { return isRetrievingFirmwareFromServer; }
+        
     private:
-        bool didRetrieveLatestVersionFromServer = false;
+        FirmwareVersionTracker();
+        Preferences preferences;
+        int firmwareVersion = 0;
+        int pendingVersion = 0;
         bool isRetrievingFirmwareFromServer = false;
+        WiFiClient client; // WiFi client for HTTP updates
+        HTTPUpdate httpUpdate;
 };

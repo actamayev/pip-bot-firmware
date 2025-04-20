@@ -214,9 +214,16 @@ void WebSocketManager::handleBinaryMessage(WebsocketsMessage message) {
             break;
         }
         case DataMessageType::UPDATE_AVAILABLE:
-        if (length != 1) {
+        if (length != 3) {
             Serial.println("Invalid update available message length");
         } else {
+            // Extract the firmware version from bytes 1-2
+            uint16_t newVersion = data[1] | (data[2] << 8); // Little-endian conversion
+
+            Serial.printf("New firmware version available: %d\n", newVersion);
+
+            // Store as pending version and start update
+            FirmwareVersionTracker::getInstance().setPendingVersion(newVersion);
             FirmwareVersionTracker::getInstance().retrieveLatestFirmwareFromServer();
         }
         break;
@@ -278,7 +285,7 @@ void WebSocketManager::sendInitialData() {
     initDoc["route"] = "/register";
     JsonObject payload = initDoc.createNestedObject("payload");
     payload["pipUUID"] = getPipID();
-    payload["firmwareVersion"] = FirmwareVersionTracker::getInstance().firmwareVersion;
+    payload["firmwareVersion"] = FirmwareVersionTracker::getInstance().getFirmwareVersion();
     String jsonString;
     serializeJson(initDoc, jsonString);
 
