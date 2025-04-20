@@ -4,6 +4,7 @@
 #include <mbedtls/base64.h>
 #include "../utils/singleton.h"
 
+// TODO: Delete this file if the alternate version works
 class FirmwareUpdater : public Singleton<FirmwareUpdater> {
     friend class Singleton<FirmwareUpdater>;
 
