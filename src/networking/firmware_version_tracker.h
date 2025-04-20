@@ -1,8 +1,8 @@
 #pragma once
 
-#include <Preferences.h>
 #include <WiFi.h>
 #include <HTTPUpdate.h>
+#include <Preferences.h>
 #include "../utils/config.h"
 #include "../utils/singleton.h"
 

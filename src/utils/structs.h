@@ -13,15 +13,6 @@ struct WiFiNetworkInfo {
     uint8_t encryptionType;
 };
 
-struct MessageTokens {
-    int eventIndex = -1;
-    int chunkIndexIndex = -1;
-    int totalChunksIndex = -1;
-    int totalSizeIndex = -1;
-    int isLastIndex = -1;
-    int dataIndex = -1;
-};
-
 struct TofData {
     VL53L5CX_ResultsData data;
     bool isValid = false;
