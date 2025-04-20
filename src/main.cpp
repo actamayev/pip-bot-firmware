@@ -3,7 +3,6 @@
 #include "./sensors/sensors.h"
 #include "./actuators/buttons.h"
 #include "./actuators/speaker.h"
-#include "./user_code/user_code.h"
 #include "./utils/show_chip_info.h"
 #include "./utils/sensor_loggers.h"
 #include "./sensors/encoder_manager.h"
@@ -48,7 +47,6 @@ void SensorAndUserCodeTask(void * parameter) {
         // sideTofsLogger();
         // DisplayScreen::getInstance().update();
         MessageProcessor::getInstance().processPendingCommands();
-        user_code();
         delay(5);
     }
 }
