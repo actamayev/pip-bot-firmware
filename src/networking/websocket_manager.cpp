@@ -30,10 +30,7 @@ void WebSocketManager::handleBinaryMessage(WebsocketsMessage message) {
                 uint16_t newVersion = data[1] | (data[2] << 8); // Little-endian conversion
 
                 Serial.printf("New firmware version available: %d\n", newVersion);
-
-                // Store as pending version and start update
-                FirmwareVersionTracker::getInstance().setPendingVersion(newVersion);
-                FirmwareVersionTracker::getInstance().retrieveLatestFirmwareFromServer();
+                FirmwareVersionTracker::getInstance().retrieveLatestFirmwareFromServer(newVersion);
             }
             break;
         case DataMessageType::MOTOR_CONTROL:

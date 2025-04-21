@@ -25,11 +25,18 @@ void FirmwareVersionTracker::setPendingVersion(int version) {
     preferences.end();
 }
 
-void FirmwareVersionTracker::retrieveLatestFirmwareFromServer() {
+void FirmwareVersionTracker::retrieveLatestFirmwareFromServer(uint16_t newVersion) {
     if (isRetrievingFirmwareFromServer || WiFi.status() != WL_CONNECTED) {
         Serial.println("Cannot update: Either already updating or WiFi not connected");
         return;
     }
+
+    if (firmwareVersion >= newVersion) {
+        Serial.printf("Pip is up to date. Current version is: %d, new version is: %d\n", firmwareVersion, newVersion);
+        return;
+    }
+
+    setPendingVersion(newVersion);
 
     isRetrievingFirmwareFromServer = true;
     

@@ -13,7 +13,7 @@ class FirmwareVersionTracker : public Singleton<FirmwareVersionTracker> {
         int getFirmwareVersion() { return firmwareVersion; }
         void setFirmwareVersion(int version);
         void setPendingVersion(int version);
-        void retrieveLatestFirmwareFromServer();
+        void retrieveLatestFirmwareFromServer(uint16_t newVersion);
         bool isUpdating() { return isRetrievingFirmwareFromServer; }
         
     private:
