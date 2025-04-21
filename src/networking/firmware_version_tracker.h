@@ -3,6 +3,7 @@
 #include <WiFi.h>
 #include <HTTPUpdate.h>
 #include <Preferences.h>
+#include <WiFiClientSecure.h>
 #include "../utils/config.h"
 #include "../utils/singleton.h"
 
@@ -22,6 +23,6 @@ class FirmwareVersionTracker : public Singleton<FirmwareVersionTracker> {
         int firmwareVersion = 0;
         int pendingVersion = 0;
         bool isRetrievingFirmwareFromServer = false;
-        WiFiClient client; // WiFi client for HTTP updates
+        WiFiClientSecure client;  // Change to WiFiClientSecure
         HTTPUpdate httpUpdate;
 };

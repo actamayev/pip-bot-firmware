@@ -9,6 +9,8 @@ FirmwareVersionTracker::FirmwareVersionTracker() {
     httpUpdate.onProgress([](int curr, int total) {
         Serial.printf("Update progress: %d%%\n", (curr * 100) / total);
     });
+    if (DEFAULT_ENVIRONMENT == "local") return;
+    client.setCACert(rootCACertificate);
 }
 
 void FirmwareVersionTracker::setFirmwareVersion(int version) {
@@ -39,7 +41,7 @@ void FirmwareVersionTracker::retrieveLatestFirmwareFromServer(uint16_t newVersio
     setPendingVersion(newVersion);
 
     isRetrievingFirmwareFromServer = true;
-    
+
     // Perform the update
     t_httpUpdate_return result = httpUpdate.update(client, getServerFirmwareEndpoint());
     
