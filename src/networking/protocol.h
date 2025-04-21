@@ -1,9 +1,7 @@
 #pragma once
 
-#include <Arduino.h>
-
 enum class DataMessageType : uint8_t {
-    FIRMWARE_CHUNK = 0,
+    UPDATE_AVAILABLE = 0,
     MOTOR_CONTROL = 1,
     SOUND_COMMAND = 2,
     SPEAKER_MUTE = 3,
