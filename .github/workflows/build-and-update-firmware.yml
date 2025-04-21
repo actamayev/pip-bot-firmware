@@ -75,8 +75,14 @@ jobs:
       - name: Get latest version number
         id: version
         run: |
-          # List files in bucket and find the highest version number
-          latest_version=$(aws s3 ls s3://${{ env.S3_BUCKET }}/ --recursive | grep -E "^.*[0-9]+\.bin$" | sed -E 's/.*\/([0-9]+)\.bin$/\1/' | sort -n | tail -n 1 || echo "0")
+          # List all objects in the bucket
+          aws_output=$(aws s3 ls s3://${{ env.S3_BUCKET }}/)
+          echo "S3 bucket contents:"
+          echo "$aws_output"
+          
+          # Extract version numbers from filenames that match the pattern NUMBER.bin
+          latest_version=$(echo "$aws_output" | grep -o '[0-9]\+\.bin' | sed 's/\.bin//' | sort -n | tail -n 1 || echo "0")
+          echo "Latest version found: $latest_version"
           
           # Increment the version number
           new_version=$((latest_version + 1))
@@ -94,8 +100,8 @@ jobs:
             exit 1
           fi
           
-          # Upload to S3 with new naming format (just VERSION.bin)
-          aws s3 cp $firmware_file s3://${{ env.S3_BUCKET }}/${{ steps.version.outputs.new_version }}.bin
+          # Upload to S3 with version number
+          aws s3 cp $firmware_file "s3://${{ env.S3_BUCKET }}/${{ steps.version.outputs.new_version }}.bin"
           
           echo "Firmware uploaded to S3 bucket: ${{ env.S3_BUCKET }}/${{ steps.version.outputs.new_version }}.bin"
 
@@ -103,7 +109,7 @@ jobs:
       - name: Notify server about new firmware
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging'
         run: |
-          response=$(curl -X POST ${{ env.API_ENDPOINT }}/internal-routes/firmware-update \
+          response=$(curl -X POST ${{ env.API_ENDPOINT }}/internal/firmware-update \
             -H "Content-Type: application/json")
           
           echo "Response: $response"
