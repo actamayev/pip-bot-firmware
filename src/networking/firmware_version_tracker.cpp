@@ -1,9 +1,28 @@
 #include "./firmware_version_tracker.h"
 
 FirmwareVersionTracker::FirmwareVersionTracker() {
+    preferences.begin("firmware", false);
+    
     firmwareVersion = preferences.getInt("fw_version", 0);
     pendingVersion = preferences.getInt("fw_pending", 0);
-    Serial.printf("firmwareVersion %d\n", firmwareVersion);
+    
+    Serial.printf("Constructor - firmwareVersion: %d, pendingVersion: %d\n", firmwareVersion, pendingVersion);
+    
+    // Check if we've just completed an update
+    if (pendingVersion > 0) {
+        Serial.printf("Applying pending update from version %d to version %d\n", firmwareVersion, pendingVersion);
+        
+        // Update the firmware version
+        setFirmwareVersion(pendingVersion);
+        Serial.printf("Firmware version updated to: %d\n", pendingVersion);
+        
+        // Clear pending version
+        setPendingVersion(0);
+        Serial.println("Pending version cleared");
+    }
+    
+    // Close preferences when done
+    preferences.end();
 
     // Configure HTTPUpdate instance
     httpUpdate.onProgress([](int curr, int total) {
@@ -20,13 +39,17 @@ FirmwareVersionTracker::FirmwareVersionTracker() {
 }
 
 void FirmwareVersionTracker::setFirmwareVersion(int version) {
+    preferences.begin("firmware", false);
     firmwareVersion = version;
     preferences.putInt("fw_version", version);
+    preferences.end();
 }
 
 void FirmwareVersionTracker::setPendingVersion(int version) {
+    preferences.begin("firmware", false);
     pendingVersion = version;
     preferences.putInt("fw_pending", version);
+    preferences.end();
 }
 
 void FirmwareVersionTracker::retrieveLatestFirmwareFromServer(uint16_t newVersion) {
@@ -41,6 +64,7 @@ void FirmwareVersionTracker::retrieveLatestFirmwareFromServer(uint16_t newVersio
     }
 
     Serial.printf("Starting update to version %d...\n", newVersion);
+    Serial.printf("Setting pending version to: %d\n", newVersion);
     setPendingVersion(newVersion);
     isRetrievingFirmwareFromServer = true;
 
@@ -54,28 +78,21 @@ void FirmwareVersionTracker::retrieveLatestFirmwareFromServer(uint16_t newVersio
     switch (result) {
         case HTTP_UPDATE_FAILED:
             Serial.printf("HTTP update failed: %s\n", httpUpdate.getLastErrorString().c_str());
+            Serial.println("Clearing pending version due to update failure");
+            setPendingVersion(0);
             isRetrievingFirmwareFromServer = false;
             break;
-            
+
         case HTTP_UPDATE_NO_UPDATES:
             Serial.println("No updates needed");
+            Serial.println("Clearing pending version as no update was performed");
+            setPendingVersion(0);
             isRetrievingFirmwareFromServer = false;
             break;
-            
+
         case HTTP_UPDATE_OK:
             Serial.println("Update successful!");
-            
-            // If we have a pending version, apply it
-            if (pendingVersion > 0) {
-                setFirmwareVersion(pendingVersion);
-                Serial.printf("Firmware version updated to: %d\n", pendingVersion);
-                
-                // Clear pending version
-                setPendingVersion(0);
-            }
-            
-            Serial.println("Rebooting...");
-            // Device will automatically reboot
+            // We won't reach this code because the ESP automatically restarts
             break;
     }
     
