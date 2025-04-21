@@ -3,7 +3,6 @@
 #include "./sensors/sensors.h"
 #include "./actuators/buttons.h"
 #include "./actuators/speaker.h"
-#include "./user_code/user_code.h"
 #include "./utils/show_chip_info.h"
 #include "./utils/sensor_loggers.h"
 #include "./sensors/encoder_manager.h"
@@ -14,11 +13,12 @@
 #include "./actuators/led/led_animations.h"
 #include "./networking/send_data_to_server.h"
 #include "./custom_interpreter/bytecode_vm.h"
+#include "./networking/firmware_version_tracker.h"
 #include "./wifi_selection/wifi_selection_manager.h"
 #include "./wifi_selection/haptic_feedback_manager.h"
 
-// Task to handle sensors and user code on Core 0
-void SensorAndUserCodeTask(void * parameter) {
+// Task to handle sensors and bytecode on Core 0
+void SensorAndBytecodeTask(void * parameter) {
     disableCore0WDT();
     delay(10);
     // Initialize sensors on Core 0
@@ -33,11 +33,11 @@ void SensorAndUserCodeTask(void * parameter) {
 
     enableCore0WDT();
 
-    // Main sensor and user code loop
+    // Main sensor and bytecode loop
     for(;;) {
         ledAnimations.update();
         if (!Sensors::getInstance().sensors_initialized && !Sensors::getInstance().tryInitializeIMU()) {
-            // If sensors not initialized AND initialization attempt failed, skip user code
+            // If sensors not initialized AND initialization attempt failed, skip bytecode
             delay(5);
             continue;
         }
@@ -48,7 +48,6 @@ void SensorAndUserCodeTask(void * parameter) {
         // sideTofsLogger();
         // DisplayScreen::getInstance().update();
         MessageProcessor::getInstance().processPendingCommands();
-        user_code();
         delay(5);
     }
 }
@@ -59,6 +58,7 @@ void NetworkTask(void * parameter) {
     Serial.println("Initializing WiFi on Core 1...");
     WiFiManager::getInstance();
     Serial.println("WiFi initialization complete on Core 1");
+    FirmwareVersionTracker::getInstance();
 
     // Main network loop
     for(;;) {
@@ -90,8 +90,8 @@ void setup() {
 
     // Create tasks for parallel execution
     xTaskCreatePinnedToCore(
-        SensorAndUserCodeTask,  // Sensor and user code task
-        "SensorAndUserCode",    // Task name
+        SensorAndBytecodeTask,  // Sensor and bytecode task
+        "SensorAndBytecode",    // Task name
         SENSOR_STACK_SIZE,      // Stack size
         NULL,                   // Task parameters
         1,                      // Priority

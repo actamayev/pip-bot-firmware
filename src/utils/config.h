@@ -69,8 +69,6 @@ extern const char* rootCACertificate;
 
 // Getter functions for URLs based on the environment
 const char* getEnvironment();
-const char* getServerUrl();
+const char* getServerFirmwareEndpoint();
 const char* getWsServerUrl();
 const char* getPipID();
-
-extern std::string getAPSSID(); 

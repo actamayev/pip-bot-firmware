@@ -98,20 +98,20 @@ const char* getEnvironment() {
     return DEFAULT_ENVIRONMENT;  // This is set at compile time
 }
 
-const char* getServerUrl() {
+const char* getServerFirmwareEndpoint() {
     const char* env = getEnvironment();
     if (env == nullptr || std::string(env) == "local") {
-        return "http://10.85.219.40:8080";  // local default
+        return "http://172.17.137.40:8080/pip/firmware-update";  // local default
     } else if (std::string(env) == "staging") {
-        return "staging-api.bluedotrobots.com";  // staging default
+        return "staging-api.bluedotrobots.com/pip/firmware-update";  // staging default
     }
-    return "production-api.bluedotrobots.com";  // production default
+    return "production-api.bluedotrobots.com/pip/firmware-update";  // production default
 }
 
 const char* getWsServerUrl() {
     const char* env = getEnvironment();
     if (env == nullptr || std::string(env) == "local") {
-        return "ws://10.85.219.40:8080/esp32";  // local default
+        return "ws://172.17.137.40:8080/esp32";  // local default
     } else if (std::string(env) == "staging") {
         return "wss://staging-api.bluedotrobots.com/esp32";  // staging default
     }
@@ -120,8 +120,4 @@ const char* getWsServerUrl() {
 
 const char* getPipID() {
     return DEFAULT_PIP_ID;
-}
-
-std::string getAPSSID() {
-    return "pip-" + std::string(getPipID());
 }
