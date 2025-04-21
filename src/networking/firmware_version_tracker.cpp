@@ -65,7 +65,7 @@ void FirmwareVersionTracker::retrieveLatestFirmwareFromServer(uint16_t newVersio
 
     Serial.printf("Starting update to version %d...\n", newVersion);
     Serial.printf("Setting pending version to: %d\n", newVersion);
-    setPendingVersion(newVersion);
+    setPendingVersion(newVersion); // The pending version is retrieved after the ESP restarts after the update is complete
     isRetrievingFirmwareFromServer = true;
 
     // Get endpoint
