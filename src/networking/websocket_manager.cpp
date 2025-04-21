@@ -139,8 +139,6 @@ void WebSocketManager::connectToWebSocket() {
         }
     });
 
-    // Initial connection attempt - but actual connection will be managed by pollWebSocket
-    Serial.println("WebSocket connection will be managed by the polling mechanism");
     lastConnectionAttempt = 0; // Force an immediate connection attempt in the next poll
 }
 

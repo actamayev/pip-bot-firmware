@@ -101,17 +101,17 @@ const char* getEnvironment() {
 const char* getServerFirmwareEndpoint() {
     const char* env = getEnvironment();
     if (env == nullptr || std::string(env) == "local") {
-        return "http://172.17.137.40:8080/pip/firmware-update";  // local default
+        return "http://10.19.139.40:8080/pip/firmware-update";  // local can remain HTTP
     } else if (std::string(env) == "staging") {
-        return "staging-api.bluedotrobots.com/pip/firmware-update";  // staging default
+        return "https://staging-api.bluedotrobots.com/pip/firmware-update";
     }
-    return "production-api.bluedotrobots.com/pip/firmware-update";  // production default
+    return "https://production-api.bluedotrobots.com/pip/firmware-update";
 }
 
 const char* getWsServerUrl() {
     const char* env = getEnvironment();
     if (env == nullptr || std::string(env) == "local") {
-        return "ws://172.17.137.40:8080/esp32";  // local default
+        return "ws://10.19.139.40:8080/esp32";  // local default
     } else if (std::string(env) == "staging") {
         return "wss://staging-api.bluedotrobots.com/esp32";  // staging default
     }
