@@ -1,6 +1,7 @@
 #pragma once
 
 enum class DataMessageType : uint8_t {
+    UPDATE_AVAILABLE = 0,
     MOTOR_CONTROL = 1,
     SOUND_COMMAND = 2,
     SPEAKER_MUTE = 3,
@@ -8,8 +9,7 @@ enum class DataMessageType : uint8_t {
     UPDATE_BALANCE_PIDS = 5,
     UPDATE_LIGHT_ANIMATION = 6,
     UPDATE_LED_COLORS = 7,
-    BYTECODE_PROGRAM = 8,
-    UPDATE_AVAILABLE = 9
+    BYTECODE_PROGRAM = 8
 };
 
 // Sound types

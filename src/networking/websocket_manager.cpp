@@ -22,6 +22,20 @@ void WebSocketManager::handleBinaryMessage(WebsocketsMessage message) {
     DataMessageType messageType = static_cast<DataMessageType>(data[0]);
 
     switch (messageType) {
+        case DataMessageType::UPDATE_AVAILABLE:
+            if (length != 3) {
+                Serial.println("Invalid update available message length");
+            } else {
+                // Extract the firmware version from bytes 1-2
+                uint16_t newVersion = data[1] | (data[2] << 8); // Little-endian conversion
+
+                Serial.printf("New firmware version available: %d\n", newVersion);
+
+                // Store as pending version and start update
+                FirmwareVersionTracker::getInstance().setPendingVersion(newVersion);
+                FirmwareVersionTracker::getInstance().retrieveLatestFirmwareFromServer();
+            }
+            break;
         case DataMessageType::MOTOR_CONTROL:
             if (length != 5) {
                 Serial.println("Invalid motor control message length");
@@ -96,19 +110,6 @@ void WebSocketManager::handleBinaryMessage(WebsocketsMessage message) {
                 SendDataToServer::getInstance().sendBytecodeMessage("Error loading bytecode: invalid format!");
             }
             break;
-        }
-        case DataMessageType::UPDATE_AVAILABLE:
-        if (length != 3) {
-            Serial.println("Invalid update available message length");
-        } else {
-            // Extract the firmware version from bytes 1-2
-            uint16_t newVersion = data[1] | (data[2] << 8); // Little-endian conversion
-
-            Serial.printf("New firmware version available: %d\n", newVersion);
-
-            // Store as pending version and start update
-            FirmwareVersionTracker::getInstance().setPendingVersion(newVersion);
-            FirmwareVersionTracker::getInstance().retrieveLatestFirmwareFromServer();
         }
         break;
         default:

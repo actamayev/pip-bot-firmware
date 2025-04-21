@@ -17,8 +17,8 @@
 #include "./wifi_selection/wifi_selection_manager.h"
 #include "./wifi_selection/haptic_feedback_manager.h"
 
-// Task to handle sensors and user code on Core 0
-void SensorAndUserCodeTask(void * parameter) {
+// Task to handle sensors and bytecode on Core 0
+void SensorAndBytecodeTask(void * parameter) {
     disableCore0WDT();
     delay(10);
     // Initialize sensors on Core 0
@@ -33,11 +33,11 @@ void SensorAndUserCodeTask(void * parameter) {
 
     enableCore0WDT();
 
-    // Main sensor and user code loop
+    // Main sensor and bytecode loop
     for(;;) {
         ledAnimations.update();
         if (!Sensors::getInstance().sensors_initialized && !Sensors::getInstance().tryInitializeIMU()) {
-            // If sensors not initialized AND initialization attempt failed, skip user code
+            // If sensors not initialized AND initialization attempt failed, skip bytecode
             delay(5);
             continue;
         }
@@ -90,8 +90,8 @@ void setup() {
 
     // Create tasks for parallel execution
     xTaskCreatePinnedToCore(
-        SensorAndUserCodeTask,  // Sensor and user code task
-        "SensorAndUserCode",    // Task name
+        SensorAndBytecodeTask,  // Sensor and bytecode task
+        "SensorAndBytecode",    // Task name
         SENSOR_STACK_SIZE,      // Stack size
         NULL,                   // Task parameters
         1,                      // Priority
