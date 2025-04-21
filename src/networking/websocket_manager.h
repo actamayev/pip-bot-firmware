@@ -20,8 +20,6 @@ class WebSocketManager : public Singleton<WebSocketManager> {
 
         websockets::WebsocketsClient wsClient;
     private:
-        static const size_t SMALL_DOC_SIZE = 256;       // For small outgoing messages
-
         // Make constructor private for singleton
         WebSocketManager();
 
