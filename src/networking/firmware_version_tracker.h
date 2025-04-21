@@ -1,11 +1,12 @@
 #pragma once
 
-#include <WiFi.h>
 #include <HTTPUpdate.h>
-#include <Preferences.h>
 #include <WiFiClientSecure.h>
 #include "../utils/config.h"
 #include "../utils/singleton.h"
+#include "./wifi_manager.h"
+
+extern Preferences preferences;
 
 class FirmwareVersionTracker : public Singleton<FirmwareVersionTracker> {
     friend class Singleton<FirmwareVersionTracker>;
@@ -19,10 +20,12 @@ class FirmwareVersionTracker : public Singleton<FirmwareVersionTracker> {
         
     private:
         FirmwareVersionTracker();
-        Preferences preferences;
         int firmwareVersion = 0;
         int pendingVersion = 0;
         bool isRetrievingFirmwareFromServer = false;
-        WiFiClientSecure client;  // Change to WiFiClientSecure
+        WiFiClient* httpClient = nullptr;
+        WiFiClientSecure secureClient;
+        WiFiClient insecureClient;
+
         HTTPUpdate httpUpdate;
 };

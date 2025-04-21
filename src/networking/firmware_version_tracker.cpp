@@ -1,30 +1,32 @@
 #include "./firmware_version_tracker.h"
 
 FirmwareVersionTracker::FirmwareVersionTracker() {
-    preferences.begin("firmware", false);
-    firmwareVersion = preferences.getInt("version", 0);
-    preferences.end();
+    firmwareVersion = preferences.getInt("fw_version", 0);
+    pendingVersion = preferences.getInt("fw_pending", 0);
     Serial.printf("firmwareVersion %d\n", firmwareVersion);
+
     // Configure HTTPUpdate instance
     httpUpdate.onProgress([](int curr, int total) {
         Serial.printf("Update progress: %d%%\n", (curr * 100) / total);
     });
-    if (DEFAULT_ENVIRONMENT == "local") return;
-    client.setCACert(rootCACertificate);
+
+    // Setup clients based on environment
+    if (DEFAULT_ENVIRONMENT == "local") {
+        httpClient = &insecureClient;
+    } else {
+        secureClient.setCACert(rootCACertificate);
+        httpClient = &secureClient;
+    }
 }
 
 void FirmwareVersionTracker::setFirmwareVersion(int version) {
     firmwareVersion = version;
-    preferences.begin("firmware", false);
-    preferences.putInt("version", version);
-    preferences.end();
+    preferences.putInt("fw_version", version);
 }
 
 void FirmwareVersionTracker::setPendingVersion(int version) {
     pendingVersion = version;
-    preferences.begin("firmware", false);
-    preferences.putInt("pending", version);
-    preferences.end();
+    preferences.putInt("fw_pending", version);
 }
 
 void FirmwareVersionTracker::retrieveLatestFirmwareFromServer(uint16_t newVersion) {
@@ -38,12 +40,16 @@ void FirmwareVersionTracker::retrieveLatestFirmwareFromServer(uint16_t newVersio
         return;
     }
 
+    Serial.printf("Starting update to version %d...\n", newVersion);
     setPendingVersion(newVersion);
-
     isRetrievingFirmwareFromServer = true;
 
+    // Get endpoint
+    String url = getServerFirmwareEndpoint();
+    Serial.printf("Update URL: %s\n", url.c_str());
+
     // Perform the update
-    t_httpUpdate_return result = httpUpdate.update(client, getServerFirmwareEndpoint());
+    t_httpUpdate_return result = httpUpdate.update(*httpClient, url);
     
     switch (result) {
         case HTTP_UPDATE_FAILED:
