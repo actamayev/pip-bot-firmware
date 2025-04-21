@@ -28,4 +28,5 @@ class FirmwareVersionTracker : public Singleton<FirmwareVersionTracker> {
         WiFiClient insecureClient;
 
         HTTPUpdate httpUpdate;
+        void updateProgressLeds(int progress, int total);
 };
