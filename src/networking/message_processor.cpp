@@ -92,11 +92,11 @@ void MessageProcessor::executeCommand(int16_t leftSpeed, int16_t rightSpeed) {
 
     // Enable straight driving correction for forward movement only. 
     // 4/12/25: Removing straight line drive for backward movement. need to bring back
-    if ((leftSpeed > 0 && rightSpeed > 0) && (leftSpeed == rightSpeed)) {
-        StraightLineDrive::getInstance().enable();
-    } else {
-        StraightLineDrive::getInstance().disable();
-    }
+    // if ((leftSpeed > 0 && rightSpeed > 0) && (leftSpeed == rightSpeed)) {
+    //     StraightLineDrive::getInstance().enable();
+    // } else {
+    //     StraightLineDrive::getInstance().disable();
+    // }
 
     isExecutingCommand = true;
 }

@@ -16,7 +16,9 @@ class MotorDriver {
         void right_motor_stop();
 
         void set_motor_speeds(int16_t leftTarget, int16_t rightTarget);
-        void update_motor_speeds(bool should_ramp_up, int16_t speed_ramp_interval = SPEED_RAMP_INTERVAL);
+        void update_motor_speeds(bool should_ramp_up);
+        void brake_right_motor();
+        void brake_left_motor();
 
     private:
         int16_t _targetLeftSpeed = 0;
@@ -25,8 +27,6 @@ class MotorDriver {
         int16_t _currentRightSpeed = 0;
         unsigned long _lastSpeedUpdateTime = 0;
         static constexpr int16_t SPEED_RAMP_STEP = 50;
-        static constexpr unsigned long SPEED_RAMP_INTERVAL = 5;  // ms between updates
-
 };
 
 extern MotorDriver motorDriver;

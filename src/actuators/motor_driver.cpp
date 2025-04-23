@@ -45,13 +45,23 @@ void MotorDriver::right_motor_stop() {
     analogWrite(RIGHT_MOTOR_PIN_IN_2, 0);
 }
 
+void MotorDriver::brake_right_motor() {
+    analogWrite(RIGHT_MOTOR_PIN_IN_1, 255); // Explicitly clear backward pin
+    analogWrite(RIGHT_MOTOR_PIN_IN_2, 255);
+}
+
+void MotorDriver::brake_left_motor() {
+    analogWrite(LEFT_MOTOR_PIN_IN_1, 255); // Explicitly clear backward pin
+    analogWrite(LEFT_MOTOR_PIN_IN_2, 255);
+}
+
 void MotorDriver::set_motor_speeds(int16_t leftTarget, int16_t rightTarget) {
     // Store target speeds but don't change actual speeds immediately
     _targetLeftSpeed = constrain(leftTarget, -255, 255);
     _targetRightSpeed = constrain(rightTarget, -255, 255);
 }
 
-void MotorDriver::update_motor_speeds(bool should_ramp_up, int16_t speed_ramp_interval) {
+void MotorDriver::update_motor_speeds(bool should_ramp_up) {
     bool speedsChanged = false;
 
     if (should_ramp_up) {
@@ -96,7 +106,8 @@ void MotorDriver::update_motor_speeds(bool should_ramp_up, int16_t speed_ramp_in
     if (speedsChanged || StraightLineDrive::getInstance().isEnabled()) {
         // Apply the current speeds
         if (leftAdjusted == 0) {
-            left_motor_stop();
+            brake_left_motor();
+            // left_motor_stop();
         } else if (leftAdjusted > 0) {
             left_motor_forward(leftAdjusted);
         } else {
@@ -104,7 +115,8 @@ void MotorDriver::update_motor_speeds(bool should_ramp_up, int16_t speed_ramp_in
         }
 
         if (rightAdjusted == 0) {
-            right_motor_stop();
+            brake_right_motor();
+            // right_motor_stop();
         } else if (rightAdjusted > 0) {
             right_motor_forward(rightAdjusted);
         } else {
