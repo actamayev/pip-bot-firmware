@@ -109,6 +109,14 @@ void WebSocketManager::handleBinaryMessage(WebsocketsMessage message) {
             break;
         }
         break;
+        case DataMessageType::STOP_SANDBOX_CODE:
+            if (length != 1) {
+                Serial.println("Invalid stop sandbox code message length");
+            } else {
+                BytecodeVM::getInstance().stopProgram();
+                SendDataToServer::getInstance().sendBytecodeMessage("Sandbox code stopped");
+            }
+            break;
         default:
             Serial.printf("Unknown message type: %d\n", static_cast<int>(messageType));
             break;

@@ -319,7 +319,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             }
             break;
         }
-        
+
         case OP_SET_VAR: {
             uint16_t regId = static_cast<uint16_t>(instr.operand1);
             
@@ -413,4 +413,17 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             Serial.printf("Unknown code - stopping execution %d\n", instr.opcode);
             break;
     }
+}
+
+void BytecodeVM::stopProgram() {
+    if (program) {
+        delete[] program;
+        program = nullptr;
+    }
+    pc = 0;
+    waitingForDelay = false;
+    lastComparisonResult = false;
+
+    rgbLed.turn_led_off();
+    motorDriver.stop_both_motors();
 }
