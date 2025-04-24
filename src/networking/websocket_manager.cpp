@@ -135,6 +135,8 @@ void WebSocketManager::connectToWebSocket() {
                 this->wsConnected = true;
                 this->hasKilledWiFiProcesses = false; // Reset the flag
                 this->lastPingTime = millis(); // Initialize ping time
+                rgbLed.set_led_blue();
+                ledAnimations.stopAnimation();
                 break;
             case WebsocketsEvent::ConnectionClosed:
                 Serial.println("WebSocket disconnected");
@@ -220,5 +222,7 @@ void WebSocketManager::killWiFiProcesses() {
     if (hasKilledWiFiProcesses) return;
     Serial.println("Killing WiFi processes...");
     motorDriver.stop_both_motors();
+    rgbLed.set_led_red();
+    ledAnimations.startBreathing();
     hasKilledWiFiProcesses = true;
 }
