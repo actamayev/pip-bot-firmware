@@ -56,8 +56,10 @@ bool WiFiManager::attemptDirectConnectionToSavedNetworks() {
         Serial.println("No saved networks found");
         return false;
     }
-    rgbLed.set_led_red();
-    ledAnimations.startBreathing();
+    if (ledAnimations.getCurrentAnimation() != LedAnimations::BREATHING) {
+        rgbLed.set_led_red();
+        ledAnimations.startBreathing();
+    }
 
     Serial.println("Attempting direct connection to saved networks...");
     
@@ -71,7 +73,6 @@ bool WiFiManager::attemptDirectConnectionToSavedNetworks() {
         // Brief delay before trying the next network
         delay(100);
     }
-    rgbLed.turn_led_off();
     Serial.println("Failed to connect to any saved networks");
     return false;
 }

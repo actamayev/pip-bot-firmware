@@ -22,7 +22,7 @@ void WebSocketManager::handleBinaryMessage(WebsocketsMessage message) {
     DataMessageType messageType = static_cast<DataMessageType>(data[0]);
 
     switch (messageType) {
-        case DataMessageType::UPDATE_AVAILABLE:
+        case DataMessageType::UPDATE_AVAILABLE: {
             if (length != 3) {
                 Serial.println("Invalid update available message length");
             } else {
@@ -33,14 +33,16 @@ void WebSocketManager::handleBinaryMessage(WebsocketsMessage message) {
                 FirmwareVersionTracker::getInstance().retrieveLatestFirmwareFromServer(newVersion);
             }
             break;
-        case DataMessageType::MOTOR_CONTROL:
+        }
+        case DataMessageType::MOTOR_CONTROL: {
             if (length != 5) {
                 Serial.println("Invalid motor control message length");
             } else {
                 MessageProcessor::getInstance().handleMotorControl(data);
             }
             break;
-        case DataMessageType::SOUND_COMMAND:
+        }
+        case DataMessageType::SOUND_COMMAND: {
             if (length != 2) {
                 Serial.println("Invalid sound command message length");
             } else {
@@ -48,7 +50,8 @@ void WebSocketManager::handleBinaryMessage(WebsocketsMessage message) {
                 MessageProcessor::getInstance().handleSoundCommand(soundType);
             }
             break;
-        case DataMessageType::SPEAKER_MUTE:
+        }
+        case DataMessageType::SPEAKER_MUTE: {
             if (length != 2) {
                 Serial.println("Invalid speaker mute message length");
             } else {
@@ -56,7 +59,8 @@ void WebSocketManager::handleBinaryMessage(WebsocketsMessage message) {
                 MessageProcessor::getInstance().handleSpeakerMute(status);
             }
             break;
-        case DataMessageType::BALANCE_CONTROL:
+        }
+        case DataMessageType::BALANCE_CONTROL: {
             if (length != 2) {
                 Serial.println("Invalid balance control message length");
             } else {
@@ -66,7 +70,8 @@ void WebSocketManager::handleBinaryMessage(WebsocketsMessage message) {
                 MessageProcessor::getInstance().handleBalanceCommand(status);
             }
             break;
-        case DataMessageType::UPDATE_LIGHT_ANIMATION:
+        }
+        case DataMessageType::UPDATE_LIGHT_ANIMATION: {
             if (length != 2) {
                 Serial.println("Invalid balance control message length");
             } else {
@@ -74,7 +79,8 @@ void WebSocketManager::handleBinaryMessage(WebsocketsMessage message) {
                 MessageProcessor::getInstance().handleLightCommand(lightAnimationStatus);
             }
             break;
-        case DataMessageType::UPDATE_LED_COLORS:
+        }
+        case DataMessageType::UPDATE_LED_COLORS: {
             if (length != 19) {
                 Serial.println("Invalid update led colors message length");
             } else {
@@ -83,7 +89,8 @@ void WebSocketManager::handleBinaryMessage(WebsocketsMessage message) {
                 MessageProcessor::getInstance().handleNewLightColors(newLightColors);
             }
             break;
-        case DataMessageType::UPDATE_BALANCE_PIDS:
+        }
+        case DataMessageType::UPDATE_BALANCE_PIDS: {
             if (length != 41) { // 1 byte for type + 40 bytes for the struct (10 floats × 4 bytes)
                 Serial.println("Invalid update balance pids message length");
             } else {
@@ -92,6 +99,7 @@ void WebSocketManager::handleBinaryMessage(WebsocketsMessage message) {
                 MessageProcessor::getInstance().handleChangePidsCommand(newBalancePids);
             }
             break;
+        }
         case DataMessageType::BYTECODE_PROGRAM: {
             // First byte is the message type, the rest is bytecode
             const uint8_t* bytecodeData = data + 1;
@@ -108,8 +116,7 @@ void WebSocketManager::handleBinaryMessage(WebsocketsMessage message) {
             }
             break;
         }
-        break;
-        case DataMessageType::STOP_SANDBOX_CODE:
+        case DataMessageType::STOP_SANDBOX_CODE: {
             if (length != 1) {
                 Serial.println("Invalid stop sandbox code message length");
             } else {
@@ -117,6 +124,7 @@ void WebSocketManager::handleBinaryMessage(WebsocketsMessage message) {
                 SendDataToServer::getInstance().sendBytecodeMessage("Sandbox code stopped");
             }
             break;
+        }
         default:
             Serial.printf("Unknown message type: %d\n", static_cast<int>(messageType));
             break;
