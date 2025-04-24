@@ -45,13 +45,14 @@ void MotorDriver::right_motor_stop() {
     analogWrite(RIGHT_MOTOR_PIN_IN_2, 0);
 }
 
+// These methods explicitly hold the motor in brake.
 void MotorDriver::brake_right_motor() {
-    analogWrite(RIGHT_MOTOR_PIN_IN_1, 255); // Explicitly clear backward pin
+    analogWrite(RIGHT_MOTOR_PIN_IN_1, 255);
     analogWrite(RIGHT_MOTOR_PIN_IN_2, 255);
 }
 
 void MotorDriver::brake_left_motor() {
-    analogWrite(LEFT_MOTOR_PIN_IN_1, 255); // Explicitly clear backward pin
+    analogWrite(LEFT_MOTOR_PIN_IN_1, 255);
     analogWrite(LEFT_MOTOR_PIN_IN_2, 255);
 }
 
