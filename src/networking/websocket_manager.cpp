@@ -133,16 +133,21 @@ void WebSocketManager::connectToWebSocket() {
             case WebsocketsEvent::ConnectionOpened:
                 Serial.println("WebSocket connected");
                 this->wsConnected = true;
+                this->hasKilledWiFiProcesses = false; // Reset the flag
+                this->lastPingTime = millis(); // Initialize ping time
                 break;
             case WebsocketsEvent::ConnectionClosed:
                 Serial.println("WebSocket disconnected");
+                killWiFiProcesses();
                 this->wsConnected = false;
                 break;
             case WebsocketsEvent::GotPing:
                 Serial.println("Got ping");
+                this->lastPingTime = millis(); // Update ping time
                 break;
             case WebsocketsEvent::GotPong:
                 Serial.println("Got pong");
+                this->lastPingTime = millis(); // Update ping time
                 break;
         }
     });
@@ -175,6 +180,13 @@ void WebSocketManager::pollWebSocket() {
         return;
     }
 
+    if (wsConnected && (currentTime - lastPingTime >= WS_TIMEOUT)) {
+        Serial.println("WebSocket ping timeout - connection lost");
+        wsConnected = false;
+        // Optional: Kill WiFi processes here too
+        killWiFiProcesses();
+    }
+
     // Connection management - try to connect if not connected
     if (!wsConnected && (currentTime - lastConnectionAttempt >= CONNECTION_INTERVAL)) {
         lastConnectionAttempt = currentTime;
@@ -200,4 +212,13 @@ void WebSocketManager::pollWebSocket() {
             wsConnected = false;  // Mark as disconnected to trigger reconnect
         }
     }
+}
+
+void WebSocketManager::killWiFiProcesses() {
+    // This method activates when the ESP has been disconnected from WS.
+    // Should only run once.
+    if (hasKilledWiFiProcesses) return;
+    Serial.println("Killing WiFi processes...");
+    motorDriver.stop_both_motors();
+    hasKilledWiFiProcesses = true;
 }

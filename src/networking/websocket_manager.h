@@ -32,4 +32,9 @@ class WebSocketManager : public Singleton<WebSocketManager> {
         bool wsConnected = false;
         unsigned long lastConnectionAttempt = 0;
         const unsigned long CONNECTION_INTERVAL = 3000; // 3 seconds between connection attempts    
+
+        void killWiFiProcesses();
+        unsigned long lastPingTime = 0;
+        const unsigned long WS_TIMEOUT = 5000; // 15 seconds timeout
+        bool hasKilledWiFiProcesses = false;
 };
