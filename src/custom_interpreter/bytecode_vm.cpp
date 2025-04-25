@@ -415,10 +415,12 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
     }
 }
 
-void BytecodeVM::stopProgram() {
+bool BytecodeVM::stopProgram() {
+    bool programStopped = false;
     if (program) {
         delete[] program;
         program = nullptr;
+        programStopped = true;
     }
     pc = 0;
     waitingForDelay = false;
@@ -426,4 +428,5 @@ void BytecodeVM::stopProgram() {
 
     rgbLed.turn_led_off();
     motorDriver.stop_both_motors();
+    return programStopped;
 }

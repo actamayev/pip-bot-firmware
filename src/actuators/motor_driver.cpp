@@ -46,14 +46,30 @@ void MotorDriver::right_motor_stop() {
 }
 
 // These methods explicitly hold the motor in brake.
-void MotorDriver::brake_right_motor() {
-    analogWrite(RIGHT_MOTOR_PIN_IN_1, 255);
-    analogWrite(RIGHT_MOTOR_PIN_IN_2, 255);
-}
-
 void MotorDriver::brake_left_motor() {
     analogWrite(LEFT_MOTOR_PIN_IN_1, 255);
     analogWrite(LEFT_MOTOR_PIN_IN_2, 255);
+    _leftMotorBraking = true;
+    Serial.println("Braking left motor");
+}
+
+void MotorDriver::brake_right_motor() {
+    analogWrite(RIGHT_MOTOR_PIN_IN_1, 255);
+    analogWrite(RIGHT_MOTOR_PIN_IN_2, 255);
+    _rightMotorBraking = true;
+    Serial.println("Braking right motor");
+}
+
+void MotorDriver::release_left_brake() {
+    left_motor_stop();
+    _leftMotorBraking = false;
+    Serial.println("Released left brake");
+}
+
+void MotorDriver::release_right_brake() {
+    right_motor_stop();
+    _rightMotorBraking = false;
+    Serial.println("Released right brake");
 }
 
 void MotorDriver::set_motor_speeds(int16_t leftTarget, int16_t rightTarget) {
@@ -103,24 +119,44 @@ void MotorDriver::update_motor_speeds(bool should_ramp_up) {
         StraightLineDrive::getInstance().update(leftAdjusted, rightAdjusted);
     }
 
+    if (_leftMotorBraking || _rightMotorBraking) {
+        WheelRPMs rpms = encoderManager.getBothWheelRPMs();
+        
+        // If left motor is braking and has stopped, release the brake
+        if (_leftMotorBraking && abs(rpms.leftWheelRPM) < MOTOR_STOPPED_THRESHOLD) {
+            release_left_brake();
+        }
+        
+        // If right motor is braking and has stopped, release the brake
+        if (_rightMotorBraking && abs(rpms.rightWheelRPM) < MOTOR_STOPPED_THRESHOLD) {
+            release_right_brake();
+        }
+    }
+
     // Only update motor controls if speeds have changed
     if (speedsChanged || StraightLineDrive::getInstance().isEnabled()) {
         // Apply the current speeds
         if (leftAdjusted == 0) {
-            brake_left_motor();
-            // left_motor_stop();
+            if (!_leftMotorBraking) {
+                brake_left_motor();
+            }
         } else if (leftAdjusted > 0) {
+            _leftMotorBraking = false;
             left_motor_forward(leftAdjusted);
         } else {
+            _leftMotorBraking = false;
             left_motor_backward(-leftAdjusted);
         }
 
         if (rightAdjusted == 0) {
-            brake_right_motor();
-            // right_motor_stop();
+            if (!_rightMotorBraking) {
+                brake_right_motor();
+            }
         } else if (rightAdjusted > 0) {
+            _rightMotorBraking = false;
             right_motor_forward(rightAdjusted);
         } else {
+            _rightMotorBraking = false;
             right_motor_backward(-rightAdjusted);
         }
     }

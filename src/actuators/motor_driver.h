@@ -3,6 +3,7 @@
 #include "../utils/config.h"
 #include "../sensors/sensors.h"
 #include "../demos/straight_line_drive.h"
+#include "../sensors/encoder_manager.h"
 
 class MotorDriver {
     public:
@@ -27,6 +28,11 @@ class MotorDriver {
         int16_t _currentRightSpeed = 0;
         unsigned long _lastSpeedUpdateTime = 0;
         static constexpr int16_t SPEED_RAMP_STEP = 50;
+        void release_left_brake();
+        void release_right_brake();
+        bool _leftMotorBraking = false;
+        bool _rightMotorBraking = false;
+        static constexpr float MOTOR_STOPPED_THRESHOLD = 0.5; // RPM threshold for considering motor stopped
 };
 
 extern MotorDriver motorDriver;

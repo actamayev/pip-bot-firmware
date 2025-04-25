@@ -120,8 +120,10 @@ void WebSocketManager::handleBinaryMessage(WebsocketsMessage message) {
             if (length != 1) {
                 Serial.println("Invalid stop sandbox code message length");
             } else {
-                BytecodeVM::getInstance().stopProgram();
-                SendDataToServer::getInstance().sendBytecodeMessage("Sandbox code stopped");
+                bool programStopped = BytecodeVM::getInstance().stopProgram();
+                if (programStopped) {
+                    SendDataToServer::getInstance().sendBytecodeMessage("Sandbox code stopped");
+                }
             }
             break;
         }

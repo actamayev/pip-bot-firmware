@@ -15,7 +15,7 @@ class BytecodeVM : public Singleton<BytecodeVM> {
 
         // Load bytecode program into the VM
         bool loadProgram(const uint8_t* byteCode, uint16_t size);
-        void stopProgram();
+        bool stopProgram();
 
         // Update VM - call this regularly from main loop
         void update();
