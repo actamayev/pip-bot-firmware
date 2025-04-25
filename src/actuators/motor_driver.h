@@ -9,8 +9,6 @@ class MotorDriver {
     public:
         MotorDriver();  // Constructor to initialize pins
         void stop_both_motors();
-        void left_motor_forward(uint8_t speed = 255);
-        void left_motor_backward(uint8_t speed = 255);
         void left_motor_stop();
         void right_motor_forward(uint8_t speed = 255);
         void right_motor_backward(uint8_t speed = 255);
@@ -18,8 +16,6 @@ class MotorDriver {
 
         void set_motor_speeds(int16_t leftTarget, int16_t rightTarget);
         void update_motor_speeds(bool should_ramp_up);
-        void brake_right_motor();
-        void brake_left_motor();
 
     private:
         int16_t _targetLeftSpeed = 0;
@@ -28,8 +24,15 @@ class MotorDriver {
         int16_t _currentRightSpeed = 0;
         unsigned long _lastSpeedUpdateTime = 0;
         static constexpr int16_t SPEED_RAMP_STEP = 50;
+
+        void left_motor_forward(uint8_t speed = 255);
+        void left_motor_backward(uint8_t speed = 255);
+
         void release_left_brake();
         void release_right_brake();
+        void brake_right_motor();
+        void brake_left_motor();
+
         bool _leftMotorBraking = false;
         bool _rightMotorBraking = false;
         static constexpr float MOTOR_STOPPED_THRESHOLD = 0.5; // RPM threshold for considering motor stopped
