@@ -241,7 +241,7 @@ void WebSocketManager::killWiFiProcesses() {
     // Should only run once.
     if (hasKilledWiFiProcesses) return;
     Serial.println("Killing WiFi processes...");
-    motorDriver.stop_both_motors();
+    motorDriver.brake_both_motors();
     rgbLed.set_led_red();
     ledAnimations.startBreathing();
     hasKilledWiFiProcesses = true;

@@ -60,6 +60,11 @@ void MotorDriver::brake_right_motor() {
     Serial.println("Braking right motor");
 }
 
+void MotorDriver::brake_both_motors() {
+    brake_left_motor();
+    brake_right_motor();
+}
+
 void MotorDriver::release_left_brake() {
     left_motor_stop();
     _leftMotorBraking = false;
@@ -160,4 +165,19 @@ void MotorDriver::update_motor_speeds(bool should_ramp_up) {
             right_motor_backward(-rightAdjusted);
         }
     }
+}
+
+void MotorDriver::force_reset_motors() {
+    // Force release any brakes
+    if (_leftMotorBraking) {
+        release_left_brake();
+    }
+    if (_rightMotorBraking) {
+        release_right_brake();
+    }
+    // Reset speed targets
+    _targetLeftSpeed = 0;
+    _targetRightSpeed = 0;
+    _currentLeftSpeed = 0;
+    _currentRightSpeed = 0;
 }

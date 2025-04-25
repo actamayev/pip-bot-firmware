@@ -30,6 +30,11 @@ enum BytecodeOpCode : uint32_t {
     // Variable operations
     OP_DECLARE_VAR = 0x40,
     OP_SET_VAR = 0x41,
+
+    OP_MOTOR_FORWARD = 0x50,   // Forward movement at specified throttle
+    OP_MOTOR_BACKWARD = 0x51,  // Backward movement at specified throttle
+    OP_MOTOR_STOP = 0x52,      // Stop all motors
+    OP_MOTOR_TURN = 0x53,      // Turn by specified degrees
 };
 
 // Comparison operators

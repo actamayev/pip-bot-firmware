@@ -12,7 +12,7 @@ void ObstacleAvoider::enable() {
 void ObstacleAvoider::disable() {
     if (_avoidanceEnabled == ObstacleAvoidanceStatus::STOP_AVOIDANCE) return;
     _avoidanceEnabled = ObstacleAvoidanceStatus::STOP_AVOIDANCE;
-    motorDriver.stop_both_motors();
+    motorDriver.brake_both_motors();
     Serial.println("Obstacle Avoidance mode disabled");
 }
 

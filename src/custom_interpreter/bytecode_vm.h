@@ -51,4 +51,13 @@ class BytecodeVM : public Singleton<BytecodeVM> {
         
         // Helper method for comparisons
         bool compareValues(ComparisonOp op, float leftOperand, float rightValue);
+
+        bool turningInProgress = false;
+        float targetTurnDegrees = 0;
+        float initialTurnYaw = 0;
+        bool turnClockwise = true;
+        unsigned long turnStartTime = 0;
+        
+        // Helper method for turn operations
+        void updateTurning();
 };
