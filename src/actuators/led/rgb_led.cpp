@@ -31,6 +31,10 @@ void RgbLed::set_led_purple() {
     set_all_leds_to_color(MAX_LED_BRIGHTNESS, 0, MAX_LED_BRIGHTNESS);
 }
 
+void RgbLed::set_led_yellow() {
+    set_all_leds_to_color(MAX_LED_BRIGHTNESS, MAX_LED_BRIGHTNESS, 0);
+}
+
 void RgbLed::set_all_leds_to_color(uint8_t red, uint8_t green, uint8_t blue) {
     currentRed = red;
     currentGreen = green;

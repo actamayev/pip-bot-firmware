@@ -13,6 +13,7 @@ class RgbLed {
         void set_led_blue();
         void set_led_white();
         void set_led_purple();
+        void set_led_yellow();
         
         // Individual LED controls
         void set_top_left_led(uint8_t red, uint8_t green, uint8_t blue);
