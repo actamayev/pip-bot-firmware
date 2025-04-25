@@ -5,8 +5,6 @@
 #include "../../utils/config.h"
 #include "../../utils/structs.h"
 
-class LedAnimations;
-
 class RgbLed {
     public:
         // Basic color controls
