@@ -57,8 +57,8 @@ const uint8_t PIN_IR_EN = 15;    // IR sensor enable pin
 const uint8_t AUDIO_PIN = 9;
 
 // Buttons
-const uint8_t BUTTON_PIN_1 = 12;
-const uint8_t BUTTON_PIN_2 = 48;
+const uint8_t BUTTON_PIN_1 = 12; // Left
+const uint8_t BUTTON_PIN_2 = 48; // Right
 
 // Assign Stack sizes for the two cores
 const uint32_t SENSOR_STACK_SIZE = 16384;  // 16KB for sensor processing
