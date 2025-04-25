@@ -51,13 +51,6 @@ class RgbLed {
         uint8_t currentRed = 0;
         uint8_t currentGreen = 0;
         uint8_t currentBlue = 0;
-        
-        struct LedState {
-            uint8_t colors[6][3];  // Colors for all 6 LEDs
-            LedTypes::AnimationType animation;
-            int animationSpeed;
-            bool wasAnimationActive;
-        };
 
         LedState capturedState;
 };

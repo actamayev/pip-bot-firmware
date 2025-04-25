@@ -87,14 +87,13 @@ void Buttons::setupDeepSleep() {
     
     // Then, detect when button is released after long press
     button1.setReleasedHandler([this](Button2& btn) {
-        if (this->longPressFlagForSleep) {
-            Serial.println("Button released after long press, entering deep sleep confirmation...");
-            Serial.println("Press Button 1 to confirm sleep or Button 2 to cancel");
-            this->longPressFlagForSleep = false;
-            this->waitingForSleepConfirmation = true; // Enter confirmation stage instead of sleeping directly
-        }
+        if (!(this->longPressFlagForSleep)) return;
+        Serial.println("Button released after long press, entering deep sleep confirmation...");
+        Serial.println("Press Button 1 to confirm sleep or Button 2 to cancel");
+        this->longPressFlagForSleep = false;
+        this->waitingForSleepConfirmation = true; // Enter confirmation stage instead of sleeping directly
     });
-    
+
     // Check if we woke up from deep sleep due to button press
     esp_sleep_wakeup_cause_t wakeup_reason = esp_sleep_get_wakeup_cause();
     if (wakeup_reason == ESP_SLEEP_WAKEUP_EXT0) {

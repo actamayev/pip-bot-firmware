@@ -97,3 +97,10 @@ namespace LedTypes {
         RAINBOW,
     };
 }
+
+struct LedState {
+    uint8_t colors[6][3];  // Colors for all 6 LEDs
+    LedTypes::AnimationType animation;
+    int animationSpeed;
+    bool wasAnimationActive;
+};
