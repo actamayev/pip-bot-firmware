@@ -10,7 +10,8 @@ enum class DataMessageType : uint8_t {
     UPDATE_LIGHT_ANIMATION = 6,
     UPDATE_LED_COLORS = 7,
     BYTECODE_PROGRAM = 8,
-    STOP_SANDBOX_CODE = 9
+    STOP_SANDBOX_CODE = 9,
+    OBSTACLE_AVOIDANCE = 10
 };
 
 // Sound types
@@ -29,6 +30,11 @@ enum class SpeakerStatus : uint8_t {
 enum class BalanceStatus : uint8_t {
     UNBALANCED = 0,
     BALANCED = 1
+};
+
+enum class ObstacleAvoidanceStatus : uint8_t {
+    STOP_AVOIDANCE = 0,
+    AVOID = 1
 };
 
 enum class LightAnimationStatus : uint8_t {

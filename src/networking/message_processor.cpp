@@ -91,7 +91,7 @@ void MessageProcessor::executeCommand(int16_t leftSpeed, int16_t rightSpeed) {
     motorDriver.set_motor_speeds(leftSpeed, rightSpeed);
 
     // Enable straight driving correction for forward movement only. 
-    // 4/12/25: Removing straight line drive for backward movement. need to bring back
+    // 4/12/25: Removing straight line drive for backward movement. need to bring back eventually
     // if ((leftSpeed > 0 && rightSpeed > 0) && (leftSpeed == rightSpeed)) {
     //     StraightLineDrive::getInstance().enable();
     // } else {
@@ -102,8 +102,14 @@ void MessageProcessor::executeCommand(int16_t leftSpeed, int16_t rightSpeed) {
 }
 
 void MessageProcessor::processPendingCommands() {
+    // 4/24/25: TODO: Create a Demo manager that will only allow one demo to be run at a time, with no interference
     if (BalanceController::getInstance().isEnabled()) {
         BalanceController::getInstance().update();
+        return;
+    }
+
+    if (ObstacleAvoider::getInstance().isEnabled()) {
+        ObstacleAvoider::getInstance().update();
         return;
     }
 
@@ -175,6 +181,14 @@ void MessageProcessor::handleBalanceCommand(BalanceStatus status) {
         BalanceController::getInstance().enable();
     } else {
         BalanceController::getInstance().disable();
+    }
+}
+
+void MessageProcessor::handleObstacleAvoidanceCommand(ObstacleAvoidanceStatus status) {
+    if (status == ObstacleAvoidanceStatus::AVOID) {
+        ObstacleAvoider::getInstance().enable();
+    } else {
+        ObstacleAvoider::getInstance().disable();
     }
 }
 

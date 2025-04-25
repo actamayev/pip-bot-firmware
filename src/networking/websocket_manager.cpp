@@ -125,6 +125,17 @@ void WebSocketManager::handleBinaryMessage(WebsocketsMessage message) {
             }
             break;
         }
+        case DataMessageType::OBSTACLE_AVOIDANCE: {
+            if (length != 2) {
+                Serial.println("Invalid obstacle avoidance command");
+            } else {
+                ObstacleAvoidanceStatus status = static_cast<ObstacleAvoidanceStatus>(data[1]);
+                Serial.print("Avoidance Status: ");
+                Serial.println(status == ObstacleAvoidanceStatus::AVOID ? "AVOID" : "STOP Avoiding");
+                MessageProcessor::getInstance().handleObstacleAvoidanceCommand(status);
+            }
+            break;
+        }
         default:
             Serial.printf("Unknown message type: %d\n", static_cast<int>(messageType));
             break;

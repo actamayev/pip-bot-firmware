@@ -43,18 +43,18 @@ void imuLogger() {
 
 void sideTofsLogger() {
     static unsigned long lastPrintTime = 0;
-    const unsigned long PRINT_INTERVAL = 500; // Print every 500ms
+    const unsigned long PRINT_INTERVAL = 50; // Print every 500ms
     
     if (millis() - lastPrintTime < PRINT_INTERVAL) return;
     SideTofDistances tofDistances = Sensors::getInstance().getBothSideTofDistances();
-    DisplayScreen::getInstance().showDistanceSensors(tofDistances);
+    // DisplayScreen::getInstance().showDistanceSensors(tofDistances);
 
     // Print side by side with alignment
-    // Serial.print("Left TOF: ");
-    // Serial.print(tofDistances.leftDistance);
-    // Serial.print(" mm              || Right TOF: ");
-    // Serial.print(tofDistances.rightDistance);
-    // Serial.println(" mm");
+    Serial.print("Left TOF: ");
+    Serial.print(tofDistances.leftDistance);
+    Serial.print(" mm              || Right TOF: ");
+    Serial.print(tofDistances.rightDistance);
+    Serial.println(" mm");
 
     lastPrintTime = millis();
 }
