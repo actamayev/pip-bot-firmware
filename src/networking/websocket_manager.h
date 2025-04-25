@@ -35,6 +35,6 @@ class WebSocketManager : public Singleton<WebSocketManager> {
 
         void killWiFiProcesses();
         unsigned long lastPingTime = 0;
-        const unsigned long WS_TIMEOUT = 5000; // 15 seconds timeout
+        const unsigned long WS_TIMEOUT = 5000; // 5 seconds timeout
         bool hasKilledWiFiProcesses = false;
 };

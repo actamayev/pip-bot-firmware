@@ -206,7 +206,6 @@ void WebSocketManager::pollWebSocket() {
     if (wsConnected && (currentTime - lastPingTime >= WS_TIMEOUT)) {
         Serial.println("WebSocket ping timeout - connection lost");
         wsConnected = false;
-        // Optional: Kill WiFi processes here too
         killWiFiProcesses();
     }
 
