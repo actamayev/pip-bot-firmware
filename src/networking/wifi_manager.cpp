@@ -56,7 +56,7 @@ bool WiFiManager::attemptDirectConnectionToSavedNetworks() {
         Serial.println("No saved networks found");
         return false;
     }
-    if (ledAnimations.getCurrentAnimation() != LedAnimations::BREATHING) {
+    if (ledAnimations.getCurrentAnimation() != LedTypes::BREATHING) {
         rgbLed.set_led_red();
         ledAnimations.startBreathing();
     }

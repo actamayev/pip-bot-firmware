@@ -88,3 +88,12 @@ struct SideTofDistances {
     uint16_t leftDistance;
     uint16_t rightDistance;
 };
+
+namespace LedTypes {
+    enum AnimationType {
+        NONE,
+        BREATHING,
+        STROBING,
+        RAINBOW,
+    };
+}
