@@ -56,6 +56,10 @@ bool WiFiManager::attemptDirectConnectionToSavedNetworks() {
         Serial.println("No saved networks found");
         return false;
     }
+    if (ledAnimations.getCurrentAnimation() != LedTypes::BREATHING) {
+        rgbLed.set_led_red();
+        ledAnimations.startBreathing();
+    }
 
     Serial.println("Attempting direct connection to saved networks...");
     
@@ -69,7 +73,6 @@ bool WiFiManager::attemptDirectConnectionToSavedNetworks() {
         // Brief delay before trying the next network
         delay(100);
     }
-    
     Serial.println("Failed to connect to any saved networks");
     return false;
 }
@@ -107,11 +110,9 @@ bool WiFiManager::attemptNewWifiConnection(WiFiCredentials wifiCredentials) {
 
     if (WiFi.status() == WL_CONNECTED) {
         Serial.println("Connected to Wi-Fi!");
-        rgbLed.set_led_blue();
         return true;
     } else {
         Serial.println("Failed to connect to Wi-Fi.");
-        rgbLed.turn_led_off();
         return false;
     }
 }
@@ -129,6 +130,7 @@ std::vector<WiFiNetworkInfo> WiFiManager::scanWiFiNetworkInfos() {
     WiFi.mode(WIFI_STA);
 
     rgbLed.set_led_purple();
+    ledAnimations.startBreathing();
 
     // Perform synchronous scan
     numNetworks = WiFi.scanNetworks(false);
@@ -287,10 +289,7 @@ void WiFiManager::checkAndReconnectWiFi() {
     
     // Update last reconnect attempt time
     _lastReconnectAttempt = currentTime;
-    
-    // Turn off LED to indicate disconnection
-    rgbLed.turn_led_off();
-    
+
     // Set connecting flag
     _isConnecting = true;
     

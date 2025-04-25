@@ -57,8 +57,8 @@ const uint8_t PIN_IR_EN = 15;    // IR sensor enable pin
 const uint8_t AUDIO_PIN = 9;
 
 // Buttons
-const uint8_t BUTTON_PIN_1 = 12;
-const uint8_t BUTTON_PIN_2 = 48;
+const uint8_t BUTTON_PIN_1 = 12; // Left
+const uint8_t BUTTON_PIN_2 = 48; // Right
 
 // Assign Stack sizes for the two cores
 const uint32_t SENSOR_STACK_SIZE = 16384;  // 16KB for sensor processing
@@ -101,7 +101,7 @@ const char* getEnvironment() {
 const char* getServerFirmwareEndpoint() {
     const char* env = getEnvironment();
     if (env == nullptr || std::string(env) == "local") {
-        return "http://10.19.139.40:8080/pip/firmware-update";  // local can remain HTTP
+        return "http://10.50.206.40:8080/pip/firmware-update";  // local can remain HTTP
     } else if (std::string(env) == "staging") {
         return "https://staging-api.bluedotrobots.com/pip/firmware-update";
     }
@@ -111,7 +111,7 @@ const char* getServerFirmwareEndpoint() {
 const char* getWsServerUrl() {
     const char* env = getEnvironment();
     if (env == nullptr || std::string(env) == "local") {
-        return "ws://10.19.139.40:8080/esp32";  // local default
+        return "ws://10.50.206.40:8080/esp32";  // local default
     } else if (std::string(env) == "staging") {
         return "wss://staging-api.bluedotrobots.com/esp32";  // staging default
     }

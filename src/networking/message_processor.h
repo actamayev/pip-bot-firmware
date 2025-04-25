@@ -5,6 +5,7 @@
 #include "../utils/singleton.h"
 #include "../sensors/sensors.h"
 #include "../demos/balance_controller.h"  
+#include "../demos/obstacle_avoider.h"  
 #include "../actuators/speaker.h"
 #include "../networking/protocol.h"
 #include "../actuators/motor_driver.h"
@@ -26,6 +27,7 @@ class MessageProcessor : public Singleton<MessageProcessor> {
         void handleChangePidsCommand(NewBalancePids newBalancePids);
         void handleLightCommand(LightAnimationStatus lightAnimationStatus);
         void handleNewLightColors(NewLightColors newLightColors);
+        void handleObstacleAvoidanceCommand(ObstacleAvoidanceStatus status);
 
     private:
         void updateMotorSpeeds(int16_t leftSpeed, int16_t rightSpeed);
@@ -47,5 +49,5 @@ class MessageProcessor : public Singleton<MessageProcessor> {
         int16_t nextRightSpeed;
 
         // Constants
-        static constexpr uint8_t MIN_ENCODER_PULSES = 1;
+        static constexpr uint8_t MIN_ENCODER_PULSES = 10;
 };

@@ -88,3 +88,19 @@ struct SideTofDistances {
     uint16_t leftDistance;
     uint16_t rightDistance;
 };
+
+namespace LedTypes {
+    enum AnimationType {
+        NONE,
+        BREATHING,
+        STROBING,
+        RAINBOW,
+    };
+}
+
+struct LedState {
+    uint8_t colors[6][3];  // Colors for all 6 LEDs
+    LedTypes::AnimationType animation;
+    int animationSpeed;
+    bool wasAnimationActive;
+};
