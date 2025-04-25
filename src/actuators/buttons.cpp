@@ -10,7 +10,6 @@ void Buttons::begin() {
     // constructor or begin() method to configure button behavior
     // Default is INPUT_PULLUP with activeLow=true
     
-    // Set debounce time if needed (default is 50ms)
     button1.setDebounceTime(0);
     button2.setDebounceTime(0);
     
@@ -25,11 +24,46 @@ void Buttons::update() {
 }
 
 void Buttons::setButton1ClickHandler(std::function<void(Button2&)> callback) {
-    button1.setPressedHandler(callback);
+    // Store the user's callback to call it after our internal handling
+    auto originalCallback = callback;
+    
+    button1.setPressedHandler([this, originalCallback](Button2& btn) {
+        // If we're waiting for confirmation, this click confirms deep sleep
+        if (this->waitingForSleepConfirmation) return;
+        
+        // Otherwise, proceed with normal click handling
+        if (originalCallback) {
+            originalCallback(btn);
+        }
+    });
+
+	button1.setClickHandler([this, originalCallback](Button2& btn) {
+        if (!(this->waitingForSleepConfirmation)) return;
+		Serial.println("Sleep confirmed with Button 1! Entering deep sleep...");
+		this->waitingForSleepConfirmation = false;
+		delay(100); // Small delay to allow serial message to be sent
+		enterDeepSleep();
+		return; // Don't call the original callback in this case
+    });
 }
 
 void Buttons::setButton2ClickHandler(std::function<void(Button2&)> callback) {
-    button2.setPressedHandler(callback);
+    // Store the user's callback to call it after our internal handling
+    auto originalCallback = callback;
+    
+    button2.setPressedHandler([this, originalCallback](Button2& btn) {
+        // If we're waiting for confirmation, this click cancels deep sleep
+        if (this->waitingForSleepConfirmation) {
+            Serial.println("Sleep canceled with Button 2!");
+            this->waitingForSleepConfirmation = false;
+            return; // Don't call the original callback in this case
+        }
+        
+        // Otherwise, proceed with normal click handling
+        if (originalCallback) {
+            originalCallback(btn);
+        }
+    });
 }
 
 void Buttons::setButton1LongPressHandler(std::function<void(Button2&)> callback) {
@@ -44,7 +78,7 @@ void Buttons::setupDeepSleep() {
     // First, detect when long press threshold is reached
     button1.setLongClickTime(DEEP_SLEEP_TIMEOUT);
     button1.setLongClickDetectedHandler([this](Button2& btn) {
-        Serial.println("Long press detected on Button 1! Release to enter deep sleep...");
+        Serial.println("Long press detected on Button 1! Release to enter confirmation stage...");
         rgbLed.set_led_yellow();
         this->longPressFlagForSleep = true;
     });
@@ -52,11 +86,10 @@ void Buttons::setupDeepSleep() {
     // Then, detect when button is released after long press
     button1.setReleasedHandler([this](Button2& btn) {
         if (this->longPressFlagForSleep) {
-            Serial.println("Button released after long press, entering deep sleep...");
-            rgbLed.turn_led_off();
-            delay(100); // Small delay to allow serial message to be sent
+            Serial.println("Button released after long press, entering deep sleep confirmation...");
+            Serial.println("Press Button 1 to confirm sleep or Button 2 to cancel");
             this->longPressFlagForSleep = false;
-            enterDeepSleep();
+            this->waitingForSleepConfirmation = true; // Enter confirmation stage instead of sleeping directly
         }
     });
     
@@ -69,16 +102,12 @@ void Buttons::setupDeepSleep() {
 
 void Buttons::enterDeepSleep() {
     // Configure Button 1 (GPIO 12) as wake-up source
-    // RTC GPIO number corresponds to the GPIO number
     esp_sleep_enable_ext0_wakeup((gpio_num_t)BUTTON_PIN_1, LOW); // LOW = button press (since using INPUT_PULLUP)
     
-    // Optional: Print a message before going to sleep
     Serial.println("Going to deep sleep now");
     Serial.flush();
     
-    // Enter deep sleep
     esp_deep_sleep_start();
     
-    // Code execution will not reach here unless deep sleep fails
     Serial.println("This will never be printed");
 }
