@@ -4,6 +4,7 @@
 #include "../utils/singleton.h"
 #include "../sensors/sensors.h"
 #include "../actuators/led/rgb_led.h"
+#include "../actuators/motor_driver.h"
 
 class BytecodeVM : public Singleton<BytecodeVM> {
     friend class Singleton<BytecodeVM>;
@@ -14,6 +15,7 @@ class BytecodeVM : public Singleton<BytecodeVM> {
 
         // Load bytecode program into the VM
         bool loadProgram(const uint8_t* byteCode, uint16_t size);
+        bool stopProgram();
 
         // Update VM - call this regularly from main loop
         void update();

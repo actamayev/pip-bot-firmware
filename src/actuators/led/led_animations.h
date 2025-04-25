@@ -1,20 +1,13 @@
 #pragma once
 
 #include <Adafruit_NeoPixel.h>
-#include "../../utils/config.h"
 #include "./rgb_led.h"
+#include "../../utils/config.h"
+#include "../../utils/structs.h"
 
 class LedAnimations {
     public:
         LedAnimations(Adafruit_NeoPixel& strip1, Adafruit_NeoPixel& strip2);
-
-        // Animation types
-        enum AnimationType {
-            NONE,
-            BREATHING,
-            STROBING,
-            RAINBOW,
-        };
 
         // Set the current animation
         void startBreathing(int speed = 2000);
@@ -28,7 +21,7 @@ class LedAnimations {
         void update();
         
         // Get current animation state
-        AnimationType getCurrentAnimation() const { return currentAnimation; }
+        LedTypes::AnimationType getCurrentAnimation() const { return currentAnimation; }
         
         // Update animation colors
         void updateBreathingColor();
@@ -38,7 +31,7 @@ class LedAnimations {
         Adafruit_NeoPixel& strip2;
         
         // Current animation state
-        AnimationType currentAnimation = NONE;
+        LedTypes::AnimationType currentAnimation = LedTypes::NONE;
         bool isPaused = false;
         bool isFadingOut = false;
         

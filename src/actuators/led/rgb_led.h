@@ -3,6 +3,7 @@
 #include <Adafruit_NeoPixel.h>
 #include "./led_animations.h"
 #include "../../utils/config.h"
+#include "../../utils/structs.h"
 
 class RgbLed {
     public:
@@ -13,7 +14,8 @@ class RgbLed {
         void set_led_blue();
         void set_led_white();
         void set_led_purple();
-        
+        void set_led_yellow();
+
         // Individual LED controls
         void set_top_left_led(uint8_t red, uint8_t green, uint8_t blue);
         void set_top_right_led(uint8_t red, uint8_t green, uint8_t blue);
@@ -39,6 +41,9 @@ class RgbLed {
         };
         bool defaultColorsSet[6] = {false, false, false, false, false, false};
 
+        void captureCurrentState();
+        void restoreCapturedState();
+
     private:
         bool processLedUpdate(int ledIndex, uint8_t red, uint8_t green, uint8_t blue);
         
@@ -46,6 +51,8 @@ class RgbLed {
         uint8_t currentRed = 0;
         uint8_t currentGreen = 0;
         uint8_t currentBlue = 0;
+
+        LedState capturedState;
 };
 
 extern RgbLed rgbLed;

@@ -100,9 +100,6 @@ void BalanceController::update() {
         return;
     }
 
-    // If not in deadband, continue with normal PID control
-    float deltaTime = UPDATE_INTERVAL / 1000.0f; // Convert to seconds
-
     // Calculate motor power using PID formula
     float proportionalTerm = P_GAIN * error;
     float integralTerm = I_GAIN * _errorSum;
@@ -125,7 +122,7 @@ void BalanceController::update() {
 
     // Apply motor power
     motorDriver.set_motor_speeds(adjustedPWM, adjustedPWM);
-    motorDriver.update_motor_speeds(false, UPDATE_INTERVAL);
+    motorDriver.update_motor_speeds(false);
 
     // Store error for next iteration
     _lastError = error;
