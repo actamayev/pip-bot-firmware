@@ -11,7 +11,7 @@ class Sensors : public Singleton<Sensors> {
 
     public:
         // Multizone TOF methods
-        VL53L5CX_ResultsData getMultizoneTofData();
+        VL53L7CX_ResultsData getMultizoneTofData();
 
         // IMU methods
         float getPitch();
@@ -50,9 +50,11 @@ class Sensors : public Singleton<Sensors> {
         SideTimeOfFlightSensor leftSideTofSensor;
         SideTimeOfFlightSensor rightSideTofSensor;
         ColorSensor colorSensor;
+        TwoWire* wire;
 
-        // Private constructor
-        Sensors() {
+        // Private constructor - now modified to store and pass the Wire instance
+        Sensors() : multizoneTofSensor(&Wire) {
+            wire = &Wire;
             initialize();
         }
 

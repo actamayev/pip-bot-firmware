@@ -1,19 +1,22 @@
 #pragma once
-#include <SparkFun_VL53L5CX_Library.h>
+#include <vl53l7cx_class.h>
+#include <Wire.h>
 #include "../utils/config.h"
 
 class MultizoneTofSensor {
     public:
-        MultizoneTofSensor() = default;
+        // Constructor that takes TwoWire instance and optional pin parameters
+        MultizoneTofSensor(TwoWire *wire = &Wire) 
+            : sensor(wire, -1, -1) {}
 
         bool initialize();
-        VL53L5CX_ResultsData getTofData();
+        VL53L7CX_ResultsData getTofData();
 
         void startRanging();
         void stopRanging();
 
     private:
-        SparkFun_VL53L5CX sensor;
+        VL53L7CX sensor; // Now properly initialized through the constructor
         void measureDistance();
-        VL53L5CX_ResultsData sensorData;
+        VL53L7CX_ResultsData sensorData;
 };

@@ -43,7 +43,7 @@ void SensorAndBytecodeTask(void * parameter) {
         }
         Buttons::getInstance().update();  // Update button states
         BytecodeVM::getInstance().update();
-        // multizoneTofLogger();
+        multizoneTofLogger();
         // imuLogger();
         // sideTofsLogger();
         // DisplayScreen::getInstance().update();
@@ -81,7 +81,7 @@ void NetworkTask(void * parameter) {
 void setup() {
     Serial.begin(115200);
     // Only needed if we need to see the setup serial logs:
-    delay(2000);
+    // delay(2000);
     Wire.setPins(I2C_SDA, I2C_SCL);
     Wire.begin(I2C_SDA, I2C_SCL, I2C_CLOCK_SPEED);
     delay(10);
@@ -99,15 +99,15 @@ void setup() {
         0                       // Run on Core 0
     );
 
-    xTaskCreatePinnedToCore(
-        NetworkTask,            // Network handling task
-        "Network",              // Task name
-        NETWORK_STACK_SIZE,      // Stack size
-        NULL,                   // Task parameters
-        1,                      // Priority
-        NULL,                   // Task handle
-        1                       // Run on Core 1
-    );
+    // xTaskCreatePinnedToCore(
+    //     NetworkTask,            // Network handling task
+    //     "Network",              // Task name
+    //     NETWORK_STACK_SIZE,      // Stack size
+    //     NULL,                   // Task parameters
+    //     1,                      // Priority
+    //     NULL,                   // Task handle
+    //     1                       // Run on Core 1
+    // );
 }
 
 // Main loop runs on Core 1
