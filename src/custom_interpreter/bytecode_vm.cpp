@@ -70,6 +70,16 @@ void BytecodeVM::update() {
         return; // Don't execute next instruction until turn is complete
     }
 
+    if (timedMotorMovementInProgress) {
+        updateTimedMotorMovement();
+        return; // Don't execute next instruction until movement is complete
+    }
+
+    if (distanceMovementInProgress) {
+        updateDistanceMovement();
+        return; // Don't execute next instruction until movement is complete
+    }
+
     // Execute current instruction
     executeInstruction(program[pc]);
     pc++; // Move to next instruction
@@ -521,6 +531,68 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             break;
         }
 
+        case OP_MOTOR_FORWARD_DISTANCE: {
+            float distanceCm = instr.operand1;
+            uint8_t throttlePercent = static_cast<uint8_t>(instr.operand2);
+            
+            // Validate parameters
+            if (distanceCm <= 0.0f) {
+                Serial.println("Invalid distance value for forward movement");
+                break;
+            }
+            
+            if (throttlePercent > 100) {
+                throttlePercent = 100;  // Clamp to valid range
+            }
+            
+            // Convert percentage to motor speed
+            uint8_t motorSpeed = map(throttlePercent, 0, 100, 0, 255);
+            
+            // Reset distance tracking in encoder manager
+            encoderManager.resetDistanceTracking();
+            
+            // Set up distance movement
+            distanceMovementInProgress = true;
+            targetDistanceCm = distanceCm;
+            
+            // Set motors to forward motion
+            motorDriver.set_motor_speeds(motorSpeed, motorSpeed);
+            motorDriver.update_motor_speeds(true);  // Enable ramping
+            
+            break;
+        }
+
+        case OP_MOTOR_BACKWARD_DISTANCE: {
+            float distanceCm = instr.operand1;
+            uint8_t throttlePercent = static_cast<uint8_t>(instr.operand2);
+            
+            // Validate parameters
+            if (distanceCm <= 0.0f) {
+                Serial.println("Invalid distance value for backward movement");
+                break;
+            }
+            
+            if (throttlePercent > 100) {
+                throttlePercent = 100;  // Clamp to valid range
+            }
+            
+            // Convert percentage to motor speed
+            uint8_t motorSpeed = map(throttlePercent, 0, 100, 0, 255);
+            
+            // Reset distance tracking in encoder manager
+            encoderManager.resetDistanceTracking();
+            
+            // Set up distance movement
+            distanceMovementInProgress = true;
+            targetDistanceCm = distanceCm;
+            
+            // Set motors to backward motion
+            motorDriver.set_motor_speeds(-motorSpeed, -motorSpeed);
+            motorDriver.update_motor_speeds(true);  // Enable ramping
+            
+            break;
+        }
+
         default:
             // Unknown opcode, stop execution
             pc = programSize;
@@ -564,6 +636,19 @@ void BytecodeVM::updateTimedMotorMovement() {
 
     // Reset timed movement state
     timedMotorMovementInProgress = false;
+}
+
+void BytecodeVM::updateDistanceMovement() {
+    // Get distance traveled from the encoder manager
+    float currentDistance = encoderManager.getDistanceTraveledCm();
+    
+    // Check if we've reached or exceeded the target distance
+    if (currentDistance < targetDistanceCm) return;
+    // Distance reached - brake motors
+    motorDriver.brake_both_motors();
+    
+    // Reset distance movement state
+    distanceMovementInProgress = false;
 }
 
 void BytecodeVM::stopProgram() {
