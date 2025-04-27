@@ -6,7 +6,7 @@ WiFiManager::WiFiManager() {
     // Hard-coding Wifi creds during initialization (before we have encoders + screen)
     preferences.begin("wifi-creds", false);
     storeWiFiCredentials("Another Dimension", "Iforgotit123", 0);
-    storeWiFiCredentials("NETGEAR08", "breezyshoe123", 1);
+    // storeWiFiCredentials("NETGEAR08", "breezyshoe123", 1);
 
 	connectToStoredWiFi();
 }
@@ -109,6 +109,9 @@ bool WiFiManager::attemptNewWifiConnection(WiFiCredentials wifiCredentials) {
     _isConnecting = false;
 
     if (WiFi.status() == WL_CONNECTED) {
+        preferences.begin("wifi-creds", false);
+        storeWiFiCredentials(wifiCredentials.ssid, wifiCredentials.password, 0);
+        preferences.end();
         Serial.println("Connected to Wi-Fi!");
         return true;
     } else {

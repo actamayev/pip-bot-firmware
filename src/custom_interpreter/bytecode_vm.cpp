@@ -59,6 +59,11 @@ void BytecodeVM::update() {
         waitingForDelay = false;
     }
     
+    if (timedMotorMovementInProgress) {
+        updateTimedMotorMovement();
+        return; // Don't execute next instruction until movement is complete
+    }
+
     // Handle turning operation if in progress
     if (turningInProgress) {
         updateTurning();
@@ -464,6 +469,58 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             break;
         }
 
+        case OP_MOTOR_FORWARD_TIME: {
+            float seconds = instr.operand1;
+            uint8_t throttlePercent = static_cast<uint8_t>(instr.operand2);
+            
+            // Validate parameters
+            if (seconds <= 0.0f) {
+                Serial.println("Invalid time value for forward movement");
+                break;
+            }
+            
+            if (throttlePercent > 100) {
+                throttlePercent = 100;  // Clamp to valid range
+            }
+            
+            // Convert percentage to motor speed
+            uint8_t motorSpeed = map(throttlePercent, 0, 100, 0, 255);
+            
+            // Set motors to forward motion
+            motorDriver.set_motor_speeds(motorSpeed, motorSpeed);
+            motorDriver.update_motor_speeds(true);  // Enable ramping
+            
+            // Set up timed movement
+            timedMotorMovementInProgress = true;
+            motorMovementEndTime = millis() + static_cast<unsigned long>(seconds * 1000.0f);
+            
+            break;
+        }
+
+        case OP_MOTOR_BACKWARD_TIME: {
+            float seconds = instr.operand1;
+            uint8_t throttlePercent = static_cast<uint8_t>(instr.operand2);
+            
+            // Validate parameters
+            if (seconds <= 0.0f) {
+                Serial.println("Invalid time value for backward movement");
+                break;
+            }
+            
+            if (throttlePercent > 100) {
+                throttlePercent = 100;  // Clamp to valid range
+            }
+            
+            // Convert percentage to motor speed
+            uint8_t motorSpeed = map(throttlePercent, 0, 100, 0, 255);
+            
+            // Set motors to backward motion
+            motorDriver.set_motor_speeds(-motorSpeed, -motorSpeed);
+            motorDriver.update_motor_speeds(true);  // Enable ramping
+            
+            break;
+        }
+
         default:
             // Unknown opcode, stop execution
             pc = programSize;
@@ -499,12 +556,20 @@ void BytecodeVM::updateTurning() {
     }
 }
 
-bool BytecodeVM::stopProgram() {
-    bool programStopped = false;
+void BytecodeVM::updateTimedMotorMovement() {
+    // Check if the timed movement has completed
+    if (millis() < motorMovementEndTime) return;
+    // Movement complete - brake motors
+    motorDriver.brake_both_motors();
+
+    // Reset timed movement state
+    timedMotorMovementInProgress = false;
+}
+
+void BytecodeVM::stopProgram() {
     if (program) {
         delete[] program;
         program = nullptr;
-        programStopped = true;
     }
     pc = 0;
     waitingForDelay = false;
@@ -512,5 +577,5 @@ bool BytecodeVM::stopProgram() {
 
     rgbLed.turn_led_off();
     motorDriver.brake_both_motors();
-    return programStopped;
+    return;
 }

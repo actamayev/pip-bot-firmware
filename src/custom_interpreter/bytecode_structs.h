@@ -35,6 +35,9 @@ enum BytecodeOpCode : uint32_t {
     OP_MOTOR_BACKWARD = 0x51,  // Backward movement at specified throttle
     OP_MOTOR_STOP = 0x52,      // Stop all motors
     OP_MOTOR_TURN = 0x53,      // Turn by specified degrees
+
+    OP_MOTOR_FORWARD_TIME = 0x54,
+    OP_MOTOR_BACKWARD_TIME = 0x55,
 };
 
 // Comparison operators

@@ -80,6 +80,7 @@ void Buttons::setupDeepSleep() {
     button1.setLongClickTime(DEEP_SLEEP_TIMEOUT);
     button1.setLongClickDetectedHandler([this](Button2& btn) {
         Serial.println("Long press detected on Button 1! Release to enter confirmation stage...");
+        BytecodeVM::getInstance().stopProgram();
         rgbLed.captureCurrentState();
         rgbLed.set_led_yellow();
         this->longPressFlagForSleep = true;
