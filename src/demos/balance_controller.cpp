@@ -35,7 +35,7 @@ void BalanceController::enable() {
 void BalanceController::disable() {
     if (_balancingEnabled == BalanceStatus::UNBALANCED) return;
     _balancingEnabled = BalanceStatus::UNBALANCED;
-    motorDriver.brake_both_motors();
+    motorDriver.brake_if_moving();
     rgbLed.turn_led_off();
     Serial.println("Balance mode disabled");
 }

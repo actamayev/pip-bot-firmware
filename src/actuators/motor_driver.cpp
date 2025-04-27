@@ -77,6 +77,29 @@ void MotorDriver::release_right_brake() {
     Serial.println("Released right brake");
 }
 
+void MotorDriver::brake_if_moving() {
+    // Get current wheel speeds from encoder manager
+    WheelRPMs rpms = encoderManager.getBothWheelRPMs();
+    
+    // Check if left motor is moving
+    if (abs(rpms.leftWheelRPM) > MOTOR_STOPPED_THRESHOLD) {
+        // Left motor is moving, apply brake
+        brake_left_motor();
+    } else if (_leftMotorBraking) {
+        // Left motor already stopped but brake still applied, release it
+        release_left_brake();
+    }
+    
+    // Check if right motor is moving
+    if (abs(rpms.rightWheelRPM) > MOTOR_STOPPED_THRESHOLD) {
+        // Right motor is moving, apply brake
+        brake_right_motor();
+    } else if (_rightMotorBraking) {
+        // Right motor already stopped but brake still applied, release it
+        release_right_brake();
+    }
+}
+
 void MotorDriver::set_motor_speeds(int16_t leftTarget, int16_t rightTarget) {
     // Store target speeds but don't change actual speeds immediately
     _targetLeftSpeed = constrain(leftTarget, -255, 255);
