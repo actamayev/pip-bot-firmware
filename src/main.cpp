@@ -64,14 +64,16 @@ void NetworkTask(void * parameter) {
 
     // Main network loop
     for(;;) {
-        if (WiFi.status() != WL_CONNECTED) {
-            WiFiManager::getInstance().checkAndReconnectWiFi();
-            HapticFeedbackManager::getInstance().update();
-            WifiSelectionManager::getInstance().processNetworkSelection();
-        } else {
-            // Other network operations can use internal timing
-            WebSocketManager::getInstance().pollWebSocket();
-            SendDataToServer::getInstance().sendSensorDataToServer();
+        if (!SerialManager::getInstance().isConnected) {
+            if (WiFi.status() != WL_CONNECTED) {
+                WiFiManager::getInstance().checkAndReconnectWiFi();
+                // HapticFeedbackManager::getInstance().update();
+                // WifiSelectionManager::getInstance().processNetworkSelection();
+            } else {
+                // Other network operations can use internal timing
+                WebSocketManager::getInstance().pollWebSocket();
+                SendDataToServer::getInstance().sendSensorDataToServer();
+            }
         }
 
         // Small delay to avoid overwhelming the websocket and allow IMU data to be processed
@@ -83,7 +85,7 @@ void NetworkTask(void * parameter) {
 void setup() {
     Serial.begin(115200);
     // Only needed if we need to see the setup serial logs:
-    // delay(2000);
+    delay(2000);
     Wire.setPins(I2C_SDA, I2C_SCL);
     Wire.begin(I2C_SDA, I2C_SCL, I2C_CLOCK_SPEED);
     delay(10);

@@ -358,6 +358,20 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, size_t length) 
             }
             break;
         }
+        case DataMessageType::HANDSHAKE: {
+            Serial.println("Handshake received from browser!");
+            SerialManager::getInstance().isConnected = true;
+            SerialManager::getInstance().lastActivityTime = millis();
+            SerialManager::getInstance().sendHandshakeConfirmation();
+            rgbLed.set_led_blue();
+            break;
+        }
+        case DataMessageType::KEEPALIVE: {
+            rgbLed.set_led_green();
+            // Just update the last activity time
+            SerialManager::getInstance().lastActivityTime = millis();
+            break;
+        }
         default:
             Serial.printf("Unknown message type: %d\n", static_cast<int>(messageType));
             break;

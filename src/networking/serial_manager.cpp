@@ -1,14 +1,23 @@
-#include "serial_manager.h"
+#include "./serial_manager.h"
 
 void SerialManager::pollSerial() {
-    if (Serial.available() <= 0) return;
+    if (Serial.available() <= 0) {
+        // Check for timeout if we're connected but haven't received data for a while
+        if (isConnected && (millis() - lastActivityTime > SERIAL_CONNECTION_TIMEOUT)) {
+            Serial.println("Serial connection timed out!");
+            isConnected = false;
+        }
+        return;
+    }
+
     lastActivityTime = millis();
-    
+
     if (!isConnected) {
         isConnected = true;
+        Serial.println("Serial connection detected!");
         sendHandshakeConfirmation();
     }
-    
+
     while (Serial.available() > 0 && bufferPosition < sizeof(receiveBuffer)) {
         receiveBuffer[bufferPosition++] = Serial.read();
         
@@ -42,7 +51,9 @@ void SerialManager::pollSerial() {
                     expectedLength = 41;
                     break;
                 case DataMessageType::STOP_SANDBOX_CODE:
-                    expectedLength = 1;
+                case DataMessageType::HANDSHAKE:  // Add handshake
+                case DataMessageType::KEEPALIVE:  // Add keepalive
+                    expectedLength = 1;  // These only need 1 byte (the message type)
                     break;
                 case DataMessageType::BYTECODE_PROGRAM:
                     // Variable length - process when no more data available
@@ -53,16 +64,17 @@ void SerialManager::pollSerial() {
                     messageStarted = false;
                     break;
             }
-            
+
             // Process if we have complete message
             if (expectedLength > 0 && bufferPosition >= expectedLength) {
                 processCompleteMessage();
                 bufferPosition = 0;
                 messageStarted = false;
             }
-            
+
             // Special handling for bytecode which has variable length
             if (messageType == DataMessageType::BYTECODE_PROGRAM && Serial.available() == 0) {
+                Serial.println("Bytecode program");
                 processCompleteMessage();
                 bufferPosition = 0;
                 messageStarted = false;
@@ -78,6 +90,31 @@ void SerialManager::pollSerial() {
 }
 
 void SerialManager::processCompleteMessage() {
+    // Check if the message is a text message (handshake or keepalive)
+    if (messageStarted && bufferPosition > 0) {
+        // Check if this is a text message by checking first byte isn't a valid DataMessageType
+        if (receiveBuffer[0] >= static_cast<uint8_t>(DataMessageType::HANDSHAKE)) {
+            // Convert buffer to string for text-based commands
+            String message = "";
+            for (size_t i = 0; i < bufferPosition; i++) {
+                message += (char)receiveBuffer[i];
+            }
+            
+            if (message.indexOf("HANDSHAKE") >= 0) {
+                Serial.println("Handshake received from browser!");
+                isConnected = true;
+                lastActivityTime = millis();
+                sendHandshakeConfirmation();
+                return;
+            } else if (message.indexOf("KEEPALIVE") >= 0) {
+                // Just update the last activity time
+                lastActivityTime = millis();
+                return;
+            }
+        }
+    }
+    
+    // Process binary message as before
     MessageProcessor::getInstance().processBinaryMessage(receiveBuffer, bufferPosition);
 }
 

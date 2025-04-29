@@ -11,7 +11,9 @@ enum class DataMessageType : uint8_t {
     UPDATE_LED_COLORS = 7,
     BYTECODE_PROGRAM = 8,
     STOP_SANDBOX_CODE = 9,
-    OBSTACLE_AVOIDANCE = 10
+    OBSTACLE_AVOIDANCE = 10,
+    HANDSHAKE = 11,
+    KEEPALIVE = 12
 };
 
 // Sound types

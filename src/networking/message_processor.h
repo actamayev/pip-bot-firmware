@@ -4,12 +4,13 @@
 #include "../utils/config.h"
 #include "../utils/singleton.h"
 #include "../sensors/sensors.h"
-#include "../demos/balance_controller.h"  
-#include "../demos/obstacle_avoider.h"  
 #include "../actuators/speaker.h"
 #include "../networking/protocol.h"
 #include "../actuators/motor_driver.h"
+#include "../demos/obstacle_avoider.h"
 #include "../sensors/encoder_manager.h"
+#include "../demos/balance_controller.h" 
+#include "../networking/serial_manager.h"
 #include "../actuators/led/led_animations.h"
 
 class MessageProcessor : public Singleton<MessageProcessor> {

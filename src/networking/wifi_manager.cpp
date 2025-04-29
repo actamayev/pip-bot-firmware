@@ -28,23 +28,25 @@ void WiFiManager::connectToStoredWiFi() {
         return WebSocketManager::getInstance().connectToWebSocket();
     }
 
+    // 4/29/25 NOTE: When serial was implemented, this was commented out because the code got stuck in wifi scan mode when the serial code was brought in in main.cpp
+
     // If direct connection failed, do a full scan for all networks
-    auto networks = scanWiFiNetworkInfos();
+    // auto networks = scanWiFiNetworkInfos();
 
-    if (networks.empty()) {
-        // If no networks found
-        Serial.println("No networks found in full scan.");
-        return;
-    }
+    // if (networks.empty()) {
+    //     // If no networks found
+    //     Serial.println("No networks found in full scan.");
+    //     return;
+    // }
     
-    // Print the available networks and select the first one
-    printNetworkList(networks);
-    setSelectedNetworkIndex(0);
+    // // Print the available networks and select the first one
+    // printNetworkList(networks);
+    // setSelectedNetworkIndex(0);
     
-    // Init encoder for network selection
-    WifiSelectionManager::getInstance().initNetworkSelection();
+    // // Init encoder for network selection
+    // WifiSelectionManager::getInstance().initNetworkSelection();
 
-    Serial.println("Use the right motor to scroll through networks");
+    // Serial.println("Use the right motor to scroll through networks");
 }
 
 // 4/9/25 TODO: Connect to the network we've most recently connected to first.
@@ -65,6 +67,7 @@ bool WiFiManager::attemptDirectConnectionToSavedNetworks() {
     
     // Try to connect to each saved network without scanning first
     for (const auto& network : savedNetworks) {
+        if(SerialManager::getInstance().isConnected) break;
         Serial.printf("Trying to connect to: %s\n", network.ssid.c_str());
         
         // Attempt connection
@@ -79,6 +82,7 @@ bool WiFiManager::attemptDirectConnectionToSavedNetworks() {
 
 bool WiFiManager::attemptNewWifiConnection(WiFiCredentials wifiCredentials) {
     // Set WiFi mode to Station (client mode)
+    if(SerialManager::getInstance().isConnected) return;
     _isConnecting = true;
     WiFi.mode(WIFI_STA);
 
