@@ -84,4 +84,3 @@ struct NewLightColors {
     uint8_t backRightGreen;
     uint8_t backRightBlue;
 };
-

@@ -1,17 +1,5 @@
 #include "./message_processor.h"
 
-MessageProcessor::MessageProcessor() 
-    : isExecutingCommand(false), 
-      hasNextCommand(false),
-      currentLeftSpeed(0),
-      currentRightSpeed(0),
-      nextLeftSpeed(0),
-      nextRightSpeed(0),
-      startLeftCount(0),
-      startRightCount(0),
-      commandStartTime(0) {
-}
-
 void MessageProcessor::handleMotorControl(const uint8_t* data) {
     // Extract 16-bit signed integers (little-endian)
     int16_t leftSpeed = static_cast<int16_t>(data[1] | (data[2] << 8));
@@ -245,4 +233,133 @@ void MessageProcessor::handleNewLightColors(NewLightColors newLightColors) {
     rgbLed.set_middle_right_led(middleRightR, middleRightG, middleRightB);
     rgbLed.set_back_left_led(backLeftR, backLeftG, backLeftB);
     rgbLed.set_back_right_led(backRightR, backRightG, backRightB);
+}
+
+void MessageProcessor::processBinaryMessage(const uint8_t* data, size_t length) {
+    if (length < 1) {
+        Serial.println("Binary message too short");
+        return;
+    }
+
+    // Extract the message type from the first byte
+    DataMessageType messageType = static_cast<DataMessageType>(data[0]);
+
+    switch (messageType) {
+        case DataMessageType::UPDATE_AVAILABLE: {
+            if (length != 3) {
+                Serial.println("Invalid update available message length");
+            } else {
+                // Extract the firmware version from bytes 1-2
+                uint16_t newVersion = data[1] | (data[2] << 8); // Little-endian conversion
+
+                Serial.printf("New firmware version available: %d\n", newVersion);
+                FirmwareVersionTracker::getInstance().retrieveLatestFirmwareFromServer(newVersion);
+            }
+            break;
+        }
+        case DataMessageType::MOTOR_CONTROL: {
+            if (length != 5) {
+                Serial.println("Invalid motor control message length");
+            } else {
+                handleMotorControl(data);
+            }
+            break;
+        }
+        case DataMessageType::SOUND_COMMAND: {
+            if (length != 2) {
+                Serial.println("Invalid sound command message length");
+            } else {
+                SoundType soundType = static_cast<SoundType>(data[1]);
+                handleSoundCommand(soundType);
+            }
+            break;
+        }
+        case DataMessageType::SPEAKER_MUTE: {
+            if (length != 2) {
+                Serial.println("Invalid speaker mute message length");
+            } else {
+                SpeakerStatus status = static_cast<SpeakerStatus>(data[1]);
+                handleSpeakerMute(status);
+            }
+            break;
+        }
+        case DataMessageType::BALANCE_CONTROL: {
+            if (length != 2) {
+                Serial.println("Invalid balance control message length");
+            } else {
+                BalanceStatus status = static_cast<BalanceStatus>(data[1]);
+                Serial.print("Balance Status: ");
+                Serial.println(status == BalanceStatus::BALANCED ? "BALANCED" : "UNBALANCED");
+                handleBalanceCommand(status);
+            }
+            break;
+        }
+        case DataMessageType::UPDATE_LIGHT_ANIMATION: {
+            if (length != 2) {
+                Serial.println("Invalid light animation message length");
+            } else {
+                LightAnimationStatus lightAnimationStatus = static_cast<LightAnimationStatus>(data[1]);
+                handleLightCommand(lightAnimationStatus);
+            }
+            break;
+        }
+        case DataMessageType::UPDATE_LED_COLORS: {
+            if (length != 19) {
+                Serial.println("Invalid update led colors message length");
+            } else {
+                NewLightColors newLightColors;
+                memcpy(&newLightColors, &data[1], sizeof(NewLightColors));
+                handleNewLightColors(newLightColors);
+            }
+            break;
+        }
+        case DataMessageType::UPDATE_BALANCE_PIDS: {
+            if (length != 41) { // 1 byte for type + 40 bytes for the struct (10 floats × 4 bytes)
+                Serial.println("Invalid update balance pids message length");
+            } else {
+                NewBalancePids newBalancePids;
+                memcpy(&newBalancePids, &data[1], sizeof(NewBalancePids));
+                handleChangePidsCommand(newBalancePids);
+            }
+            break;
+        }
+        case DataMessageType::BYTECODE_PROGRAM: {
+            // First byte is the message type, the rest is bytecode
+            const uint8_t* bytecodeData = data + 1;
+            size_t bytecodeLength = length - 1;
+            
+            // Execute the bytecode
+            bool success = BytecodeVM::getInstance().loadProgram(bytecodeData, bytecodeLength);
+
+            // Send response
+            if (success) {
+                SendDataToServer::getInstance().sendBytecodeMessage("Bytecode successfully loaded");
+            } else {
+                SendDataToServer::getInstance().sendBytecodeMessage("Error loading bytecode: invalid format!");
+            }
+            break;
+        }
+        case DataMessageType::STOP_SANDBOX_CODE: {
+            if (length != 1) {
+                Serial.println("Invalid stop sandbox code message length");
+            } else {
+                BytecodeVM::getInstance().stopProgram();
+            }
+            break;
+        }
+        case DataMessageType::OBSTACLE_AVOIDANCE: {
+            if (length != 2) {
+                Serial.println("Invalid obstacle avoidance command");
+            } else {
+                ObstacleAvoidanceStatus status = static_cast<ObstacleAvoidanceStatus>(data[1]);
+                Serial.print("Avoidance Status: ");
+                Serial.println(status == ObstacleAvoidanceStatus::AVOID ? "AVOID" : "STOP Avoiding");
+                handleObstacleAvoidanceCommand(status);
+            }
+            break;
+        }
+        default:
+            Serial.printf("Unknown message type: %d\n", static_cast<int>(messageType));
+            break;
+    }
 }

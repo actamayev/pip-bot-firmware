@@ -17,9 +17,9 @@ class MessageProcessor : public Singleton<MessageProcessor> {
 
     public:
         void processPendingCommands();
-        MessageProcessor();
+        MessageProcessor() = default; // Keep the constructor for any additional initialization
 
-        // Add this method declaration
+        // Method declarations
         void handleMotorControl(const uint8_t* data);
         void handleSoundCommand(SoundType soundType);
         void handleSpeakerMute(SpeakerStatus status);
@@ -29,24 +29,25 @@ class MessageProcessor : public Singleton<MessageProcessor> {
         void handleNewLightColors(NewLightColors newLightColors);
         void handleObstacleAvoidanceCommand(ObstacleAvoidanceStatus status);
 
+        void processBinaryMessage(const uint8_t* data, size_t length);
     private:
         void updateMotorSpeeds(int16_t leftSpeed, int16_t rightSpeed);
         void executeCommand(int16_t leftSpeed, int16_t rightSpeed);
 
-        // Simple command tracking
-        bool isExecutingCommand;
-        int16_t currentLeftSpeed;
-        int16_t currentRightSpeed;
-        int64_t startLeftCount;
-        int64_t startRightCount;
+        // Member variables with in-class initialization
+        bool isExecutingCommand = false;
+        int16_t currentLeftSpeed = 0;
+        int16_t currentRightSpeed = 0;
+        int64_t startLeftCount = 0;
+        int64_t startRightCount = 0;
 
-        unsigned long commandStartTime;
+        unsigned long commandStartTime = 0;
         static constexpr unsigned long COMMAND_TIMEOUT_MS = 1000; // 1 second timeout
     
         // Next command (if any)
-        bool hasNextCommand;
-        int16_t nextLeftSpeed;
-        int16_t nextRightSpeed;
+        bool hasNextCommand = false;
+        int16_t nextLeftSpeed = 0;
+        int16_t nextRightSpeed = 0;
 
         // Constants
         static constexpr uint8_t MIN_ENCODER_PULSES = 10;

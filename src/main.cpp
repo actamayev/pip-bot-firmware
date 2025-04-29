@@ -8,6 +8,7 @@
 #include "./sensors/encoder_manager.h"
 #include "./networking/wifi_manager.h"
 #include "./actuators/display_screen.h"
+#include "./networking/serial_manager.h"
 #include "./networking/message_processor.h"
 #include "./networking/websocket_manager.h"
 #include "./actuators/led/led_animations.h"
@@ -71,6 +72,7 @@ void NetworkTask(void * parameter) {
             WebSocketManager::getInstance().pollWebSocket();
             SendDataToServer::getInstance().sendSensorDataToServer();
         }
+        SerialManager::getInstance().pollSerial();
 
         // Small delay to avoid overwhelming the websocket and allow IMU data to be processed
         delay(5);
