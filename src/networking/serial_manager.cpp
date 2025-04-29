@@ -51,8 +51,9 @@ void SerialManager::pollSerial() {
                     expectedLength = 41;
                     break;
                 case DataMessageType::STOP_SANDBOX_CODE:
-                case DataMessageType::HANDSHAKE:  // Add handshake
-                case DataMessageType::KEEPALIVE:  // Add keepalive
+                case DataMessageType::SERIAL_HANDSHAKE:  // Add handshake
+                case DataMessageType::SERIAL_KEEPALIVE:  // Add keepalive
+                case DataMessageType::SERIAL_END:  // Add keepalive
                     expectedLength = 1;  // These only need 1 byte (the message type)
                     break;
                 case DataMessageType::BYTECODE_PROGRAM:
@@ -93,7 +94,7 @@ void SerialManager::processCompleteMessage() {
     // Check if the message is a text message (handshake or keepalive)
     if (messageStarted && bufferPosition > 0) {
         // Check if this is a text message by checking first byte isn't a valid DataMessageType
-        if (receiveBuffer[0] >= static_cast<uint8_t>(DataMessageType::HANDSHAKE)) {
+        if (receiveBuffer[0] >= static_cast<uint8_t>(DataMessageType::SERIAL_HANDSHAKE)) {
             // Convert buffer to string for text-based commands
             String message = "";
             for (size_t i = 0; i < bufferPosition; i++) {

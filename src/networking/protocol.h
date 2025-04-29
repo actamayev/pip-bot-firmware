@@ -12,8 +12,9 @@ enum class DataMessageType : uint8_t {
     BYTECODE_PROGRAM = 8,
     STOP_SANDBOX_CODE = 9,
     OBSTACLE_AVOIDANCE = 10,
-    HANDSHAKE = 11,
-    KEEPALIVE = 12
+    SERIAL_HANDSHAKE = 11,
+    SERIAL_KEEPALIVE = 12,
+    SERIAL_END = 13,
 };
 
 // Sound types

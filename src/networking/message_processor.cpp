@@ -358,7 +358,7 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, size_t length) 
             }
             break;
         }
-        case DataMessageType::HANDSHAKE: {
+        case DataMessageType::SERIAL_HANDSHAKE: {
             Serial.println("Handshake received from browser!");
             SerialManager::getInstance().isConnected = true;
             SerialManager::getInstance().lastActivityTime = millis();
@@ -366,10 +366,12 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, size_t length) 
             rgbLed.set_led_blue();
             break;
         }
-        case DataMessageType::KEEPALIVE: {
-            rgbLed.set_led_green();
-            // Just update the last activity time
+        case DataMessageType::SERIAL_KEEPALIVE: {
             SerialManager::getInstance().lastActivityTime = millis();
+            break;
+        }
+        case DataMessageType::SERIAL_END: {
+            SerialManager::getInstance().isConnected = false;
             break;
         }
         default:
