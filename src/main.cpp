@@ -42,6 +42,7 @@ void SensorAndBytecodeTask(void * parameter) {
             delay(5);
             continue;
         }
+        SerialManager::getInstance().pollSerial();
         Buttons::getInstance().update();  // Update button states
         BytecodeVM::getInstance().update();
         // multizoneTofLogger();
@@ -72,7 +73,6 @@ void NetworkTask(void * parameter) {
             WebSocketManager::getInstance().pollWebSocket();
             SendDataToServer::getInstance().sendSensorDataToServer();
         }
-        SerialManager::getInstance().pollSerial();
 
         // Small delay to avoid overwhelming the websocket and allow IMU data to be processed
         delay(5);
