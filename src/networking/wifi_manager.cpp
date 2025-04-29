@@ -67,7 +67,10 @@ bool WiFiManager::attemptDirectConnectionToSavedNetworks() {
     
     // Try to connect to each saved network without scanning first
     for (const auto& network : savedNetworks) {
-        if(SerialManager::getInstance().isConnected) break;
+        if (NetworkStateManager::getInstance().shouldStopWiFiOperations()) {
+            Serial.println("Serial connection detected - aborting WiFi connection attempts");
+            return false;
+        }
         Serial.printf("Trying to connect to: %s\n", network.ssid.c_str());
         
         // Attempt connection
@@ -82,7 +85,11 @@ bool WiFiManager::attemptDirectConnectionToSavedNetworks() {
 
 bool WiFiManager::attemptNewWifiConnection(WiFiCredentials wifiCredentials) {
     // Set WiFi mode to Station (client mode)
-    if(SerialManager::getInstance().isConnected) return;
+    if (NetworkStateManager::getInstance().shouldStopWiFiOperations()) {
+        Serial.println("Serial connection detected - aborting WiFi connection attempt");
+        return false;
+    }
+
     _isConnecting = true;
     WiFi.mode(WIFI_STA);
 
@@ -98,7 +105,7 @@ bool WiFiManager::attemptNewWifiConnection(WiFiCredentials wifiCredentials) {
 
     unsigned long startAttemptTime = millis();
     unsigned long lastPrintTime = startAttemptTime;
-    const unsigned long printInterval = 100;  // Print dots every 100ms
+    unsigned long lastCheckTime = startAttemptTime;
 
     while (WiFi.status() != WL_CONNECTED && (millis() - startAttemptTime < CONNECT_TO_SINGLE_NETWORK_TIMEOUT)) {
         // Non-blocking print of dots
@@ -107,6 +114,18 @@ bool WiFiManager::attemptNewWifiConnection(WiFiCredentials wifiCredentials) {
             Serial.print(".");
             lastPrintTime = currentTime;
             yield();  // Allow the ESP32 to handle background tasks
+        }
+        if (currentTime - lastCheckTime >= checkInterval) {
+            lastCheckTime = currentTime;
+            
+            // Poll serial to update connection status
+            SerialManager::getInstance().pollSerial();
+            
+            if (NetworkStateManager::getInstance().shouldStopWiFiOperations()) {
+                Serial.println("\nSerial connection detected - aborting WiFi connection");
+                _isConnecting = false;
+                return false;
+            }
         }
     }
 

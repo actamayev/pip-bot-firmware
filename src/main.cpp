@@ -14,6 +14,7 @@
 #include "./actuators/led/led_animations.h"
 #include "./networking/send_data_to_server.h"
 #include "./custom_interpreter/bytecode_vm.h"
+#include "./networking/network_state_mangager.h"
 #include "./networking/firmware_version_tracker.h"
 #include "./wifi_selection/wifi_selection_manager.h"
 #include "./wifi_selection/haptic_feedback_manager.h"
@@ -64,16 +65,26 @@ void NetworkTask(void * parameter) {
 
     // Main network loop
     for(;;) {
-        if (!SerialManager::getInstance().isConnected) {
-            if (WiFi.status() != WL_CONNECTED) {
-                WiFiManager::getInstance().checkAndReconnectWiFi();
-                // HapticFeedbackManager::getInstance().update();
-                // WifiSelectionManager::getInstance().processNetworkSelection();
-            } else {
-                // Other network operations can use internal timing
+        NetworkMode mode = NetworkStateManager::getInstance().getCurrentMode();
+
+        switch (mode) {
+            case NetworkMode::SERIAL_MODE:
+                // When in serial mode, we don't do any WiFi operations
+                // Could add specific serial mode indicators here
+                break;
+
+            case NetworkMode::WIFI_MODE:
+                // WiFi connected mode - poll websocket and send data
                 WebSocketManager::getInstance().pollWebSocket();
                 SendDataToServer::getInstance().sendSensorDataToServer();
-            }
+                break;
+
+            case NetworkMode::NONE:
+                // No connectivity - try to establish WiFi
+                WiFiManager::getInstance().checkAndReconnectWiFi();
+                HapticFeedbackManager::getInstance().update();
+                WifiSelectionManager::getInstance().processNetworkSelection();
+                break;
         }
 
         // Small delay to avoid overwhelming the websocket and allow IMU data to be processed

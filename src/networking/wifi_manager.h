@@ -10,6 +10,7 @@
 #include "./websocket_manager.h"
 #include "../actuators/led/rgb_led.h"
 #include "../sensors/encoder_manager.h"
+#include "./network_state_mangager.h"
 #include "../wifi_selection/wifi_selection_manager.h"
 
 class WiFiManager : public Singleton<WiFiManager> {
@@ -44,6 +45,9 @@ class WiFiManager : public Singleton<WiFiManager> {
         static constexpr unsigned long WIFI_RECONNECT_TIMEOUT = 3000; // 3 second timeout
 
 		const unsigned long CONNECT_TO_SINGLE_NETWORK_TIMEOUT = 5000;  // 5-second timeout
+
+		const unsigned long printInterval = 100;  // Print dots every 100ms
+		const unsigned long checkInterval = 500;  // Check serial every 500ms
 };
 
 extern Preferences preferences;
