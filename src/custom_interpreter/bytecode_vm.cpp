@@ -657,14 +657,22 @@ void BytecodeVM::stopProgram() {
         program = nullptr;
     }
     pc = 0;
+    delayUntil = 0;
     waitingForDelay = false;
     lastComparisonResult = false;
+
     turningInProgress = false;
+    targetTurnDegrees = 0;
+    initialTurnYaw = 0;
+    turnClockwise = true;
+    turnStartTime = 0;
+
     timedMotorMovementInProgress = false;
     distanceMovementInProgress = false;
     motorMovementEndTime = 0;
     targetDistanceCm = 0.0f;
 
+    speaker.mute();
     rgbLed.turn_led_off();
     motorDriver.brake_if_moving();
     return;
