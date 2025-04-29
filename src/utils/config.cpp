@@ -5,7 +5,7 @@
 const uint8_t ESP_LED_PIN1 = 38;
 const uint8_t NUM_LEDS1 = 2;
 const uint8_t ESP_LED_PIN2 = 4;
-const uint8_t NUM_LEDS2 = 4;
+const uint8_t NUM_LEDS2 = 6;
 const uint8_t MAX_LED_BRIGHTNESS = 150;
 
 //I2C
@@ -101,7 +101,7 @@ const char* getEnvironment() {
 const char* getServerFirmwareEndpoint() {
     const char* env = getEnvironment();
     if (env == nullptr || std::string(env) == "local") {
-        return "http://10.50.206.40:8080/pip/firmware-update";  // local can remain HTTP
+        return "http://10.92.241.40:8080/pip/firmware-update";  // local can remain HTTP
     } else if (std::string(env) == "staging") {
         return "https://staging-api.bluedotrobots.com/pip/firmware-update";
     }
@@ -111,7 +111,7 @@ const char* getServerFirmwareEndpoint() {
 const char* getWsServerUrl() {
     const char* env = getEnvironment();
     if (env == nullptr || std::string(env) == "local") {
-        return "ws://10.50.206.40:8080/esp32";  // local default
+        return "ws://10.92.241.40:8080/esp32";  // local default
     } else if (std::string(env) == "staging") {
         return "wss://staging-api.bluedotrobots.com/esp32";  // staging default
     }

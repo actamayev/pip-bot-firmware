@@ -90,7 +90,7 @@ bool Sensors::tryInitializeIMU() {
     return success;
 }
 
-VL53L5CX_ResultsData Sensors::getMultizoneTofData() {
+VL53L7CX_ResultsData Sensors::getMultizoneTofData() {
     return multizoneTofSensor.getTofData();
 }
 

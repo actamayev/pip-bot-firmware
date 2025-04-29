@@ -15,7 +15,7 @@ class BytecodeVM : public Singleton<BytecodeVM> {
 
         // Load bytecode program into the VM
         bool loadProgram(const uint8_t* byteCode, uint16_t size);
-        bool stopProgram();
+        void stopProgram();
 
         // Update VM - call this regularly from main loop
         void update();
@@ -51,4 +51,25 @@ class BytecodeVM : public Singleton<BytecodeVM> {
         
         // Helper method for comparisons
         bool compareValues(ComparisonOp op, float leftOperand, float rightValue);
+
+        bool turningInProgress = false;
+        float targetTurnDegrees = 0;
+        float initialTurnYaw = 0;
+        bool turnClockwise = true;
+        unsigned long turnStartTime = 0;
+        
+        // Helper method for turn operations
+        void updateTurning();
+
+        bool timedMotorMovementInProgress = false;
+        unsigned long motorMovementEndTime = 0;
+        
+        // Helper method for timed motor operations
+        void updateTimedMotorMovement();
+
+        bool distanceMovementInProgress = false;
+        float targetDistanceCm = 0.0f;
+        
+        // Helper method for distance-based motor operations
+        void updateDistanceMovement();
 };

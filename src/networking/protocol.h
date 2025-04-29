@@ -11,7 +11,10 @@ enum class DataMessageType : uint8_t {
     UPDATE_LED_COLORS = 7,
     BYTECODE_PROGRAM = 8,
     STOP_SANDBOX_CODE = 9,
-    OBSTACLE_AVOIDANCE = 10
+    OBSTACLE_AVOIDANCE = 10,
+    SERIAL_HANDSHAKE = 11,
+    SERIAL_KEEPALIVE = 12,
+    SERIAL_END = 13,
 };
 
 // Sound types
@@ -84,4 +87,3 @@ struct NewLightColors {
     uint8_t backRightGreen;
     uint8_t backRightBlue;
 };
-

@@ -80,6 +80,7 @@ void Buttons::setupDeepSleep() {
     button1.setLongClickTime(DEEP_SLEEP_TIMEOUT);
     button1.setLongClickDetectedHandler([this](Button2& btn) {
         Serial.println("Long press detected on Button 1! Release to enter confirmation stage...");
+        BytecodeVM::getInstance().stopProgram();
         rgbLed.captureCurrentState();
         rgbLed.set_led_yellow();
         this->longPressFlagForSleep = true;
@@ -104,6 +105,7 @@ void Buttons::setupDeepSleep() {
 void Buttons::enterDeepSleep() {
     // Configure Button 1 (GPIO 12) as wake-up source
     rgbLed.turn_led_off();
+    speaker.mute();
     esp_sleep_enable_ext0_wakeup((gpio_num_t)BUTTON_PIN_1, LOW); // LOW = button press (since using INPUT_PULLUP)
     
     Serial.println("Going to deep sleep now");

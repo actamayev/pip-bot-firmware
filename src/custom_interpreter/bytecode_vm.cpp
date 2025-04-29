@@ -12,6 +12,7 @@ bool BytecodeVM::loadProgram(const uint8_t* byteCode, uint16_t size) {
         delete[] program;
         program = nullptr;
     }
+    motorDriver.force_reset_motors();
 
     // Validate bytecode size (must be multiple of 20 now)
     if (size % INSTRUCTION_SIZE != 0 || size / INSTRUCTION_SIZE > MAX_PROGRAM_SIZE) {
@@ -56,6 +57,27 @@ void BytecodeVM::update() {
             return; // Still waiting
         }
         waitingForDelay = false;
+    }
+    
+    if (timedMotorMovementInProgress) {
+        updateTimedMotorMovement();
+        return; // Don't execute next instruction until movement is complete
+    }
+
+    // Handle turning operation if in progress
+    if (turningInProgress) {
+        updateTurning();
+        return; // Don't execute next instruction until turn is complete
+    }
+
+    if (timedMotorMovementInProgress) {
+        updateTimedMotorMovement();
+        return; // Don't execute next instruction until movement is complete
+    }
+
+    if (distanceMovementInProgress) {
+        updateDistanceMovement();
+        return; // Don't execute next instruction until movement is complete
     }
 
     // Execute current instruction
@@ -407,6 +429,170 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             break;
         }
 
+        case OP_MOTOR_FORWARD: {
+            // Convert percentage (0-100) to motor speed (0-255)
+            uint8_t throttlePercent = static_cast<uint8_t>(instr.operand1);
+            uint8_t motorSpeed = map(throttlePercent, 0, 100, 0, 255);
+            
+            // Set both motors to forward at calculated speed
+            motorDriver.set_motor_speeds(motorSpeed, motorSpeed);
+            motorDriver.update_motor_speeds(true); // Optional: enable ramping
+            break;
+        }
+        
+        case OP_MOTOR_BACKWARD: {
+            // Convert percentage (0-100) to motor speed (0-255)
+            uint8_t throttlePercent = static_cast<uint8_t>(instr.operand1);
+            uint8_t motorSpeed = map(throttlePercent, 0, 100, 0, 255);
+            
+            // Set both motors to backward (negative speed)
+            motorDriver.set_motor_speeds(-motorSpeed, -motorSpeed);
+            motorDriver.update_motor_speeds(true); // Optional: enable ramping
+            break;
+        }
+        
+        case OP_MOTOR_STOP: {
+            // Stop both motors
+            motorDriver.brake_both_motors();
+            break;
+        }
+        
+        case OP_MOTOR_TURN: {
+            bool clockwise = (instr.operand1 > 0);
+            float degrees = instr.operand2;
+            
+            // Initialize turning state
+            turningInProgress = true;
+            targetTurnDegrees = degrees;
+            initialTurnYaw = Sensors::getInstance().getYaw();
+            turnClockwise = clockwise;
+            turnStartTime = millis();
+
+            // Set motors for turning
+            if (clockwise) {
+                motorDriver.set_motor_speeds(100, -100); // Right turn
+            } else {
+                motorDriver.set_motor_speeds(-100, 100); // Left turn
+            }
+            
+            // The actual turn progress will be monitored in update()
+            break;
+        }
+
+        case OP_MOTOR_FORWARD_TIME: {
+            float seconds = instr.operand1;
+            uint8_t throttlePercent = static_cast<uint8_t>(instr.operand2);
+            
+            // Validate parameters
+            if (seconds <= 0.0f) {
+                Serial.println("Invalid time value for forward movement");
+                break;
+            }
+            
+            if (throttlePercent > 100) {
+                throttlePercent = 100;  // Clamp to valid range
+            }
+            
+            // Convert percentage to motor speed
+            uint8_t motorSpeed = map(throttlePercent, 0, 100, 0, 255);
+            
+            // Set motors to forward motion
+            motorDriver.set_motor_speeds(motorSpeed, motorSpeed);
+            motorDriver.update_motor_speeds(true);  // Enable ramping
+            
+            // Set up timed movement
+            timedMotorMovementInProgress = true;
+            motorMovementEndTime = millis() + static_cast<unsigned long>(seconds * 1000.0f);
+            
+            break;
+        }
+
+        case OP_MOTOR_BACKWARD_TIME: {
+            float seconds = instr.operand1;
+            uint8_t throttlePercent = static_cast<uint8_t>(instr.operand2);
+            
+            // Validate parameters
+            if (seconds <= 0.0f) {
+                Serial.println("Invalid time value for backward movement");
+                break;
+            }
+            
+            if (throttlePercent > 100) {
+                throttlePercent = 100;  // Clamp to valid range
+            }
+            
+            // Convert percentage to motor speed
+            uint8_t motorSpeed = map(throttlePercent, 0, 100, 0, 255);
+            
+            // Set motors to backward motion
+            motorDriver.set_motor_speeds(-motorSpeed, -motorSpeed);
+            motorDriver.update_motor_speeds(true);  // Enable ramping
+            
+            break;
+        }
+
+        case OP_MOTOR_FORWARD_DISTANCE: {
+            float distanceCm = instr.operand1;
+            uint8_t throttlePercent = static_cast<uint8_t>(instr.operand2);
+            
+            // Validate parameters
+            if (distanceCm <= 0.0f) {
+                Serial.println("Invalid distance value for forward movement");
+                break;
+            }
+            
+            if (throttlePercent > 100) {
+                throttlePercent = 100;  // Clamp to valid range
+            }
+            
+            // Convert percentage to motor speed
+            uint8_t motorSpeed = map(throttlePercent, 0, 100, 0, 255);
+            
+            // Reset distance tracking in encoder manager
+            encoderManager.resetDistanceTracking();
+            
+            // Set up distance movement
+            distanceMovementInProgress = true;
+            targetDistanceCm = distanceCm;
+            
+            // Set motors to forward motion
+            motorDriver.set_motor_speeds(motorSpeed, motorSpeed);
+            motorDriver.update_motor_speeds(true);  // Enable ramping
+            
+            break;
+        }
+
+        case OP_MOTOR_BACKWARD_DISTANCE: {
+            float distanceCm = instr.operand1;
+            uint8_t throttlePercent = static_cast<uint8_t>(instr.operand2);
+            
+            // Validate parameters
+            if (distanceCm <= 0.0f) {
+                Serial.println("Invalid distance value for backward movement");
+                break;
+            }
+            
+            if (throttlePercent > 100) {
+                throttlePercent = 100;  // Clamp to valid range
+            }
+            
+            // Convert percentage to motor speed
+            uint8_t motorSpeed = map(throttlePercent, 0, 100, 0, 255);
+            
+            // Reset distance tracking in encoder manager
+            encoderManager.resetDistanceTracking();
+            
+            // Set up distance movement
+            distanceMovementInProgress = true;
+            targetDistanceCm = distanceCm;
+            
+            // Set motors to backward motion
+            motorDriver.set_motor_speeds(-motorSpeed, -motorSpeed);
+            motorDriver.update_motor_speeds(true);  // Enable ramping
+            
+            break;
+        }
+
         default:
             // Unknown opcode, stop execution
             pc = programSize;
@@ -415,18 +601,79 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
     }
 }
 
-bool BytecodeVM::stopProgram() {
-    bool programStopped = false;
+void BytecodeVM::updateTurning() {
+    // Get current yaw
+    float currentYaw = Sensors::getInstance().getYaw();
+    
+    // Calculate rotation delta with wraparound handling
+    float rotationDelta;
+    
+    if (turnClockwise) {
+        rotationDelta = initialTurnYaw - currentYaw;
+        if (rotationDelta < 0) rotationDelta += 360;
+    } else {
+        rotationDelta = currentYaw - initialTurnYaw;
+        if (rotationDelta < 0) rotationDelta += 360;
+    }
+    
+    // Check for timeout (safety feature)
+    unsigned long elapsed = millis() - turnStartTime;
+    bool timeout = elapsed > 10000; // 10 second timeout
+    
+    // Check if turn is complete
+    if (rotationDelta >= targetTurnDegrees || timeout) {
+        // Turn complete - stop motors
+        motorDriver.brake_both_motors();
+        turningInProgress = false;
+    }
+}
+
+void BytecodeVM::updateTimedMotorMovement() {
+    // Check if the timed movement has completed
+    if (millis() < motorMovementEndTime) return;
+    // Movement complete - brake motors
+    motorDriver.brake_both_motors();
+
+    // Reset timed movement state
+    timedMotorMovementInProgress = false;
+}
+
+void BytecodeVM::updateDistanceMovement() {
+    // Get distance traveled from the encoder manager
+    float currentDistance = encoderManager.getDistanceTraveledCm();
+    
+    // Check if we've reached or exceeded the target distance
+    if (currentDistance < targetDistanceCm) return;
+    // Distance reached - brake motors
+    motorDriver.brake_both_motors();
+    
+    // Reset distance movement state
+    distanceMovementInProgress = false;
+}
+
+void BytecodeVM::stopProgram() {
     if (program) {
         delete[] program;
         program = nullptr;
-        programStopped = true;
     }
     pc = 0;
+    delayUntil = 0;
     waitingForDelay = false;
     lastComparisonResult = false;
 
+    turningInProgress = false;
+    targetTurnDegrees = 0;
+    initialTurnYaw = 0;
+    turnClockwise = true;
+    turnStartTime = 0;
+
+    timedMotorMovementInProgress = false;
+    distanceMovementInProgress = false;
+    motorMovementEndTime = 0;
+    targetDistanceCm = 0.0f;
+
+    speaker.mute();
     rgbLed.turn_led_off();
-    motorDriver.stop_both_motors();
-    return programStopped;
+    motorDriver.brake_if_moving();
+    return;
 }

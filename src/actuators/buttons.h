@@ -4,7 +4,9 @@
 #include <esp_sleep.h>  // Add this for deep sleep functionality
 #include "../utils/config.h"
 #include "../utils/singleton.h"
+#include "../actuators/speaker.h"
 #include "../actuators/led/rgb_led.h"
+#include "../custom_interpreter/bytecode_vm.h"
 
 class Buttons: public Singleton<Buttons> {
     friend class Singleton<Buttons>;

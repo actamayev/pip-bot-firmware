@@ -1,6 +1,5 @@
 #pragma once
 #include <Arduino.h>
-#include <SparkFun_VL53L5CX_Library.h>
 
 struct WiFiCredentials {
 	String ssid;
@@ -11,12 +10,6 @@ struct WiFiNetworkInfo {
     String ssid;
     int32_t rssi;
     uint8_t encryptionType;
-};
-
-struct TofData {
-    VL53L5CX_ResultsData data;
-    bool isValid = false;
-    unsigned long lastUpdateTime = 0;
 };
 
 struct EnabledReports {
