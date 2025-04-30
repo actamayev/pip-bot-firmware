@@ -6,7 +6,7 @@ void Sensors::initialize() {
     // initializeMultizoneTof();
     initializeIMU();
     // initializeColorSensor();
-    // initializeSideTimeOfFlights();
+    initializeSideTimeOfFlights();
     
     // Only set sensors_initialized if IMU is initialized
     sensors_initialized = isImuInitialized();
@@ -166,12 +166,20 @@ ColorSensorData Sensors::getColorSensorData() {
     return colorSensor.getSensorData();
 }
 
-SideTofDistances Sensors::getBothSideTofDistances() {
-    uint16_t leftDistance = leftSideTofSensor.getDistance();
-    uint16_t rightDistance = rightSideTofSensor.getDistance();
+uint16_t Sensors::getLeftSideTofCounts() {
+    return leftSideTofSensor.getCounts();
+}
+
+uint16_t Sensors::getRightSideTofCounts() {
+    return rightSideTofSensor.getCounts();
+}
+
+SideTofCounts Sensors::getBothSideTofCounts() {
+    uint16_t leftCounts = leftSideTofSensor.getCounts();
+    uint16_t rightCounts = rightSideTofSensor.getCounts();
 
     return {
-        leftDistance,
-        rightDistance
+        leftCounts,
+        rightCounts
     };
 }

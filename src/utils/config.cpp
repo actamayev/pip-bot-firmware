@@ -14,8 +14,8 @@ const uint8_t I2C_SCL = 8;
 const uint32_t I2C_CLOCK_SPEED = 400 * 1000; // 400 kHz
 
 // Side TOFs:
-const uint8_t LEFT_TOF_ADDRESS = 0x60;
-const uint8_t RIGHT_TOF_ADDRESS = 0x51;
+const uint8_t LEFT_TOF_ADDRESS = 0x51;
+const uint8_t RIGHT_TOF_ADDRESS = 0x60;
 
 // Multizone TOF
 const uint8_t MULTIZONE_TOF_ADDRESS = 0x29; // Default address

@@ -241,13 +241,31 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
                     case SENSOR_MAG_FIELD_Z:
                         value = Sensors::getInstance().getMagneticFieldZ();
                         break;
+                    case SENSOR_SIDE_LEFT_PROXIMITY: {
+                        uint16_t counts = Sensors::getInstance().getLeftSideTofCounts();
+                        Serial.printf("left counts %u\n", counts);
+                        // Store boolean result directly in register
+                        registers[regId].asBool = (counts < LEFT_PROXIMITY_THRESHOLD);
+                        registerTypes[regId] = VAR_BOOL;
+                        registerInitialized[regId] = true;
+                        break;
+                    }
+                    case SENSOR_SIDE_RIGHT_PROXIMITY: {
+                        uint16_t counts = Sensors::getInstance().getRightSideTofCounts();
+                        Serial.printf("right counts %u\n", counts);
+                        // Store boolean result directly in register
+                        registers[regId].asBool = (counts < RIGHT_PROXIMITY_THRESHOLD);
+                        registerTypes[regId] = VAR_BOOL;
+                        registerInitialized[regId] = true;
+                        break;
+                    }
                     default:
                         // Unknown sensor type
                         Serial.print("Unknown sensor type: ");
                         Serial.println(sensorType);
                         break;
                 }
-                
+
                 // Store the sensor value in the register
                 registers[regId].asFloat = value;
                 registerTypes[regId] = VAR_FLOAT;

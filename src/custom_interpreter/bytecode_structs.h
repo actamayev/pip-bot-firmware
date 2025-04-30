@@ -66,7 +66,9 @@ enum BytecodeSensorType : uint8_t {
     SENSOR_ROT_RATE_Z = 9,
     SENSOR_MAG_FIELD_X = 10,
     SENSOR_MAG_FIELD_Y = 11,
-    SENSOR_MAG_FIELD_Z = 12
+    SENSOR_MAG_FIELD_Z = 12,
+    SENSOR_SIDE_LEFT_PROXIMITY = 13,
+    SENSOR_SIDE_RIGHT_PROXIMITY = 14
 };
 
 enum BytecodeVarType : uint8_t {
