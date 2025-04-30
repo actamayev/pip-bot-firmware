@@ -3,7 +3,7 @@
 
 void Sensors::initialize() {
     // Initialize sensors
-    // initializeMultizoneTof();
+    initializeMultizoneTof();
     initializeIMU();
     // initializeColorSensor();
     initializeSideTimeOfFlights();
@@ -182,4 +182,8 @@ SideTofCounts Sensors::getBothSideTofCounts() {
         leftCounts,
         rightCounts
     };
+}
+
+float Sensors::getAverageDistanceCenterline() {
+    return multizoneTofSensor.getAverageDistanceCenterline();
 }

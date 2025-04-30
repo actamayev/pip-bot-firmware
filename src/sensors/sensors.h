@@ -47,6 +47,10 @@ class Sensors : public Singleton<Sensors> {
         bool sensors_initialized = false;
 
         bool tryInitializeIMU();
+
+        // Multizone Tof Sensor:
+        float getAverageDistanceCenterline();
+
     private:
         ImuSensor imu;
         MultizoneTofSensor multizoneTofSensor;

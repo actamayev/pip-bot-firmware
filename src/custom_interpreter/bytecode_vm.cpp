@@ -243,7 +243,6 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
                         break;
                     case SENSOR_SIDE_LEFT_PROXIMITY: {
                         uint16_t counts = Sensors::getInstance().getLeftSideTofCounts();
-                        Serial.printf("left counts %u\n", counts);
                         registers[regId].asBool = (counts > LEFT_PROXIMITY_THRESHOLD);
                         registerTypes[regId] = VAR_BOOL;
                         registerInitialized[regId] = true;
@@ -252,11 +251,18 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
                     }
                     case SENSOR_SIDE_RIGHT_PROXIMITY: {
                         uint16_t counts = Sensors::getInstance().getRightSideTofCounts();
-                        Serial.printf("right counts %u\n", counts);
                         registers[regId].asBool = (counts > RIGHT_PROXIMITY_THRESHOLD);
                         registerTypes[regId] = VAR_BOOL;
                         registerInitialized[regId] = true;
                         skipDefaultAssignment = true;  // Set flag to skip default assignment
+                        break;
+                    }
+                    case SENSOR_FRONT_PROXIMITY: {
+                        float average_distance = Sensors::getInstance().getAverageDistanceCenterline();  // You'll need to implement this
+                        registers[regId].asBool = (average_distance < FRONT_PROXIMITY_THRESHOLD);
+                        registerTypes[regId] = VAR_BOOL;
+                        registerInitialized[regId] = true;
+                        skipDefaultAssignment = true;  // Set flag
                         break;
                     }
                     default:

@@ -68,7 +68,8 @@ enum BytecodeSensorType : uint8_t {
     SENSOR_MAG_FIELD_Y = 11,
     SENSOR_MAG_FIELD_Z = 12,
     SENSOR_SIDE_LEFT_PROXIMITY = 13,
-    SENSOR_SIDE_RIGHT_PROXIMITY = 14
+    SENSOR_SIDE_RIGHT_PROXIMITY = 14,
+    SENSOR_FRONT_PROXIMITY = 15
 };
 
 enum BytecodeVarType : uint8_t {

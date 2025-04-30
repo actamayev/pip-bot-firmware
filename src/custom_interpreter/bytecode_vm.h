@@ -75,4 +75,5 @@ class BytecodeVM : public Singleton<BytecodeVM> {
 
         static const uint16_t LEFT_PROXIMITY_THRESHOLD = 1000;
         static const uint16_t RIGHT_PROXIMITY_THRESHOLD = 1000;
+        static constexpr float FRONT_PROXIMITY_THRESHOLD = 100.0f;  // Add this new threshold
 };
