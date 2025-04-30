@@ -70,11 +70,6 @@ void BytecodeVM::update() {
         return; // Don't execute next instruction until turn is complete
     }
 
-    if (timedMotorMovementInProgress) {
-        updateTimedMotorMovement();
-        return; // Don't execute next instruction until movement is complete
-    }
-
     if (distanceMovementInProgress) {
         updateDistanceMovement();
         return; // Don't execute next instruction until movement is complete
@@ -133,7 +128,11 @@ bool BytecodeVM::compareValues(ComparisonOp op, float leftOperand, float rightOp
     
     // Perform comparison with retrieved values
     switch (op) {
-        case OP_EQUAL: return leftValue == rightValue;
+        case OP_EQUAL: {
+            Serial.printf("leftValue %f", leftValue);
+            Serial.printf("rightValue %f", rightValue);
+            return leftValue == rightValue;
+        }
         case OP_NOT_EQUAL: return leftValue != rightValue;
         case OP_GREATER_THAN: return leftValue > rightValue;
         case OP_LESS_THAN: return leftValue < rightValue;
@@ -199,6 +198,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             
             if (regId < MAX_REGISTERS) {
                 float value = 0.0f;
+                bool skipDefaultAssignment = false;  // Add this flag
                 
                 // Read the appropriate sensor
                 switch (sensorType) {
@@ -244,19 +244,19 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
                     case SENSOR_SIDE_LEFT_PROXIMITY: {
                         uint16_t counts = Sensors::getInstance().getLeftSideTofCounts();
                         Serial.printf("left counts %u\n", counts);
-                        // Store boolean result directly in register
-                        registers[regId].asBool = (counts < LEFT_PROXIMITY_THRESHOLD);
+                        registers[regId].asBool = (counts > LEFT_PROXIMITY_THRESHOLD);
                         registerTypes[regId] = VAR_BOOL;
                         registerInitialized[regId] = true;
+                        skipDefaultAssignment = true;  // Set flag to skip default assignment
                         break;
                     }
                     case SENSOR_SIDE_RIGHT_PROXIMITY: {
                         uint16_t counts = Sensors::getInstance().getRightSideTofCounts();
                         Serial.printf("right counts %u\n", counts);
-                        // Store boolean result directly in register
-                        registers[regId].asBool = (counts < RIGHT_PROXIMITY_THRESHOLD);
+                        registers[regId].asBool = (counts > RIGHT_PROXIMITY_THRESHOLD);
                         registerTypes[regId] = VAR_BOOL;
                         registerInitialized[regId] = true;
+                        skipDefaultAssignment = true;  // Set flag to skip default assignment
                         break;
                     }
                     default:
@@ -266,10 +266,11 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
                         break;
                 }
 
-                // Store the sensor value in the register
-                registers[regId].asFloat = value;
-                registerTypes[regId] = VAR_FLOAT;
-                registerInitialized[regId] = true;
+                if (!skipDefaultAssignment) {
+                    registers[regId].asFloat = value;
+                    registerTypes[regId] = VAR_FLOAT;
+                    registerInitialized[regId] = true;
+                }
             }
             break;
         }
