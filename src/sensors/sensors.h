@@ -39,11 +39,18 @@ class Sensors : public Singleton<Sensors> {
         ColorSensorData getColorSensorData();
 
         // Side TOFs:
-        SideTofDistances getBothSideTofDistances();
+        SideTofCounts getBothSideTofCounts();
+
+        uint16_t getLeftSideTofCounts();
+        uint16_t getRightSideTofCounts();
 
         bool sensors_initialized = false;
 
         bool tryInitializeIMU();
+
+        // Multizone Tof Sensor:
+        float getAverageDistanceCenterline();
+
     private:
         ImuSensor imu;
         MultizoneTofSensor multizoneTofSensor;

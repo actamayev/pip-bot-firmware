@@ -3,6 +3,7 @@
 #include "./bytecode_structs.h"
 #include "../utils/singleton.h"
 #include "../sensors/sensors.h"
+#include "../actuators/buttons.h"
 #include "../actuators/led/rgb_led.h"
 #include "../actuators/motor_driver.h"
 
@@ -72,4 +73,12 @@ class BytecodeVM : public Singleton<BytecodeVM> {
         
         // Helper method for distance-based motor operations
         void updateDistanceMovement();
+
+        static const uint16_t LEFT_PROXIMITY_THRESHOLD = 1000;
+        static const uint16_t RIGHT_PROXIMITY_THRESHOLD = 1000;
+        static constexpr float FRONT_PROXIMITY_THRESHOLD = 100.0f;  // Add this new threshold
+
+        bool waitingForButtonPress = false;
+        bool waitingForButtonRelease = false;
+        void resetStateVariables();
 };

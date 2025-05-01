@@ -15,6 +15,7 @@ enum class DataMessageType : uint8_t {
     SERIAL_HANDSHAKE = 11,
     SERIAL_KEEPALIVE = 12,
     SERIAL_END = 13,
+    UPDATE_HEADLIGHTS = 14,
 };
 
 // Sound types
@@ -28,6 +29,11 @@ enum class SoundType : uint8_t {
 enum class SpeakerStatus : uint8_t {
     UNMUTED = 0,
     MUTED = 1
+};
+
+enum class HeadlightStatus {
+    OFF = 0,
+    ON = 1
 };
 
 enum class BalanceStatus : uint8_t {
@@ -86,4 +92,12 @@ struct NewLightColors {
     uint8_t backRightRed;
     uint8_t backRightGreen;
     uint8_t backRightBlue;
+
+    uint8_t rightHeadlightRed;
+    uint8_t rightHeadlightGreen;
+    uint8_t rightHeadlightBlue;
+
+    uint8_t leftHeadlightRed;
+    uint8_t leftHeadlightGreen;
+    uint8_t leftHeadlightBlue;
 };

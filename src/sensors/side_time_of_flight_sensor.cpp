@@ -27,14 +27,14 @@ void SideTimeOfFlightSensor::update() {
     
     // Only update if enough time has passed
     if (elapsedTime >= DELAY_BETWEEN_READINGS) {
-        _tofDistance = Read_Proximity_Data();
+        _tofCounts = Read_Proximity_Data();
         _lastUpdateTime = currentTime;
     }
 }
 
-uint16_t SideTimeOfFlightSensor::getDistance() {
+uint16_t SideTimeOfFlightSensor::getCounts() {
     update();
-    return _tofDistance;
+    return _tofCounts;
 }
 
 void SideTimeOfFlightSensor::Basic_Initialization_Auto_Mode() {

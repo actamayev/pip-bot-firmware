@@ -39,15 +39,32 @@ bool BytecodeVM::loadProgram(const uint8_t* byteCode, uint16_t size) {
     }
 
     // Reset VM state
-    pc = 0;
-    waitingForDelay = false;
-    lastComparisonResult = false;
+    resetStateVariables();
     
     return true;
 }
 
 void BytecodeVM::update() {
     if (!program || pc >= programSize) {
+        return;
+    }
+
+    if (waitingForButtonRelease) {
+        // Wait for any currently pressed buttons to be released
+        if (!Buttons::getInstance().isAnyButtonPressed()) {
+            waitingForButtonRelease = false;
+            waitingForButtonPress = true;
+        }
+        return;
+    }
+
+    if (waitingForButtonPress) {
+        // Check if a button is pressed
+        if (Buttons::getInstance().isAnyButtonPressed()) {
+            // Button pressed, continue execution
+            waitingForButtonPress = false;
+            pc++; // Move to next instruction
+        }
         return;
     }
 
@@ -70,11 +87,6 @@ void BytecodeVM::update() {
         return; // Don't execute next instruction until turn is complete
     }
 
-    if (timedMotorMovementInProgress) {
-        updateTimedMotorMovement();
-        return; // Don't execute next instruction until movement is complete
-    }
-
     if (distanceMovementInProgress) {
         updateDistanceMovement();
         return; // Don't execute next instruction until movement is complete
@@ -82,7 +94,9 @@ void BytecodeVM::update() {
 
     // Execute current instruction
     executeInstruction(program[pc]);
-    pc++; // Move to next instruction
+    if (!waitingForButtonPress && !waitingForButtonRelease) {
+        pc++; // Move to next instruction
+    }
 }
 
 bool BytecodeVM::compareValues(ComparisonOp op, float leftOperand, float rightOperand) {
@@ -189,6 +203,12 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
                 case LED_BACK_RIGHT:
                     rgbLed.set_back_right_led(r, g, b);
                     break;
+                case LEFT_HEADLIGHT:
+                    rgbLed.set_left_headlight(r, g, b);
+                    break;
+                case RIGHT_HEADLIGHT:
+                    rgbLed.set_right_headlight(r, g, b);
+                    break;
             }
             break;
         }
@@ -199,6 +219,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             
             if (regId < MAX_REGISTERS) {
                 float value = 0.0f;
+                bool skipDefaultAssignment = false;  // Add this flag
                 
                 // Read the appropriate sensor
                 switch (sensorType) {
@@ -241,17 +262,42 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
                     case SENSOR_MAG_FIELD_Z:
                         value = Sensors::getInstance().getMagneticFieldZ();
                         break;
+                    case SENSOR_SIDE_LEFT_PROXIMITY: {
+                        uint16_t counts = Sensors::getInstance().getLeftSideTofCounts();
+                        registers[regId].asBool = (counts > LEFT_PROXIMITY_THRESHOLD);
+                        registerTypes[regId] = VAR_BOOL;
+                        registerInitialized[regId] = true;
+                        skipDefaultAssignment = true;  // Set flag to skip default assignment
+                        break;
+                    }
+                    case SENSOR_SIDE_RIGHT_PROXIMITY: {
+                        uint16_t counts = Sensors::getInstance().getRightSideTofCounts();
+                        registers[regId].asBool = (counts > RIGHT_PROXIMITY_THRESHOLD);
+                        registerTypes[regId] = VAR_BOOL;
+                        registerInitialized[regId] = true;
+                        skipDefaultAssignment = true;  // Set flag to skip default assignment
+                        break;
+                    }
+                    case SENSOR_FRONT_PROXIMITY: {
+                        float average_distance = Sensors::getInstance().getAverageDistanceCenterline();  // You'll need to implement this
+                        registers[regId].asBool = (average_distance < FRONT_PROXIMITY_THRESHOLD);
+                        registerTypes[regId] = VAR_BOOL;
+                        registerInitialized[regId] = true;
+                        skipDefaultAssignment = true;  // Set flag
+                        break;
+                    }
                     default:
                         // Unknown sensor type
                         Serial.print("Unknown sensor type: ");
                         Serial.println(sensorType);
                         break;
                 }
-                
-                // Store the sensor value in the register
-                registers[regId].asFloat = value;
-                registerTypes[regId] = VAR_FLOAT;
-                registerInitialized[regId] = true;
+
+                if (!skipDefaultAssignment) {
+                    registers[regId].asFloat = value;
+                    registerTypes[regId] = VAR_FLOAT;
+                    registerInitialized[regId] = true;
+                }
             }
             break;
         }
@@ -593,6 +639,15 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             break;
         }
 
+        case OP_WAIT_FOR_BUTTON: {
+            // Enter button waiting state
+            waitingForButtonRelease = Buttons::getInstance().isAnyButtonPressed();
+            waitingForButtonPress = !waitingForButtonRelease;
+
+            // Don't increment PC here - we'll do it when the button is pressed
+            return; // Return without incrementing PC
+        }
+
         default:
             // Unknown opcode, stop execution
             pc = programSize;
@@ -656,24 +711,30 @@ void BytecodeVM::stopProgram() {
         delete[] program;
         program = nullptr;
     }
-    pc = 0;
-    delayUntil = 0;
-    waitingForDelay = false;
-    lastComparisonResult = false;
-
-    turningInProgress = false;
-    targetTurnDegrees = 0;
-    initialTurnYaw = 0;
-    turnClockwise = true;
-    turnStartTime = 0;
-
-    timedMotorMovementInProgress = false;
-    distanceMovementInProgress = false;
-    motorMovementEndTime = 0;
-    targetDistanceCm = 0.0f;
+    resetStateVariables();
 
     speaker.mute();
     rgbLed.turn_led_off();
     motorDriver.brake_if_moving();
     return;
+}
+
+void BytecodeVM::resetStateVariables() {
+    pc = 0;
+    delayUntil = 0;
+    waitingForDelay = false;
+    lastComparisonResult = false;
+    
+    turningInProgress = false;
+    targetTurnDegrees = 0;
+    initialTurnYaw = 0;
+    turnClockwise = true;
+    turnStartTime = 0;
+    
+    timedMotorMovementInProgress = false;
+    distanceMovementInProgress = false;
+    motorMovementEndTime = 0;
+    targetDistanceCm = 0.0f;
+    waitingForButtonPress = false;
+    waitingForButtonRelease = false;
 }

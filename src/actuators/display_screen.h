@@ -16,7 +16,7 @@ class DisplayScreen: public Singleton<DisplayScreen> {
         // Main update method to call in the task loop
         void update();
 
-        void showDistanceSensors(SideTofDistances sideTofDistances);
+        void showDistanceSensors(SideTofCounts sideTofCounts);
 
     private:
         // Private constructor for singleton

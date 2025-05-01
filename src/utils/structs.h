@@ -77,9 +77,9 @@ struct ColorSensorData {
     uint8_t blueValue;
 };
 
-struct SideTofDistances {
-    uint16_t leftDistance;
-    uint16_t rightDistance;
+struct SideTofCounts {
+    uint16_t leftCounts;
+    uint16_t rightCounts;
 };
 
 namespace LedTypes {
@@ -92,7 +92,7 @@ namespace LedTypes {
 }
 
 struct LedState {
-    uint8_t colors[6][3];  // Colors for all 6 LEDs
+    uint8_t colors[8][3];  // Colors for all 8 LEDs
     LedTypes::AnimationType animation;
     int animationSpeed;
     bool wasAnimationActive;
