@@ -207,6 +207,12 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
                 case LED_BACK_RIGHT:
                     rgbLed.set_back_right_led(r, g, b);
                     break;
+                case LEFT_HEADLIGHT:
+                    rgbLed.set_left_headlight(r, g, b);
+                    break;
+                case RIGHT_HEADLIGHT:
+                    rgbLed.set_right_headlight(r, g, b);
+                    break;
             }
             break;
         }

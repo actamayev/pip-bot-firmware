@@ -87,7 +87,9 @@ enum BytecodeLedID : uint8_t {
     LED_MIDDLE_LEFT = 3,
     LED_MIDDLE_RIGHT = 4,
     LED_BACK_LEFT = 5,
-    LED_BACK_RIGHT = 6
+    LED_BACK_RIGHT = 6,
+    LEFT_HEADLIGHT = 7,
+    RIGHT_HEADLIGHT = 8,
 };
 
 // A single bytecode instruction (10 bytes)

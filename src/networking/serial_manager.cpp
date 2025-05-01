@@ -45,7 +45,7 @@ void SerialManager::pollSerial() {
                     expectedLength = 2;
                     break;
                 case DataMessageType::UPDATE_LED_COLORS:
-                    expectedLength = 19;
+                    expectedLength = 25;
                     break;
                 case DataMessageType::UPDATE_BALANCE_PIDS:
                     expectedLength = 41;
@@ -59,8 +59,11 @@ void SerialManager::pollSerial() {
                 case DataMessageType::BYTECODE_PROGRAM:
                     // Variable length - process when no more data available
                     break;
+                case DataMessageType::UPDATE_HEADLIGHTS:
+                    expectedLength = 2;
+                    break;
                 default:
-                    Serial.printf("Unknown message type: %d\n", static_cast<int>(messageType));
+                    Serial.printf("Unknown message type in serial manager: %d\n", static_cast<int>(messageType));
                     bufferPosition = 0;
                     messageStarted = false;
                     break;

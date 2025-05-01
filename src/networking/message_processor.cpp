@@ -225,6 +225,14 @@ void MessageProcessor::handleNewLightColors(NewLightColors newLightColors) {
     uint8_t backRightR = (uint8_t)newLightColors.backRightRed;
     uint8_t backRightG = (uint8_t)newLightColors.backRightGreen;
     uint8_t backRightB = (uint8_t)newLightColors.backRightBlue;
+
+    uint8_t rightHeadlightRed = (uint8_t)newLightColors.rightHeadlightRed;
+    uint8_t rightHeadlightGreen = (uint8_t)newLightColors.rightHeadlightGreen;
+    uint8_t rightHeadlightBlue = (uint8_t)newLightColors.rightHeadlightBlue;
+
+    uint8_t leftHeadlightRed = (uint8_t)newLightColors.leftHeadlightRed;
+    uint8_t leftHeadlightGreen = (uint8_t)newLightColors.leftHeadlightGreen;
+    uint8_t leftHeadlightBlue = (uint8_t)newLightColors.leftHeadlightBlue;
     
     // Set each LED to its corresponding color
     rgbLed.set_top_left_led(topLeftR, topLeftG, topLeftB);
@@ -233,6 +241,8 @@ void MessageProcessor::handleNewLightColors(NewLightColors newLightColors) {
     rgbLed.set_middle_right_led(middleRightR, middleRightG, middleRightB);
     rgbLed.set_back_left_led(backLeftR, backLeftG, backLeftB);
     rgbLed.set_back_right_led(backRightR, backRightG, backRightB);
+    rgbLed.set_left_headlight(leftHeadlightRed, leftHeadlightGreen, leftHeadlightBlue);
+    rgbLed.set_right_headlight(rightHeadlightRed, rightHeadlightGreen, rightHeadlightBlue);
 }
 
 void MessageProcessor::processBinaryMessage(const uint8_t* data, size_t length) {
@@ -304,8 +314,8 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, size_t length) 
             break;
         }
         case DataMessageType::UPDATE_LED_COLORS: {
-            if (length != 19) {
-                Serial.println("Invalid update led colors message length");
+            if (length != 25) {
+                Serial.printf("Invalid update led colors message length%d", length);
             } else {
                 NewLightColors newLightColors;
                 memcpy(&newLightColors, &data[1], sizeof(NewLightColors));
@@ -372,6 +382,19 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, size_t length) 
         }
         case DataMessageType::SERIAL_END: {
             SerialManager::getInstance().isConnected = false;
+            break;
+        }
+        case DataMessageType::UPDATE_HEADLIGHTS: {
+            if (length != 2) {
+                Serial.println("Invalid update headlights message length");
+            } else {
+                HeadlightStatus status = static_cast<HeadlightStatus>(data[1]);
+                if (status == HeadlightStatus::ON) {
+                    rgbLed.set_headlights_on();
+                } else {
+                    rgbLed.reset_headlights_to_default();
+                }
+            }
             break;
         }
         default:
