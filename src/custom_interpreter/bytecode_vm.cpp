@@ -39,9 +39,7 @@ bool BytecodeVM::loadProgram(const uint8_t* byteCode, uint16_t size) {
     }
 
     // Reset VM state
-    pc = 0;
-    waitingForDelay = false;
-    lastComparisonResult = false;
+    resetStateVariables();
     
     return true;
 }
@@ -711,26 +709,30 @@ void BytecodeVM::stopProgram() {
         delete[] program;
         program = nullptr;
     }
+    resetStateVariables();
+
+    speaker.mute();
+    rgbLed.turn_led_off();
+    motorDriver.brake_if_moving();
+    return;
+}
+
+void BytecodeVM::resetStateVariables() {
     pc = 0;
     delayUntil = 0;
     waitingForDelay = false;
     lastComparisonResult = false;
-
+    
     turningInProgress = false;
     targetTurnDegrees = 0;
     initialTurnYaw = 0;
     turnClockwise = true;
     turnStartTime = 0;
-
+    
     timedMotorMovementInProgress = false;
     distanceMovementInProgress = false;
     motorMovementEndTime = 0;
     targetDistanceCm = 0.0f;
     waitingForButtonPress = false;
     waitingForButtonRelease = false;
-
-    speaker.mute();
-    rgbLed.turn_led_off();
-    motorDriver.brake_if_moving();
-    return;
 }
