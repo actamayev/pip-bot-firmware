@@ -51,6 +51,25 @@ void BytecodeVM::update() {
         return;
     }
 
+    if (waitingForButtonRelease) {
+        // Wait for any currently pressed buttons to be released
+        if (!Buttons::getInstance().isAnyButtonPressed()) {
+            waitingForButtonRelease = false;
+            waitingForButtonPress = true;
+        }
+        return;
+    }
+
+    if (waitingForButtonPress) {
+        // Check if a button is pressed
+        if (Buttons::getInstance().isAnyButtonPressed()) {
+            // Button pressed, continue execution
+            waitingForButtonPress = false;
+            pc++; // Move to next instruction
+        }
+        return;
+    }
+
     // Check if we're waiting for a delay to complete
     if (waitingForDelay) {
         if (millis() < delayUntil) {
@@ -77,7 +96,9 @@ void BytecodeVM::update() {
 
     // Execute current instruction
     executeInstruction(program[pc]);
-    pc++; // Move to next instruction
+    if (!waitingForButtonPress && !waitingForButtonRelease) {
+        pc++; // Move to next instruction
+    }
 }
 
 bool BytecodeVM::compareValues(ComparisonOp op, float leftOperand, float rightOperand) {
@@ -618,6 +639,15 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             break;
         }
 
+        case OP_WAIT_FOR_BUTTON: {
+            // Enter button waiting state
+            waitingForButtonRelease = Buttons::getInstance().isAnyButtonPressed();
+            waitingForButtonPress = !waitingForButtonRelease;
+
+            // Don't increment PC here - we'll do it when the button is pressed
+            return; // Return without incrementing PC
+        }
+
         default:
             // Unknown opcode, stop execution
             pc = programSize;
@@ -696,6 +726,8 @@ void BytecodeVM::stopProgram() {
     distanceMovementInProgress = false;
     motorMovementEndTime = 0;
     targetDistanceCm = 0.0f;
+    waitingForButtonPress = false;
+    waitingForButtonRelease = false;
 
     speaker.mute();
     rgbLed.turn_led_off();
