@@ -147,11 +147,7 @@ bool BytecodeVM::compareValues(ComparisonOp op, float leftOperand, float rightOp
     
     // Perform comparison with retrieved values
     switch (op) {
-        case OP_EQUAL: {
-            Serial.printf("leftValue %f", leftValue);
-            Serial.printf("rightValue %f", rightValue);
-            return leftValue == rightValue;
-        }
+        case OP_EQUAL: return leftValue == rightValue;
         case OP_NOT_EQUAL: return leftValue != rightValue;
         case OP_GREATER_THAN: return leftValue > rightValue;
         case OP_LESS_THAN: return leftValue < rightValue;

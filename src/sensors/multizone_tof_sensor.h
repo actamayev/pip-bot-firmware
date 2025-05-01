@@ -16,14 +16,6 @@ class MultizoneTofSensor {
         void stopRanging();
         float getAverageDistanceCenterline();
 
-        // Getters/setters for configuration parameters
-        void setMaxDistance(uint16_t distance) { maxDistance = distance; }
-        void setMinDistance(uint16_t distance) { minDistance = distance; }
-        void setSignalThreshold(uint8_t threshold) { signalThreshold = threshold; }
-        void setXtalkMargin(uint16_t margin) { xtalkMargin = margin; }
-        void setSharpenerPercent(uint8_t percent) { sharpenerPercent = percent; }
-        void setIntegrationTimeMs(uint32_t timeMs) { integrationTimeMs = timeMs; }
-
     private:
         VL53L7CX sensor;
         void measureDistance();
