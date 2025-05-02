@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../utils/config.h"
 #include "../utils/structs.h"
 #include "../utils/singleton.h"
 #include "../actuators/led/rgb_led.h"
@@ -27,7 +28,7 @@ class SerialManager : public Singleton<SerialManager> {
             WAITING_FOR_END
         };
         ParseState parseState = ParseState::WAITING_FOR_START;
-        uint8_t receiveBuffer[8192];  // Buffer for incoming data
+        uint8_t receiveBuffer[MAX_PROGRAM_SIZE];  // Buffer for incoming data
         uint16_t bufferPosition = 0;
         uint16_t expectedPayloadLength = 0;
         bool useLongFormat = false;
