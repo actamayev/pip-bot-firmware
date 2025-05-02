@@ -90,11 +90,11 @@ void SerialManager::pollSerial() {
 
             case ParseState::WAITING_FOR_END:
                 // log inbyte
-                Serial.printf("Received byte: %02X\n", inByte);
+                // Serial.printf("Received byte: %02X\n", inByte);
                 if (inByte == END_MARKER) {
                     // Complete message received
-                    Serial.printf("Complete framed message received. Type: %d, Length: %d\n", 
-                                currentMessageType, expectedPayloadLength);
+                    // Serial.printf("Complete framed message received. Type: %d, Length: %d\n", 
+                    //             currentMessageType, expectedPayloadLength);
                     
                     // Process the message
                     MessageProcessor::getInstance().processBinaryMessage(receiveBuffer, bufferPosition);
