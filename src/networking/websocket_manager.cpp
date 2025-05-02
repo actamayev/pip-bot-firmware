@@ -12,9 +12,48 @@ WebSocketManager::WebSocketManager() {
 void WebSocketManager::handleBinaryMessage(WebsocketsMessage message) {
     const uint8_t* data = (const uint8_t*)message.c_str();
     uint16_t length = message.length();
-
-    // Use the common message processor
-    MessageProcessor::getInstance().processBinaryMessage(data, length);
+    
+    // Check if this is a framed message (starts with START_MARKER)
+    if (length >= 4 && data[0] == START_MARKER) {
+        // This is a framed message. Parse it.
+        uint8_t messageType = data[1];
+        bool useLongFormat = (data[2] != 0);
+        
+        uint16_t payloadLength;
+        uint16_t headerSize;
+        
+        if (useLongFormat) {
+            // 16-bit length
+            payloadLength = data[3] | (data[4] << 8);  // Little-endian
+            headerSize = 5;  // START + TYPE + FORMAT + LENGTH(2)
+        } else {
+            // 8-bit length
+            payloadLength = data[3];
+            headerSize = 4;  // START + TYPE + FORMAT + LENGTH(1)
+        }
+        
+        // Verify end marker and total length
+        if (length == headerSize + payloadLength + 1 && data[headerSize + payloadLength] == END_MARKER) {
+            // Extract just the message type and payload
+            uint8_t* processedData = new uint8_t[payloadLength + 1];
+            processedData[0] = messageType;  // Message type
+            
+            // Copy the actual payload (if any)
+            if (payloadLength > 0) {
+                memcpy(processedData + 1, data + headerSize, payloadLength);
+            }
+            
+            // Process the extracted message
+            MessageProcessor::getInstance().processBinaryMessage(processedData, payloadLength + 1);
+            
+            delete[] processedData;
+        } else {
+            Serial.println("Invalid framed message (bad end marker or length)");
+        }
+    } else {
+        // For backward compatibility: handle legacy non-framed messages
+        MessageProcessor::getInstance().processBinaryMessage(data, length);
+    }
 }
 
 void WebSocketManager::connectToWebSocket() {

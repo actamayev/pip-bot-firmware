@@ -18,81 +18,82 @@ void SerialManager::pollSerial() {
         sendHandshakeConfirmation();
     }
 
-    // print sizeof receiveBuffer
-    Serial.printf("bufferPosition: %zu\n", bufferPosition);
-
-    while (Serial.available() > 0 && bufferPosition < sizeof(receiveBuffer)) {
-        receiveBuffer[bufferPosition++] = Serial.read();
+    // Read available bytes and process according to the current state
+    while (Serial.available() > 0) {
+        uint8_t inByte = Serial.read();
         
-        if (bufferPosition == 1) {
-            messageStarted = true;
-        }
-        
-        if (messageStarted && bufferPosition > 0) {
-            DataMessageType messageType = static_cast<DataMessageType>(receiveBuffer[0]);
-            uint16_t expectedLength = 0;
-            
-            // Determine expected message length based on message type
-            switch (messageType) {
-                case DataMessageType::UPDATE_AVAILABLE:
-                    expectedLength = 3;
-                    break;
-                case DataMessageType::MOTOR_CONTROL:
-                    expectedLength = 5;
-                    break;
-                case DataMessageType::SOUND_COMMAND:
-                case DataMessageType::SPEAKER_MUTE:
-                case DataMessageType::BALANCE_CONTROL:
-                case DataMessageType::UPDATE_LIGHT_ANIMATION:
-                case DataMessageType::OBSTACLE_AVOIDANCE:
-                    expectedLength = 2;
-                    break;
-                case DataMessageType::UPDATE_LED_COLORS:
-                    expectedLength = 25;
-                    break;
-                case DataMessageType::UPDATE_BALANCE_PIDS:
-                    expectedLength = 41;
-                    break;
-                case DataMessageType::STOP_SANDBOX_CODE:
-                case DataMessageType::SERIAL_HANDSHAKE:  // Add handshake
-                case DataMessageType::SERIAL_KEEPALIVE:  // Add keepalive
-                case DataMessageType::SERIAL_END:  // Add keepalive
-                    expectedLength = 1;  // These only need 1 byte (the message type)
-                    break;
-                case DataMessageType::BYTECODE_PROGRAM:
-                    // Variable length - process when no more data available
-                    break;
-                case DataMessageType::UPDATE_HEADLIGHTS:
-                    expectedLength = 2;
-                    break;
-                default:
-                    Serial.printf("Unknown message type in serial manager: %d\n", static_cast<int>(messageType));
+        switch (parseState) {
+            case ParseState::WAITING_FOR_START:
+                if (inByte == START_MARKER) {
+                    // Start of a new message
                     bufferPosition = 0;
-                    messageStarted = false;
-                    break;
-            }
+                    parseState = ParseState::READING_MESSAGE_TYPE;
+                }
+                break;
+                
+            case ParseState::READING_MESSAGE_TYPE:
+                currentMessageType = inByte;
+                receiveBuffer[bufferPosition++] = inByte;  // Store message type as first byte
+                parseState = ParseState::READING_FORMAT_FLAG;
+                break;
+                
+            case ParseState::READING_FORMAT_FLAG:
+                useLongFormat = (inByte != 0);
+                parseState = ParseState::READING_LENGTH_BYTE1;
+                break;
+                
+            case ParseState::READING_LENGTH_BYTE1:
+                if (useLongFormat) {
+                    // First byte of 16-bit length (little-endian)
+                    expectedPayloadLength = inByte;
+                    parseState = ParseState::READING_LENGTH_BYTE2;
+                } else {
+                    // 8-bit length
+                    expectedPayloadLength = inByte;
+                    parseState = ParseState::READING_PAYLOAD;
+                }
+                break;
+                
+            case ParseState::READING_LENGTH_BYTE2:
+                // Second byte of 16-bit length (little-endian)
+                expectedPayloadLength |= (inByte << 8);
+                parseState = ParseState::READING_PAYLOAD;
+                break;
 
-            // Process if we have complete message
-            if (expectedLength > 0 && bufferPosition >= expectedLength) {
-                processCompleteMessage();
-                bufferPosition = 0;
-                messageStarted = false;
-            }
+            case ParseState::READING_PAYLOAD:
+                // Store payload byte
+                if (bufferPosition < sizeof(receiveBuffer)) {
+                    receiveBuffer[bufferPosition++] = inByte;
+                    
+                    // Check if we've read the complete payload
+                    if (bufferPosition >= expectedPayloadLength + 1) {  // +1 for message type
+                        parseState = ParseState::WAITING_FOR_END;
+                    }
+                } else {
+                    // Buffer overflow
+                    Serial.println("Serial buffer overflow");
+                    parseState = ParseState::WAITING_FOR_START;
+                }
+                break;
 
-            // Special handling for bytecode which has variable length
-            if (messageType == DataMessageType::BYTECODE_PROGRAM && Serial.available() == 0) {
-                Serial.println("Bytecode program");
-                processCompleteMessage();
-                bufferPosition = 0;
-                messageStarted = false;
-            }
+            case ParseState::WAITING_FOR_END:
+                if (inByte == END_MARKER) {
+                    // Complete message received
+                    Serial.printf("Complete framed message received. Type: %d, Length: %d\n", 
+                                currentMessageType, expectedPayloadLength);
+                    
+                    // Process the message
+                    MessageProcessor::getInstance().processBinaryMessage(receiveBuffer, bufferPosition);
+                    
+                    // Reset for next message
+                    parseState = ParseState::WAITING_FOR_START;
+                } else {
+                    // Invalid end marker
+                    Serial.println("Invalid end marker");
+                    parseState = ParseState::WAITING_FOR_START;
+                }
+                break;
         }
-    }
-    
-    if (bufferPosition >= sizeof(receiveBuffer)) {
-        Serial.println("Serial buffer overflow");
-        bufferPosition = 0;
-        messageStarted = false;
     }
 }
 

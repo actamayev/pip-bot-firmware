@@ -101,3 +101,7 @@ struct NewLightColors {
     uint8_t leftHeadlightGreen;
     uint8_t leftHeadlightBlue;
 };
+
+// Markers for serial communication
+const uint8_t START_MARKER = 0xAA;
+const uint8_t END_MARKER = 0x55;
