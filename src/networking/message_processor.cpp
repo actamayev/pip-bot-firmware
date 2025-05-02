@@ -245,12 +245,11 @@ void MessageProcessor::handleNewLightColors(NewLightColors newLightColors) {
     rgbLed.set_right_headlight(rightHeadlightRed, rightHeadlightGreen, rightHeadlightBlue);
 }
 
-void MessageProcessor::processBinaryMessage(const uint8_t* data, size_t length) {
+void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length) {
     if (length < 1) {
         Serial.println("Binary message too short");
         return;
     }
-
     // Extract the message type from the first byte
     DataMessageType messageType = static_cast<DataMessageType>(data[0]);
 
@@ -336,8 +335,8 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, size_t length) 
         case DataMessageType::BYTECODE_PROGRAM: {
             // First byte is the message type, the rest is bytecode
             const uint8_t* bytecodeData = data + 1;
-            size_t bytecodeLength = length - 1;
-            
+            uint16_t bytecodeLength = length - 1;
+
             // Execute the bytecode
             bool success = BytecodeVM::getInstance().loadProgram(bytecodeData, bytecodeLength);
 

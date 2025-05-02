@@ -18,6 +18,9 @@ void SerialManager::pollSerial() {
         sendHandshakeConfirmation();
     }
 
+    // print sizeof receiveBuffer
+    Serial.printf("bufferPosition: %zu\n", bufferPosition);
+
     while (Serial.available() > 0 && bufferPosition < sizeof(receiveBuffer)) {
         receiveBuffer[bufferPosition++] = Serial.read();
         
@@ -27,7 +30,7 @@ void SerialManager::pollSerial() {
         
         if (messageStarted && bufferPosition > 0) {
             DataMessageType messageType = static_cast<DataMessageType>(receiveBuffer[0]);
-            size_t expectedLength = 0;
+            uint16_t expectedLength = 0;
             
             // Determine expected message length based on message type
             switch (messageType) {
@@ -93,14 +96,14 @@ void SerialManager::pollSerial() {
     }
 }
 
-void SerialManager::processCompleteMessage() {
+void SerialManager::processCompleteMessage() {  
     // Check if the message is a text message (handshake or keepalive)
     if (messageStarted && bufferPosition > 0) {
         // Check if this is a text message by checking first byte isn't a valid DataMessageType
         if (receiveBuffer[0] >= static_cast<uint8_t>(DataMessageType::SERIAL_HANDSHAKE)) {
             // Convert buffer to string for text-based commands
             String message = "";
-            for (size_t i = 0; i < bufferPosition; i++) {
+            for (uint16_t i = 0; i < bufferPosition; i++) {
                 message += (char)receiveBuffer[i];
             }
             
@@ -118,6 +121,7 @@ void SerialManager::processCompleteMessage() {
         }
     }
     
+    Serial.printf("Processing complete message of length %zu\n", bufferPosition);
     // Process binary message as before
     MessageProcessor::getInstance().processBinaryMessage(receiveBuffer, bufferPosition);
 }

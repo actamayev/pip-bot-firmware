@@ -216,7 +216,7 @@ void WiFiManager::printNetworkList(const std::vector<WiFiNetworkInfo>& networks)
     Serial.println("Available WiFi Networks (sorted by signal strength):");
     Serial.println("----------------------------------------------------");
     
-    for (size_t i = 0; i < networks.size(); i++) {
+    for (uint16_t i = 0; i < networks.size(); i++) {
         const auto& network = networks[i];
         String encryption = "";
         

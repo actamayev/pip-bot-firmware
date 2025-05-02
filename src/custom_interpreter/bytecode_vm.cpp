@@ -12,6 +12,8 @@ bool BytecodeVM::loadProgram(const uint8_t* byteCode, uint16_t size) {
         delete[] program;
         program = nullptr;
     }
+    Serial.printf("Loading program of size %zu\n", size);
+
     motorDriver.force_reset_motors();
 
     // Validate bytecode size (must be multiple of 20 now)

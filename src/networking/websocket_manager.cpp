@@ -11,8 +11,8 @@ WebSocketManager::WebSocketManager() {
 
 void WebSocketManager::handleBinaryMessage(WebsocketsMessage message) {
     const uint8_t* data = (const uint8_t*)message.c_str();
-    size_t length = message.length();
-    
+    uint16_t length = message.length();
+
     // Use the common message processor
     MessageProcessor::getInstance().processBinaryMessage(data, length);
 }

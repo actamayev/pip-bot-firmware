@@ -16,8 +16,8 @@ class SerialManager : public Singleton<SerialManager> {
         unsigned long lastActivityTime = 0;
 
     private:
-        uint8_t receiveBuffer[256];  // Buffer for incoming data
-        size_t bufferPosition = 0;
+        uint8_t receiveBuffer[8192];  // Buffer for incoming data
+        uint16_t bufferPosition = 0;
         bool messageStarted = false;
 
         SerialManager() = default;
