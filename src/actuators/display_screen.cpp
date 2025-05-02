@@ -108,7 +108,7 @@ void DisplayScreen::showStartScreen(bool resetTimer) {
 }
 
 // Show ToF sensor distances
-void DisplayScreen::showDistanceSensors(SideTofDistances sideTofDistances) {
+void DisplayScreen::showDistanceSensors(SideTofCounts sideTofCounts) {
     // If we're still showing the start screen, don't show anything yet
     if (!initialized || isShowingStartScreen) return;
 
@@ -124,11 +124,11 @@ void DisplayScreen::showDistanceSensors(SideTofDistances sideTofDistances) {
 
     // Left sensor - use String(value) without decimal places
     drawText("Left:", 10, 25, 1);
-    drawText(String(sideTofDistances.leftDistance) + " mm", 50, 25, 1);
+    drawText(String(sideTofCounts.leftCounts) + " counts", 50, 25, 1);
 
     // Right sensor - use String(value) without decimal places
     drawText("Right:", 10, 40, 1);
-    drawText(String(sideTofDistances.rightDistance) + " mm", 50, 40, 1);
+    drawText(String(sideTofCounts.rightCounts) + " counts", 50, 40, 1);
 
     renderDisplay();
 }

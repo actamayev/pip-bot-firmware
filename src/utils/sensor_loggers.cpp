@@ -3,18 +3,54 @@
 void multizoneTofLogger() {
     static unsigned long lastPrintTime = 0;
     const unsigned long PRINT_INTERVAL = 1000; // Print every second
+    const uint16_t MAX_DISTANCE = 1250; // Maximum distance cutoff in mm, same as in your example
 
     if (millis() - lastPrintTime < PRINT_INTERVAL) return;
+    
     auto& sensors = Sensors::getInstance();
-    VL53L5CX_ResultsData multizoneTofData = sensors.getMultizoneTofData();
-    for (int y = 0; y <= TOF_IMAGE_RESOLUTION * (TOF_IMAGE_RESOLUTION - 1); y += TOF_IMAGE_RESOLUTION) {
-        // Print left sensor data
-        for (int x = TOF_IMAGE_RESOLUTION - 1; x >= 0; x--) {
-            Serial.print("\t");
-            Serial.print(multizoneTofData.distance_mm[x + y]);
-        }   
-        Serial.println();
+    VL53L7CX_ResultsData multizoneTofData = sensors.getMultizoneTofData();
+    
+    Serial.println("VL53L7CX ToF Sensor Data");
+    Serial.println("------------------------\n");
+    
+    // Print separator line for the grid
+    for (int i = 0; i < TOF_IMAGE_RESOLUTION; i++) {
+        Serial.print(" --------");
     }
+    Serial.println("-");
+    
+    // Print the grid (traversing rows from bottom to top to match orientation)
+    for (int row = TOF_IMAGE_RESOLUTION - 1; row >= 0; row--) {
+        Serial.print("|");
+        
+        // Traverse columns from right to left to match orientation
+        for (int col = TOF_IMAGE_RESOLUTION - 1; col >= 0; col--) {
+            // Calculate proper index in the data array
+            int index = row * TOF_IMAGE_RESOLUTION + col;
+            
+            // Check if a target was detected at this position
+            if (multizoneTofData.nb_target_detected[index] > 0) {
+                // Apply the distance cutoff
+                uint16_t distance = multizoneTofData.distance_mm[index];
+                if (distance > MAX_DISTANCE) {
+                    Serial.print("    X   ");
+                } else {
+                    Serial.printf(" %4d mm", distance);
+                }
+            } else {
+                Serial.print("    X   "); // No target detected
+            }
+            Serial.print("|");
+        }
+        Serial.println();
+        
+        // Print separator line after each row
+        for (int i = 0; i < TOF_IMAGE_RESOLUTION; i++) {
+            Serial.print(" --------");
+        }
+        Serial.println("-");
+    }
+    
     Serial.println();
     lastPrintTime = millis();
 }
@@ -46,15 +82,15 @@ void sideTofsLogger() {
     const unsigned long PRINT_INTERVAL = 50; // Print every 500ms
     
     if (millis() - lastPrintTime < PRINT_INTERVAL) return;
-    SideTofDistances tofDistances = Sensors::getInstance().getBothSideTofDistances();
+    SideTofCounts tofCounts = Sensors::getInstance().getBothSideTofCounts();
     // DisplayScreen::getInstance().showDistanceSensors(tofDistances);
 
     // Print side by side with alignment
     Serial.print("Left TOF: ");
-    Serial.print(tofDistances.leftDistance);
-    Serial.print(" mm              || Right TOF: ");
-    Serial.print(tofDistances.rightDistance);
-    Serial.println(" mm");
+    Serial.print(tofCounts.leftCounts);
+    Serial.print(" counts              || Right TOF: ");
+    Serial.print(tofCounts.rightCounts);
+    Serial.println(" counts");
 
     lastPrintTime = millis();
 }

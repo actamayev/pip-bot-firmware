@@ -203,24 +203,42 @@ void LedAnimations::updateRainbow() {
         // Slowly rotate the entire rainbow pattern
         rainbowHue = (rainbowHue + 1) % 256;
         
-        // Define base hues for a 6-LED rainbow
-        uint8_t baseHues[6] = {
+        // Define base hues for an 8-LED rainbow
+        uint8_t baseHues[8] = {
             0,    // Red
             32,   // Orange
             64,   // Yellow
             96,   // Green
+            128,  // Aqua
             160,  // Blue
+            192,  // Purple
             224   // Violet
         };
         
-        // Set each LED to its rainbow color - adjust indices as needed for your setup
-        strip1.setPixelColor(0, colorHSV((baseHues[0] + rainbowHue) % 256));
-        strip1.setPixelColor(1, colorHSV((baseHues[1] + rainbowHue) % 256));
+        // Map the color to each LED in the logical order from your set functions
+        // back_left_led (LED 1) - strip1.pixel 1
+        strip1.setPixelColor(0, colorHSV((baseHues[1] + rainbowHue) % 256));
         
+        // back_right_led (LED 0) - strip1.pixel 0
+        strip1.setPixelColor(1, colorHSV((baseHues[0] + rainbowHue) % 256));
+        
+        // middle_right_led (LED 2) - strip2.pixel 0
         strip2.setPixelColor(0, colorHSV((baseHues[2] + rainbowHue) % 256));
+        
+        // top_right_led (LED 3) - strip2.pixel 1
         strip2.setPixelColor(1, colorHSV((baseHues[3] + rainbowHue) % 256));
+        
+        // right_headlight (LED 4) - strip2.pixel 2
         strip2.setPixelColor(2, colorHSV((baseHues[4] + rainbowHue) % 256));
+        
+        // left_headlight (LED 5) - strip2.pixel 3
         strip2.setPixelColor(3, colorHSV((baseHues[5] + rainbowHue) % 256));
+        
+        // top_left_led (LED 6) - strip2.pixel 4
+        strip2.setPixelColor(4, colorHSV((baseHues[6] + rainbowHue) % 256));
+        
+        // middle_left_led (LED 7) - strip2.pixel 5
+        strip2.setPixelColor(5, colorHSV((baseHues[7] + rainbowHue) % 256));
         
         strip1.show();
         strip2.show();
@@ -232,8 +250,9 @@ uint32_t LedAnimations::colorHSV(uint8_t h, uint8_t s, uint8_t v) {
     uint8_t region, remainder, p, q, t;
     uint8_t r, g, b;
     
-    region = h / 43;
-    remainder = (h - (region * 43)) * 6; 
+    // Modified for 8 regions instead of 6
+    region = h / 32;  // Changed from 43 to 32 (256/8 = 32)
+    remainder = (h - (region * 32)) * 8;  // Changed from 6 to 8
     
     p = (v * (255 - s)) >> 8;
     q = (v * (255 - ((s * remainder) >> 8))) >> 8;
@@ -255,8 +274,14 @@ uint32_t LedAnimations::colorHSV(uint8_t h, uint8_t s, uint8_t v) {
         case 4:
             r = t; g = p; b = v;
             break;
-        default:
+        case 5:
             r = v; g = p; b = q;
+            break;
+        case 6:
+            r = v; g = p; b = t;
+            break;
+        case 7:
+            r = q; g = p; b = v;
             break;
     }
     

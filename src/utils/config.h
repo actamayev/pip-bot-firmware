@@ -63,6 +63,7 @@ extern const uint8_t BUTTON_PIN_2;
 // Assign Stack sizes for the two cores
 extern const uint32_t SENSOR_STACK_SIZE;
 extern const uint32_t NETWORK_STACK_SIZE;
+constexpr uint16_t MAX_PROGRAM_SIZE = 8192;
 
 // Web/Pip/Environment
 extern const char* rootCACertificate;

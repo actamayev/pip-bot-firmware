@@ -17,6 +17,9 @@ class MotorDriver {
         void set_motor_speeds(int16_t leftTarget, int16_t rightTarget);
         void update_motor_speeds(bool should_ramp_up);
 
+        void force_reset_motors();
+        void brake_both_motors();
+        void brake_if_moving();
     private:
         int16_t _targetLeftSpeed = 0;
         int16_t _targetRightSpeed = 0;

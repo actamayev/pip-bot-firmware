@@ -1,4 +1,5 @@
 #pragma once
+#include <Wire.h>
 #include "./structs.h"
 
 extern void quaternionToEuler(float qr, float qi, float qj, float qk, float& yaw, float& pitch, float& roll);

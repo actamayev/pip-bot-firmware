@@ -44,7 +44,7 @@ void RgbLed::set_all_leds_to_color(uint8_t red, uint8_t green, uint8_t blue) {
     ledAnimations.stopAnimation();
 
     // Set default color for all LEDs
-    for (int i = 0; i < 6; i++) {
+    for (int i = 0; i < 8; i++) {
         defaultColors[i][0] = red;
         defaultColors[i][1] = green;
         defaultColors[i][2] = blue;
@@ -93,7 +93,7 @@ bool RgbLed::processLedUpdate(int ledIndex, uint8_t red, uint8_t green, uint8_t 
     }
 }
 
-void RgbLed::set_top_left_led(uint8_t red, uint8_t green, uint8_t blue) {
+void RgbLed::set_right_headlight(uint8_t red, uint8_t green, uint8_t blue) {
     if (!processLedUpdate(4, red, green, blue)) return;
     
     strip2.setPixelColor(2, strip2.Color(red, green, blue));
@@ -107,7 +107,7 @@ void RgbLed::set_top_right_led(uint8_t red, uint8_t green, uint8_t blue) {
     strip2.show();
 }
 
-void RgbLed::set_middle_left_led(uint8_t red, uint8_t green, uint8_t blue) {
+void RgbLed::set_left_headlight(uint8_t red, uint8_t green, uint8_t blue) {
     if (!processLedUpdate(5, red, green, blue)) return;
     
     strip2.setPixelColor(3, strip2.Color(red, green, blue));
@@ -135,9 +135,35 @@ void RgbLed::set_back_right_led(uint8_t red, uint8_t green, uint8_t blue) {
     strip1.show();
 }
 
+void RgbLed::set_top_left_led(uint8_t red, uint8_t green, uint8_t blue) {
+    if (!processLedUpdate(6, red, green, blue)) return;
+    
+    strip2.setPixelColor(4, strip1.Color(red, green, blue));
+    strip2.show();
+}
+
+void RgbLed::set_middle_left_led(uint8_t red, uint8_t green, uint8_t blue) {
+    if (!processLedUpdate(7, red, green, blue)) return;
+    
+    strip2.setPixelColor(5, strip1.Color(red, green, blue));
+    strip2.show();
+}
+
+void RgbLed::set_headlights_on() {
+    // Set headlights to white
+    strip2.setPixelColor(2, strip2.Color(255, 255, 255));
+    strip2.setPixelColor(3, strip2.Color(255, 255, 255));
+    strip2.show();
+}
+
+void RgbLed::reset_headlights_to_default() {
+    set_right_headlight(defaultColors[4][0], defaultColors[4][1], defaultColors[4][2]);
+    set_left_headlight(defaultColors[5][0], defaultColors[5][1], defaultColors[5][2]);
+}
+
 void RgbLed::captureCurrentState() {
     // Capture the color of each LED
-    for (int i = 0; i < 6; i++) {
+    for (int i = 0; i < 8; i++) {
         capturedState.colors[i][0] = defaultColors[i][0];
         capturedState.colors[i][1] = defaultColors[i][1];
         capturedState.colors[i][2] = defaultColors[i][2];
@@ -153,7 +179,7 @@ void RgbLed::captureCurrentState() {
 
 void RgbLed::restoreCapturedState() {
     // First restore all LED colors
-    for (int i = 0; i < 6; i++) {
+    for (int i = 0; i < 8; i++) {
         defaultColors[i][0] = capturedState.colors[i][0];
         defaultColors[i][1] = capturedState.colors[i][1];
         defaultColors[i][2] = capturedState.colors[i][2];
@@ -178,8 +204,10 @@ void RgbLed::restoreCapturedState() {
                 set_back_left_led(capturedState.colors[1][0], capturedState.colors[1][1], capturedState.colors[1][2]);
                 set_middle_right_led(capturedState.colors[2][0], capturedState.colors[2][1], capturedState.colors[2][2]);
                 set_top_right_led(capturedState.colors[3][0], capturedState.colors[3][1], capturedState.colors[3][2]);
-                set_top_left_led(capturedState.colors[4][0], capturedState.colors[4][1], capturedState.colors[4][2]);
-                set_middle_left_led(capturedState.colors[5][0], capturedState.colors[5][1], capturedState.colors[5][2]);
+                set_right_headlight(capturedState.colors[4][0], capturedState.colors[4][1], capturedState.colors[4][2]);
+                set_left_headlight(capturedState.colors[5][0], capturedState.colors[5][1], capturedState.colors[5][2]);
+                set_top_left_led(capturedState.colors[6][0], capturedState.colors[6][1], capturedState.colors[6][2]);
+                set_middle_left_led(capturedState.colors[7][0], capturedState.colors[7][1], capturedState.colors[7][2]);
                 break;
         }
     } else {
@@ -188,7 +216,9 @@ void RgbLed::restoreCapturedState() {
         set_back_left_led(capturedState.colors[1][0], capturedState.colors[1][1], capturedState.colors[1][2]);
         set_middle_right_led(capturedState.colors[2][0], capturedState.colors[2][1], capturedState.colors[2][2]);
         set_top_right_led(capturedState.colors[3][0], capturedState.colors[3][1], capturedState.colors[3][2]);
-        set_top_left_led(capturedState.colors[4][0], capturedState.colors[4][1], capturedState.colors[4][2]);
-        set_middle_left_led(capturedState.colors[5][0], capturedState.colors[5][1], capturedState.colors[5][2]);
+        set_right_headlight(capturedState.colors[4][0], capturedState.colors[4][1], capturedState.colors[4][2]);
+        set_left_headlight(capturedState.colors[5][0], capturedState.colors[5][1], capturedState.colors[5][2]);
+        set_top_left_led(capturedState.colors[6][0], capturedState.colors[6][1], capturedState.colors[6][2]);
+        set_middle_left_led(capturedState.colors[7][0], capturedState.colors[7][1], capturedState.colors[7][2]);
     }
 }
