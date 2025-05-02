@@ -3,6 +3,7 @@
 #include "./bytecode_structs.h"
 #include "../utils/singleton.h"
 #include "../sensors/sensors.h"
+#include "../actuators/buttons.h"
 #include "../actuators/led/rgb_led.h"
 #include "../actuators/motor_driver.h"
 
@@ -15,14 +16,12 @@ class BytecodeVM : public Singleton<BytecodeVM> {
 
         // Load bytecode program into the VM
         bool loadProgram(const uint8_t* byteCode, uint16_t size);
-        bool stopProgram();
+        void stopProgram();
 
         // Update VM - call this regularly from main loop
         void update();
 
     private:
-        static const uint16_t MAX_PROGRAM_SIZE = 8192; // Max instructions
-        
         BytecodeInstruction* program = nullptr;
         uint16_t programSize = 0;
         uint16_t pc = 0; // Program counter
@@ -51,4 +50,33 @@ class BytecodeVM : public Singleton<BytecodeVM> {
         
         // Helper method for comparisons
         bool compareValues(ComparisonOp op, float leftOperand, float rightValue);
+
+        bool turningInProgress = false;
+        float targetTurnDegrees = 0;
+        float initialTurnYaw = 0;
+        bool turnClockwise = true;
+        unsigned long turnStartTime = 0;
+        
+        // Helper method for turn operations
+        void updateTurning();
+
+        bool timedMotorMovementInProgress = false;
+        unsigned long motorMovementEndTime = 0;
+        
+        // Helper method for timed motor operations
+        void updateTimedMotorMovement();
+
+        bool distanceMovementInProgress = false;
+        float targetDistanceCm = 0.0f;
+        
+        // Helper method for distance-based motor operations
+        void updateDistanceMovement();
+
+        static const uint16_t LEFT_PROXIMITY_THRESHOLD = 1000;
+        static const uint16_t RIGHT_PROXIMITY_THRESHOLD = 1000;
+        static constexpr float FRONT_PROXIMITY_THRESHOLD = 100.0f;  // Add this new threshold
+
+        bool waitingForButtonPress = false;
+        bool waitingForButtonRelease = false;
+        void resetStateVariables();
 };

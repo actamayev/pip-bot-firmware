@@ -12,7 +12,7 @@ class SideTimeOfFlightSensor {
         SideTimeOfFlightSensor() = default;
 
         bool initialize(const uint8_t TOF_ADDRESS);
-        uint16_t getDistance();
+        uint16_t getCounts();
     private:
         uint8_t sensorAddress = 0; // Store the specific sensor address
 
@@ -27,7 +27,7 @@ class SideTimeOfFlightSensor {
             return VCNL36828P_GET_PS_DATA(sensorAddress);
         }
 
-        uint16_t _tofDistance;
+        uint16_t _tofCounts;
 
         void Basic_Initialization_Auto_Mode();
 

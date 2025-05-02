@@ -8,11 +8,13 @@
 #include "./sensors/encoder_manager.h"
 #include "./networking/wifi_manager.h"
 #include "./actuators/display_screen.h"
+#include "./networking/serial_manager.h"
 #include "./networking/message_processor.h"
 #include "./networking/websocket_manager.h"
 #include "./actuators/led/led_animations.h"
 #include "./networking/send_data_to_server.h"
 #include "./custom_interpreter/bytecode_vm.h"
+#include "./networking/network_state_mangager.h"
 #include "./networking/firmware_version_tracker.h"
 #include "./wifi_selection/wifi_selection_manager.h"
 #include "./wifi_selection/haptic_feedback_manager.h"
@@ -41,6 +43,7 @@ void SensorAndBytecodeTask(void * parameter) {
             delay(5);
             continue;
         }
+        SerialManager::getInstance().pollSerial();
         Buttons::getInstance().update();  // Update button states
         BytecodeVM::getInstance().update();
         // multizoneTofLogger();
@@ -62,14 +65,26 @@ void NetworkTask(void * parameter) {
 
     // Main network loop
     for(;;) {
-        if (WiFi.status() != WL_CONNECTED) {
-            WiFiManager::getInstance().checkAndReconnectWiFi();
-            HapticFeedbackManager::getInstance().update();
-            WifiSelectionManager::getInstance().processNetworkSelection();
-        } else {
-            // Other network operations can use internal timing
-            WebSocketManager::getInstance().pollWebSocket();
-            SendDataToServer::getInstance().sendSensorDataToServer();
+        NetworkMode mode = NetworkStateManager::getInstance().getCurrentMode();
+
+        switch (mode) {
+            case NetworkMode::SERIAL_MODE:
+                // When in serial mode, we don't do any WiFi operations
+                // Could add specific serial mode indicators here
+                break;
+
+            case NetworkMode::WIFI_MODE:
+                // WiFi connected mode - poll websocket and send data
+                WebSocketManager::getInstance().pollWebSocket();
+                SendDataToServer::getInstance().sendSensorDataToServer();
+                break;
+
+            case NetworkMode::NONE:
+                // No connectivity - try to establish WiFi
+                WiFiManager::getInstance().checkAndReconnectWiFi();
+                HapticFeedbackManager::getInstance().update();
+                WifiSelectionManager::getInstance().processNetworkSelection();
+                break;
         }
 
         // Small delay to avoid overwhelming the websocket and allow IMU data to be processed
@@ -79,6 +94,8 @@ void NetworkTask(void * parameter) {
 
 // Main setup runs on Core 1
 void setup() {
+    Serial.setRxBufferSize(MAX_PROGRAM_SIZE); // This is here to make the serial buffer larger to accommodate for large serial messages (ie. when uploading bytecode programs over serial)
+    Serial.setTxBufferSize(MAX_PROGRAM_SIZE); // This is here to make the serial buffer larger to accommodate for large serial messages (ie. when uploading bytecode programs over serial)
     Serial.begin(115200);
     // Only needed if we need to see the setup serial logs:
     delay(2000);

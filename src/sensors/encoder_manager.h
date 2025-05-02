@@ -16,6 +16,9 @@ class EncoderManager {
         EncoderManager();
 
         WheelRPMs getBothWheelRPMs();
+
+        void resetDistanceTracking();
+        float getDistanceTraveledCm();
     private:
         // ESP32Encoder objects
         ESP32Encoder _leftEncoder;
@@ -34,6 +37,13 @@ class EncoderManager {
 
         // Update speed calculations - call this periodically
         void update();
+
+        int64_t _leftEncoderStartCount;
+        int64_t _rightEncoderStartCount;
+        
+        // Wheel physical properties
+        static constexpr float WHEEL_DIAMETER_CM = 3.9; // Replace with actual wheel diameter
+        static constexpr float WHEEL_CIRCUMFERENCE_CM = WHEEL_DIAMETER_CM * PI;
 };
 
 extern EncoderManager encoderManager;

@@ -1,6 +1,5 @@
 #pragma once
 #include <Arduino.h>
-#include <SparkFun_VL53L5CX_Library.h>
 
 struct WiFiCredentials {
 	String ssid;
@@ -11,12 +10,6 @@ struct WiFiNetworkInfo {
     String ssid;
     int32_t rssi;
     uint8_t encryptionType;
-};
-
-struct TofData {
-    VL53L5CX_ResultsData data;
-    bool isValid = false;
-    unsigned long lastUpdateTime = 0;
 };
 
 struct EnabledReports {
@@ -84,9 +77,9 @@ struct ColorSensorData {
     uint8_t blueValue;
 };
 
-struct SideTofDistances {
-    uint16_t leftDistance;
-    uint16_t rightDistance;
+struct SideTofCounts {
+    uint16_t leftCounts;
+    uint16_t rightCounts;
 };
 
 namespace LedTypes {
@@ -99,7 +92,7 @@ namespace LedTypes {
 }
 
 struct LedState {
-    uint8_t colors[6][3];  // Colors for all 6 LEDs
+    uint8_t colors[8][3];  // Colors for all 8 LEDs
     LedTypes::AnimationType animation;
     int animationSpeed;
     bool wasAnimationActive;

@@ -6,7 +6,7 @@ WiFiManager::WiFiManager() {
     // Hard-coding Wifi creds during initialization (before we have encoders + screen)
     preferences.begin("wifi-creds", false);
     storeWiFiCredentials("Another Dimension", "Iforgotit123", 0);
-    storeWiFiCredentials("NETGEAR08", "breezyshoe123", 1);
+    // storeWiFiCredentials("NETGEAR08", "breezyshoe123", 1);
 
 	connectToStoredWiFi();
 }
@@ -28,23 +28,25 @@ void WiFiManager::connectToStoredWiFi() {
         return WebSocketManager::getInstance().connectToWebSocket();
     }
 
+    // 4/29/25 NOTE: When serial was implemented, this was commented out because the code got stuck in wifi scan mode when the serial code was brought in in main.cpp
+
     // If direct connection failed, do a full scan for all networks
-    auto networks = scanWiFiNetworkInfos();
+    // auto networks = scanWiFiNetworkInfos();
 
-    if (networks.empty()) {
-        // If no networks found
-        Serial.println("No networks found in full scan.");
-        return;
-    }
+    // if (networks.empty()) {
+    //     // If no networks found
+    //     Serial.println("No networks found in full scan.");
+    //     return;
+    // }
     
-    // Print the available networks and select the first one
-    printNetworkList(networks);
-    setSelectedNetworkIndex(0);
+    // // Print the available networks and select the first one
+    // printNetworkList(networks);
+    // setSelectedNetworkIndex(0);
     
-    // Init encoder for network selection
-    WifiSelectionManager::getInstance().initNetworkSelection();
+    // // Init encoder for network selection
+    // WifiSelectionManager::getInstance().initNetworkSelection();
 
-    Serial.println("Use the right motor to scroll through networks");
+    // Serial.println("Use the right motor to scroll through networks");
 }
 
 // 4/9/25 TODO: Connect to the network we've most recently connected to first.
@@ -65,6 +67,10 @@ bool WiFiManager::attemptDirectConnectionToSavedNetworks() {
     
     // Try to connect to each saved network without scanning first
     for (const auto& network : savedNetworks) {
+        if (NetworkStateManager::getInstance().shouldStopWiFiOperations()) {
+            Serial.println("Serial connection detected - aborting WiFi connection attempts");
+            return false;
+        }
         Serial.printf("Trying to connect to: %s\n", network.ssid.c_str());
         
         // Attempt connection
@@ -79,6 +85,11 @@ bool WiFiManager::attemptDirectConnectionToSavedNetworks() {
 
 bool WiFiManager::attemptNewWifiConnection(WiFiCredentials wifiCredentials) {
     // Set WiFi mode to Station (client mode)
+    if (NetworkStateManager::getInstance().shouldStopWiFiOperations()) {
+        Serial.println("Serial connection detected - aborting WiFi connection attempt");
+        return false;
+    }
+
     _isConnecting = true;
     WiFi.mode(WIFI_STA);
 
@@ -94,7 +105,7 @@ bool WiFiManager::attemptNewWifiConnection(WiFiCredentials wifiCredentials) {
 
     unsigned long startAttemptTime = millis();
     unsigned long lastPrintTime = startAttemptTime;
-    const unsigned long printInterval = 100;  // Print dots every 100ms
+    unsigned long lastCheckTime = startAttemptTime;
 
     while (WiFi.status() != WL_CONNECTED && (millis() - startAttemptTime < CONNECT_TO_SINGLE_NETWORK_TIMEOUT)) {
         // Non-blocking print of dots
@@ -104,11 +115,26 @@ bool WiFiManager::attemptNewWifiConnection(WiFiCredentials wifiCredentials) {
             lastPrintTime = currentTime;
             yield();  // Allow the ESP32 to handle background tasks
         }
+        if (currentTime - lastCheckTime >= checkInterval) {
+            lastCheckTime = currentTime;
+            
+            // Poll serial to update connection status
+            SerialManager::getInstance().pollSerial();
+            
+            if (NetworkStateManager::getInstance().shouldStopWiFiOperations()) {
+                Serial.println("\nSerial connection detected - aborting WiFi connection");
+                _isConnecting = false;
+                return false;
+            }
+        }
     }
 
     _isConnecting = false;
 
     if (WiFi.status() == WL_CONNECTED) {
+        preferences.begin("wifi-creds", false);
+        storeWiFiCredentials(wifiCredentials.ssid, wifiCredentials.password, 0);
+        preferences.end();
         Serial.println("Connected to Wi-Fi!");
         return true;
     } else {
@@ -190,7 +216,7 @@ void WiFiManager::printNetworkList(const std::vector<WiFiNetworkInfo>& networks)
     Serial.println("Available WiFi Networks (sorted by signal strength):");
     Serial.println("----------------------------------------------------");
     
-    for (size_t i = 0; i < networks.size(); i++) {
+    for (uint16_t i = 0; i < networks.size(); i++) {
         const auto& network = networks[i];
         String encryption = "";
         

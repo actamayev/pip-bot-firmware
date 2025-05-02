@@ -6,7 +6,8 @@ enum BytecodeOpCode : uint32_t {
     OP_NOP = 0x00,      // No operation
     OP_END = 0x01,      // End sequence
     OP_DELAY = 0x02,    // Delay (ms)
-    
+    OP_WAIT_FOR_BUTTON = 0x03,
+
     // LED operations
     OP_SET_LED = 0x10,  // Set specific LED
     OP_SET_ALL_LEDS = 0x11, // Set all LEDs
@@ -30,6 +31,17 @@ enum BytecodeOpCode : uint32_t {
     // Variable operations
     OP_DECLARE_VAR = 0x40,
     OP_SET_VAR = 0x41,
+
+    OP_MOTOR_FORWARD = 0x50,   // Forward movement at specified throttle
+    OP_MOTOR_BACKWARD = 0x51,  // Backward movement at specified throttle
+    OP_MOTOR_STOP = 0x52,      // Stop all motors
+    OP_MOTOR_TURN = 0x53,      // Turn by specified degrees
+
+    OP_MOTOR_FORWARD_TIME = 0x54,
+    OP_MOTOR_BACKWARD_TIME = 0x55,
+
+    OP_MOTOR_FORWARD_DISTANCE = 0x56,
+    OP_MOTOR_BACKWARD_DISTANCE = 0x57,
 };
 
 // Comparison operators
@@ -55,7 +67,10 @@ enum BytecodeSensorType : uint8_t {
     SENSOR_ROT_RATE_Z = 9,
     SENSOR_MAG_FIELD_X = 10,
     SENSOR_MAG_FIELD_Y = 11,
-    SENSOR_MAG_FIELD_Z = 12
+    SENSOR_MAG_FIELD_Z = 12,
+    SENSOR_SIDE_LEFT_PROXIMITY = 13,
+    SENSOR_SIDE_RIGHT_PROXIMITY = 14,
+    SENSOR_FRONT_PROXIMITY = 15
 };
 
 enum BytecodeVarType : uint8_t {
@@ -72,7 +87,9 @@ enum BytecodeLedID : uint8_t {
     LED_MIDDLE_LEFT = 3,
     LED_MIDDLE_RIGHT = 4,
     LED_BACK_LEFT = 5,
-    LED_BACK_RIGHT = 6
+    LED_BACK_RIGHT = 6,
+    LEFT_HEADLIGHT = 7,
+    RIGHT_HEADLIGHT = 8,
 };
 
 // A single bytecode instruction (10 bytes)

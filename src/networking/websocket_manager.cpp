@@ -11,136 +11,48 @@ WebSocketManager::WebSocketManager() {
 
 void WebSocketManager::handleBinaryMessage(WebsocketsMessage message) {
     const uint8_t* data = (const uint8_t*)message.c_str();
-    size_t length = message.length();
-
-    if (length < 1) {
-        Serial.println("Binary message too short");
-        return;
-    }
-
-    // Extract the message type from the first byte
-    DataMessageType messageType = static_cast<DataMessageType>(data[0]);
-
-    switch (messageType) {
-        case DataMessageType::UPDATE_AVAILABLE: {
-            if (length != 3) {
-                Serial.println("Invalid update available message length");
-            } else {
-                // Extract the firmware version from bytes 1-2
-                uint16_t newVersion = data[1] | (data[2] << 8); // Little-endian conversion
-
-                Serial.printf("New firmware version available: %d\n", newVersion);
-                FirmwareVersionTracker::getInstance().retrieveLatestFirmwareFromServer(newVersion);
-            }
-            break;
+    uint16_t length = message.length();
+    
+    // Check if this is a framed message (starts with START_MARKER)
+    if (length >= 4 && data[0] == START_MARKER) {
+        // This is a framed message. Parse it.
+        uint8_t messageType = data[1];
+        bool useLongFormat = (data[2] != 0);
+        
+        uint16_t payloadLength;
+        uint16_t headerSize;
+        
+        if (useLongFormat) {
+            // 16-bit length
+            payloadLength = data[3] | (data[4] << 8);  // Little-endian
+            headerSize = 5;  // START + TYPE + FORMAT + LENGTH(2)
+        } else {
+            // 8-bit length
+            payloadLength = data[3];
+            headerSize = 4;  // START + TYPE + FORMAT + LENGTH(1)
         }
-        case DataMessageType::MOTOR_CONTROL: {
-            if (length != 5) {
-                Serial.println("Invalid motor control message length");
-            } else {
-                MessageProcessor::getInstance().handleMotorControl(data);
-            }
-            break;
-        }
-        case DataMessageType::SOUND_COMMAND: {
-            if (length != 2) {
-                Serial.println("Invalid sound command message length");
-            } else {
-                SoundType soundType = static_cast<SoundType>(data[1]);
-                MessageProcessor::getInstance().handleSoundCommand(soundType);
-            }
-            break;
-        }
-        case DataMessageType::SPEAKER_MUTE: {
-            if (length != 2) {
-                Serial.println("Invalid speaker mute message length");
-            } else {
-                SpeakerStatus status = static_cast<SpeakerStatus>(data[1]);
-                MessageProcessor::getInstance().handleSpeakerMute(status);
-            }
-            break;
-        }
-        case DataMessageType::BALANCE_CONTROL: {
-            if (length != 2) {
-                Serial.println("Invalid balance control message length");
-            } else {
-                BalanceStatus status = static_cast<BalanceStatus>(data[1]);
-                Serial.print("Balance Status: ");
-                Serial.println(status == BalanceStatus::BALANCED ? "BALANCED" : "UNBALANCED");
-                MessageProcessor::getInstance().handleBalanceCommand(status);
-            }
-            break;
-        }
-        case DataMessageType::UPDATE_LIGHT_ANIMATION: {
-            if (length != 2) {
-                Serial.println("Invalid balance control message length");
-            } else {
-                LightAnimationStatus lightAnimationStatus = static_cast<LightAnimationStatus>(data[1]);
-                MessageProcessor::getInstance().handleLightCommand(lightAnimationStatus);
-            }
-            break;
-        }
-        case DataMessageType::UPDATE_LED_COLORS: {
-            if (length != 19) {
-                Serial.println("Invalid update led colors message length");
-            } else {
-                NewLightColors newLightColors;
-                memcpy(&newLightColors, &data[1], sizeof(NewLightColors));
-                MessageProcessor::getInstance().handleNewLightColors(newLightColors);
-            }
-            break;
-        }
-        case DataMessageType::UPDATE_BALANCE_PIDS: {
-            if (length != 41) { // 1 byte for type + 40 bytes for the struct (10 floats × 4 bytes)
-                Serial.println("Invalid update balance pids message length");
-            } else {
-                NewBalancePids newBalancePids;
-                memcpy(&newBalancePids, &data[1], sizeof(NewBalancePids));
-                MessageProcessor::getInstance().handleChangePidsCommand(newBalancePids);
-            }
-            break;
-        }
-        case DataMessageType::BYTECODE_PROGRAM: {
-            // First byte is the message type, the rest is bytecode
-            const uint8_t* bytecodeData = data + 1;
-            size_t bytecodeLength = length - 1;
+        
+        // Verify end marker and total length
+        if (length == headerSize + payloadLength + 1 && data[headerSize + payloadLength] == END_MARKER) {
+            // Extract just the message type and payload
+            uint8_t* processedData = new uint8_t[payloadLength + 1];
+            processedData[0] = messageType;  // Message type
             
-            // Execute the bytecode
-            bool success = BytecodeVM::getInstance().loadProgram(bytecodeData, bytecodeLength);
-
-            // Send response
-            if (success) {
-                SendDataToServer::getInstance().sendBytecodeMessage("Bytecode successfully loaded");
-            } else {
-                SendDataToServer::getInstance().sendBytecodeMessage("Error loading bytecode: invalid format!");
+            // Copy the actual payload (if any)
+            if (payloadLength > 0) {
+                memcpy(processedData + 1, data + headerSize, payloadLength);
             }
-            break;
+            
+            // Process the extracted message
+            MessageProcessor::getInstance().processBinaryMessage(processedData, payloadLength + 1);
+            
+            delete[] processedData;
+        } else {
+            Serial.println("Invalid framed message (bad end marker or length)");
         }
-        case DataMessageType::STOP_SANDBOX_CODE: {
-            if (length != 1) {
-                Serial.println("Invalid stop sandbox code message length");
-            } else {
-                bool programStopped = BytecodeVM::getInstance().stopProgram();
-                if (programStopped) {
-                    SendDataToServer::getInstance().sendBytecodeMessage("Sandbox code stopped");
-                }
-            }
-            break;
-        }
-        case DataMessageType::OBSTACLE_AVOIDANCE: {
-            if (length != 2) {
-                Serial.println("Invalid obstacle avoidance command");
-            } else {
-                ObstacleAvoidanceStatus status = static_cast<ObstacleAvoidanceStatus>(data[1]);
-                Serial.print("Avoidance Status: ");
-                Serial.println(status == ObstacleAvoidanceStatus::AVOID ? "AVOID" : "STOP Avoiding");
-                MessageProcessor::getInstance().handleObstacleAvoidanceCommand(status);
-            }
-            break;
-        }
-        default:
-            Serial.printf("Unknown message type: %d\n", static_cast<int>(messageType));
-            break;
+    } else {
+        // For backward compatibility: handle legacy non-framed messages
+        MessageProcessor::getInstance().processBinaryMessage(data, length);
     }
 }
 
@@ -241,7 +153,7 @@ void WebSocketManager::killWiFiProcesses() {
     // Should only run once.
     if (hasKilledWiFiProcesses) return;
     Serial.println("Killing WiFi processes...");
-    motorDriver.stop_both_motors();
+    motorDriver.brake_if_moving();
     rgbLed.set_led_red();
     ledAnimations.startBreathing();
     hasKilledWiFiProcesses = true;
