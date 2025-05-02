@@ -22,8 +22,6 @@ class BytecodeVM : public Singleton<BytecodeVM> {
         void update();
 
     private:
-        static const uint16_t MAX_PROGRAM_SIZE = 8192; // Max instructions
-        
         BytecodeInstruction* program = nullptr;
         uint16_t programSize = 0;
         uint16_t pc = 0; // Program counter

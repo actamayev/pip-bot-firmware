@@ -94,6 +94,8 @@ void NetworkTask(void * parameter) {
 
 // Main setup runs on Core 1
 void setup() {
+    Serial.setRxBufferSize(MAX_PROGRAM_SIZE); // This is here to make the serial buffer larger to accommodate for large serial messages (ie. when uploading bytecode programs over serial)
+    Serial.setTxBufferSize(MAX_PROGRAM_SIZE); // This is here to make the serial buffer larger to accommodate for large serial messages (ie. when uploading bytecode programs over serial)
     Serial.begin(115200);
     // Only needed if we need to see the setup serial logs:
     delay(2000);
