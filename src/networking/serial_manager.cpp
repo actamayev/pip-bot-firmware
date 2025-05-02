@@ -50,14 +50,26 @@ void SerialManager::pollSerial() {
                 } else {
                     // 8-bit length
                     expectedPayloadLength = inByte;
-                    parseState = ParseState::READING_PAYLOAD;
+                    
+                    // If payload length is 0, skip to waiting for end marker
+                    if (expectedPayloadLength == 0) {
+                        parseState = ParseState::WAITING_FOR_END;
+                    } else {
+                        parseState = ParseState::READING_PAYLOAD;
+                    }
                 }
                 break;
                 
             case ParseState::READING_LENGTH_BYTE2:
                 // Second byte of 16-bit length (little-endian)
                 expectedPayloadLength |= (inByte << 8);
-                parseState = ParseState::READING_PAYLOAD;
+                
+                // If payload length is 0, skip to waiting for end marker
+                if (expectedPayloadLength == 0) {
+                    parseState = ParseState::WAITING_FOR_END;
+                } else {
+                    parseState = ParseState::READING_PAYLOAD;
+                }
                 break;
 
             case ParseState::READING_PAYLOAD:
@@ -77,6 +89,8 @@ void SerialManager::pollSerial() {
                 break;
 
             case ParseState::WAITING_FOR_END:
+                // log inbyte
+                Serial.printf("Received byte: %02X\n", inByte);
                 if (inByte == END_MARKER) {
                     // Complete message received
                     Serial.printf("Complete framed message received. Type: %d, Length: %d\n", 
@@ -116,6 +130,7 @@ void SerialManager::processCompleteMessage() {
                 return;
             } else if (message.indexOf("KEEPALIVE") >= 0) {
                 // Just update the last activity time
+                Serial.println("Keepalive received from browser!");
                 lastActivityTime = millis();
                 return;
             }
