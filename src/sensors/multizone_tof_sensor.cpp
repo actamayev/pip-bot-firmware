@@ -14,24 +14,87 @@ bool MultizoneTofSensor::initialize() {
         return false;
     }
     
-    // Configure sensor settings from configuration constants
-    sensor.vl53l7cx_set_resolution(TOF_IMAGE_RESOLUTION * TOF_IMAGE_RESOLUTION);
-    sensor.vl53l7cx_set_ranging_frequency_hz(TOF_RANGING_FREQUENCY);
+    // Configure the sensor
+    if (!configureSensor()) {
+        return false;
+    }
     
-    // Apply the optimized filtering parameters
-    sensor.vl53l7cx_set_xtalk_margin(xtalkMargin);
-    sensor.vl53l7cx_set_sharpener_percent(sharpenerPercent);
-    sensor.vl53l7cx_set_integration_time_ms(integrationTimeMs);
-
+    // Reset history array
+    resetHistory();
+    
     // Start ranging
     startRanging();
+    
+    // Set sensor as active
+    sensorActive = true;
+    
+    // Initialize watchdog timer
+    lastValidDataTime = millis();
 
     Serial.println("TOF sensor initialization complete");
     return true;
 }
 
+bool MultizoneTofSensor::configureSensor() {
+    // Configure sensor settings from configuration constants
+    sensor.vl53l7cx_set_resolution(TOF_IMAGE_RESOLUTION * TOF_IMAGE_RESOLUTION); // Use 8x8 resolution
+    sensor.vl53l7cx_set_ranging_frequency_hz(rangingFrequency);
+    
+    // Set target order to closest (better for obstacle avoidance)
+    sensor.vl53l7cx_set_target_order(VL53L7CX_TARGET_ORDER_CLOSEST);
+    
+    // Apply the optimized filtering parameters
+    sensor.vl53l7cx_set_xtalk_margin(xtalkMargin);
+    sensor.vl53l7cx_set_sharpener_percent(sharpenerPercent);
+    sensor.vl53l7cx_set_integration_time_ms(integrationTimeMs);
+    
+    return true;
+}
+
+bool MultizoneTofSensor::resetSensor() {
+    Serial.println("SENSOR RESET: Data stopped - performing recovery...");
+    
+    // Set sensor as inactive during reset
+    sensorActive = false;
+    
+    // Stop ranging
+    stopRanging();
+    delay(100);
+    
+    // Reset just the sensor without touching I2C bus initialization
+    sensor.begin();
+    
+    if (sensor.init_sensor()) {
+        Serial.println("Failed to reinitialize sensor!");
+        return false;
+    }
+    
+    // Reconfigure sensor
+    configureSensor();
+    
+    // Reset history
+    resetHistory();
+    
+    // Start ranging again
+    startRanging();
+    
+    // Reset watchdog timer
+    lastValidDataTime = millis();
+    
+    // Set sensor as active again
+    sensorActive = true;
+    
+    Serial.println("Sensor reset complete");
+    return true;
+}
+
 void MultizoneTofSensor::measureDistance() {
     uint8_t isDataReady = 0;
+    
+    // Check if watchdog has timed out first, if so reset the sensor
+    if (!checkWatchdog() && sensorActive) {
+        resetSensor();
+    }
     
     // Check if new data is ready (passing the required parameter)
     if (sensor.vl53l7cx_check_data_ready(&isDataReady) != 0 || isDataReady == 0) {
@@ -40,6 +103,9 @@ void MultizoneTofSensor::measureDistance() {
     
     // Get the ranging data
     sensor.vl53l7cx_get_ranging_data(&sensorData);
+    
+    // Update watchdog timer on successful data reception
+    lastValidDataTime = millis();
 }
 
 VL53L7CX_ResultsData MultizoneTofSensor::getTofData() {
@@ -80,6 +146,125 @@ float MultizoneTofSensor::getAverageDistanceCenterline() {
     } else {
         return -1.0f; // Indicate no valid points
     }
+}
+
+float MultizoneTofSensor::getWeightedAverageDistance() {
+    // Get the latest sensor data
+    VL53L7CX_ResultsData tofData = getTofData();
+    
+    int validPointCount = 0;
+    float totalWeightedDistance = 0;
+    float totalWeight = 0;
+    
+    // Process rows 2 through 5 (expanded detection area)
+    for (int row = 5; row >= 2; row--) {
+        // Determine row weight - center rows (3-4) get full weight, outer rows (2,5) get reduced weight
+        float rowWeight = (row == 3 || row == 4) ? 1.0 : 0.6;
+        
+        for (int col = 7; col >= 0; col--) {
+            int index = row * 8 + col;
+            
+            // Determine column weight - center columns get higher weight
+            float colWeight;
+            if (col >= 3 && col <= 4) {
+                colWeight = 1.0;  // Center columns
+            } else if (col == 2 || col == 5) {
+                colWeight = 0.8;  // Near-center columns
+            } else {
+                colWeight = 0.5;  // Edge columns
+            }
+            
+            // Combine row and column weights
+            float pointWeight = rowWeight * colWeight;
+            
+            // Check if we have valid data for this point
+            if (tofData.nb_target_detected[index] > 0) {
+                uint16_t distance = tofData.distance_mm[index];
+                uint8_t status = tofData.target_status[index];
+                
+                // Target status filtering - prioritize readings with high confidence
+                // Status 5 = 100% valid, Status 6/9 = ~50% valid, others < 50% valid
+                float statusMultiplier = 0.5;  // Default multiplier for lower confidence readings
+                if (status == TARGET_STATUS_VALID) {
+                    statusMultiplier = 1.0;  // Full confidence
+                } else if (status == TARGET_STATUS_VALID_LARGE_PULSE || 
+                          status == TARGET_STATUS_VALID_WRAPPED) {
+                    statusMultiplier = 0.8;  // Medium-high confidence
+                }
+                
+                // Apply confidence multiplier to the point weight
+                pointWeight *= statusMultiplier;
+                
+                // Apply filtering parameters
+                if (distance <= maxDistance && 
+                    distance >= minDistance && 
+                    status >= signalThreshold) {
+                    totalWeightedDistance += distance * pointWeight;
+                    totalWeight += pointWeight;
+                    validPointCount++;
+                }
+            }
+        }
+    }
+    
+    // Return the weighted average if we have enough valid points, otherwise return -1
+    if (validPointCount >= minValidPoints && totalWeight > 0) {
+        return totalWeightedDistance / totalWeight;
+    } else {
+        return -1.0f; // Indicate insufficient valid points
+    }
+}
+
+bool MultizoneTofSensor::isObjectDetected() {
+    float weightedDistance = getWeightedAverageDistance();
+    
+    // If we have a valid weighted distance
+    if (weightedDistance > 0) {
+        // Store the current distance in the history array
+        previousCenterlineDistances[historyIndex] = weightedDistance;
+        historyIndex = (historyIndex + 1) % HISTORY_SIZE;
+        
+        // Check if current distance indicates an obstacle
+        if (weightedDistance < obstacleDistanceThreshold) {
+            return true;
+        }
+        
+        // Check for approaching objects by analyzing history
+        float sumDistanceChange = 0;
+        int validComparisons = 0;
+        
+        // Calculate average change in distance over time
+        for (int i = 0; i < HISTORY_SIZE - 1; i++) {
+            int nextIdx = (i + 1) % HISTORY_SIZE;
+            // Only consider valid readings (non-zero)
+            if (previousCenterlineDistances[i] > 0 && previousCenterlineDistances[nextIdx] > 0) {
+                sumDistanceChange += (previousCenterlineDistances[i] - previousCenterlineDistances[nextIdx]);
+                validComparisons++;
+            }
+        }
+        
+        // If we have enough valid comparisons and the average change shows approaching object
+        if (validComparisons >= 2 && (sumDistanceChange / validComparisons) > approachingThreshold) {
+            return true; // Object is getting closer at significant rate
+        }
+    }
+    
+    return false; // No object detected
+}
+
+bool MultizoneTofSensor::checkWatchdog() {
+    if (millis() - lastValidDataTime > watchdogTimeout) {
+        return false; // Watchdog timeout
+    }
+    return true; // Watchdog OK
+}
+
+void MultizoneTofSensor::resetHistory() {
+    // Reset history array
+    for (int i = 0; i < HISTORY_SIZE; i++) {
+        previousCenterlineDistances[i] = 0;
+    }
+    historyIndex = 0;
 }
 
 void MultizoneTofSensor::startRanging() {

@@ -184,6 +184,10 @@ SideTofCounts Sensors::getBothSideTofCounts() {
     };
 }
 
+bool Sensors::isObjectDetected() {
+    return multizoneTofSensor.isObjectDetected();
+}
+
 float Sensors::getAverageDistanceCenterline() {
     return multizoneTofSensor.getAverageDistanceCenterline();
 }

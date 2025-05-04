@@ -1,0 +1,51 @@
+# VL53L7CX Sensor Parameters Guide
+
+## SIGNAL_THRESHOLD
+• Controls the minimum signal quality required for a reading to be considered valid.
+• Increasing: Makes filtering more strict, rejecting more readings with poor signal quality. Improves reliability but reduces sensitivity.
+• Decreasing: Makes sensor more sensitive to weak signals, better for detecting small or distant objects, but may introduce more noise.
+
+## MIN_VALID_POINTS
+• Minimum number of valid data points needed to confirm an obstacle is present.
+• Increasing: Improves confidence in obstacle detection, reduces false positives, but may miss small objects.
+• Decreasing: Makes detection more sensitive to small objects, but may increase false positives.
+
+## OBSTACLE_DISTANCE_THRESHOLD
+• Maximum distance (in mm) at which an object is considered an obstacle.
+• Increasing: Detects obstacles at greater distances, providing more time to react.
+• Decreasing: Focuses only on closer obstacles, reducing false positives from distant objects.
+
+## sharpener_percent
+• Controls the strength of the edge sharpening algorithm (0-99%).
+• Increasing: Creates sharper edges between objects, prevents one object from appearing in multiple zones, but may cause small targets to be missed.
+• Decreasing: Makes sensor more likely to detect diffuse or small objects, but objects may appear larger/spread across more zones than they really are.
+
+## xtalk_margin
+• Filters out noise from reflections within the sensor's cover glass.
+• Increasing: Improves immunity to internal reflections/noise, especially with a cover glass, but reduces sensitivity.
+• Decreasing: Improves sensitivity but may introduce more false readings from internal reflections.
+
+## integrationTimeMs
+• Duration the sensor actively collects photons during each measurement.
+• Increasing: Improves signal quality and maximum range, but increases power consumption and slightly reduces measurement rate.
+• Decreasing: Reduces power consumption, but may reduce maximum range and signal quality.
+
+## maxDistance
+• Maximum distance (in mm) at which readings are considered valid.
+• Increasing: Allows detection of more distant objects, but may introduce more noise at the extremes of range.
+• Decreasing: Focuses system on closer objects, potentially improving reliability by ignoring uncertain distant readings.
+
+## minDistance
+• Minimum distance (in mm) at which readings are considered valid.
+• Increasing: Helps filter out very close phantom readings, but may ignore very close real objects.
+• Decreasing: Allows detection of very close objects, but may introduce more phantom readings.
+
+## ranging_frequency
+• How many measurements the sensor takes per second (Hz).
+• Increasing: Provides more frequent updates for faster-moving objects/robots, but increases power consumption.
+• Decreasing: Reduces power consumption, but updates less frequently which may miss fast-moving objects.
+
+## TARGET_STATUS_VALID Thresholds
+• Defines confidence levels for different status values returned by the sensor.
+• **Using stricter status filters**: Improves reliability by only accepting high-confidence measurements, but may reduce detection sensitivity.
+• **Using looser status filters**: Improves sensitivity by accepting lower-confidence measurements, but may introduce more errors.

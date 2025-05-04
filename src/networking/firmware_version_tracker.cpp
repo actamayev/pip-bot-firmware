@@ -49,7 +49,6 @@ void FirmwareVersionTracker::retrieveLatestFirmwareFromServer(uint16_t newVersio
 
     // Get endpoint
     String url = getServerFirmwareEndpoint();
-    Serial.printf("Update URL: %s\n", url.c_str());
 
     // Perform the update
     t_httpUpdate_return result = httpUpdate.update(*httpClient, url);

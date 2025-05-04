@@ -281,8 +281,8 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
                         break;
                     }
                     case SENSOR_FRONT_PROXIMITY: {
-                        float average_distance = Sensors::getInstance().getAverageDistanceCenterline();  // You'll need to implement this
-                        registers[regId].asBool = (average_distance < FRONT_PROXIMITY_THRESHOLD);
+                        float isObjectDetected = Sensors::getInstance().isObjectDetected();  // You'll need to implement this
+                        registers[regId].asBool = isObjectDetected;
                         registerTypes[regId] = VAR_BOOL;
                         registerInitialized[regId] = true;
                         skipDefaultAssignment = true;  // Set flag

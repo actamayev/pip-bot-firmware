@@ -3,7 +3,9 @@
 void multizoneTofLogger() {
     static unsigned long lastPrintTime = 0;
     const unsigned long PRINT_INTERVAL = 1000; // Print every second
-    const uint16_t MAX_DISTANCE = 1250; // Maximum distance cutoff in mm, same as in your example
+    const uint16_t MAX_DISTANCE = 1250; // Maximum valid distance
+    const uint16_t MIN_DISTANCE = 30;   // Minimum distance threshold
+    const uint8_t SIGNAL_THRESHOLD = 4; // Reduced for better hand detection
 
     if (millis() - lastPrintTime < PRINT_INTERVAL) return;
     
@@ -30,9 +32,12 @@ void multizoneTofLogger() {
             
             // Check if a target was detected at this position
             if (multizoneTofData.nb_target_detected[index] > 0) {
-                // Apply the distance cutoff
+                // Apply the improved filtering criteria
                 uint16_t distance = multizoneTofData.distance_mm[index];
-                if (distance > MAX_DISTANCE) {
+                uint8_t status = multizoneTofData.target_status[index];
+                
+                // Filter out readings below MIN_DISTANCE, above MAX_DISTANCE, or with poor signal quality
+                if (distance > MAX_DISTANCE || distance < MIN_DISTANCE || status < SIGNAL_THRESHOLD) {
                     Serial.print("    X   ");
                 } else {
                     Serial.printf(" %4d mm", distance);
@@ -50,6 +55,21 @@ void multizoneTofLogger() {
         }
         Serial.println("-");
     }
+    
+    // Print the weighted average distance and obstacle detection status
+    float avgDistance = sensors.getAverageDistanceCenterline();
+    bool objectDetected = sensors.isObjectDetected();
+    
+    Serial.print("Weighted Average Distance: ");
+    if (avgDistance > 0) {
+        Serial.print(avgDistance);
+        Serial.println(" mm");
+    } else {
+        Serial.println("No valid readings");
+    }
+    
+    Serial.print("Object Detected: ");
+    Serial.println(objectDetected ? "YES - OBSTACLE AHEAD" : "NO - PATH CLEAR");
     
     Serial.println();
     lastPrintTime = millis();
