@@ -72,9 +72,8 @@ class BytecodeVM : public Singleton<BytecodeVM> {
         // Helper method for distance-based motor operations
         void updateDistanceMovement();
 
-        static const uint16_t LEFT_PROXIMITY_THRESHOLD = 1000;
-        static const uint16_t RIGHT_PROXIMITY_THRESHOLD = 1000;
-        static constexpr float FRONT_PROXIMITY_THRESHOLD = 100.0f;  // Add this new threshold
+        static const uint16_t LEFT_PROXIMITY_THRESHOLD = 500;
+        static const uint16_t RIGHT_PROXIMITY_THRESHOLD = 500;
 
         bool waitingForButtonPress = false;
         bool waitingForButtonRelease = false;

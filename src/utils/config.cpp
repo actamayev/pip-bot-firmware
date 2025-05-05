@@ -6,7 +6,7 @@ const uint8_t ESP_LED_PIN1 = 38;
 const uint8_t NUM_LEDS1 = 2;
 const uint8_t ESP_LED_PIN2 = 4;
 const uint8_t NUM_LEDS2 = 6;
-const uint8_t MAX_LED_BRIGHTNESS = 100;
+const uint8_t MAX_LED_BRIGHTNESS = 75;
 
 //I2C
 const uint8_t I2C_SDA = 18;
