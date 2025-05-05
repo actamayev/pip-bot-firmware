@@ -62,21 +62,21 @@ void SensorAndBytecodeTask(void * parameter) {
     // Main sensor and bytecode loop
     for(;;) {
         ledAnimations.update();
+        Buttons::getInstance().update();  // Update button states
         
         // Only check if all sensors are initialized, but don't try to initialize here
         if (!initializer.areAllSensorsInitialized()) {
             // Skip bytecode execution if sensors aren't ready
-            delay(5);
+            vTaskDelay(pdMS_TO_TICKS(5));
             continue;
         }
         SerialManager::getInstance().pollSerial();
-        Buttons::getInstance().update();  // Update button states
         BytecodeVM::getInstance().update();
+        MessageProcessor::getInstance().processPendingCommands();
+        // DisplayScreen::getInstance().update();
         // multizoneTofLogger();
         // imuLogger();
         // sideTofsLogger();
-        // DisplayScreen::getInstance().update();
-        MessageProcessor::getInstance().processPendingCommands();
         vTaskDelay(pdMS_TO_TICKS(5));  // Use proper FreeRTOS delay
     }
 }

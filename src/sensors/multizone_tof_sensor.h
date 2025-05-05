@@ -59,7 +59,7 @@ class MultizoneTofSensor {
         uint8_t tofResolution = VL53L7CX_RESOLUTION_8X8; // Sensor resolution
         uint16_t obstacleDistanceThreshold = 500; // Distance threshold to consider obstacle (mm)
         uint16_t xtalkMargin = 120;         // Xtalk margin for noise filtering
-        uint8_t sharpenerPercent = 5;      // Sharpener percentage (0-99)
+        uint8_t sharpenerPercent = 1;      // Sharpener percentage (0-99)
         uint32_t integrationTimeMs = 20;   // Integration time in milliseconds
         uint8_t rangingFrequency = 15;     // Ranging frequency in Hz
         

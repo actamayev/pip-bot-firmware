@@ -14,8 +14,10 @@ void multizoneTofLogger() {
     float avgDistance = sensors.getAverageDistanceCenterline();
     bool objectDetected = sensors.isObjectDetected();
     
-    // Log the grid using our LogManager
-    LogManager::getInstance().logTofGrid(&multizoneTofData, avgDistance, objectDetected);
+    // Log the grid using our LogManager - only if queue isn't too full
+    if (!LogManager::getInstance().isQueueNearlyFull()) {
+        LogManager::getInstance().logTofGrid(&multizoneTofData, avgDistance, objectDetected);
+    }
     
     lastLogTime = currentTime;
 }
