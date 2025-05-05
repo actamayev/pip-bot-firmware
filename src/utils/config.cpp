@@ -19,8 +19,6 @@ const uint8_t RIGHT_TOF_ADDRESS = 0x60;
 
 // Multizone TOF
 const uint8_t MULTIZONE_TOF_ADDRESS = 0x29; // Default address
-const uint8_t TOF_IMAGE_RESOLUTION = VL53L7CX_RESOLUTION_8X8;  // Image width (can be 4 or 8)
-const uint8_t TOF_RANGING_FREQUENCY = 15;  // TOF sampling frequency
 
 // IMU
 const uint16_t IMU_UPDATE_FREQ_MICROSECS = 5000;  // 5ms, 200Hz

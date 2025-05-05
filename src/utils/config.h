@@ -20,8 +20,6 @@ extern const uint8_t RIGHT_TOF_ADDRESS;
 
 // Multizone TOF
 extern const uint8_t MULTIZONE_TOF_ADDRESS;
-extern const uint8_t TOF_IMAGE_RESOLUTION;
-extern const uint8_t TOF_RANGING_FREQUENCY;
 
 // IMU:
 extern const uint16_t IMU_UPDATE_FREQ_MICROSECS;

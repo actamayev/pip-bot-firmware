@@ -1,43 +1,64 @@
 #include "./multizone_tof_sensor.h"
 
-bool MultizoneTofSensor::initialize() {
-    Serial.println("Initializing TOF sensor...");
+bool MultizoneTofSensor::canRetryInitialization() const {
+    if (isInitialized) return false;
 
-    if (sensor.begin() != 0) {
-        Serial.println("Failed to begin sensor communication");
-        return false;
+    unsigned long currentTime = millis();
+    if (currentTime - lastInitAttempt < INIT_RETRY_INTERVAL) {
+        return false; // Too soon to retry
     }
 
-    // Initialize the sensor
-    if (sensor.init_sensor()) {
-        Serial.println(F("Sensor initialization failed"));
-        return false;
+    if (initRetryCount >= MAX_INIT_RETRIES) {
+        return false; // Too many retries
     }
-    
-    // Configure the sensor
-    if (!configureSensor()) {
-        return false;
-    }
-    
-    // Reset history array
-    resetHistory();
-    
-    // Start ranging
-    startRanging();
-    
-    // Set sensor as active
-    sensorActive = true;
-    
-    // Initialize watchdog timer
-    lastValidDataTime = millis();
 
-    Serial.println("TOF sensor initialization complete");
     return true;
+}
+
+bool MultizoneTofSensor::initialize() {
+    lastInitAttempt = millis();
+    initRetryCount++;
+    
+    Serial.printf("Initializing TOF sensor (attempt %d of %d)...\n", 
+                 initRetryCount, MAX_INIT_RETRIES);
+    
+    // Add a delay before trying to initialize
+    delay(50);
+    
+    // Try a few times with short delays in between
+    for (int attempt = 0; attempt < 3; attempt++) {
+        if (sensor.begin() == 0) {
+            // If begin successful, continue with initialization
+            if (!sensor.init_sensor()) {
+                // Configure the sensor
+                if (configureSensor()) {
+                    // Start ranging
+                    startRanging();
+                    
+                    // Set sensor as active
+                    sensorActive = true;
+                    
+                    // Initialize watchdog timer
+                    lastValidDataTime = millis();
+                    
+                    Serial.println("TOF sensor initialization complete");
+                    isInitialized = true;
+                    return true;
+                }
+            }
+        }
+        delay(50);  // Longer delay between attempts
+    }
+    
+    Serial.printf("TOF sensor initialization failed (retry %d of %d)\n", 
+                 initRetryCount, MAX_INIT_RETRIES);
+    scanI2C();  // Scan I2C bus to help debug
+    return false;
 }
 
 bool MultizoneTofSensor::configureSensor() {
     // Configure sensor settings from configuration constants
-    sensor.vl53l7cx_set_resolution(TOF_IMAGE_RESOLUTION * TOF_IMAGE_RESOLUTION); // Use 8x8 resolution
+    sensor.vl53l7cx_set_resolution(tofResolution); // Use 8x8 resolution
     sensor.vl53l7cx_set_ranging_frequency_hz(rangingFrequency);
     
     // Set target order to closest (better for obstacle avoidance)
@@ -274,4 +295,50 @@ void MultizoneTofSensor::startRanging() {
 
 void MultizoneTofSensor::stopRanging() {
     sensor.vl53l7cx_stop_ranging();
+}
+
+void MultizoneTofSensor::printResult(VL53L7CX_ResultsData *Result) {
+    Serial.println("VL53L7CX 8x8 Grid Distance Measurement");
+    Serial.println("--------------------------------------\n");
+    
+    // Print 8x8 grid
+    // Traverse rows from bottom to top (7 to 0) to fix vertical flip
+    for (int row = 7; row >= 0; row--) {
+        // Print separator line
+        for (int i = 0; i < 8; i++) {
+        Serial.print(" --------");
+        }
+        Serial.println("-");
+        
+        // Print distance values
+        Serial.print("|");
+        // Traverse columns from right to left (7 to 0) to fix horizontal flip
+        for (int col = 7; col >= 0; col--) {
+        // Calculate proper index in the data array
+        int index = row * 8 + col;
+        
+        if (Result->nb_target_detected[index] > 0) {
+            // Apply distance thresholds and signal quality filtering
+            uint16_t distance = Result->distance_mm[index];
+            uint8_t status = Result->target_status[index];
+            
+            // Filter out readings below MIN_DISTANCE, above MAX_DISTANCE or with poor signal quality
+            if (distance > maxDistance || distance < minDistance || status < signalThreshold) {
+            Serial.print("    X   ");
+            } else {
+            Serial.printf(" %4d mm", distance);
+            }
+        } else {
+            Serial.print("    X   ");
+        }
+        Serial.print("|");
+        }
+        Serial.println();
+    }
+    
+    // Print final separator line
+    for (int i = 0; i < 8; i++) {
+        Serial.print(" --------");
+    }
+    Serial.println("-\n");
 }

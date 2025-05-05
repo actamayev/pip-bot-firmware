@@ -1,27 +1,69 @@
 #include "./side_time_of_flight_sensor.h"
 
-bool SideTimeOfFlightSensor::initialize(const uint8_t TOF_ADDRESS) {
-    // Save the sensor address to the class member variable
-    sensorAddress = TOF_ADDRESS;
-    
-    // Reset and initialize sensor
-    Serial.print("Resetting sensor (");
-    Serial.print(sensorAddress, HEX);
-    Serial.println(")...");
-    Reset_Specific_Sensor();
-    Serial.println("Sensor reset complete");
+bool SideTimeOfFlightSensor::canRetryInitialization() const {
+    if (isInitialized) return false;
 
-    // Initialize the sensor in auto mode
-    Serial.print("Initializing sensor (");
-    Serial.print(sensorAddress, HEX);
-    Serial.println(")...");
-    Basic_Initialization_Auto_Mode();
-    Serial.println("Sensor initialization complete");
-    
+    unsigned long currentTime = millis();
+    if (currentTime - lastInitAttempt < INIT_RETRY_INTERVAL) {
+        return false; // Too soon to retry
+    }
+
+    if (initRetryCount >= MAX_INIT_RETRIES) {
+        return false; // Too many retries
+    }
+
     return true;
 }
 
+bool SideTimeOfFlightSensor::initialize(const uint8_t TOF_ADDRESS) {
+    lastInitAttempt = millis();
+    initRetryCount++;
+    
+    Serial.printf("Initializing side TOF sensor 0x%02X (attempt %d of %d)...\n", 
+                 TOF_ADDRESS, initRetryCount, MAX_INIT_RETRIES);
+    
+    // Save the sensor address to the class member variable
+    sensorAddress = TOF_ADDRESS;
+    
+    // Add a delay before trying to initialize
+    delay(50);
+    
+    // Try a few times with short delays in between
+    for (int attempt = 0; attempt < 3; attempt++) {
+        // Reset and initialize sensor
+        Reset_Specific_Sensor();
+        
+        // Initialize the sensor in auto mode
+        Basic_Initialization_Auto_Mode();
+        
+        // Try to read data to verify initialization
+        uint16_t testValue = Read_Proximity_Data();
+        
+        // Check if the reading seems valid (this may need to be adjusted based on your sensor)
+        if (testValue != 0xFFFF && testValue != 0) {  // Adjust these values based on what indicates failure
+            isInitialized = true;
+            Serial.printf("Side TOF sensor 0x%02X initialization complete\n", sensorAddress);
+            return true;
+        }
+        
+        delay(50);  // Delay between attempts
+    }
+    
+    Serial.printf("Side TOF sensor 0x%02X initialization failed (retry %d of %d)\n", 
+                 sensorAddress, initRetryCount, MAX_INIT_RETRIES);
+    return false;
+}
+
+uint16_t SideTimeOfFlightSensor::getCounts() {
+    // First update the readings
+    update();
+    return _tofCounts;
+}
+
 void SideTimeOfFlightSensor::update() {
+    // Only try to read if sensor is initialized
+    if (!isInitialized) return;
+    
     unsigned long currentTime = millis();
     unsigned long elapsedTime = currentTime - _lastUpdateTime;
     
@@ -30,11 +72,6 @@ void SideTimeOfFlightSensor::update() {
         _tofCounts = Read_Proximity_Data();
         _lastUpdateTime = currentTime;
     }
-}
-
-uint16_t SideTimeOfFlightSensor::getCounts() {
-    update();
-    return _tofCounts;
 }
 
 void SideTimeOfFlightSensor::Basic_Initialization_Auto_Mode() {

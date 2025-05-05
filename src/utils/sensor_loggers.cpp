@@ -1,78 +1,23 @@
 #include "./sensor_loggers.h"
 
 void multizoneTofLogger() {
-    static unsigned long lastPrintTime = 0;
-    const unsigned long PRINT_INTERVAL = 1000; // Print every second
-    const uint16_t MAX_DISTANCE = 1250; // Maximum valid distance
-    const uint16_t MIN_DISTANCE = 30;   // Minimum distance threshold
-    const uint8_t SIGNAL_THRESHOLD = 4; // Reduced for better hand detection
-
-    if (millis() - lastPrintTime < PRINT_INTERVAL) return;
+    static unsigned long lastLogTime = 0;
+    const unsigned long LOG_INTERVAL = 100; // 100ms to match working script
     
+    // Only proceed if it's time to log
+    unsigned long currentTime = millis();
+    if (currentTime - lastLogTime < LOG_INTERVAL) return;
+    
+    // Get sensor data
     auto& sensors = Sensors::getInstance();
     VL53L7CX_ResultsData multizoneTofData = sensors.getMultizoneTofData();
-    
-    Serial.println("VL53L7CX ToF Sensor Data");
-    Serial.println("------------------------\n");
-    
-    // Print separator line for the grid
-    for (int i = 0; i < TOF_IMAGE_RESOLUTION; i++) {
-        Serial.print(" --------");
-    }
-    Serial.println("-");
-    
-    // Print the grid (traversing rows from bottom to top to match orientation)
-    for (int row = TOF_IMAGE_RESOLUTION - 1; row >= 0; row--) {
-        Serial.print("|");
-        
-        // Traverse columns from right to left to match orientation
-        for (int col = TOF_IMAGE_RESOLUTION - 1; col >= 0; col--) {
-            // Calculate proper index in the data array
-            int index = row * TOF_IMAGE_RESOLUTION + col;
-            
-            // Check if a target was detected at this position
-            if (multizoneTofData.nb_target_detected[index] > 0) {
-                // Apply the improved filtering criteria
-                uint16_t distance = multizoneTofData.distance_mm[index];
-                uint8_t status = multizoneTofData.target_status[index];
-                
-                // Filter out readings below MIN_DISTANCE, above MAX_DISTANCE, or with poor signal quality
-                if (distance > MAX_DISTANCE || distance < MIN_DISTANCE || status < SIGNAL_THRESHOLD) {
-                    Serial.print("    X   ");
-                } else {
-                    Serial.printf(" %4d mm", distance);
-                }
-            } else {
-                Serial.print("    X   "); // No target detected
-            }
-            Serial.print("|");
-        }
-        Serial.println();
-        
-        // Print separator line after each row
-        for (int i = 0; i < TOF_IMAGE_RESOLUTION; i++) {
-            Serial.print(" --------");
-        }
-        Serial.println("-");
-    }
-    
-    // Print the weighted average distance and obstacle detection status
     float avgDistance = sensors.getAverageDistanceCenterline();
     bool objectDetected = sensors.isObjectDetected();
     
-    Serial.print("Weighted Average Distance: ");
-    if (avgDistance > 0) {
-        Serial.print(avgDistance);
-        Serial.println(" mm");
-    } else {
-        Serial.println("No valid readings");
-    }
+    // Log the grid using our LogManager
+    LogManager::getInstance().logTofGrid(&multizoneTofData, avgDistance, objectDetected);
     
-    Serial.print("Object Detected: ");
-    Serial.println(objectDetected ? "YES - OBSTACLE AHEAD" : "NO - PATH CLEAR");
-    
-    Serial.println();
-    lastPrintTime = millis();
+    lastLogTime = currentTime;
 }
 
 void imuLogger() {
