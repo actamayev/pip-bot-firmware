@@ -59,6 +59,9 @@ void SensorAndBytecodeTask(void * parameter) {
     LogManager::getInstance().println("Sensors initialized on Core 0");
     enableCore0WDT();
 
+    unsigned long lastTofPollTime = 0;
+    const unsigned long TOF_POLL_INTERVAL = 500; // Poll every 500ms
+
     // Main sensor and bytecode loop
     for(;;) {
         ledAnimations.update();
@@ -69,6 +72,14 @@ void SensorAndBytecodeTask(void * parameter) {
             // Skip bytecode execution if sensors aren't ready
             vTaskDelay(pdMS_TO_TICKS(5));
             continue;
+        }
+        unsigned long currentTime = millis();
+        if (currentTime - lastTofPollTime > TOF_POLL_INTERVAL) {
+            if (initializer.isSensorInitialized(SensorInitializer::MULTIZONE_TOF)) {
+                // Just poll data to keep sensor active - don't need to store result
+                sensors.getMultizoneTofData();
+                lastTofPollTime = currentTime;
+            }
         }
         SerialManager::getInstance().pollSerial();
         BytecodeVM::getInstance().update();
