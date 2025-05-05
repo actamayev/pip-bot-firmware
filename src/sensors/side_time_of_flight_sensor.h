@@ -44,7 +44,7 @@ class SideTimeOfFlightSensor {
         void Basic_Initialization_Auto_Mode();
 
         unsigned long _lastUpdateTime;
-        static constexpr unsigned long DELAY_BETWEEN_READINGS = 100; //ms
+        static constexpr unsigned long DELAY_BETWEEN_READINGS = 10; //ms
 
         void update();
 };

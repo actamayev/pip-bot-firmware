@@ -266,6 +266,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
                         break;
                     case SENSOR_SIDE_LEFT_PROXIMITY: {
                         uint16_t counts = Sensors::getInstance().getLeftSideTofCounts();
+                        Serial.printf("counts %d\n", counts);
                         registers[regId].asBool = (counts > LEFT_PROXIMITY_THRESHOLD);
                         registerTypes[regId] = VAR_BOOL;
                         registerInitialized[regId] = true;
@@ -501,7 +502,9 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
         
         case OP_MOTOR_STOP: {
             // Stop both motors
-            motorDriver.brake_both_motors();
+            // motorDriver.brake_both_motors();
+            motorDriver.stop_both_motors();
+            motorDriver.force_reset_motors();
             break;
         }
         
@@ -680,7 +683,7 @@ void BytecodeVM::updateTurning() {
     // Check if turn is complete
     if (rotationDelta >= targetTurnDegrees || timeout) {
         // Turn complete - stop motors
-        motorDriver.brake_both_motors();
+        motorDriver.stop_both_motors();
         turningInProgress = false;
     }
 }
@@ -689,7 +692,7 @@ void BytecodeVM::updateTimedMotorMovement() {
     // Check if the timed movement has completed
     if (millis() < motorMovementEndTime) return;
     // Movement complete - brake motors
-    motorDriver.brake_both_motors();
+    motorDriver.stop_both_motors();
 
     // Reset timed movement state
     timedMotorMovementInProgress = false;
@@ -702,7 +705,7 @@ void BytecodeVM::updateDistanceMovement() {
     // Check if we've reached or exceeded the target distance
     if (currentDistance < targetDistanceCm) return;
     // Distance reached - brake motors
-    motorDriver.brake_both_motors();
+    motorDriver.stop_both_motors();
     
     // Reset distance movement state
     distanceMovementInProgress = false;
