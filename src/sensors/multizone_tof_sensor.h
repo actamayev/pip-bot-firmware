@@ -4,6 +4,10 @@
 #include "../utils/utils.h"
 #include "../utils/config.h"
 
+// Define ROI dimensions
+#define ROI_ROWS 2        // Rows 3-4
+#define ROI_COLS 6        // Columns 1-6
+
 class MultizoneTofSensor {
     public:
         // Constructor that takes TwoWire instance and optional pin parameters
@@ -17,6 +21,12 @@ class MultizoneTofSensor {
         bool isObjectDetected();
         float getAverageDistanceCenterline();
         void printResult(VL53L7CX_ResultsData *Result);
+        
+        // New functions for point history tracking
+        void initializePointHistories();
+        void updatePointHistory(int rowIdx, int colIdx, float distance);
+        bool isPointObstacleConsistent(int rowIdx, int colIdx);
+        // void printPointHistoriesStatus(VL53L7CX_ResultsData *Result);
 
         unsigned int getInitRetryCount() const { return initRetryCount; }
         unsigned int getMaxInitRetries() const { return MAX_INIT_RETRIES; }
@@ -57,7 +67,7 @@ class MultizoneTofSensor {
         uint8_t signalThreshold = 5;       // Minimum signal quality threshold (reduced for better hand detection)
         uint8_t minValidPoints = 3;        // Minimum valid points for obstacle detection
         uint8_t tofResolution = VL53L7CX_RESOLUTION_8X8; // Sensor resolution
-        uint16_t obstacleDistanceThreshold = 500; // Distance threshold to consider obstacle (mm)
+        uint16_t obstacleDistanceThreshold = 200; // Distance threshold to consider obstacle (mm)
         uint16_t xtalkMargin = 120;         // Xtalk margin for noise filtering
         uint8_t sharpenerPercent = 1;      // Sharpener percentage (0-99)
         uint32_t integrationTimeMs = 20;   // Integration time in milliseconds
@@ -68,14 +78,23 @@ class MultizoneTofSensor {
         const uint8_t TARGET_STATUS_VALID_LARGE_PULSE = 9;
         const uint8_t TARGET_STATUS_VALID_WRAPPED = 6;
         
-        // Temporal tracking variables
-        static const uint8_t HISTORY_SIZE = 5;
+        // Temporal tracking variables for weighted average
+        static const uint8_t HISTORY_SIZE = 3;
         float previousCenterlineDistances[HISTORY_SIZE] = {0};
         int historyIndex = 0;
         float approachingThreshold = 20.0f; // mm change needed to trigger approaching detection
+        
+        struct PointHistory {
+            float distances[HISTORY_SIZE];     // Last 5 distance readings
+            int index;              // Current index in circular buffer
+            int validReadings;      // Count of valid readings collected so far
+        };
+        // Point-specific history tracking
+        PointHistory pointHistories[ROI_ROWS][ROI_COLS];
         
         // Watchdog variables
         uint32_t watchdogTimeout = 2000;   // 2 seconds without data before reset
         unsigned long lastValidDataTime = millis();   // Track when we last got valid data
         bool sensorActive = false;        // Flag to track if sensor is actively ranging
+        // Structure to hold history for each point in ROI
 };

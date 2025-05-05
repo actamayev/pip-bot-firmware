@@ -41,6 +41,9 @@ bool MultizoneTofSensor::initialize() {
                     // Initialize watchdog timer
                     lastValidDataTime = millis();
                     
+                    // Initialize point histories
+                    initializePointHistories();
+                    
                     Serial.println("TOF sensor initialization complete");
                     isInitialized = true;
                     return true;
@@ -54,6 +57,53 @@ bool MultizoneTofSensor::initialize() {
                  initRetryCount, MAX_INIT_RETRIES);
     scanI2C();  // Scan I2C bus to help debug
     return false;
+}
+
+// Initialize the point histories
+void MultizoneTofSensor::initializePointHistories() {
+    for (int r = 0; r < ROI_ROWS; r++) {
+        for (int c = 0; c < ROI_COLS; c++) {
+            pointHistories[r][c].index = 0;
+            pointHistories[r][c].validReadings = 0;
+            
+            // Initialize all distance values to 0
+            for (int i = 0; i < HISTORY_SIZE; i++) {
+                pointHistories[r][c].distances[i] = 0;
+            }
+        }
+    }
+    Serial.println("Point histories initialized");
+}
+
+// Update the history for a specific point
+void MultizoneTofSensor::updatePointHistory(int rowIdx, int colIdx, float distance) {
+    // Update the history for this point
+    pointHistories[rowIdx][colIdx].distances[pointHistories[rowIdx][colIdx].index] = distance;
+    pointHistories[rowIdx][colIdx].index = (pointHistories[rowIdx][colIdx].index + 1) % HISTORY_SIZE;
+    
+    // Increment valid readings counter (up to HISTORY_SIZE)
+    if (pointHistories[rowIdx][colIdx].validReadings < HISTORY_SIZE) {
+        pointHistories[rowIdx][colIdx].validReadings++;
+    }
+}
+
+// Check if a point has consistently detected an obstacle
+bool MultizoneTofSensor::isPointObstacleConsistent(int rowIdx, int colIdx) {
+    // If we don't have enough readings yet, return false
+    if (pointHistories[rowIdx][colIdx].validReadings < HISTORY_SIZE) {
+        return false;
+    }
+    
+    // Check if all readings in the history are below the threshold
+    for (int i = 0; i < HISTORY_SIZE; i++) {
+        if (pointHistories[rowIdx][colIdx].distances[i] >= obstacleDistanceThreshold || 
+            pointHistories[rowIdx][colIdx].distances[i] <= 0) { // Skip invalid readings
+            return false;
+        }
+    }
+    
+    // All readings are valid and below threshold
+    return true;
 }
 
 bool MultizoneTofSensor::configureSensor() {
@@ -171,7 +221,7 @@ float MultizoneTofSensor::getAverageDistanceCenterline() {
 
 float MultizoneTofSensor::getWeightedAverageDistance() {
     // Get the latest sensor data
-    VL53L7CX_ResultsData tofData = getTofData();
+    VL53L7CX_ResultsData tofData = sensorData;
     
     int validPointCount = 0;
     float totalWeightedDistance = 0;
@@ -236,20 +286,64 @@ float MultizoneTofSensor::getWeightedAverageDistance() {
     }
 }
 
+// Modified isObjectDetected function to use point histories
 bool MultizoneTofSensor::isObjectDetected() {
+    // Get the latest sensor data
+    VL53L7CX_ResultsData *Result = &sensorData;
+    
+    // First update all point histories with current readings
+    for (int rowIdx = 0; rowIdx < ROI_ROWS; rowIdx++) {
+        int row = rowIdx + 3;  // Convert to physical row (3-4)
+        
+        for (int colIdx = 0; colIdx < ROI_COLS; colIdx++) {
+            int col = colIdx + 1;  // Convert to physical column (1-6)
+            
+            // Calculate the actual index in the sensor data array
+            int index = row * 8 + col;
+            
+            // Check if we have valid data for this point
+            if (Result->nb_target_detected[index] > 0) {
+                uint16_t distance = Result->distance_mm[index];
+                uint8_t status = Result->target_status[index];
+                
+                // Apply filtering parameters
+                if (distance <= maxDistance && 
+                    distance >= minDistance && 
+                    status >= signalThreshold) {
+                    
+                    // Update the history for this valid point
+                    updatePointHistory(rowIdx, colIdx, (float)distance);
+                } else {
+                    // For invalid readings, update with -1 (not usable)
+                    updatePointHistory(rowIdx, colIdx, -1.0f);
+                }
+            } else {
+                // No reading for this point, update with -1 (not usable)
+                updatePointHistory(rowIdx, colIdx, -1.0f);
+            }
+        }
+    }
+    
+    // Also still calculate the weighted average for the approaching object logic
     float weightedDistance = getWeightedAverageDistance();
     
-    // If we have a valid weighted distance
+    // If we have a valid weighted distance, update the centerline history
     if (weightedDistance > 0) {
-        // Store the current distance in the history array
         previousCenterlineDistances[historyIndex] = weightedDistance;
         historyIndex = (historyIndex + 1) % HISTORY_SIZE;
-        
-        // Check if current distance indicates an obstacle
-        if (weightedDistance < obstacleDistanceThreshold) {
-            return true;
+    }
+    
+    // Now check each point to see if any has consistently detected an obstacle
+    for (int rowIdx = 0; rowIdx < ROI_ROWS; rowIdx++) {
+        for (int colIdx = 0; colIdx < ROI_COLS; colIdx++) {
+            if (isPointObstacleConsistent(rowIdx, colIdx)) {
+                return true;  // Found a point with consistent obstacle detection
+            }
         }
-        
+    }
+    
+    // Still keep the approaching object logic as a backup
+    if (weightedDistance > 0) {
         // Check for approaching objects by analyzing history
         float sumDistanceChange = 0;
         int validComparisons = 0;
@@ -281,11 +375,14 @@ bool MultizoneTofSensor::checkWatchdog() {
 }
 
 void MultizoneTofSensor::resetHistory() {
-    // Reset history array
+    // Reset history array for weighted average
     for (int i = 0; i < HISTORY_SIZE; i++) {
         previousCenterlineDistances[i] = 0;
     }
     historyIndex = 0;
+    
+    // Reset point histories
+    initializePointHistories();
 }
 
 void MultizoneTofSensor::startRanging() {
@@ -341,4 +438,7 @@ void MultizoneTofSensor::printResult(VL53L7CX_ResultsData *Result) {
         Serial.print(" --------");
     }
     Serial.println("-\n");
+    
+    // Print point histories status
+    // printPointHistoriesStatus(Result);
 }
