@@ -266,6 +266,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
                         break;
                     case SENSOR_SIDE_LEFT_PROXIMITY: {
                         uint16_t counts = Sensors::getInstance().getLeftSideTofCounts();
+                        Serial.printf("counts %d\n", counts);
                         registers[regId].asBool = (counts > LEFT_PROXIMITY_THRESHOLD);
                         registerTypes[regId] = VAR_BOOL;
                         registerInitialized[regId] = true;
@@ -281,8 +282,8 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
                         break;
                     }
                     case SENSOR_FRONT_PROXIMITY: {
-                        float average_distance = Sensors::getInstance().getAverageDistanceCenterline();  // You'll need to implement this
-                        registers[regId].asBool = (average_distance < FRONT_PROXIMITY_THRESHOLD);
+                        float isObjectDetected = Sensors::getInstance().isObjectDetected();  // You'll need to implement this
+                        registers[regId].asBool = isObjectDetected;
                         registerTypes[regId] = VAR_BOOL;
                         registerInitialized[regId] = true;
                         skipDefaultAssignment = true;  // Set flag
@@ -327,32 +328,32 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
 
         case OP_JUMP: {
             // Unconditional jump
-            uint16_t jumpOffset = static_cast<uint16_t>(instr.operand1);
-            
-            // Calculate new PC - we need to subtract 1 because the PC will be incremented
-            // after this instruction executes
-            uint16_t targetInstruction = pc + (jumpOffset / INSTRUCTION_SIZE);  // 20 bytes per instruction
-            pc = targetInstruction - 1;
-        
+            uint8_t low = static_cast<uint8_t>(instr.operand1);
+            uint8_t high = static_cast<uint8_t>(instr.operand2);
+            uint16_t jumpOffset = (high << 8) | low; // Combine high and low bytes into 16-bit offset
+            uint16_t targetInstruction = pc + (jumpOffset / INSTRUCTION_SIZE); // 20 bytes per instruction
+            pc = targetInstruction - 1; // Subtract 1 because pc increments after this
             break;
         }
 
         case OP_JUMP_BACKWARD: {
             // Backward jump (used in for loops)
-            uint16_t jumpOffset = static_cast<uint16_t>(instr.operand1);
-            
-            // For backward jumps, SUBTRACT the offset
-            uint16_t targetInstruction = pc - (jumpOffset / INSTRUCTION_SIZE);  // 20 bytes per instruction
-            pc = targetInstruction - 1; // -1 because pc will be incremented after
+            uint8_t low = static_cast<uint8_t>(instr.operand1);
+            uint8_t high = static_cast<uint8_t>(instr.operand2);
+            uint16_t jumpOffset = (high << 8) | low; // Combine high and low bytes into 16-bit offset
+            uint16_t targetInstruction = pc - (jumpOffset / INSTRUCTION_SIZE); // Subtract for backward jump
+            pc = targetInstruction - 1; // Subtract 1 because pc increments after
             break;
         }
 
         case OP_JUMP_IF_TRUE: {
             // Conditional jump if last comparison was true
             if (lastComparisonResult) {
-                uint16_t jumpOffset = static_cast<uint16_t>(instr.operand1);
-                uint16_t targetInstruction = pc + (jumpOffset / INSTRUCTION_SIZE);  // 20 bytes per instruction
-                pc = targetInstruction - 1;
+                uint8_t low = static_cast<uint8_t>(instr.operand1);
+                uint8_t high = static_cast<uint8_t>(instr.operand2);
+                uint16_t jumpOffset = (high << 8) | low; // Combine high and low bytes into 16-bit offset
+                uint16_t targetInstruction = pc + (jumpOffset / INSTRUCTION_SIZE); // 20 bytes per instruction
+                pc = targetInstruction - 1; // Subtract 1 because pc increments after
             }
             break;
         }
@@ -360,9 +361,11 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
         case OP_JUMP_IF_FALSE: {
             // Conditional jump if last comparison was false
             if (!lastComparisonResult) {
-                uint16_t jumpOffset = static_cast<uint16_t>(instr.operand1);
-                uint16_t targetInstruction = pc + (jumpOffset / INSTRUCTION_SIZE);  // 20 bytes per instruction
-                pc = targetInstruction - 1;
+                uint8_t low = static_cast<uint8_t>(instr.operand1);
+                uint8_t high = static_cast<uint8_t>(instr.operand2);
+                uint16_t jumpOffset = (high << 8) | low; // Combine high and low bytes into 16-bit offset
+                uint16_t targetInstruction = pc + (jumpOffset / INSTRUCTION_SIZE); // 20 bytes per instruction
+                pc = targetInstruction - 1; // Subtract 1 because pc increments after
             }
             break;
         }
@@ -421,15 +424,13 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
         }
 
         case OP_WHILE_END: {
-            // Jump back to the corresponding WHILE_START
-            uint16_t offsetToStart = static_cast<uint16_t>(instr.operand1);
-            
-            // Calculate the new PC (jumping backwards)
-            // We need to make sure we don't go out of bounds
-            if (offsetToStart <= static_cast<float>(pc * INSTRUCTION_SIZE)) {  // 20 bytes per instruction
+            uint8_t low = static_cast<uint8_t>(instr.operand1);
+            uint8_t high = static_cast<uint8_t>(instr.operand2);
+            uint16_t offsetToStart = (high << 8) | low;
+            Serial.println("Jumping to start of while loop");
+            if (offsetToStart <= pc * INSTRUCTION_SIZE) {
                 pc = pc - (offsetToStart / INSTRUCTION_SIZE);
             } else {
-                // Safety check - if offset is invalid, stop execution
                 pc = programSize;
                 Serial.println("Invalid loop jump - stopping execution");
             }
@@ -501,7 +502,9 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
         
         case OP_MOTOR_STOP: {
             // Stop both motors
-            motorDriver.brake_both_motors();
+            // motorDriver.brake_both_motors();
+            motorDriver.stop_both_motors();
+            motorDriver.force_reset_motors();
             break;
         }
         
@@ -675,12 +678,12 @@ void BytecodeVM::updateTurning() {
     
     // Check for timeout (safety feature)
     unsigned long elapsed = millis() - turnStartTime;
-    bool timeout = elapsed > 10000; // 10 second timeout
+    bool timeout = elapsed > turnTimeout; // 10 second timeout
     
     // Check if turn is complete
     if (rotationDelta >= targetTurnDegrees || timeout) {
         // Turn complete - stop motors
-        motorDriver.brake_both_motors();
+        motorDriver.stop_both_motors();
         turningInProgress = false;
     }
 }
@@ -689,7 +692,7 @@ void BytecodeVM::updateTimedMotorMovement() {
     // Check if the timed movement has completed
     if (millis() < motorMovementEndTime) return;
     // Movement complete - brake motors
-    motorDriver.brake_both_motors();
+    motorDriver.stop_both_motors();
 
     // Reset timed movement state
     timedMotorMovementInProgress = false;
@@ -702,7 +705,7 @@ void BytecodeVM::updateDistanceMovement() {
     // Check if we've reached or exceeded the target distance
     if (currentDistance < targetDistanceCm) return;
     // Distance reached - brake motors
-    motorDriver.brake_both_motors();
+    motorDriver.stop_both_motors();
     
     // Reset distance movement state
     distanceMovementInProgress = false;

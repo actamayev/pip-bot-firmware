@@ -6,7 +6,7 @@ const uint8_t ESP_LED_PIN1 = 38;
 const uint8_t NUM_LEDS1 = 2;
 const uint8_t ESP_LED_PIN2 = 4;
 const uint8_t NUM_LEDS2 = 6;
-const uint8_t MAX_LED_BRIGHTNESS = 150;
+const uint8_t MAX_LED_BRIGHTNESS = 75;
 
 //I2C
 const uint8_t I2C_SDA = 18;
@@ -19,8 +19,6 @@ const uint8_t RIGHT_TOF_ADDRESS = 0x60;
 
 // Multizone TOF
 const uint8_t MULTIZONE_TOF_ADDRESS = 0x29; // Default address
-const uint8_t TOF_IMAGE_RESOLUTION = 8;  // Image width (can be 4 or 8)
-const uint8_t TOF_RANGING_FREQUENCY = 15;  // TOF sampling frequency
 
 // IMU
 const uint16_t IMU_UPDATE_FREQ_MICROSECS = 5000;  // 5ms, 200Hz
@@ -101,7 +99,7 @@ const char* getEnvironment() {
 const char* getServerFirmwareEndpoint() {
     const char* env = getEnvironment();
     if (env == nullptr || std::string(env) == "local") {
-        return "http://10.29.143.40:8080/pip/firmware-update";  // local can remain HTTP
+        return "http://10.103.4.40:8080/pip/firmware-update";  // local can remain HTTP
     } else if (std::string(env) == "staging") {
         return "https://staging-api.bluedotrobots.com/pip/firmware-update";
     }
@@ -111,7 +109,7 @@ const char* getServerFirmwareEndpoint() {
 const char* getWsServerUrl() {
     const char* env = getEnvironment();
     if (env == nullptr || std::string(env) == "local") {
-        return "ws://10.29.143.40:8080/esp32";  // local default
+        return "ws://10.103.4.40:8080/esp32";  // local default
     } else if (std::string(env) == "staging") {
         return "wss://staging-api.bluedotrobots.com/esp32";  // staging default
     }

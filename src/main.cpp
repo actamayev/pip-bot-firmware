@@ -25,33 +25,70 @@ void SensorAndBytecodeTask(void * parameter) {
     delay(10);
     // Initialize sensors on Core 0
     Serial.println("Initializing sensors on Core 0...");
-    Sensors::getInstance();
+
+    // Initialize both singletons
+    LogManager::getInstance().println("Initializing sensors on Core 0...");
+
+    SensorInitializer& initializer = SensorInitializer::getInstance();
+    Sensors& sensors = Sensors::getInstance();
+
     Buttons::getInstance().begin();  // Initialize the buttons
     setupButtonLoggers();
-    // if (!DisplayScreen::getInstance().init(Wire)) {
-    //     Serial.println("Display initialization failed");
-    // }
-    Serial.println("Sensors initialized on Core 0");
-
+    if (!DisplayScreen::getInstance().init(Wire)) {
+        Serial.println("Display initialization failed");
+    }
+    
+    // First attempt to initialize each sensor before entering the main loop
+    if (!initializer.isSensorInitialized(SensorInitializer::IMU)) {
+        sensors.tryInitializeIMU();
+    }
+    
+    if (!initializer.isSensorInitialized(SensorInitializer::MULTIZONE_TOF)) {
+        LogManager::getInstance().println("Initializing TOF sensor...");
+        sensors.tryInitializeMultizoneTof();
+    }
+    
+    if (!initializer.isSensorInitialized(SensorInitializer::LEFT_SIDE_TOF)) {
+        sensors.tryInitializeLeftSideTof();
+    }
+    
+    if (!initializer.isSensorInitialized(SensorInitializer::RIGHT_SIDE_TOF)) {
+        sensors.tryInitializeRightSideTof();
+    }
+    
+    LogManager::getInstance().println("Sensors initialized on Core 0");
     enableCore0WDT();
+
+    unsigned long lastTofPollTime = 0;
+    const unsigned long TOF_POLL_INTERVAL = 500; // Poll every 500ms
 
     // Main sensor and bytecode loop
     for(;;) {
         ledAnimations.update();
-        if (!Sensors::getInstance().sensors_initialized && !Sensors::getInstance().tryInitializeIMU()) {
-            // If sensors not initialized AND initialization attempt failed, skip bytecode
-            delay(5);
+        Buttons::getInstance().update();  // Update button states
+        
+        // Only check if all sensors are initialized, but don't try to initialize here
+        if (!initializer.areAllSensorsInitialized()) {
+            // Skip bytecode execution if sensors aren't ready
+            vTaskDelay(pdMS_TO_TICKS(5));
             continue;
         }
+        unsigned long currentTime = millis();
+        if (currentTime - lastTofPollTime > TOF_POLL_INTERVAL) {
+            if (initializer.isSensorInitialized(SensorInitializer::MULTIZONE_TOF)) {
+                // Just poll data to keep sensor active - don't need to store result
+                sensors.getMultizoneTofData();
+                lastTofPollTime = currentTime;
+            }
+        }
         SerialManager::getInstance().pollSerial();
-        Buttons::getInstance().update();  // Update button states
         BytecodeVM::getInstance().update();
+        MessageProcessor::getInstance().processPendingCommands();
+        // DisplayScreen::getInstance().update();
         // multizoneTofLogger();
         // imuLogger();
         // sideTofsLogger();
-        // DisplayScreen::getInstance().update();
-        MessageProcessor::getInstance().processPendingCommands();
-        delay(5);
+        vTaskDelay(pdMS_TO_TICKS(5));  // Use proper FreeRTOS delay
     }
 }
 
@@ -130,5 +167,5 @@ void setup() {
 // Main loop runs on Core 1
 void loop() {
     // Main loop can remain mostly empty as tasks handle the work
-    vTaskDelay(1);  // FreeRTOS way to yield to other tasks
+    vTaskDelay(pdMS_TO_TICKS(1));
 }
