@@ -52,6 +52,7 @@ class BytecodeVM : public Singleton<BytecodeVM> {
         bool compareValues(ComparisonOp op, float leftOperand, float rightValue);
 
         bool turningInProgress = false;
+        const int turnTimeout = 2000; // 1 second timeout for turn operations
         float targetTurnDegrees = 0;
         float initialTurnYaw = 0;
         bool turnClockwise = true;
@@ -72,8 +73,8 @@ class BytecodeVM : public Singleton<BytecodeVM> {
         // Helper method for distance-based motor operations
         void updateDistanceMovement();
 
-        static const uint16_t LEFT_PROXIMITY_THRESHOLD = 500;
-        static const uint16_t RIGHT_PROXIMITY_THRESHOLD = 500;
+        static const uint16_t LEFT_PROXIMITY_THRESHOLD = 650;
+        static const uint16_t RIGHT_PROXIMITY_THRESHOLD = 650;
 
         bool waitingForButtonPress = false;
         bool waitingForButtonRelease = false;

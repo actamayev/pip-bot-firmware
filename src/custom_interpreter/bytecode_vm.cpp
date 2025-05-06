@@ -678,7 +678,7 @@ void BytecodeVM::updateTurning() {
     
     // Check for timeout (safety feature)
     unsigned long elapsed = millis() - turnStartTime;
-    bool timeout = elapsed > 10000; // 10 second timeout
+    bool timeout = elapsed > turnTimeout; // 10 second timeout
     
     // Check if turn is complete
     if (rotationDelta >= targetTurnDegrees || timeout) {

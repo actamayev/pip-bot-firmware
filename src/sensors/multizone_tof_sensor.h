@@ -79,10 +79,10 @@ class MultizoneTofSensor {
         const uint8_t TARGET_STATUS_VALID_WRAPPED = 6;
         
         // Temporal tracking variables for weighted average
-        static const uint8_t HISTORY_SIZE = 3;
+        static const uint8_t HISTORY_SIZE = 5;
         float previousCenterlineDistances[HISTORY_SIZE] = {0};
         int historyIndex = 0;
-        float approachingThreshold = 20.0f; // mm change needed to trigger approaching detection
+        float approachingThreshold = 30.0f; // mm change needed to trigger approaching detection
         
         struct PointHistory {
             float distances[HISTORY_SIZE];     // Last 5 distance readings
