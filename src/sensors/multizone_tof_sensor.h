@@ -67,7 +67,7 @@ class MultizoneTofSensor {
         uint8_t signalThreshold = 5;       // Minimum signal quality threshold (reduced for better hand detection)
         uint8_t minValidPoints = 3;        // Minimum valid points for obstacle detection
         uint8_t tofResolution = VL53L7CX_RESOLUTION_8X8; // Sensor resolution
-        uint16_t obstacleDistanceThreshold = 200; // Distance threshold to consider obstacle (mm)
+        uint16_t obstacleDistanceThreshold = 125; // Distance threshold to consider obstacle (mm)
         uint16_t xtalkMargin = 120;         // Xtalk margin for noise filtering
         uint8_t sharpenerPercent = 1;      // Sharpener percentage (0-99)
         uint32_t integrationTimeMs = 20;   // Integration time in milliseconds
@@ -79,10 +79,10 @@ class MultizoneTofSensor {
         const uint8_t TARGET_STATUS_VALID_WRAPPED = 6;
         
         // Temporal tracking variables for weighted average
-        static const uint8_t HISTORY_SIZE = 5;
+        static const uint8_t HISTORY_SIZE = 3;
         float previousCenterlineDistances[HISTORY_SIZE] = {0};
         int historyIndex = 0;
-        float approachingThreshold = 30.0f; // mm change needed to trigger approaching detection
+        float approachingThreshold = 20.0f; // mm change needed to trigger approaching detection
         
         struct PointHistory {
             float distances[HISTORY_SIZE];     // Last 5 distance readings
