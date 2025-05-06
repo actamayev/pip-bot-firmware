@@ -16,7 +16,7 @@ class ImuSensor {
         float getYaw();
         float getRoll();
 
-        // Acceleromter:
+        // Accelerometer:
         float getXAccel();
         float getYAccel();
         float getZAccel();

@@ -5,6 +5,7 @@
 #include "./color_sensor.h"
 #include "./multizone_tof_sensor.h"
 #include "./side_time_of_flight_sensor.h"
+#include "./sensor_initializer.h"
 
 class Sensors : public Singleton<Sensors> {
     friend class Singleton<Sensors>;
@@ -44,12 +45,20 @@ class Sensors : public Singleton<Sensors> {
         uint16_t getLeftSideTofCounts();
         uint16_t getRightSideTofCounts();
 
-        bool sensors_initialized = false;
-
+        // Initialization status methods (delegated to initializer)
+        bool isSensorInitialized(SensorInitializer::SensorType sensor) const;
+        bool areAllSensorsInitialized() const;
+        
+        // Initialization attempt methods
         bool tryInitializeIMU();
+        bool tryInitializeMultizoneTof();
+        bool tryInitializeLeftSideTof();
+        bool tryInitializeRightSideTof();
 
         // Multizone Tof Sensor:
+        bool isObjectDetected();
         float getAverageDistanceCenterline();
+        void printMultizoneTofResult(VL53L7CX_ResultsData *Result);
 
     private:
         ImuSensor imu;
@@ -58,17 +67,16 @@ class Sensors : public Singleton<Sensors> {
         SideTimeOfFlightSensor rightSideTofSensor;
         ColorSensor colorSensor;
         TwoWire* wire;
+        SensorInitializer& initializer;
 
         // Private constructor - now modified to store and pass the Wire instance
-        Sensors() : multizoneTofSensor(&Wire) {
+        Sensors() : 
+            multizoneTofSensor(&Wire),
+            initializer(SensorInitializer::getInstance())
+        {
             wire = &Wire;
             initialize();
         }
 
         void initialize();
-        void initializeMultizoneTof();
-        void initializeIMU();
-        void initializeColorSensor();
-        void initializeSideTimeOfFlights();
-        bool isImuInitialized() const;
 };
