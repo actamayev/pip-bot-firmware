@@ -31,16 +31,6 @@ class MultizoneTofSensor {
         unsigned int getInitRetryCount() const { return initRetryCount; }
         unsigned int getMaxInitRetries() const { return MAX_INIT_RETRIES; }
         bool needsInitialization() const { return !isInitialized; }
-    
-        uint16_t getMaxDistance() const { return maxDistance; }
-        uint16_t getMinDistance() const { return minDistance; }
-        uint16_t getSignalThreshold() const { return signalThreshold; }
-        uint16_t getMinValidPoints() const { return minValidPoints; }
-        uint16_t getObstacleDistanceThreshold() const { return obstacleDistanceThreshold; }
-        uint16_t getXtalkMargin() const { return xtalkMargin; }
-        uint16_t getSharpenerPercent() const { return sharpenerPercent; }
-        uint16_t getIntegrationTimeMs() const { return integrationTimeMs; }
-        uint16_t getRangingFrequency() const { return rangingFrequency; }
 
     private:
         VL53L7CX sensor;
