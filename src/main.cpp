@@ -139,6 +139,8 @@ void setup() {
 
     rgbLed.turn_led_off();
 
+    psramInit(); // we're not explicitly using PSRAM but it's good to initialize it (PSRAM is used in the background by the ESP32 for various things)
+
     // Create tasks for parallel execution
     xTaskCreatePinnedToCore(
         SensorAndBytecodeTask,  // Sensor and bytecode task
