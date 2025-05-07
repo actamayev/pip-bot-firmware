@@ -26,9 +26,6 @@ void SensorAndBytecodeTask(void * parameter) {
     // Initialize sensors on Core 0
     Serial.println("Initializing sensors on Core 0...");
 
-    // Initialize both singletons
-    LogManager::getInstance().println("Initializing sensors on Core 0...");
-
     SensorInitializer& initializer = SensorInitializer::getInstance();
     Sensors& sensors = Sensors::getInstance();
 
@@ -44,7 +41,7 @@ void SensorAndBytecodeTask(void * parameter) {
     }
     
     if (!initializer.isSensorInitialized(SensorInitializer::MULTIZONE_TOF)) {
-        LogManager::getInstance().println("Initializing TOF sensor...");
+        Serial.println("Initializing TOF sensor...");
         sensors.tryInitializeMultizoneTof();
     }
     
@@ -56,7 +53,7 @@ void SensorAndBytecodeTask(void * parameter) {
         sensors.tryInitializeRightSideTof();
     }
     
-    LogManager::getInstance().println("Sensors initialized on Core 0");
+    Serial.println("Sensors initialized on Core 0");
     enableCore0WDT();
 
     unsigned long lastTofPollTime = 0;
