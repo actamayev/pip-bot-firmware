@@ -20,7 +20,7 @@ bool ImuSensor::initialize() {
     initRetryCount++;
     
     // Add a delay before trying to initialize
-    delay(50);
+    vTaskDelay(pdMS_TO_TICKS(50));
     
     // Try a few times with short delays in between
     for (int attempt = 0; attempt < 3; attempt++) {
@@ -29,7 +29,7 @@ bool ImuSensor::initialize() {
             isInitialized = true;
             return true;
         }
-        delay(20);
+        vTaskDelay(pdMS_TO_TICKS(20));
     }
     
     Serial.printf("Failed to find BNO08x chip (retry %d of %d)\n", 

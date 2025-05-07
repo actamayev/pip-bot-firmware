@@ -77,7 +77,7 @@ bool WiFiManager::attemptDirectConnectionToSavedNetworks() {
         if (attemptNewWifiConnection(network)) return true;
         
         // Brief delay before trying the next network
-        delay(100);
+        vTaskDelay(pdMS_TO_TICKS(100));
     }
     Serial.println("Failed to connect to any saved networks");
     return false;
@@ -151,7 +151,7 @@ std::vector<WiFiNetworkInfo> WiFiManager::scanWiFiNetworkInfos() {
     
     WiFi.disconnect(true);
     WiFi.scanDelete();
-    delay(100);
+    vTaskDelay(pdMS_TO_TICKS(100));
     // Set WiFi mode to station before scanning
     WiFi.mode(WIFI_STA);
 

@@ -31,7 +31,7 @@ class SideTimeOfFlightSensor {
         // Reset a specific sensor by address
         void Reset_Specific_Sensor() {
             Reset_Sensor(sensorAddress);
-            delay(100);
+            vTaskDelay(pdMS_TO_TICKS(100));
         }
 
         // Read proximity data from the sensor

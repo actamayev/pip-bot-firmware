@@ -88,7 +88,7 @@ bool SensorInitializer::tryInitializeMultizoneTof(MultizoneTofSensor& sensor) {
         // Check if we've reached max retries and should restart
         if (sensor.getInitRetryCount() >= sensor.getMaxInitRetries()) {
             Serial.println("TOF sensor initialization failed after maximum retries. Restarting ESP...");
-            delay(1000); // Give serial time to send
+            vTaskDelay(pdMS_TO_TICKS(1000)); // Give serial time to send
             ESP.restart(); // Restart the ESP
         }
         return false; // Can't retry yet
@@ -115,7 +115,7 @@ bool SensorInitializer::tryInitializeIMU(ImuSensor& sensor) {
         // Check if we've reached max retries and should restart
         if (sensor.getInitRetryCount() >= sensor.getMaxInitRetries()) {
             Serial.println("IMU initialization failed after maximum retries. Restarting ESP...");
-            delay(1000);
+            vTaskDelay(pdMS_TO_TICKS(1000));
             ESP.restart();
         }
         return false;
@@ -142,7 +142,7 @@ bool SensorInitializer::tryInitializeLeftSideTof(SideTimeOfFlightSensor& sensor)
         // Check if we've reached max retries
         if (sensor.getInitRetryCount() >= sensor.getMaxInitRetries()) {
             Serial.println("Left side TOF initialization failed after maximum retries. Restarting ESP...");
-            delay(1000);
+            vTaskDelay(pdMS_TO_TICKS(1000));
             ESP.restart();
         }
         return false; // Can't retry yet
@@ -169,7 +169,7 @@ bool SensorInitializer::tryInitializeRightSideTof(SideTimeOfFlightSensor& sensor
         // Check if we've reached max retries
         if (sensor.getInitRetryCount() >= sensor.getMaxInitRetries()) {
             Serial.println("Right side TOF initialization failed after maximum retries. Restarting ESP...");
-            delay(1000);
+            vTaskDelay(pdMS_TO_TICKS(1000));
             ESP.restart();
         }
         return false; // Can't retry yet

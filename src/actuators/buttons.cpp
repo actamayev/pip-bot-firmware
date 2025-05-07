@@ -41,7 +41,7 @@ void Buttons::setButton1ClickHandler(std::function<void(Button2&)> callback) {
         if (!(this->waitingForSleepConfirmation)) return;
 		Serial.println("Sleep confirmed with Button 1! Entering deep sleep...");
 		this->waitingForSleepConfirmation = false;
-		delay(100); // Small delay to allow serial message to be sent
+		vTaskDelay(pdMS_TO_TICKS(100)); // Small delay to allow serial message to be sent
 		enterDeepSleep();
 		return; // Don't call the original callback in this case
     });

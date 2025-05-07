@@ -23,7 +23,7 @@ bool MultizoneTofSensor::initialize() {
                  initRetryCount, MAX_INIT_RETRIES);
     
     // Add a delay before trying to initialize
-    delay(50);
+    vTaskDelay(pdMS_TO_TICKS(50));
     
     // Try a few times with short delays in between
     for (int attempt = 0; attempt < 3; attempt++) {
@@ -50,7 +50,7 @@ bool MultizoneTofSensor::initialize() {
                 }
             }
         }
-        delay(50);  // Longer delay between attempts
+        vTaskDelay(pdMS_TO_TICKS(50));  // Longer delay between attempts
     }
     
     Serial.printf("TOF sensor initialization failed (retry %d of %d)\n", 
@@ -130,7 +130,7 @@ bool MultizoneTofSensor::resetSensor() {
     
     // Stop ranging
     stopRanging();
-    delay(100);
+    vTaskDelay(pdMS_TO_TICKS(100));
     
     // Reset just the sensor without touching I2C bus initialization
     sensor.begin();

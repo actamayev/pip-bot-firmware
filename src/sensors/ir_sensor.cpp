@@ -39,7 +39,7 @@ void IrSensor::setMuxChannel(bool A, bool B, bool C) {
     digitalWrite(PIN_MUX_A, A);
     digitalWrite(PIN_MUX_B, B);
     digitalWrite(PIN_MUX_C, C);
-    delay(3);  // Small delay for multiplexer to settle
+    vTaskDelay(pdMS_TO_TICKS(3));  // Small delay for multiplexer to settle
 }
 
 float* IrSensor::getSensorData() {

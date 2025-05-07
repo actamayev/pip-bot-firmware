@@ -1,7 +1,7 @@
 #include "./show_chip_info.h"
 
 void printFlashInfo() {
-    delay(100);  // Give some time for initialization
+    vTaskDelay(pdMS_TO_TICKS(100));  // Give some time for initialization
 
     // Flash chip info
     Serial.println("\n=== Flash Chip Info ===");
