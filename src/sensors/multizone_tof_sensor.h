@@ -31,6 +31,7 @@ class MultizoneTofSensor {
         unsigned int getInitRetryCount() const { return initRetryCount; }
         unsigned int getMaxInitRetries() const { return MAX_INIT_RETRIES; }
         bool needsInitialization() const { return !isInitialized; }
+        void turnOffSensor();
 
     private:
         VL53L7CX sensor;

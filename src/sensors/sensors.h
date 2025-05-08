@@ -59,6 +59,7 @@ class Sensors : public Singleton<Sensors> {
         bool isObjectDetected();
         float getAverageDistanceCenterline();
         void printMultizoneTofResult(VL53L7CX_ResultsData *Result);
+        void turnOffMultizone();
 
     private:
         ImuSensor imu;

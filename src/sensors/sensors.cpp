@@ -138,3 +138,7 @@ float Sensors::getAverageDistanceCenterline() {
 void Sensors::printMultizoneTofResult(VL53L7CX_ResultsData *Result) {
     multizoneTofSensor.printResult(Result);
 }
+
+void Sensors::turnOffMultizone() {
+    multizoneTofSensor.turnOffSensor();
+}

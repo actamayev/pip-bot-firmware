@@ -442,3 +442,16 @@ void MultizoneTofSensor::printResult(VL53L7CX_ResultsData *Result) {
     // Print point histories status
     // printPointHistoriesStatus(Result);
 }
+
+void MultizoneTofSensor::turnOffSensor() {
+    stopRanging();
+    sensor.vl53l7cx_set_power_mode(VL53L7CX_POWER_MODE_SLEEP);
+    sensorActive = false;
+    isInitialized = false;
+    initRetryCount = 0;
+    lastInitAttempt = 0;
+    
+    initializePointHistories();
+    
+    Serial.println("Sensor turned off");
+}
