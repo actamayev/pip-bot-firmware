@@ -427,7 +427,6 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             uint8_t low = static_cast<uint8_t>(instr.operand1);
             uint8_t high = static_cast<uint8_t>(instr.operand2);
             uint16_t offsetToStart = (high << 8) | low;
-            Serial.println("Jumping to start of while loop");
             if (offsetToStart <= pc * INSTRUCTION_SIZE) {
                 pc = pc - (offsetToStart / INSTRUCTION_SIZE);
             } else {

@@ -131,10 +131,6 @@ bool Sensors::isObjectDetected() {
     return multizoneTofSensor.isObjectDetected();
 }
 
-float Sensors::getAverageDistanceCenterline() {
-    return multizoneTofSensor.getAverageDistanceCenterline();
-}
-
 void Sensors::printMultizoneTofResult(VL53L7CX_ResultsData *Result) {
     multizoneTofSensor.printResult(Result);
 }

@@ -109,7 +109,6 @@ bool MultizoneTofSensor::isPointObstacleConsistent(int rowIdx, int colIdx) {
 bool MultizoneTofSensor::configureSensor() {
     // Configure sensor settings from configuration constants
     sensor.vl53l7cx_set_resolution(tofResolution); // Use 8x8 resolution
-    sensor.vl53l7cx_set_ranging_frequency_hz(rangingFrequency);
     
     // Set target order to closest (better for obstacle avoidance)
     sensor.vl53l7cx_set_target_order(VL53L7CX_TARGET_ORDER_CLOSEST);
@@ -118,7 +117,8 @@ bool MultizoneTofSensor::configureSensor() {
     sensor.vl53l7cx_set_xtalk_margin(xtalkMargin);
     sensor.vl53l7cx_set_sharpener_percent(sharpenerPercent);
     sensor.vl53l7cx_set_integration_time_ms(integrationTimeMs);
-    
+    sensor.vl53l7cx_set_ranging_mode(VL53L7CX_RANGING_MODE_CONTINUOUS);
+
     return true;
 }
 
@@ -172,6 +172,7 @@ void MultizoneTofSensor::measureDistance() {
         return;
     }
     
+    Serial.println("New data ready");
     // Get the ranging data
     sensor.vl53l7cx_get_ranging_data(&sensorData);
     

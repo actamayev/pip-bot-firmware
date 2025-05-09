@@ -31,9 +31,9 @@ void SensorAndBytecodeTask(void * parameter) {
 
     Buttons::getInstance().begin();  // Initialize the buttons
     setupButtonLoggers();
-    if (!DisplayScreen::getInstance().init(Wire)) {
-        Serial.println("Display initialization failed");
-    }
+    // if (!DisplayScreen::getInstance().init(Wire)) {
+    //     Serial.println("Display initialization failed");
+    // }
     
     // First attempt to initialize each sensor before entering the main loop
     if (!initializer.isSensorInitialized(SensorInitializer::IMU)) {
@@ -152,15 +152,15 @@ void setup() {
         0                       // Run on Core 0
     );
 
-    xTaskCreatePinnedToCore(
-        NetworkTask,            // Network handling task
-        "Network",              // Task name
-        NETWORK_STACK_SIZE,      // Stack size
-        NULL,                   // Task parameters
-        1,                      // Priority
-        NULL,                   // Task handle
-        1                       // Run on Core 1
-    );
+    // xTaskCreatePinnedToCore(
+    //     NetworkTask,            // Network handling task
+    //     "Network",              // Task name
+    //     NETWORK_STACK_SIZE,      // Stack size
+    //     NULL,                   // Task parameters
+    //     1,                      // Priority
+    //     NULL,                   // Task handle
+    //     1                       // Run on Core 1
+    // );
 }
 
 // Main loop runs on Core 1

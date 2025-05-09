@@ -57,7 +57,6 @@ class Sensors : public Singleton<Sensors> {
 
         // Multizone Tof Sensor:
         bool isObjectDetected();
-        float getAverageDistanceCenterline();
         void printMultizoneTofResult(VL53L7CX_ResultsData *Result);
         void turnOffMultizone();
 
