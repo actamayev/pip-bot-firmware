@@ -3,16 +3,19 @@
 #include <vl53l7cx_class.h>
 #include "../utils/utils.h"
 #include "../utils/config.h"
+#include "../utils/singleton.h"
 
 // Define ROI dimensions
 #define ROI_ROWS 2        // Rows 3-4
 #define ROI_COLS 6        // Columns 1-6
 
-class MultizoneTofSensor {
+class MultizoneTofSensor : public Singleton<MultizoneTofSensor> {
+    friend class Singleton<MultizoneTofSensor>;
+
     public:
         // Constructor that takes TwoWire instance and optional pin parameters
-        MultizoneTofSensor(TwoWire *wire = &Wire) 
-            : sensor(wire, -1, -1) {}
+        MultizoneTofSensor() 
+            : sensor(&DEV_I2C, -1, -1) {}
 
         bool initialize();
         bool canRetryInitialization() const;
@@ -54,15 +57,11 @@ class MultizoneTofSensor {
         uint16_t minDistance = 30;         // Minimum distance threshold to filter out phantom readings
         uint8_t signalThreshold = 5;       // Minimum signal quality threshold (reduced for better hand detection)
         uint8_t tofResolution = VL53L7CX_RESOLUTION_8X8; // Sensor resolution
+        uint8_t rangingFrequency = 15; // Ranging frequency in Hz
         uint16_t obstacleDistanceThreshold = 125; // Distance threshold to consider obstacle (mm)
         uint16_t xtalkMargin = 120;         // Xtalk margin for noise filtering
         uint8_t sharpenerPercent = 1;      // Sharpener percentage (0-99)
         uint32_t integrationTimeMs = 20;   // Integration time in milliseconds
-        
-        // Target status constants
-        const uint8_t TARGET_STATUS_VALID = 5;
-        const uint8_t TARGET_STATUS_VALID_LARGE_PULSE = 9;
-        const uint8_t TARGET_STATUS_VALID_WRAPPED = 6;
         
         // Temporal tracking variables for weighted average
         static const uint8_t HISTORY_SIZE = 3;

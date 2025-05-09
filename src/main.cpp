@@ -56,28 +56,14 @@ void SensorAndBytecodeTask(void * parameter) {
     Serial.println("Sensors initialized on Core 0");
     enableCore0WDT();
 
-    unsigned long lastTofPollTime = 0;
-    const unsigned long TOF_POLL_INTERVAL = 500; // Poll every 500ms
-
+    // Only check if all sensors are initialized, but don't try to initialize here
+    if (!initializer.areAllSensorsInitialized()) {
+        while (1);
+    }
     // Main sensor and bytecode loop
     for(;;) {
         ledAnimations.update();
         Buttons::getInstance().update();  // Update button states
-        
-        // Only check if all sensors are initialized, but don't try to initialize here
-        if (!initializer.areAllSensorsInitialized()) {
-            // Skip bytecode execution if sensors aren't ready
-            vTaskDelay(pdMS_TO_TICKS(5));
-            continue;
-        }
-        unsigned long currentTime = millis();
-        if (currentTime - lastTofPollTime > TOF_POLL_INTERVAL) {
-            if (initializer.isSensorInitialized(SensorInitializer::MULTIZONE_TOF)) {
-                // Just poll data to keep sensor active - don't need to store result
-                sensors.getMultizoneTofData();
-                lastTofPollTime = currentTime;
-            }
-        }
         SerialManager::getInstance().pollSerial();
         BytecodeVM::getInstance().update();
         MessageProcessor::getInstance().processPendingCommands();
@@ -152,15 +138,15 @@ void setup() {
         0                       // Run on Core 0
     );
 
-    // xTaskCreatePinnedToCore(
-    //     NetworkTask,            // Network handling task
-    //     "Network",              // Task name
-    //     NETWORK_STACK_SIZE,      // Stack size
-    //     NULL,                   // Task parameters
-    //     1,                      // Priority
-    //     NULL,                   // Task handle
-    //     1                       // Run on Core 1
-    // );
+    xTaskCreatePinnedToCore(
+        NetworkTask,            // Network handling task
+        "Network",              // Task name
+        NETWORK_STACK_SIZE,      // Stack size
+        NULL,                   // Task parameters
+        1,                      // Priority
+        NULL,                   // Task handle
+        1                       // Run on Core 1
+    );
 }
 
 // Main loop runs on Core 1

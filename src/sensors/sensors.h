@@ -66,17 +66,11 @@ class Sensors : public Singleton<Sensors> {
         SideTimeOfFlightSensor leftSideTofSensor;
         SideTimeOfFlightSensor rightSideTofSensor;
         ColorSensor colorSensor;
-        TwoWire* wire;
         SensorInitializer& initializer;
 
         // Private constructor - now modified to store and pass the Wire instance
-        Sensors() : 
-            multizoneTofSensor(&Wire),
-            initializer(SensorInitializer::getInstance())
-        {
-            wire = &Wire;
-            initialize();
-        }
+        Sensors() : initializer(SensorInitializer::getInstance())
+        { initialize(); }
 
         void initialize();
 };

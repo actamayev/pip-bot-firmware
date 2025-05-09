@@ -19,7 +19,7 @@ bool MultizoneTofSensor::initialize() {
     lastInitAttempt = millis();
     initRetryCount++;
     
-    Serial.printf("Initializing TOF sensor (attempt %d of %d)...\n", 
+    Serial.printf("Initializing MZ-TOF sensor (attempt %d of %d)...\n", 
                  initRetryCount, MAX_INIT_RETRIES);
     
     // Add a delay before trying to initialize
@@ -110,6 +110,7 @@ bool MultizoneTofSensor::configureSensor() {
     // Configure sensor settings from configuration constants
     sensor.vl53l7cx_set_resolution(tofResolution); // Use 8x8 resolution
     
+    sensor.vl53l7cx_set_ranging_frequency_hz(rangingFrequency);
     // Set target order to closest (better for obstacle avoidance)
     sensor.vl53l7cx_set_target_order(VL53L7CX_TARGET_ORDER_CLOSEST);
     
@@ -119,6 +120,7 @@ bool MultizoneTofSensor::configureSensor() {
     sensor.vl53l7cx_set_integration_time_ms(integrationTimeMs);
     sensor.vl53l7cx_set_ranging_mode(VL53L7CX_RANGING_MODE_CONTINUOUS);
 
+    Serial.println("Sensor configured with optimized parameters");
     return true;
 }
 
@@ -187,6 +189,7 @@ VL53L7CX_ResultsData MultizoneTofSensor::getTofData() {
 
 // Modified isObjectDetected function to use point histories
 bool MultizoneTofSensor::isObjectDetected() {
+    measureDistance();
     // Get the latest sensor data
     VL53L7CX_ResultsData *Result = &sensorData;
     
