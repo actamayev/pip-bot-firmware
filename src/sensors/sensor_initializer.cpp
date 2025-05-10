@@ -79,6 +79,12 @@ void SensorInitializer::initializeSideTimeOfFlights() {
     Serial.println("Side TOF setup complete");
 }
 
+void SensorInitializer::initializeIRSensors() {
+    Serial.println("Initializing IR sensors...");
+    IrSensor::getInstance();
+    // sensorInitialized[IR_SENSORS] = true;
+}
+
 bool SensorInitializer::tryInitializeMultizoneTof() {
     MultizoneTofSensor& mZoneSensor = MultizoneTofSensor::getInstance();
     if (!mZoneSensor.needsInitialization()) {

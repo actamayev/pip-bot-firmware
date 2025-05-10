@@ -1,9 +1,8 @@
 #include "../utils/config.h"
 #include "./ir_sensor.h"
 
-IrSensor irSensor;
-
 IrSensor::IrSensor() {
+    // 5/10/25: IMPORTANT TODO: This needs to be changed accordingly
     channels[0] = {"Y6", LOW, HIGH, HIGH};    // First IR (y6)
     channels[1] = {"Y4", LOW, LOW, HIGH};     // Second IR (y4)
     channels[2] = {"Y0", LOW, LOW, LOW};      // Third IR (y0)
@@ -21,7 +20,7 @@ IrSensor::IrSensor() {
     
     // Configure and enable IR sensor
     pinMode(PIN_IR_EN, OUTPUT);
-    digitalWrite(PIN_IR_EN, HIGH);
+    analogWrite(PIN_IR_EN, 51);
 }
 
 void IrSensor::read_ir_sensor() {

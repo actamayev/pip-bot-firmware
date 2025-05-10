@@ -10,7 +10,7 @@ void SendDataToServer::attachRPMData(JsonObject& payload) {
 
 // Add IR sensor data to the provided JSON payload
 void SendDataToServer::attachIRData(JsonObject& payload) {
-    float* irSensorData = irSensor.getSensorData();
+    float* irSensorData = IrSensor::getInstance().getSensorData();
 
     // Create a JSON array for the sensor readings
     JsonArray irArray = payload.createNestedArray("irSensorData");

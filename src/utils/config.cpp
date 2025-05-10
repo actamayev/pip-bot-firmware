@@ -42,14 +42,14 @@ const int8_t OLED_RESET = -1;  // Reset pin (-1 if sharing Arduino reset pin)
 const uint8_t SCREEN_ADDRESS = 0x3C;
 
 // Color Sensor
-const uint8_t COLOR_SENSOR_LED_PIN = 16;
+const uint8_t COLOR_SENSOR_LED_PIN = 5;
 
 // IR sensor
-const uint8_t PIN_MUX_C = 4;    // Multiplexer C input
-const uint8_t PIN_MUX_B = 5;    // Multiplexer B input
-const uint8_t PIN_MUX_A = 6;    // Multiplexer A input
+const uint8_t PIN_MUX_C = 15;    // Multiplexer C input
+const uint8_t PIN_MUX_B = 16;    // Multiplexer B input
+const uint8_t PIN_MUX_A = 17;    // Multiplexer A input
 const uint8_t PIN_MUX_OUT = 7;  // Multiplexer output
-const uint8_t PIN_IR_EN = 15;    // IR sensor enable pin
+const uint8_t PIN_IR_EN = 6;    // IR sensor enable pin
 
 //Speaker
 const uint8_t AUDIO_PIN = 9;
