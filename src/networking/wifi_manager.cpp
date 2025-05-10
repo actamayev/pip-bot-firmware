@@ -59,15 +59,15 @@ bool WiFiManager::attemptDirectConnectionToSavedNetworks() {
         return false;
     }
 
-    if (ledAnimations.getCurrentAnimation() != LedTypes::BREATHING) {
-        rgbLed.set_led_red();
-        ledAnimations.startBreathing();
-    }
+    // if (ledAnimations.getCurrentAnimation() != LedTypes::BREATHING) {
+    //     rgbLed.set_led_red();
+    //     ledAnimations.startBreathing();
+    // }
 
     Serial.println("Attempting direct connection to saved networks...");
     
     // Try to connect to each saved network without scanning first
-    for (const auto& network : savedNetworks) {
+    for (const WiFiCredentials network : savedNetworks) {
         if (NetworkStateManager::getInstance().shouldStopWiFiOperations()) {
             Serial.println("Serial connection detected - aborting WiFi connection attempts");
             return false;

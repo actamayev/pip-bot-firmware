@@ -226,43 +226,43 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
                 // Read the appropriate sensor
                 switch (sensorType) {
                     case SENSOR_PITCH:
-                        value = Sensors::getInstance().getPitch();
+                        value = ImuSensor::getInstance().getPitch();
                         break;
                     case SENSOR_ROLL:
-                        value = Sensors::getInstance().getRoll();
+                        value = ImuSensor::getInstance().getRoll();
                         break;
                     case SENSOR_YAW:
-                        value = Sensors::getInstance().getYaw();
+                        value = ImuSensor::getInstance().getYaw();
                         break;
                     case SENSOR_ACCEL_X:
-                        value = Sensors::getInstance().getXAccel();
+                        value = ImuSensor::getInstance().getXAccel();
                         break;
                     case SENSOR_ACCEL_Y:
-                        value = Sensors::getInstance().getYAccel();
+                        value = ImuSensor::getInstance().getYAccel();
                         break;
                     case SENSOR_ACCEL_Z:
-                        value = Sensors::getInstance().getZAccel();
+                        value = ImuSensor::getInstance().getZAccel();
                         break;
                     case SENSOR_ACCEL_MAG:
-                        value = Sensors::getInstance().getAccelMagnitude();
+                        value = ImuSensor::getInstance().getAccelMagnitude();
                         break;
                     case SENSOR_ROT_RATE_X:
-                        value = Sensors::getInstance().getXRotationRate();
+                        value = ImuSensor::getInstance().getXRotationRate();
                         break;
                     case SENSOR_ROT_RATE_Y:
-                        value = Sensors::getInstance().getYRotationRate();
+                        value = ImuSensor::getInstance().getYRotationRate();
                         break;
                     case SENSOR_ROT_RATE_Z:
-                        value = Sensors::getInstance().getZRotationRate();
+                        value = ImuSensor::getInstance().getZRotationRate();
                         break;
                     case SENSOR_MAG_FIELD_X:
-                        value = Sensors::getInstance().getMagneticFieldX();
+                        value = ImuSensor::getInstance().getMagneticFieldX();
                         break;
                     case SENSOR_MAG_FIELD_Y:
-                        value = Sensors::getInstance().getMagneticFieldY();
+                        value = ImuSensor::getInstance().getMagneticFieldY();
                         break;
                     case SENSOR_MAG_FIELD_Z:
-                        value = Sensors::getInstance().getMagneticFieldZ();
+                        value = ImuSensor::getInstance().getMagneticFieldZ();
                         break;
                     case SENSOR_SIDE_LEFT_PROXIMITY: {
                         uint16_t counts = SideTofManager::getInstance().leftSideTofSensor.getCounts();
@@ -513,7 +513,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             // Initialize turning state
             turningInProgress = true;
             targetTurnDegrees = degrees;
-            initialTurnYaw = Sensors::getInstance().getYaw();
+            initialTurnYaw = ImuSensor::getInstance().getYaw();
             turnClockwise = clockwise;
             turnStartTime = millis();
 
@@ -661,7 +661,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
 
 void BytecodeVM::updateTurning() {
     // Get current yaw
-    float currentYaw = Sensors::getInstance().getYaw();
+    float currentYaw = ImuSensor::getInstance().getYaw();
     
     // Calculate rotation delta with wraparound handling
     float rotationDelta;
@@ -719,8 +719,8 @@ void BytecodeVM::stopProgram() {
     // MultizoneTofSensor::getInstance().turnOffSensor();
 
     // TODO: turning of IMU causes it to crash when re-initialized
-    // Sensors::getInstance().turnOffImu();
-    // Sensors::getInstance().turnOffSideTofs();
+    // ImuSensor::getInstance().turnOffImu();
+    // SideTofManager::getInstance().turnOffSideTofs();
 
     speaker.mute();
     rgbLed.turn_led_off();

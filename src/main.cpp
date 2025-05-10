@@ -1,6 +1,5 @@
 #include <esp32-hal-timer.h>
 #include "./utils/config.h"
-// #include "./sensors/sensors.h"
 #include "./actuators/buttons.h"
 #include "./actuators/speaker.h"
 #include "./utils/show_chip_info.h"
@@ -9,6 +8,7 @@
 #include "./networking/wifi_manager.h"
 #include "./actuators/display_screen.h"
 #include "./networking/serial_manager.h"
+#include "./sensors/sensor_initializer.h"
 #include "./networking/message_processor.h"
 #include "./networking/websocket_manager.h"
 #include "./actuators/led/led_animations.h"
@@ -27,7 +27,6 @@ void SensorAndBytecodeTask(void * parameter) {
     Serial.println("Initializing sensors on Core 0...");
 
     SensorInitializer& initializer = SensorInitializer::getInstance();
-    // Sensors& sensors = Sensors::getInstance();
 
     Buttons::getInstance().begin();  // Initialize the buttons
     setupButtonLoggers();
@@ -144,15 +143,15 @@ void setup() {
         0                       // Run on Core 0
     );
 
-    // xTaskCreatePinnedToCore(
-    //     NetworkTask,            // Network handling task
-    //     "Network",              // Task name
-    //     NETWORK_STACK_SIZE,      // Stack size
-    //     NULL,                   // Task parameters
-    //     1,                      // Priority
-    //     NULL,                   // Task handle
-    //     1                       // Run on Core 1
-    // );
+    xTaskCreatePinnedToCore(
+        NetworkTask,            // Network handling task
+        "Network",              // Task name
+        NETWORK_STACK_SIZE,      // Stack size
+        NULL,                   // Task parameters
+        1,                      // Priority
+        NULL,                   // Task handle
+        1                       // Run on Core 1
+    );
 }
 
 // Main loop runs on Core 1

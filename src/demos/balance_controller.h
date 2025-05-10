@@ -3,10 +3,10 @@
 #include <Arduino.h>
 #include "../utils/utils.h"
 #include "../utils/singleton.h"
-#include "../sensors/sensors.h"
 #include "../networking/protocol.h"
 #include "../actuators/led/rgb_led.h"
 #include "../actuators/motor_driver.h"
+#include "../sensors/imu.h"
 
 class BalanceController : public Singleton<BalanceController> {
     friend class Singleton<BalanceController>;

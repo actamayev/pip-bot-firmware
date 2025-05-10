@@ -7,12 +7,8 @@
 #include "./multizone_tof_sensor.h"
 #include "./side_time_of_flight_sensor.h"
 
-// Forward declaration
-class Sensors;
-
 class SensorInitializer : public Singleton<SensorInitializer> {
     friend class Singleton<SensorInitializer>;
-    friend class Sensors;
 
     public:
         enum SensorType {

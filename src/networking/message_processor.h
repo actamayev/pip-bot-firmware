@@ -3,7 +3,6 @@
 #include <Arduino.h>
 #include "../utils/config.h"
 #include "../utils/singleton.h"
-#include "../sensors/sensors.h"
 #include "../actuators/speaker.h"
 #include "../networking/protocol.h"
 #include "../actuators/motor_driver.h"

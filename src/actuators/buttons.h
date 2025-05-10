@@ -7,6 +7,7 @@
 #include "../actuators/speaker.h"
 #include "../actuators/led/rgb_led.h"
 #include "../custom_interpreter/bytecode_vm.h"
+#include "../sensors/side_tof_manager.h"
 
 class Buttons: public Singleton<Buttons> {
     friend class Singleton<Buttons>;

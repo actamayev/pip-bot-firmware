@@ -107,9 +107,8 @@ void Buttons::enterDeepSleep() {
     rgbLed.turn_led_off();
     speaker.mute();
     // MultizoneTofSensor::getInstance().turnOffSensor();
-    // Sensors::getInstance().turnOffImu();
     BytecodeVM::getInstance().stopProgram();
-    Sensors::getInstance().turnOffSideTofs();
+    SideTofManager::getInstance().turnOffSideTofs();
 
     esp_sleep_enable_ext0_wakeup((gpio_num_t)BUTTON_PIN_1, LOW); // LOW = button press (since using INPUT_PULLUP)
     esp_sleep_enable_ext0_wakeup((gpio_num_t)BUTTON_PIN_2, LOW); // LOW = button press (since using INPUT_PULLUP)

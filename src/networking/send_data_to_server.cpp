@@ -22,30 +22,30 @@ void SendDataToServer::attachIRData(JsonObject& payload) {
 }
 
 void SendDataToServer::attachImuData(JsonObject& payload) {
-    const EulerAngles& eulerAngles = Sensors::getInstance().getEulerAngles();
+    const EulerAngles& eulerAngles = ImuSensor::getInstance().getEulerAngles();
     //ROLL AND PITCH ARE SWITCHED ON PURPOSE
     payload["pitch"] = eulerAngles.roll;
     payload["yaw"] = eulerAngles.yaw;
     payload["roll"] = eulerAngles.pitch;
 
-    const AccelerometerData& accelerometerData = Sensors::getInstance().getAccelerometerData();
+    const AccelerometerData& accelerometerData = ImuSensor::getInstance().getAccelerometerData();
     payload["aX"] = accelerometerData.aX;
     payload["aY"] = accelerometerData.aY;
     payload["aZ"] = accelerometerData.aZ;
 
-    const GyroscopeData& gyroscopeData = Sensors::getInstance().getGyroscopeData();
+    const GyroscopeData& gyroscopeData = ImuSensor::getInstance().getGyroscopeData();
     payload["gX"] = gyroscopeData.gX;
     payload["gY"] = gyroscopeData.gY;
     payload["gZ"] = gyroscopeData.gZ;
 
-    const MagnetometerData& magnetometerData = Sensors::getInstance().getMagnetometerData();
+    const MagnetometerData& magnetometerData = ImuSensor::getInstance().getMagnetometerData();
     payload["mX"] = magnetometerData.mX;
     payload["mY"] = magnetometerData.mY;
     payload["mZ"] = magnetometerData.mZ;
 }
 
 void SendDataToServer::attachColorSensorData(JsonObject& payload) {
-    ColorSensorData colorSensorData = Sensors::getInstance().getColorSensorData();
+    ColorSensorData colorSensorData = ColorSensor::getInstance().getSensorData();
 
     payload["redValue"] = colorSensorData.redValue;
     payload["greenValue"] = colorSensorData.greenValue;

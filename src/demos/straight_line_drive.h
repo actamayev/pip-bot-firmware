@@ -3,8 +3,8 @@
 #include <Arduino.h>
 #include "../utils/utils.h"
 #include "../utils/singleton.h"
-#include "../sensors/sensors.h"
 #include "../actuators/motor_driver.h"
+#include "../sensors/imu.h"
 
 class StraightLineDrive : public Singleton<StraightLineDrive> {
     friend class Singleton<StraightLineDrive>;

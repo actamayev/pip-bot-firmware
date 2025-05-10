@@ -10,7 +10,7 @@ void BalanceController::enable() {
     _lastError = 0.0f;
     _lastUpdateTime = millis();
 
-    float currentAngle = Sensors::getInstance().getPitch();
+    float currentAngle = ImuSensor::getInstance().getPitch();
     _lastValidAngle = currentAngle;
 
     // Initialize buffers with the current angle
@@ -50,7 +50,7 @@ void BalanceController::update() {
     _lastUpdateTime = currentTime;
 
     // Get current pitch
-    float rawAngle = Sensors::getInstance().getPitch();
+    float rawAngle = ImuSensor::getInstance().getPitch();
     float currentAngle = rawAngle;
 
     // Update safety monitoring buffer
@@ -88,7 +88,7 @@ void BalanceController::update() {
 
     // PID calculation
     float error = TARGET_ANGLE - currentAngle;
-    float gyroRate = Sensors::getInstance().getYRotationRate();
+    float gyroRate = ImuSensor::getInstance().getYRotationRate();
 
     // If within deadband angle and rotation rate is low, stop motors
     if (abs(error) < DEADBAND_ANGLE && abs(gyroRate) < MAX_STABLE_ROTATION) {
@@ -104,7 +104,7 @@ void BalanceController::update() {
     float proportionalTerm = P_GAIN * error;
     float integralTerm = I_GAIN * _errorSum;
     float derivativeTerm = D_GAIN * -gyroRate; 
-    float yAccel = Sensors::getInstance().getYAccel();
+    float yAccel = ImuSensor::getInstance().getYAccel();
     float feedforwardTerm = FF_GAIN * yAccel;
 
     int16_t motorPower = constrain(

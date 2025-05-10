@@ -11,7 +11,7 @@ void StraightLineDrive::enable() {
     _integralError = 0.0f;
     
     // Fill the buffer with the current yaw reading to start
-    float currentYaw = Sensors::getInstance().getYaw();
+    float currentYaw = ImuSensor::getInstance().getYaw();
     for (uint8_t i = 0; i < YAW_BUFFER_SIZE; i++) {
         _yawBuffer[i] = currentYaw;
     }
@@ -35,7 +35,7 @@ void StraightLineDrive::update(int16_t& leftSpeed, int16_t& rightSpeed) {
     // Only apply corrections if both motors are moving in the same direction
     if (!(leftSpeed > 0 && rightSpeed > 0)) return;
     // Get current yaw from the IMU
-    float rawYaw = Sensors::getInstance().getYaw();
+    float rawYaw = ImuSensor::getInstance().getYaw();
 
     // Reject outliers (sudden large changes in raw readings)
     float yawDelta = abs(shortestAnglePath(_lastRawYaw, rawYaw));

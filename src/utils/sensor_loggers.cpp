@@ -59,7 +59,7 @@ void imuLogger() {
     const unsigned long IMU_PRINT_INTERVAL = 500; // Print every 500ms
     
     if (millis() - lastImuPrintTime < IMU_PRINT_INTERVAL) return;
-    EulerAngles eulerAngles = Sensors::getInstance().getEulerAngles();
+    EulerAngles eulerAngles = ImuSensor::getInstance().getEulerAngles();
     
     if (!eulerAngles.isValid) {
         Serial.println("Failed to get IMU data");
@@ -81,7 +81,7 @@ void sideTofsLogger() {
     const unsigned long PRINT_INTERVAL = 50; // Print every 500ms
     
     if (millis() - lastPrintTime < PRINT_INTERVAL) return;
-    SideTofCounts tofCounts = Sensors::getInstance().getBothSideTofCounts();
+    SideTofCounts tofCounts = SideTofManager::getInstance().getBothSideTofCounts();
     // DisplayScreen::getInstance().showDistanceSensors(tofDistances);
 
     // Print side by side with alignment
