@@ -40,7 +40,7 @@ void MessageProcessor::handleSpeakerMute(SpeakerStatus status) {
         speaker.mute();
     } else if (status == SpeakerStatus::UNMUTED) {
         Serial.println("Un-muting speaker");
-        speaker.unmute();
+        speaker.unMute();
     } else {
         Serial.printf("Unknown mute state: %d\n", static_cast<int>(status));
     }
