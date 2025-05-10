@@ -3,8 +3,11 @@
 #include "../utils/config.h"
 #include "../utils/utils.h"
 #include "../utils/structs.h"
+#include "../utils/singleton.h"
 
-class ImuSensor {
+class ImuSensor : public Singleton<ImuSensor> {
+    friend class Singleton<ImuSensor>;
+
     public:
         ImuSensor() = default;
 

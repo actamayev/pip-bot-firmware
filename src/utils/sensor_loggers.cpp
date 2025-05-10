@@ -7,8 +7,7 @@ void multizoneTofLogger() {
 
     if (millis() - lastPrintTime < PRINT_INTERVAL) return;
 
-    auto& sensors = Sensors::getInstance();
-    VL53L7CX_ResultsData multizoneTofData = sensors.getMultizoneTofData();
+    VL53L7CX_ResultsData multizoneTofData = MultizoneTofSensor::getInstance().getTofData();
     
     Serial.println("VL53L7CX ToF Sensor Data");
     Serial.println("------------------------\n");

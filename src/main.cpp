@@ -1,6 +1,6 @@
 #include <esp32-hal-timer.h>
 #include "./utils/config.h"
-#include "./sensors/sensors.h"
+// #include "./sensors/sensors.h"
 #include "./actuators/buttons.h"
 #include "./actuators/speaker.h"
 #include "./utils/show_chip_info.h"
@@ -27,7 +27,7 @@ void SensorAndBytecodeTask(void * parameter) {
     Serial.println("Initializing sensors on Core 0...");
 
     SensorInitializer& initializer = SensorInitializer::getInstance();
-    Sensors& sensors = Sensors::getInstance();
+    // Sensors& sensors = Sensors::getInstance();
 
     Buttons::getInstance().begin();  // Initialize the buttons
     setupButtonLoggers();
@@ -39,21 +39,23 @@ void SensorAndBytecodeTask(void * parameter) {
     
     // First attempt to initialize each sensor before entering the main loop
     if (!initializer.isSensorInitialized(SensorInitializer::IMU)) {
-        sensors.tryInitializeIMU();
+        Serial.println("Trying to init imu...");
+        initializer.tryInitializeIMU();
     }
     
     if (!initializer.isSensorInitialized(SensorInitializer::MULTIZONE_TOF)) {
-        Serial.println("Initializing TOF sensor...");
-        MultizoneTofSensor& multizone = MultizoneTofSensor::getInstance();
-        initializer.tryInitializeMultizoneTof(multizone);
+        Serial.println("Trying to init MZ...");
+        initializer.tryInitializeMultizoneTof();
     }
     
     if (!initializer.isSensorInitialized(SensorInitializer::LEFT_SIDE_TOF)) {
-        sensors.tryInitializeLeftSideTof();
+        Serial.println("Trying to init Left Tof...");
+        initializer.tryInitializeLeftSideTof();
     }
     
     if (!initializer.isSensorInitialized(SensorInitializer::RIGHT_SIDE_TOF)) {
-        sensors.tryInitializeRightSideTof();
+        Serial.println("Trying to init Right Tof...");
+        initializer.tryInitializeRightSideTof();
     }
     
     Serial.println("Sensors initialized on Core 0");

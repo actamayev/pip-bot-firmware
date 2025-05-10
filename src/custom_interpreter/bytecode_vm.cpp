@@ -265,7 +265,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
                         value = Sensors::getInstance().getMagneticFieldZ();
                         break;
                     case SENSOR_SIDE_LEFT_PROXIMITY: {
-                        uint16_t counts = Sensors::getInstance().getLeftSideTofCounts();
+                        uint16_t counts = SideTofManager::getInstance().leftSideTofSensor.getCounts();
                         registers[regId].asBool = (counts > LEFT_PROXIMITY_THRESHOLD);
                         registerTypes[regId] = VAR_BOOL;
                         registerInitialized[regId] = true;
@@ -273,7 +273,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
                         break;
                     }
                     case SENSOR_SIDE_RIGHT_PROXIMITY: {
-                        uint16_t counts = Sensors::getInstance().getRightSideTofCounts();
+                        uint16_t counts = SideTofManager::getInstance().rightSideTofSensor.getCounts();
                         registers[regId].asBool = (counts > RIGHT_PROXIMITY_THRESHOLD);
                         registerTypes[regId] = VAR_BOOL;
                         registerInitialized[regId] = true;

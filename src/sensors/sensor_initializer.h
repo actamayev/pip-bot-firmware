@@ -3,6 +3,7 @@
 #include "./color_sensor.h"
 #include "../utils/config.h"
 #include "../utils/singleton.h"
+#include "./side_tof_manager.h"
 #include "./multizone_tof_sensor.h"
 #include "./side_time_of_flight_sensor.h"
 
@@ -23,28 +24,20 @@ class SensorInitializer : public Singleton<SensorInitializer> {
             SENSOR_COUNT
         };
 
-        bool initializeAllSensors();
-        bool tryInitializeMultizoneTof(MultizoneTofSensor& sensor);
-        bool tryInitializeIMU(ImuSensor& sensor);
-        bool tryInitializeLeftSideTof(SideTimeOfFlightSensor& sensor);
-        bool tryInitializeRightSideTof(SideTimeOfFlightSensor& sensor);
+        bool tryInitializeMultizoneTof();
+        bool tryInitializeIMU();
+        bool tryInitializeLeftSideTof();
+        bool tryInitializeRightSideTof();
         
         bool isSensorInitialized(SensorType sensor) const;
         bool areAllSensorsInitialized() const;
     private:
-        SensorInitializer() {
-            // Initialize the status array
-            for (int i = 0; i < SENSOR_COUNT; i++) {
-                sensorInitialized[i] = false;
-            }
-            MultizoneTofSensor& multizoneTofSensor = MultizoneTofSensor::getInstance();
-            initializeMultizoneTof(multizoneTofSensor);
-        }
+        SensorInitializer();
         
-        void initializeMultizoneTof(MultizoneTofSensor& sensor);
-        void initializeIMU(ImuSensor& sensor);
-        void initializeColorSensor(ColorSensor& sensor);
-        void initializeSideTimeOfFlights(SideTimeOfFlightSensor& leftSensor, SideTimeOfFlightSensor& rightSensor);
+        void initializeMultizoneTof();
+        void initializeIMU();
+        void initializeColorSensor();
+        void initializeSideTimeOfFlights();
         
         bool sensorInitialized[SENSOR_COUNT];
 };

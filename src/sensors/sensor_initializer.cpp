@@ -1,9 +1,14 @@
 #include "./sensor_initializer.h"
 #include "../utils/utils.h"
 
-bool SensorInitializer::initializeAllSensors() {
-    // This method would be called by Sensors class to initialize all sensors
-    return areAllSensorsInitialized();
+SensorInitializer::SensorInitializer() {
+    // Initialize the status array
+    for (int i = 0; i < SENSOR_COUNT; i++) {
+        sensorInitialized[i] = false;
+    }
+    initializeMultizoneTof();
+    initializeIMU();
+    initializeSideTimeOfFlights();
 }
 
 bool SensorInitializer::isSensorInitialized(SensorType sensor) const {
@@ -23,21 +28,21 @@ bool SensorInitializer::areAllSensorsInitialized() const {
     return true;
 }
 
-void SensorInitializer::initializeMultizoneTof(MultizoneTofSensor& sensor) {
+void SensorInitializer::initializeMultizoneTof() {
     Serial.println("Initializing Multizone sensor...");
 
-    if (sensor.initialize()) {
-        Serial.println("Multizone sensor setup complete");
-        sensorInitialized[MULTIZONE_TOF] = true;
-    } else {
+    if (!MultizoneTofSensor::getInstance().initialize()) {
         Serial.println("Multizone sensor initialization failed");
+        return;
     }
+    Serial.println("Multizone sensor setup complete");
+    sensorInitialized[MULTIZONE_TOF] = true;
 }
 
-void SensorInitializer::initializeIMU(ImuSensor& sensor) {
+void SensorInitializer::initializeIMU() {
     Serial.println("Initializing IMU...");
 
-    if (!sensor.initialize()) {
+    if (!ImuSensor::getInstance().initialize()) {
         Serial.println("IMU initialization failed");
         return;
     }
@@ -45,10 +50,10 @@ void SensorInitializer::initializeIMU(ImuSensor& sensor) {
     sensorInitialized[IMU] = true;
 }
 
-void SensorInitializer::initializeColorSensor(ColorSensor& sensor) {
+void SensorInitializer::initializeColorSensor() {
     Serial.println("Initializing Color Sensor...");
 
-    if (!sensor.initialize()) {
+    if (!ColorSensor::getInstance().initialize()) {
         Serial.println("Color Sensor initialization failed");
         return;
     }
@@ -56,16 +61,16 @@ void SensorInitializer::initializeColorSensor(ColorSensor& sensor) {
     // sensorInitialized[COLOR_SENSOR] = true;
 }
 
-void SensorInitializer::initializeSideTimeOfFlights(SideTimeOfFlightSensor& leftSensor, SideTimeOfFlightSensor& rightSensor) {
+void SensorInitializer::initializeSideTimeOfFlights() {
     Serial.println("Initializing left side TOF...");
-    if (!leftSensor.initialize(LEFT_TOF_ADDRESS)) {
+    if (!SideTofManager::getInstance().leftSideTofSensor.initialize(LEFT_TOF_ADDRESS)) {
         Serial.println("Left TOF initialization failed");
         return;
     }
     sensorInitialized[LEFT_SIDE_TOF] = true;
     
     Serial.println("Initializing right side TOF...");
-    if (!rightSensor.initialize(RIGHT_TOF_ADDRESS)) {
+    if (!SideTofManager::getInstance().rightSideTofSensor.initialize(RIGHT_TOF_ADDRESS)) {
         Serial.println("Right TOF initialization failed");
         return;
     }
@@ -74,15 +79,16 @@ void SensorInitializer::initializeSideTimeOfFlights(SideTimeOfFlightSensor& left
     Serial.println("Side TOF setup complete");
 }
 
-bool SensorInitializer::tryInitializeMultizoneTof(MultizoneTofSensor& sensor) {
-    if (!sensor.needsInitialization()) {
+bool SensorInitializer::tryInitializeMultizoneTof() {
+    MultizoneTofSensor& mZoneSensor = MultizoneTofSensor::getInstance();
+    if (!mZoneSensor.needsInitialization()) {
         sensorInitialized[MULTIZONE_TOF] = true;
         return true; // Already initialized
     }
     
-    if (!sensor.canRetryInitialization()) {
+    if (!mZoneSensor.canRetryInitialization()) {
         // Check if we've reached max retries and should restart
-        if (sensor.getInitRetryCount() >= sensor.getMaxInitRetries()) {
+        if (mZoneSensor.getInitRetryCount() >= mZoneSensor.getMaxInitRetries()) {
             Serial.println("TOF sensor initialization failed after maximum retries. Restarting ESP...");
             vTaskDelay(pdMS_TO_TICKS(1000)); // Give serial time to send
             ESP.restart(); // Restart the ESP
@@ -91,7 +97,7 @@ bool SensorInitializer::tryInitializeMultizoneTof(MultizoneTofSensor& sensor) {
     }
     
     Serial.println("Retrying TOF sensor initialization...");
-    bool success = sensor.initialize();
+    bool success = mZoneSensor.initialize();
     
     if (success) {
         sensorInitialized[MULTIZONE_TOF] = true;
@@ -101,15 +107,17 @@ bool SensorInitializer::tryInitializeMultizoneTof(MultizoneTofSensor& sensor) {
     return success;
 }
 
-bool SensorInitializer::tryInitializeIMU(ImuSensor& sensor) {
-    if (!sensor.needsInitialization()) {
+bool SensorInitializer::tryInitializeIMU() {
+    ImuSensor& imu = ImuSensor::getInstance();
+
+    if (!imu.needsInitialization()) {
         sensorInitialized[IMU] = true;
         return true; // Already initialized
     }
     
-    if (!sensor.canRetryInitialization()) {
+    if (!imu.canRetryInitialization()) {
         // Check if we've reached max retries and should restart
-        if (sensor.getInitRetryCount() >= sensor.getMaxInitRetries()) {
+        if (imu.getInitRetryCount() >= imu.getMaxInitRetries()) {
             Serial.println("IMU initialization failed after maximum retries. Restarting ESP...");
             vTaskDelay(pdMS_TO_TICKS(1000));
             ESP.restart();
@@ -118,7 +126,7 @@ bool SensorInitializer::tryInitializeIMU(ImuSensor& sensor) {
     }
     
     Serial.println("Retrying IMU initialization...");
-    bool success = sensor.initialize();
+    bool success = imu.initialize();
     
     if (success) {
         Serial.println("IMU retry initialization successful!");
@@ -128,15 +136,17 @@ bool SensorInitializer::tryInitializeIMU(ImuSensor& sensor) {
     return success;
 }
 
-bool SensorInitializer::tryInitializeLeftSideTof(SideTimeOfFlightSensor& sensor) {
-    if (!sensor.needsInitialization()) {
+bool SensorInitializer::tryInitializeLeftSideTof() {
+    SideTimeOfFlightSensor& leftTof = SideTofManager::getInstance().leftSideTofSensor;
+
+    if (!leftTof.needsInitialization()) {
         sensorInitialized[LEFT_SIDE_TOF] = true;
         return true; // Already initialized
     }
     
-    if (!sensor.canRetryInitialization()) {
+    if (!leftTof.canRetryInitialization()) {
         // Check if we've reached max retries
-        if (sensor.getInitRetryCount() >= sensor.getMaxInitRetries()) {
+        if (leftTof.getInitRetryCount() >= leftTof.getMaxInitRetries()) {
             Serial.println("Left side TOF initialization failed after maximum retries. Restarting ESP...");
             vTaskDelay(pdMS_TO_TICKS(1000));
             ESP.restart();
@@ -145,7 +155,7 @@ bool SensorInitializer::tryInitializeLeftSideTof(SideTimeOfFlightSensor& sensor)
     }
     
     Serial.println("Retrying left side TOF initialization...");
-    bool success = sensor.initialize(LEFT_TOF_ADDRESS);
+    bool success = leftTof.initialize(LEFT_TOF_ADDRESS);
     
     if (success) {
         sensorInitialized[LEFT_SIDE_TOF] = true;
@@ -155,15 +165,17 @@ bool SensorInitializer::tryInitializeLeftSideTof(SideTimeOfFlightSensor& sensor)
     return success;
 }
 
-bool SensorInitializer::tryInitializeRightSideTof(SideTimeOfFlightSensor& sensor) {
-    if (!sensor.needsInitialization()) {
+bool SensorInitializer::tryInitializeRightSideTof() {
+    SideTimeOfFlightSensor& rightTof = SideTofManager::getInstance().rightSideTofSensor;
+
+    if (!rightTof.needsInitialization()) {
         sensorInitialized[RIGHT_SIDE_TOF] = true;
         return true; // Already initialized
     }
     
-    if (!sensor.canRetryInitialization()) {
+    if (!rightTof.canRetryInitialization()) {
         // Check if we've reached max retries
-        if (sensor.getInitRetryCount() >= sensor.getMaxInitRetries()) {
+        if (rightTof.getInitRetryCount() >= rightTof.getMaxInitRetries()) {
             Serial.println("Right side TOF initialization failed after maximum retries. Restarting ESP...");
             vTaskDelay(pdMS_TO_TICKS(1000));
             ESP.restart();
@@ -172,7 +184,7 @@ bool SensorInitializer::tryInitializeRightSideTof(SideTimeOfFlightSensor& sensor
     }
     
     Serial.println("Retrying right side TOF initialization...");
-    bool success = sensor.initialize(RIGHT_TOF_ADDRESS);
+    bool success = rightTof.initialize(RIGHT_TOF_ADDRESS);
     
     if (success) {
         sensorInitialized[RIGHT_SIDE_TOF] = true;

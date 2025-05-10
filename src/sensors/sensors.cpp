@@ -1,33 +1,33 @@
 #include "./sensors.h"
 #include "../utils/utils.h"
 
-void Sensors::initialize() {
-    // Initialize sensors using the initializer
-    // initializer.initializeMultizoneTof(multizoneTofSensor);
-    initializer.initializeIMU(imu);
-    // initializer.initializeColorSensor(colorSensor);
-    initializer.initializeSideTimeOfFlights(leftSideTofSensor, rightSideTofSensor);
-}
+// void Sensors::initialize() {
+//     // Initialize sensors using the initializer
+//     // initializer.initializeMultizoneTof(multizoneTofSensor);
+//     initializer.initializeIMU(imu);
+//     // initializer.initializeColorSensor(colorSensor);
+//     initializer.initializeSideTimeOfFlights(leftSideTofSensor, rightSideTofSensor);
+// }
 
-bool Sensors::isSensorInitialized(SensorInitializer::SensorType sensor) const {
-    return initializer.isSensorInitialized(sensor);
-}
+// bool Sensors::isSensorInitialized(SensorInitializer::SensorType sensor) const {
+//     return initializer.isSensorInitialized(sensor);
+// }
 
-bool Sensors::areAllSensorsInitialized() const {
-    return initializer.areAllSensorsInitialized();
-}
+// bool Sensors::areAllSensorsInitialized() const {
+//     return initializer.areAllSensorsInitialized();
+// }
 
-bool Sensors::tryInitializeIMU() {
-    return initializer.tryInitializeIMU(imu);
-}
+// bool Sensors::tryInitializeIMU() {
+//     return initializer.tryInitializeIMU(imu);
+// }
 
-bool Sensors::tryInitializeLeftSideTof() {
-    return initializer.tryInitializeLeftSideTof(leftSideTofSensor);
-}
+// bool Sensors::tryInitializeLeftSideTof() {
+//     return initializer.tryInitializeLeftSideTof(leftSideTofSensor);
+// }
 
-bool Sensors::tryInitializeRightSideTof() {
-    return initializer.tryInitializeRightSideTof(rightSideTofSensor);
-}
+// bool Sensors::tryInitializeRightSideTof() {
+//     return initializer.tryInitializeRightSideTof(rightSideTofSensor);
+// }
 
 float Sensors::getPitch() {
     return imu.getPitch();
