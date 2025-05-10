@@ -20,7 +20,7 @@ IrSensor::IrSensor() {
     
     // Configure and enable IR sensor
     pinMode(PIN_IR_EN, OUTPUT);
-    analogWrite(PIN_IR_EN, 51);
+    analogWrite(PIN_IR_EN, 51); // 51/255 = 20% duty cycle
 }
 
 void IrSensor::read_ir_sensor() {
