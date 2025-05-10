@@ -12,6 +12,8 @@ class DisplayScreen: public Singleton<DisplayScreen> {
     public:
         // Explicit initialization with Wire reference
         bool init(TwoWire& wire);
+        // 5/10/25: TODO: Change to:
+        // bool init();
         
         // Main update method to call in the task loop
         void update();

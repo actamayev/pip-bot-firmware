@@ -3,7 +3,7 @@
 
 void Sensors::initialize() {
     // Initialize sensors using the initializer
-    initializer.initializeMultizoneTof(multizoneTofSensor);
+    // initializer.initializeMultizoneTof(multizoneTofSensor);
     initializer.initializeIMU(imu);
     // initializer.initializeColorSensor(colorSensor);
     initializer.initializeSideTimeOfFlights(leftSideTofSensor, rightSideTofSensor);
@@ -17,10 +17,6 @@ bool Sensors::areAllSensorsInitialized() const {
     return initializer.areAllSensorsInitialized();
 }
 
-bool Sensors::tryInitializeMultizoneTof() {
-    return initializer.tryInitializeMultizoneTof(multizoneTofSensor);
-}
-
 bool Sensors::tryInitializeIMU() {
     return initializer.tryInitializeIMU(imu);
 }
@@ -31,10 +27,6 @@ bool Sensors::tryInitializeLeftSideTof() {
 
 bool Sensors::tryInitializeRightSideTof() {
     return initializer.tryInitializeRightSideTof(rightSideTofSensor);
-}
-
-VL53L7CX_ResultsData Sensors::getMultizoneTofData() {
-    return multizoneTofSensor.getTofData();
 }
 
 float Sensors::getPitch() {
@@ -127,14 +119,11 @@ SideTofCounts Sensors::getBothSideTofCounts() {
     };
 }
 
-bool Sensors::isObjectDetected() {
-    return multizoneTofSensor.isObjectDetected();
+void Sensors::turnOffImu() {
+    imu.turnOff();
 }
 
-void Sensors::printMultizoneTofResult(VL53L7CX_ResultsData *Result) {
-    multizoneTofSensor.printResult(Result);
-}
-
-void Sensors::turnOffMultizone() {
-    multizoneTofSensor.turnOffSensor();
+void Sensors::turnOffSideTofs() {
+    leftSideTofSensor.turnSensorOff();
+    rightSideTofSensor.turnSensorOff();
 }

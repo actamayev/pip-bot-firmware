@@ -37,6 +37,8 @@ class SensorInitializer : public Singleton<SensorInitializer> {
             for (int i = 0; i < SENSOR_COUNT; i++) {
                 sensorInitialized[i] = false;
             }
+            MultizoneTofSensor& multizoneTofSensor = MultizoneTofSensor::getInstance();
+            initializeMultizoneTof(multizoneTofSensor);
         }
         
         void initializeMultizoneTof(MultizoneTofSensor& sensor);
@@ -44,6 +46,5 @@ class SensorInitializer : public Singleton<SensorInitializer> {
         void initializeColorSensor(ColorSensor& sensor);
         void initializeSideTimeOfFlights(SideTimeOfFlightSensor& leftSensor, SideTimeOfFlightSensor& rightSensor);
         
-        bool isImuInitialized(const ImuSensor& sensor) const;
         bool sensorInitialized[SENSOR_COUNT];
 };

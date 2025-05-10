@@ -6,7 +6,9 @@ bool DisplayScreen::init(TwoWire& wire) {
     
     // Initialize the OLED display with the provided Wire instance
     display = Adafruit_SSD1306(SCREEN_WIDTH, SCREEN_HEIGHT);
-    
+    // 5/10/25: TODO: Change to:
+    // display = Adafruit_SSD1306(SCREEN_WIDTH, SCREEN_HEIGHT, &DEV_I2C);
+
     if(!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
         Serial.println(F("SSD1306 allocation failed"));
         return false;

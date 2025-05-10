@@ -106,3 +106,8 @@ void SideTimeOfFlightSensor::Basic_Initialization_Auto_Mode() {
     //Delay needs to be changed depending on the API of the µ-controller
     vTaskDelay(pdMS_TO_TICKS(100));
 }
+
+void SideTimeOfFlightSensor::turnSensorOff() {
+    VCNL36828P_SET_PS_ON(sensorAddress, VCNL36828P_PS_ON_DIS);
+    isInitialized = false;
+}

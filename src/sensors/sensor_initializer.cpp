@@ -74,10 +74,6 @@ void SensorInitializer::initializeSideTimeOfFlights(SideTimeOfFlightSensor& left
     Serial.println("Side TOF setup complete");
 }
 
-bool SensorInitializer::isImuInitialized(const ImuSensor& sensor) const {
-    return !sensor.needsInitialization();
-}
-
 bool SensorInitializer::tryInitializeMultizoneTof(MultizoneTofSensor& sensor) {
     if (!sensor.needsInitialization()) {
         sensorInitialized[MULTIZONE_TOF] = true;

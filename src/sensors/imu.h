@@ -40,6 +40,7 @@ class ImuSensor {
 
         uint8_t getInitRetryCount() const { return initRetryCount; }
         uint8_t getMaxInitRetries() const { return MAX_INIT_RETRIES; }
+        void turnOff();
 
     private:
         Adafruit_BNO08x imu;

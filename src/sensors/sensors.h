@@ -57,12 +57,11 @@ class Sensors : public Singleton<Sensors> {
 
         // Multizone Tof Sensor:
         bool isObjectDetected();
-        void printMultizoneTofResult(VL53L7CX_ResultsData *Result);
-        void turnOffMultizone();
+        void turnOffImu();
+        void turnOffSideTofs();
 
     private:
         ImuSensor imu;
-        MultizoneTofSensor multizoneTofSensor;
         SideTimeOfFlightSensor leftSideTofSensor;
         SideTimeOfFlightSensor rightSideTofSensor;
         ColorSensor colorSensor;

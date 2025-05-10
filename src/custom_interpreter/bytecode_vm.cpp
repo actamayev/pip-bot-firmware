@@ -266,7 +266,6 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
                         break;
                     case SENSOR_SIDE_LEFT_PROXIMITY: {
                         uint16_t counts = Sensors::getInstance().getLeftSideTofCounts();
-                        Serial.printf("counts %d\n", counts);
                         registers[regId].asBool = (counts > LEFT_PROXIMITY_THRESHOLD);
                         registerTypes[regId] = VAR_BOOL;
                         registerInitialized[regId] = true;
@@ -282,7 +281,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
                         break;
                     }
                     case SENSOR_FRONT_PROXIMITY: {
-                        float isObjectDetected = Sensors::getInstance().isObjectDetected();
+                        float isObjectDetected = MultizoneTofSensor::getInstance().isObjectDetected();
                         registers[regId].asBool = isObjectDetected;
                         registerTypes[regId] = VAR_BOOL;
                         registerInitialized[regId] = true;
@@ -716,6 +715,12 @@ void BytecodeVM::stopProgram() {
         program = nullptr;
     }
     resetStateVariables();
+    // TODO: MZ takes a long time to turn off, consider just stopRanging
+    // MultizoneTofSensor::getInstance().turnOffSensor();
+
+    // TODO: turning of IMU causes it to crash when re-initialized
+    // Sensors::getInstance().turnOffImu();
+    // Sensors::getInstance().turnOffSideTofs();
 
     speaker.mute();
     rgbLed.turn_led_off();

@@ -34,6 +34,8 @@ void SensorAndBytecodeTask(void * parameter) {
     // if (!DisplayScreen::getInstance().init(Wire)) {
     //     Serial.println("Display initialization failed");
     // }
+    // 5/10/25: TODO: Change to:
+    // if (!DisplayScreen::getInstance().init()) {
     
     // First attempt to initialize each sensor before entering the main loop
     if (!initializer.isSensorInitialized(SensorInitializer::IMU)) {
@@ -42,7 +44,8 @@ void SensorAndBytecodeTask(void * parameter) {
     
     if (!initializer.isSensorInitialized(SensorInitializer::MULTIZONE_TOF)) {
         Serial.println("Initializing TOF sensor...");
-        sensors.tryInitializeMultizoneTof();
+        MultizoneTofSensor& multizone = MultizoneTofSensor::getInstance();
+        initializer.tryInitializeMultizoneTof(multizone);
     }
     
     if (!initializer.isSensorInitialized(SensorInitializer::LEFT_SIDE_TOF)) {
@@ -88,6 +91,7 @@ void NetworkTask(void * parameter) {
         NetworkMode mode = NetworkStateManager::getInstance().getCurrentMode();
 
         switch (mode) {
+            // TODO 5/1/25: Why isn't poll serial here?
             case NetworkMode::SERIAL_MODE:
                 // When in serial mode, we don't do any WiFi operations
                 // Could add specific serial mode indicators here
@@ -138,15 +142,15 @@ void setup() {
         0                       // Run on Core 0
     );
 
-    xTaskCreatePinnedToCore(
-        NetworkTask,            // Network handling task
-        "Network",              // Task name
-        NETWORK_STACK_SIZE,      // Stack size
-        NULL,                   // Task parameters
-        1,                      // Priority
-        NULL,                   // Task handle
-        1                       // Run on Core 1
-    );
+    // xTaskCreatePinnedToCore(
+    //     NetworkTask,            // Network handling task
+    //     "Network",              // Task name
+    //     NETWORK_STACK_SIZE,      // Stack size
+    //     NULL,                   // Task parameters
+    //     1,                      // Priority
+    //     NULL,                   // Task handle
+    //     1                       // Run on Core 1
+    // );
 }
 
 // Main loop runs on Core 1

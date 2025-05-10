@@ -239,3 +239,12 @@ bool ImuSensor::updateAllSensorData() {
     
     return updated;
 }
+
+void ImuSensor::turnOff() {
+    initialize();
+    // Disable all reports to save power
+    enabledReports.accelerometer = false;
+    enabledReports.gyroscope = false;
+    enabledReports.magneticField = false;
+    enabledReports.gameRotationVector = false;
+}
