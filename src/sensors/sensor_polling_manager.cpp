@@ -47,7 +47,7 @@ void SensorPollingManager::update() {
     if (!polling) return; // If not polling, do nothing
 
     unsigned long currentTime = millis();
-    
+
     // Check if polling timeout has been reached
     if (currentTime >= pollingEndTime) {
         Serial.println("Sensor polling timeout reached");

@@ -313,5 +313,5 @@ void MultizoneTofSensor::turnOffSensor() {
     
     initializePointHistories();
     
-    Serial.println("Sensor turned off");
+    Serial.println("MZ sensor turned off");
 }
