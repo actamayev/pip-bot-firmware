@@ -1,4 +1,4 @@
-#include "./config.h"
+#include "config.h"
 
 //Blank to be consistent with config.h
 

@@ -1,5 +1,5 @@
 #include "../utils/config.h"
-#include "./ir_sensor.h"
+#include "ir_sensor.h"
 
 IrSensor::IrSensor() {
     // 5/10/25: IMPORTANT TODO: This needs to be changed accordingly

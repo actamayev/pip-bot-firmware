@@ -1,5 +1,5 @@
 #pragma once
-#include "./utils.h"
+#include "utils.h"
 #include "../actuators/buttons.h"
 #include "../sensors/encoder_manager.h"
 #include "../actuators/display_screen.h"

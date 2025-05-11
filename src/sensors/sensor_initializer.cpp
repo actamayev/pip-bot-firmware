@@ -1,4 +1,4 @@
-#include "./sensor_initializer.h"
+#include "sensor_initializer.h"
 #include "../utils/utils.h"
 
 SensorInitializer::SensorInitializer() {

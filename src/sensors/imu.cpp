@@ -1,4 +1,4 @@
-#include "./imu.h"
+#include "imu.h"
 
 bool ImuSensor::canRetryInitialization() const {
     if (isInitialized) return false;

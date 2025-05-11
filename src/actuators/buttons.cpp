@@ -1,4 +1,4 @@
-#include "./buttons.h"
+#include "buttons.h"
 
 Buttons::Buttons() 
     : button1(BUTTON_PIN_1), 

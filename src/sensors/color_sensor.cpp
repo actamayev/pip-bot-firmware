@@ -1,5 +1,5 @@
 #include "../utils/config.h"
-#include "./color_sensor.h"
+#include "color_sensor.h"
 
 bool ColorSensor::initialize() {
     pinMode(COLOR_SENSOR_LED_PIN, OUTPUT);

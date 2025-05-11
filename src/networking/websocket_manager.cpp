@@ -1,6 +1,6 @@
 #include "../utils/config.h"
 #include "../utils/structs.h"
-#include "./websocket_manager.h"
+#include "websocket_manager.h"
 
 WebSocketManager::WebSocketManager() {
     wsConnected = false;

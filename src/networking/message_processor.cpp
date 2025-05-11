@@ -1,4 +1,4 @@
-#include "./message_processor.h"
+#include "message_processor.h"
 
 void MessageProcessor::handleMotorControl(const uint8_t* data) {
     // Extract 16-bit signed integers (little-endian)

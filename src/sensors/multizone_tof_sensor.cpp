@@ -1,4 +1,4 @@
-#include "./multizone_tof_sensor.h"
+#include "multizone_tof_sensor.h"
 
 bool MultizoneTofSensor::canRetryInitialization() const {
     if (isInitialized) return false;

@@ -1,5 +1,5 @@
 #include "../utils/config.h"
-#include "./encoder_manager.h"
+#include "encoder_manager.h"
 
 EncoderManager encoderManager;
 

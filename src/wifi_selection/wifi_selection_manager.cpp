@@ -1,5 +1,5 @@
 #include "../utils/config.h"
-#include "./wifi_selection_manager.h"
+#include "wifi_selection_manager.h"
 
 void WifiSelectionManager::initNetworkSelection() {
     // Reset encoder position

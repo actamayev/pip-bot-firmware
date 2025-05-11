@@ -7,10 +7,10 @@
  * Version	: 1.2
  */
 
-#include "./VCNL36828P_Application_Library.h"
-#include "./VCNL36828P_Prototypes.h"
-#include "./VCNL36828P.h"
-#include "./I2C_Functions.h"
+#include "VCNL36828P_Application_Library.h"
+#include "VCNL36828P_Prototypes.h"
+#include "VCNL36828P.h"
+#include "I2C_Functions.h"
 
 //****************************************************************************************************
 //***************************************Application API**********************************************

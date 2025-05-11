@@ -1,4 +1,4 @@
-#include "./display_screen.h"
+#include "display_screen.h"
 
 // Initialize the display with explicit Wire reference
 bool DisplayScreen::init(TwoWire& wire) {

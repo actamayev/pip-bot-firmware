@@ -1,4 +1,4 @@
-#include "./side_time_of_flight_sensor.h"
+#include "side_time_of_flight_sensor.h"
 
 bool SideTimeOfFlightSensor::canRetryInitialization() const {
     if (isInitialized) return false;

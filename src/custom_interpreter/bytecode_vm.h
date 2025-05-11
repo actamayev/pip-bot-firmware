@@ -1,7 +1,7 @@
 #pragma once
 #include <Arduino.h>
+#include "bytecode_structs.h"
 #include "../sensors/imu.h"
-#include "./bytecode_structs.h"
 #include "../utils/singleton.h"
 #include "../actuators/buttons.h"
 #include "../actuators/led/rgb_led.h"

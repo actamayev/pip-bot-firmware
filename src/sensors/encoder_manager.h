@@ -1,7 +1,7 @@
 #pragma once
 #include <Arduino.h>
 #include <ESP32Encoder.h>
-#include "./utils/structs.h"
+#include "utils/structs.h"
 #include "../actuators/motor_driver.h"
 #include "../networking/wifi_manager.h"
 #include "../wifi_selection/wifi_selection_manager.h"

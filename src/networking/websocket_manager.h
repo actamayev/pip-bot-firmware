@@ -2,12 +2,12 @@
 
 #include <Arduino.h>
 #include <ArduinoWebsockets.h>
-#include "./protocol.h"
+#include "protocol.h"
 #include "../utils/singleton.h"
-#include "./message_processor.h"
-#include "./send_data_to_server.h"
-#include "./firmware_version_tracker.h"
-#include "./custom_interpreter/bytecode_vm.h"
+#include "message_processor.h"
+#include "send_data_to_server.h"
+#include "firmware_version_tracker.h"
+#include "custom_interpreter/bytecode_vm.h"
 
 using namespace websockets;
 

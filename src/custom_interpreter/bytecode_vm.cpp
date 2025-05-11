@@ -1,4 +1,4 @@
-#include "./bytecode_vm.h"
+#include "bytecode_vm.h"
 
 BytecodeVM::~BytecodeVM() {
     if (program) {

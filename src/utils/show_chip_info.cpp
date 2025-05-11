@@ -1,4 +1,4 @@
-#include "./show_chip_info.h"
+#include "show_chip_info.h"
 
 void printFlashInfo() {
     vTaskDelay(pdMS_TO_TICKS(100));  // Give some time for initialization

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Adafruit_NeoPixel.h>
-#include "./led_animations.h"
+#include "led_animations.h"
 #include "../../utils/config.h"
 #include "../../utils/structs.h"
 

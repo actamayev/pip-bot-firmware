@@ -1,4 +1,4 @@
-#include "./straight_line_drive.h"
+#include "straight_line_drive.h"
 
 void StraightLineDrive::enable() {
     _straightDrivingEnabled = true;

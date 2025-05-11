@@ -1,4 +1,4 @@
-#include "./veml3328.h"
+#include "veml3328.h"
 
 #define DEFAULT_ADDRESS (0x10)
 

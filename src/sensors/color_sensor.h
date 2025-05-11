@@ -1,5 +1,5 @@
 #pragma once
-#include "./veml3328/veml3328.h"
+#include "veml3328/veml3328.h"
 #include "../utils/structs.h"
 #include "../utils/singleton.h"
 

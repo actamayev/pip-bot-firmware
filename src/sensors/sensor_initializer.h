@@ -1,12 +1,12 @@
 #pragma once
-#include "./imu.h"
-#include "./color_sensor.h"
+#include "imu.h"
+#include "color_sensor.h"
 #include "../utils/config.h"
 #include "../utils/singleton.h"
-#include "./side_tof_manager.h"
-#include "./multizone_tof_sensor.h"
-#include "./side_time_of_flight_sensor.h"
-#include "./ir_sensor.h"
+#include "side_tof_manager.h"
+#include "multizone_tof_sensor.h"
+#include "side_time_of_flight_sensor.h"
+#include "ir_sensor.h"
 
 class SensorInitializer : public Singleton<SensorInitializer> {
     friend class Singleton<SensorInitializer>;

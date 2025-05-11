@@ -1,4 +1,4 @@
-#include "./send_data_to_server.h"
+#include "send_data_to_server.h"
 
 // Add RPM data to the provided JSON payload
 void SendDataToServer::attachRPMData(JsonObject& payload) {

@@ -1,4 +1,4 @@
-#include "./haptic_feedback_manager.h"
+#include "haptic_feedback_manager.h"
 #include "../actuators/motor_driver.h"
 
 void HapticFeedbackManager::startFeedback(int8_t direction, uint8_t strength, uint8_t duration_ms) {

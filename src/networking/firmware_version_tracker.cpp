@@ -1,4 +1,4 @@
-#include "./firmware_version_tracker.h"
+#include "firmware_version_tracker.h"
 
 FirmwareVersionTracker::FirmwareVersionTracker() {
     preferences.begin("firmware", false);

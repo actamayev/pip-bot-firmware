@@ -7,7 +7,7 @@
  * Version	: 1.2
  */
 
- #include "./I2C_Functions.h"
+ #include "I2C_Functions.h"
  #include <stdio.h>
  #include <stdlib.h>
  

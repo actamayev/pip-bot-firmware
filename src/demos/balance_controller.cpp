@@ -1,4 +1,4 @@
-#include "./balance_controller.h"
+#include "balance_controller.h"
 
 void BalanceController::enable() {
     if (_balancingEnabled == BalanceStatus::BALANCED) return;
