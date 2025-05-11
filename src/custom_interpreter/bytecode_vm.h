@@ -22,6 +22,12 @@ class BytecodeVM : public Singleton<BytecodeVM> {
         // Update VM - call this regularly from main loop
         void update();
 
+        bool isPaused = false;
+        bool isWaitingForButtonPress() const { return waitingForButtonPress; }
+        bool isWaitingForButtonRelease() const { return waitingForButtonRelease; }
+        void togglePause();
+        bool isProgramLoaded() const { return program != nullptr; }
+        
     private:
         BytecodeInstruction* program = nullptr;
         uint16_t programSize = 0;
@@ -80,4 +86,7 @@ class BytecodeVM : public Singleton<BytecodeVM> {
         bool waitingForButtonPress = false;
         bool waitingForButtonRelease = false;
         void resetStateVariables();
+
+        void pauseProgram();
+        void resumeProgram();
 };

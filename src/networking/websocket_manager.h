@@ -8,6 +8,7 @@
 #include "send_data_to_server.h"
 #include "firmware_version_tracker.h"
 #include "custom_interpreter/bytecode_vm.h"
+#include "../sensors/sensor_polling_manager.h"
 
 using namespace websockets;
 

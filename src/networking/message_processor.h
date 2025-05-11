@@ -11,6 +11,7 @@
 #include "../demos/balance_controller.h" 
 #include "../networking/serial_manager.h"
 #include "../actuators/led/led_animations.h"
+#include "../sensors/sensor_polling_manager.h"
 
 class MessageProcessor : public Singleton<MessageProcessor> {
     friend class Singleton<MessageProcessor>;

@@ -47,13 +47,17 @@ bool BytecodeVM::loadProgram(const uint8_t* byteCode, uint16_t size) {
 }
 
 void BytecodeVM::update() {
-    if (!program || pc >= programSize) {
+    if (program && pc < programSize && !isPaused) {
+        SensorPollingManager::getInstance().startPolling();
+    }
+
+    if (!program || pc >= programSize || isPaused) {
         return;
     }
 
     if (waitingForButtonRelease) {
         // Wait for any currently pressed buttons to be released
-        if (!Buttons::getInstance().isAnyButtonPressed()) {
+        if (!Buttons::getInstance().isButton1Pressed()) {
             waitingForButtonRelease = false;
             waitingForButtonPress = true;
         }
@@ -62,7 +66,7 @@ void BytecodeVM::update() {
 
     if (waitingForButtonPress) {
         // Check if a button is pressed
-        if (Buttons::getInstance().isAnyButtonPressed()) {
+        if (Buttons::getInstance().isButton1Pressed()) {
             // Button pressed, continue execution
             waitingForButtonPress = false;
             pc++; // Move to next instruction
@@ -644,7 +648,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
 
         case OP_WAIT_FOR_BUTTON: {
             // Enter button waiting state
-            waitingForButtonRelease = Buttons::getInstance().isAnyButtonPressed();
+            waitingForButtonRelease = Buttons::getInstance().isButton1Pressed();
             waitingForButtonPress = !waitingForButtonRelease;
 
             // Don't increment PC here - we'll do it when the button is pressed
@@ -746,4 +750,29 @@ void BytecodeVM::resetStateVariables() {
     targetDistanceCm = 0.0f;
     waitingForButtonPress = false;
     waitingForButtonRelease = false;
+}
+
+void BytecodeVM::pauseProgram() {
+    if (!program || isPaused) return;
+    
+    resetStateVariables();     
+    speaker.mute();     
+    rgbLed.turn_led_off();     
+    motorDriver.brake_if_moving();
+    
+    isPaused = true;
+}
+
+void BytecodeVM::resumeProgram() {
+    if (!program || !isPaused) return;
+    
+    isPaused = false;
+    pc = 0; // Restart from the beginning
+}
+
+void BytecodeVM::togglePause() {
+    if (!program) return;
+
+    if (isPaused) resumeProgram();
+    else pauseProgram();
 }

@@ -13,6 +13,7 @@
 #include "./networking/websocket_manager.h"
 #include "./actuators/led/led_animations.h"
 #include "./networking/send_data_to_server.h"
+#include "./sensors/sensor_polling_manager.h"
 #include "./custom_interpreter/bytecode_vm.h"
 #include "./networking/network_state_mangager.h"
 #include "./networking/firmware_version_tracker.h"
@@ -64,6 +65,7 @@ void SensorAndBytecodeTask(void * parameter) {
     if (!initializer.areAllSensorsInitialized()) {
         while (1);
     }
+    SensorPollingManager::getInstance().startPolling();
     // Main sensor and bytecode loop
     for(;;) {
         ledAnimations.update();
@@ -71,6 +73,7 @@ void SensorAndBytecodeTask(void * parameter) {
         SerialManager::getInstance().pollSerial();
         BytecodeVM::getInstance().update();
         MessageProcessor::getInstance().processPendingCommands();
+        SensorPollingManager::getInstance().update();
         // DisplayScreen::getInstance().update();
         // multizoneTofLogger();
         // imuLogger();

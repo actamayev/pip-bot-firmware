@@ -4,9 +4,11 @@
 #include "../utils/utils.h"
 #include "../utils/structs.h"
 #include "../utils/singleton.h"
+#include "sensor_polling_manager.h"
 
 class ImuSensor : public Singleton<ImuSensor> {
     friend class Singleton<ImuSensor>;
+    friend class SensorPollingManager;
 
     public:
         ImuSensor() = default;

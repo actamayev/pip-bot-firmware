@@ -70,6 +70,7 @@ void WebSocketManager::connectToWebSocket() {
                 this->lastPingTime = millis(); // Initialize ping time
                 rgbLed.set_led_blue();
                 ledAnimations.stopAnimation();
+                SensorPollingManager::getInstance().startPolling();
                 break;
             case WebsocketsEvent::ConnectionClosed:
                 Serial.println("WebSocket disconnected");
@@ -156,5 +157,6 @@ void WebSocketManager::killWiFiProcesses() {
     motorDriver.brake_if_moving();
     rgbLed.set_led_red();
     ledAnimations.startBreathing();
+    SensorPollingManager::getInstance().stopPolling();
     hasKilledWiFiProcesses = true;
 }

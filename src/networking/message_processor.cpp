@@ -373,6 +373,7 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             SerialManager::getInstance().lastActivityTime = millis();
             SerialManager::getInstance().sendHandshakeConfirmation();
             rgbLed.set_led_blue();
+            SensorPollingManager::getInstance().startPolling();
             break;
         }
         case DataMessageType::SERIAL_KEEPALIVE: {
@@ -394,6 +395,14 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
                     rgbLed.reset_headlights_to_default();
                 }
             }
+            break;
+        }
+        case DataMessageType::START_SENSOR_POLLING_IN_ONE_MINUTE: {
+            SensorPollingManager::getInstance().startPolling();
+            break;
+        }
+        case DataMessageType::STOP_SENSOR_POLLING: {
+            SensorPollingManager::getInstance().stopPolling();
             break;
         }
         default:
