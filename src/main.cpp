@@ -19,6 +19,7 @@
 #include "networking/firmware_version_tracker.h"
 #include "wifi_selection/wifi_selection_manager.h"
 #include "wifi_selection/haptic_feedback_manager.h"
+#include "utils/show_chip_info.h"
 
 // Task to handle sensors and bytecode on Core 0
 void SensorAndBytecodeTask(void * parameter) {
@@ -132,8 +133,6 @@ void setup() {
     vTaskDelay(pdMS_TO_TICKS(10));
 
     rgbLed.turn_led_off();
-
-    psramInit(); // we're not explicitly using PSRAM but it's good to initialize it (PSRAM is used in the background by the ESP32 for various things)
 
     // Create tasks for parallel execution
     xTaskCreatePinnedToCore(

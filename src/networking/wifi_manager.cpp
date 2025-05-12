@@ -67,7 +67,7 @@ bool WiFiManager::attemptDirectConnectionToSavedNetworks() {
     Serial.println("Attempting direct connection to saved networks...");
     
     // Try to connect to each saved network without scanning first
-    for (const WiFiCredentials network : savedNetworks) {
+    for (const WiFiCredentials& network : savedNetworks) {
         if (NetworkStateManager::getInstance().shouldStopWiFiOperations()) {
             Serial.println("Serial connection detected - aborting WiFi connection attempts");
             return false;
