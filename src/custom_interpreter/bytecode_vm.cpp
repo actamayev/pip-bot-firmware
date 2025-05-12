@@ -709,11 +709,24 @@ void BytecodeVM::resetStateVariables(bool isFullReset) {
     targetDistanceCm = 0.0f;
     waitingForButtonPressToStart = false;
 
+    // Reset registers
+    for (uint16_t i = 0; i < MAX_REGISTERS; i++) {
+        registerInitialized[i] = false;
+        registers[i].asFloat = 0.0f;
+        registers[i].asInt = 0;
+        registers[i].asBool = false;
+    }
+    for (uint16_t i = 0; i < MAX_REGISTERS; i++) {
+        registerTypes[i] = VAR_FLOAT;
+    }
+    for (uint16_t i = 0; i < MAX_REGISTERS; i++) {
+        registerInitialized[i] = false;
+    }
     if (isFullReset) {
-        isPaused = PROGRAM_NOT_STARTED;
-        programSize = 0;
         delete[] program;
         program = nullptr;
+        isPaused = PROGRAM_NOT_STARTED;
+        programSize = 0;
     }
 }
 

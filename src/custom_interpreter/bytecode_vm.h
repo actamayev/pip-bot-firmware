@@ -35,17 +35,23 @@ class BytecodeVM : public Singleton<BytecodeVM> {
         bool waitingForButtonPressToStart = false;
 
     private:
+        // Constants:
+        static const uint16_t MAX_REGISTERS = 512; // Changed from uint8_t to uint16_t
+                                        // to handle values > 255
+
+        static const uint8_t INSTRUCTION_SIZE = 20;
+
+        static const uint16_t LEFT_PROXIMITY_THRESHOLD = 650;
+        static const uint16_t RIGHT_PROXIMITY_THRESHOLD = 650;
+        const int TURN_TIMEOUT = 2000; // 1 second timeout for turn operations
+
         BytecodeInstruction* program = nullptr;
         uint16_t programSize = 0;
         uint16_t pc = 0; // Program counter
         unsigned long delayUntil = 0; // For handling delays
         bool waitingForDelay = false;
         bool lastComparisonResult = false; // Stores result of last comparison
-        
-        static const uint16_t MAX_REGISTERS = 512; // Changed from uint8_t to uint16_t
-                                              // to handle values > 255
 
-        static const uint8_t INSTRUCTION_SIZE = 20;
         // Union to store different variable types in the same memory
         union RegisterValue {
             float asFloat;
@@ -65,7 +71,6 @@ class BytecodeVM : public Singleton<BytecodeVM> {
         bool compareValues(ComparisonOp op, float leftOperand, float rightValue);
 
         bool turningInProgress = false;
-        const int TURN_TIMEOUT = 2000; // 1 second timeout for turn operations
         float targetTurnDegrees = 0;
         float initialTurnYaw = 0;
         bool turnClockwise = true;
@@ -85,9 +90,6 @@ class BytecodeVM : public Singleton<BytecodeVM> {
         
         // Helper method for distance-based motor operations
         void updateDistanceMovement();
-
-        static const uint16_t LEFT_PROXIMITY_THRESHOLD = 650;
-        static const uint16_t RIGHT_PROXIMITY_THRESHOLD = 650;
 
         void resetStateVariables(bool isFullReset = false);
 
