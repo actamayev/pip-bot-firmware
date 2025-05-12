@@ -6,10 +6,8 @@ BytecodeVM::~BytecodeVM() {
 
 bool BytecodeVM::loadProgram(const uint8_t* byteCode, uint16_t size) {
     // Free any existing program
-    resetStateVariables(true);
+    stopProgram();
     Serial.printf("Loading program of size %zu\n", size);
-
-    motorDriver.force_reset_motors();
 
     // Validate bytecode size (must be multiple of 20 now)
     if (size % INSTRUCTION_SIZE != 0 || size / INSTRUCTION_SIZE > MAX_PROGRAM_SIZE) {
@@ -39,30 +37,11 @@ bool BytecodeVM::loadProgram(const uint8_t* byteCode, uint16_t size) {
 }
 
 void BytecodeVM::update() {
-    if (program && pc < programSize && !isPaused) {
+    if (program && pc < programSize && isPaused == RUNNING) {
         SensorPollingManager::getInstance().startPolling();
     }
 
-    if (!program || pc >= programSize || isPaused) {
-        return;
-    }
-
-    if (waitingForButtonRelease) {
-        // Wait for any currently pressed buttons to be released
-        if (!Buttons::getInstance().isButton1Pressed()) {
-            waitingForButtonRelease = false;
-            waitingForButtonPress = true;
-        }
-        return;
-    }
-
-    if (waitingForButtonPress) {
-        // Check if a button is pressed
-        if (Buttons::getInstance().isButton1Pressed()) {
-            // Button pressed, continue execution
-            waitingForButtonPress = false;
-            pc++; // Move to next instruction
-        }
+    if (!program || pc >= programSize || isPaused == PauseState::PAUSED) {
         return;
     }
 
@@ -92,7 +71,7 @@ void BytecodeVM::update() {
 
     // Execute current instruction
     executeInstruction(program[pc]);
-    if (!waitingForButtonPress && !waitingForButtonRelease) {
+    if (!waitingForButtonPressToStart) {
         pc++; // Move to next instruction
     }
 }
@@ -639,9 +618,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
         }
 
         case OP_WAIT_FOR_BUTTON: {
-            // Enter button waiting state
-            waitingForButtonRelease = Buttons::getInstance().isButton1Pressed();
-            waitingForButtonPress = !waitingForButtonRelease;
+            waitingForButtonPressToStart = true;
 
             // Don't increment PC here - we'll do it when the button is pressed
             return; // Return without incrementing PC
@@ -672,7 +649,7 @@ void BytecodeVM::updateTurning() {
     
     // Check for timeout (safety feature)
     unsigned long elapsed = millis() - turnStartTime;
-    bool timeout = elapsed > turnTimeout; // 10 second timeout
+    bool timeout = elapsed > TURN_TIMEOUT; // 10 second timeout
     
     // Check if turn is complete
     if (rotationDelta >= targetTurnDegrees || timeout) {
@@ -730,11 +707,10 @@ void BytecodeVM::resetStateVariables(bool isFullReset) {
     distanceMovementInProgress = false;
     motorMovementEndTime = 0;
     targetDistanceCm = 0.0f;
-    waitingForButtonPress = false;
-    waitingForButtonRelease = false;
+    waitingForButtonPressToStart = false;
 
     if (isFullReset) {
-        isPaused = false;
+        isPaused = PROGRAM_NOT_STARTED;
         programSize = 0;
         delete[] program;
         program = nullptr;
@@ -742,40 +718,36 @@ void BytecodeVM::resetStateVariables(bool isFullReset) {
 }
 
 void BytecodeVM::togglePause() {
-    if (!program) {
+    if (!program || isPaused == PROGRAM_NOT_STARTED) {
         Serial.println("togglePause: No program loaded");
         return;
     }
     
-    Serial.printf("togglePause: isPaused=%d, PC=%d\n", isPaused, pc);
-
-    if (isPaused) resumeProgram();
+    if (isPaused == PAUSED) resumeProgram();
     else pauseProgram();
 }
 
 void BytecodeVM::pauseProgram() {
-    if (!program || isPaused) {
+    if (!program || isPaused == PAUSED) {
         Serial.println("pauseProgram: Already paused or no program");
         return;
     }
     
-    Serial.printf("Pausing program at PC=%d\n", pc);
-
     resetStateVariables();
     speaker.mute();     
     rgbLed.turn_led_off();     
     motorDriver.brake_if_moving();
     
-    isPaused = true;
+    isPaused = PAUSED;
 }
 
 void BytecodeVM::resumeProgram() {
-    if (!program || !isPaused) {
+    if (!program || isPaused == RUNNING) {
         Serial.println("resumeProgram: Not paused or no program");
         return;
     }
     
-    isPaused = false;
+    isPaused = RUNNING;
     
     // Check if the first instruction is a WAIT_FOR_BUTTON (start block)
     if (programSize > 0 && program[0].opcode == OP_WAIT_FOR_BUTTON) {

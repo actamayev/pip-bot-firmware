@@ -372,8 +372,8 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             SerialManager::getInstance().isConnected = true;
             SerialManager::getInstance().lastActivityTime = millis();
             SerialManager::getInstance().sendHandshakeConfirmation();
-            rgbLed.set_led_blue();
             SensorPollingManager::getInstance().startPolling();
+            rgbLed.set_led_blue();
             break;
         }
         case DataMessageType::SERIAL_KEEPALIVE: {
@@ -383,7 +383,7 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
         case DataMessageType::SERIAL_END: {
             SerialManager::getInstance().isConnected = false;
             rgbLed.turn_led_off();
-            SensorPollingManager::getInstance().stopPolling();
+            // Don't stop polling here. Users will frequently connect and disconnect
             break;
         }
         case DataMessageType::UPDATE_HEADLIGHTS: {

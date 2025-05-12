@@ -10,7 +10,8 @@
 
 class BytecodeVM : public Singleton<BytecodeVM> {
     friend class Singleton<BytecodeVM>;
-    
+    friend class Buttons;
+
     public:
         BytecodeVM() = default;
         ~BytecodeVM();
@@ -22,12 +23,16 @@ class BytecodeVM : public Singleton<BytecodeVM> {
         // Update VM - call this regularly from main loop
         void update();
 
-        bool isPaused = false;
-        bool isWaitingForButtonPress() const { return waitingForButtonPress; }
-        bool isWaitingForButtonRelease() const { return waitingForButtonRelease; }
+        enum PauseState {
+            PROGRAM_NOT_STARTED,
+            PAUSED,
+            RUNNING
+        };
+
+        PauseState isPaused = PauseState::PROGRAM_NOT_STARTED;
+
         void togglePause();
-        bool isProgramLoaded() const { return program != nullptr; }
-        bool isProgramStarted() const { return program != nullptr && pc > 1; }
+        bool waitingForButtonPressToStart = false;
 
     private:
         BytecodeInstruction* program = nullptr;
@@ -39,7 +44,7 @@ class BytecodeVM : public Singleton<BytecodeVM> {
         
         static const uint16_t MAX_REGISTERS = 512; // Changed from uint8_t to uint16_t
                                               // to handle values > 255
-    
+
         static const uint8_t INSTRUCTION_SIZE = 20;
         // Union to store different variable types in the same memory
         union RegisterValue {
@@ -60,7 +65,7 @@ class BytecodeVM : public Singleton<BytecodeVM> {
         bool compareValues(ComparisonOp op, float leftOperand, float rightValue);
 
         bool turningInProgress = false;
-        const int turnTimeout = 2000; // 1 second timeout for turn operations
+        const int TURN_TIMEOUT = 2000; // 1 second timeout for turn operations
         float targetTurnDegrees = 0;
         float initialTurnYaw = 0;
         bool turnClockwise = true;
@@ -84,10 +89,12 @@ class BytecodeVM : public Singleton<BytecodeVM> {
         static const uint16_t LEFT_PROXIMITY_THRESHOLD = 650;
         static const uint16_t RIGHT_PROXIMITY_THRESHOLD = 650;
 
-        bool waitingForButtonPress = false;
-        bool waitingForButtonRelease = false;
         void resetStateVariables(bool isFullReset = false);
 
         void pauseProgram();
         void resumeProgram();
+
+        void incrementPC() {
+            pc++;
+        };
 };
