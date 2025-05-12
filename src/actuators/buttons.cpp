@@ -119,9 +119,7 @@ void Buttons::enterDeepSleep() {
     // Configure Button 1 (GPIO 12) as wake-up source
     rgbLed.turn_led_off();
     speaker.mute();
-    // MultizoneTofSensor::getInstance().turnOffSensor();
     BytecodeVM::getInstance().stopProgram();
-    SideTofManager::getInstance().turnOffSideTofs();
 
     esp_sleep_enable_ext0_wakeup((gpio_num_t)BUTTON_PIN_1, LOW); // LOW = button press (since using INPUT_PULLUP)
     esp_sleep_enable_ext0_wakeup((gpio_num_t)BUTTON_PIN_2, LOW); // LOW = button press (since using INPUT_PULLUP)

@@ -10,8 +10,8 @@ class SideTofManager : public Singleton<SideTofManager> {
         SideTimeOfFlightSensor rightSideTofSensor;
 
         void turnOffSideTofs() {
-            leftSideTofSensor.turnSensorOff();
-            rightSideTofSensor.turnSensorOff();
+            return;
+            // TODO 5/12/25 Not implemented yet
         }
 
         SideTofCounts getBothSideTofCounts() {

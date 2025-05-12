@@ -382,6 +382,7 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
         }
         case DataMessageType::SERIAL_END: {
             SerialManager::getInstance().isConnected = false;
+            rgbLed.turn_led_off();
             SensorPollingManager::getInstance().stopPolling();
             break;
         }
