@@ -775,8 +775,14 @@ void BytecodeVM::resumeProgram() {
         return;
     }
     
-    Serial.println("Resuming program from beginning");
-    
     isPaused = false;
-    pc = 0; // Restart from the beginning
+    
+    // Check if the first instruction is a WAIT_FOR_BUTTON (start block)
+    if (programSize > 0 && program[0].opcode == OP_WAIT_FOR_BUTTON) {
+        Serial.println("Resuming program - skipping initial wait for button");
+        pc = 1; // Start after the wait for button instruction
+    } else {
+        Serial.println("Resuming program from beginning");
+        pc = 0; // Start from the beginning for scripts without a start block
+    }
 }
