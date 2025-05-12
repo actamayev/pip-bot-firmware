@@ -86,7 +86,7 @@ class BytecodeVM : public Singleton<BytecodeVM> {
 
         bool waitingForButtonPress = false;
         bool waitingForButtonRelease = false;
-        void resetStateVariables();
+        void resetStateVariables(bool isFullReset = false);
 
         void pauseProgram();
         void resumeProgram();

@@ -1,17 +1,12 @@
 #include "bytecode_vm.h"
 
 BytecodeVM::~BytecodeVM() {
-    if (program) {
-        delete[] program;
-    }
+    resetStateVariables(true);
 }
 
 bool BytecodeVM::loadProgram(const uint8_t* byteCode, uint16_t size) {
     // Free any existing program
-    if (program) {
-        delete[] program;
-        program = nullptr;
-    }
+    resetStateVariables(true);
     Serial.printf("Loading program of size %zu\n", size);
 
     motorDriver.force_reset_motors();
@@ -39,9 +34,6 @@ bool BytecodeVM::loadProgram(const uint8_t* byteCode, uint16_t size) {
         memcpy(&program[i].operand3, &byteCode[offset + 12], sizeof(float));
         memcpy(&program[i].operand4, &byteCode[offset + 16], sizeof(float));
     }
-
-    // Reset VM state
-    resetStateVariables();
     
     return true;
 }
@@ -714,17 +706,7 @@ void BytecodeVM::updateDistanceMovement() {
 }
 
 void BytecodeVM::stopProgram() {
-    if (program) {
-        delete[] program;
-        program = nullptr;
-    }
-    resetStateVariables();
-    // TODO: MZ takes a long time to turn off, consider just stopRanging
-    // MultizoneTofSensor::getInstance().turnOffSensor();
-
-    // TODO: turning of IMU causes it to crash when re-initialized
-    // ImuSensor::getInstance().turnOffImu();
-    // SideTofManager::getInstance().turnOffSideTofs();
+    resetStateVariables(true);
 
     speaker.mute();
     rgbLed.turn_led_off();
@@ -732,7 +714,7 @@ void BytecodeVM::stopProgram() {
     return;
 }
 
-void BytecodeVM::resetStateVariables() {
+void BytecodeVM::resetStateVariables(bool isFullReset) {
     pc = 0;
     delayUntil = 0;
     waitingForDelay = false;
@@ -750,6 +732,13 @@ void BytecodeVM::resetStateVariables() {
     targetDistanceCm = 0.0f;
     waitingForButtonPress = false;
     waitingForButtonRelease = false;
+
+    if (isFullReset) {
+        isPaused = false;
+        programSize = 0;
+        delete[] program;
+        program = nullptr;
+    }
 }
 
 void BytecodeVM::togglePause() {
@@ -771,7 +760,7 @@ void BytecodeVM::pauseProgram() {
     }
     
     Serial.printf("Pausing program at PC=%d\n", pc);
-    
+
     resetStateVariables();
     speaker.mute();     
     rgbLed.turn_led_off();     
