@@ -398,12 +398,8 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             }
             break;
         }
-        case DataMessageType::START_SENSOR_POLLING_IN_ONE_MINUTE: {
+        case DataMessageType::START_SENSOR_POLLING: {
             SensorPollingManager::getInstance().startPolling();
-            break;
-        }
-        case DataMessageType::STOP_SENSOR_POLLING: {
-            SensorPollingManager::getInstance().stopPolling();
             break;
         }
         default:

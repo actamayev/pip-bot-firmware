@@ -6,7 +6,6 @@ void SensorPollingManager::startPolling() {
     pollingEndTime = currentTime + POLLING_DURATION_MS;
     
     if (polling) {
-        Serial.println("Sensor polling extended for 1 minute");
         return;
     }
     

@@ -32,12 +32,19 @@ void Buttons::setButton1ClickHandler(std::function<void(Button2&)> callback) {
         if (this->waitingForSleepConfirmation) return;
 
         BytecodeVM& vm = BytecodeVM::getInstance();
-        if (vm.isProgramLoaded() && !vm.isWaitingForButtonPress() && !vm.isWaitingForButtonRelease()) {
+        
+        // Only toggle pause if program is actively running (pc > 10)
+        if (
+            (vm.isProgramStarted() && !vm.isWaitingForButtonPress() && !vm.isWaitingForButtonRelease()) ||
+            (vm.isPaused)
+        ) {
+            Serial.println("Program is running - toggling pause state");
             vm.togglePause();
             return; // Skip original callback when handling VM pause/resume
         }
 
-        // Otherwise, proceed with normal click handling
+        // Otherwise, proceed with normal click handling to start the program
+        Serial.println("Program not running - executing normal callback");
         if (originalCallback) {
             originalCallback(btn);
         }

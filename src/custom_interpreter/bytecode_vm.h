@@ -27,7 +27,8 @@ class BytecodeVM : public Singleton<BytecodeVM> {
         bool isWaitingForButtonRelease() const { return waitingForButtonRelease; }
         void togglePause();
         bool isProgramLoaded() const { return program != nullptr; }
-        
+        bool isProgramStarted() const { return program != nullptr && pc > 1; }
+
     private:
         BytecodeInstruction* program = nullptr;
         uint16_t programSize = 0;

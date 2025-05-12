@@ -752,10 +752,27 @@ void BytecodeVM::resetStateVariables() {
     waitingForButtonRelease = false;
 }
 
-void BytecodeVM::pauseProgram() {
-    if (!program || isPaused) return;
+void BytecodeVM::togglePause() {
+    if (!program) {
+        Serial.println("togglePause: No program loaded");
+        return;
+    }
     
-    resetStateVariables();     
+    Serial.printf("togglePause: isPaused=%d, PC=%d\n", isPaused, pc);
+
+    if (isPaused) resumeProgram();
+    else pauseProgram();
+}
+
+void BytecodeVM::pauseProgram() {
+    if (!program || isPaused) {
+        Serial.println("pauseProgram: Already paused or no program");
+        return;
+    }
+    
+    Serial.printf("Pausing program at PC=%d\n", pc);
+    
+    resetStateVariables();
     speaker.mute();     
     rgbLed.turn_led_off();     
     motorDriver.brake_if_moving();
@@ -764,15 +781,13 @@ void BytecodeVM::pauseProgram() {
 }
 
 void BytecodeVM::resumeProgram() {
-    if (!program || !isPaused) return;
+    if (!program || !isPaused) {
+        Serial.println("resumeProgram: Not paused or no program");
+        return;
+    }
+    
+    Serial.println("Resuming program from beginning");
     
     isPaused = false;
     pc = 0; // Restart from the beginning
-}
-
-void BytecodeVM::togglePause() {
-    if (!program) return;
-
-    if (isPaused) resumeProgram();
-    else pauseProgram();
 }
