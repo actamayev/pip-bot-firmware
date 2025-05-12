@@ -36,8 +36,8 @@ void SensorPollingManager::stopPolling() {
     
     // Turn off all sensors to save power
     ImuSensor::getInstance().turnOff();
-    MultizoneTofSensor::getInstance().turnOffSensor();
     SideTofManager::getInstance().turnOffSideTofs();
+    MultizoneTofSensor::getInstance().turnOffSensor();
 }
 
 void SensorPollingManager::update() {

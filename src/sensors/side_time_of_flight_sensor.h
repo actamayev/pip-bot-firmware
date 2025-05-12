@@ -17,7 +17,6 @@ class SideTimeOfFlightSensor {
         unsigned int getInitRetryCount() const { return initRetryCount; }
         unsigned int getMaxInitRetries() const { return MAX_INIT_RETRIES; }
         uint16_t getCounts();
-        void turnSensorOff();
 
     private:
         uint8_t sensorAddress = 0; // Store the specific sensor address
