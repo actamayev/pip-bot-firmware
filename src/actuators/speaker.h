@@ -6,16 +6,14 @@ class Speaker  {
     public:
         Speaker();
 
-        // Play a chime sound in a non-blocking way
         void chime();
-        
-        // This should be called periodically from a task to update the speaker
-        void mute();
-        void unMute();
+
         void setMuted(bool muted);
-        bool getMuted() const;
+
     private:
         bool isMuted;
+        void mute();
+        void unMute();
 };
 
 extern Speaker speaker;

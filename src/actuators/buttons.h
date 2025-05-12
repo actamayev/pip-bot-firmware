@@ -28,10 +28,6 @@ class Buttons: public Singleton<Buttons> {
         // Add more event handlers as needed:
         void setButton1LongPressHandler(std::function<void(Button2&)> callback);
         void setButton2LongPressHandler(std::function<void(Button2&)> callback);
-
-        bool isButton1Pressed() const {
-            return button1.isPressed();
-        }
     private:
         Button2 button1;
         Button2 button2;

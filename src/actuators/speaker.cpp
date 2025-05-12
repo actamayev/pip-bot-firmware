@@ -10,6 +10,11 @@ Speaker::Speaker() {
     isMuted = true;
 }
 
+void Speaker::setMuted(bool muted) {
+    if (muted) mute();
+    else unMute();
+}
+
 void Speaker::mute() {
     if (isMuted) return;
     isMuted = true;
@@ -25,15 +30,6 @@ void Speaker::unMute() {
     isMuted = false;
 
     Serial.println("Speaker unmuted");
-}
-
-void Speaker::setMuted(bool muted) {
-    if (muted) mute();
-    else unMute();
-}
-
-bool Speaker::getMuted() const {
-    return isMuted;
 }
 
 void Speaker::chime() {

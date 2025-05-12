@@ -35,15 +35,7 @@ void MessageProcessor::handleSoundCommand(SoundType soundType) {
 }
 
 void MessageProcessor::handleSpeakerMute(SpeakerStatus status) {
-    if (status == SpeakerStatus::MUTED) {
-        Serial.println("Muting speaker");
-        speaker.mute();
-    } else if (status == SpeakerStatus::UNMUTED) {
-        Serial.println("Un-muting speaker");
-        speaker.unMute();
-    } else {
-        Serial.printf("Unknown mute state: %d\n", static_cast<int>(status));
-    }
+    speaker.setMuted(status == SpeakerStatus::MUTED);
 }
 
 void MessageProcessor::updateMotorSpeeds(int16_t leftSpeed, int16_t rightSpeed) {
