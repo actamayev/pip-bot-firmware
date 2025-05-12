@@ -1,4 +1,4 @@
-#include "../utils/config.h"
+#include "utils/config.h"
 #include "encoder_manager.h"
 
 EncoderManager encoderManager;

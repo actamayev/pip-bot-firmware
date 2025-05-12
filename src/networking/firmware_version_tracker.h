@@ -2,8 +2,8 @@
 
 #include <HTTPUpdate.h>
 #include <WiFiClientSecure.h>
-#include "../utils/config.h"
-#include "../utils/singleton.h"
+#include "utils/config.h"
+#include "utils/singleton.h"
 #include "wifi_manager.h"
 
 extern Preferences preferences;

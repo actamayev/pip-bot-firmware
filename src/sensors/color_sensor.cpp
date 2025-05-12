@@ -1,4 +1,4 @@
-#include "../utils/config.h"
+#include "utils/config.h"
 #include "color_sensor.h"
 
 bool ColorSensor::initialize() {

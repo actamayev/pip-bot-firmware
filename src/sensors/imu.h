@@ -1,9 +1,9 @@
 #pragma once
 #include <Adafruit_BNO08x.h>
-#include "../utils/config.h"
-#include "../utils/utils.h"
-#include "../utils/structs.h"
-#include "../utils/singleton.h"
+#include "utils/config.h"
+#include "utils/utils.h"
+#include "utils/structs.h"
+#include "utils/singleton.h"
 #include "sensor_polling_manager.h"
 
 class ImuSensor : public Singleton<ImuSensor> {

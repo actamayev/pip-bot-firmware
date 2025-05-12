@@ -1,17 +1,17 @@
 #pragma once
 
 #include <Arduino.h>
-#include "../utils/config.h"
-#include "../utils/singleton.h"
-#include "../actuators/speaker.h"
-#include "../networking/protocol.h"
-#include "../actuators/motor_driver.h"
-#include "../demos/obstacle_avoider.h"
-#include "../sensors/encoder_manager.h"
-#include "../demos/balance_controller.h" 
-#include "../networking/serial_manager.h"
-#include "../actuators/led/led_animations.h"
-#include "../sensors/sensor_polling_manager.h"
+#include "utils/config.h"
+#include "utils/singleton.h"
+#include "actuators/speaker.h"
+#include "networking/protocol.h"
+#include "actuators/motor_driver.h"
+#include "demos/obstacle_avoider.h"
+#include "sensors/encoder_manager.h"
+#include "demos/balance_controller.h" 
+#include "networking/serial_manager.h"
+#include "actuators/led/led_animations.h"
+#include "sensors/sensor_polling_manager.h"
 
 class MessageProcessor : public Singleton<MessageProcessor> {
     friend class Singleton<MessageProcessor>;

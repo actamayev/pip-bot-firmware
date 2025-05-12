@@ -1,14 +1,14 @@
 #pragma once
 
 #include <ArduinoJson.h>
-#include "../sensors/imu.h"
-#include "../utils/config.h"
-#include "../utils/singleton.h"
-#include "../sensors/ir_sensor.h"
-#include "../sensors/ir_sensor.h"
-#include "../sensors/color_sensor.h"
-#include "../sensors/encoder_manager.h"
-#include "../networking/websocket_manager.h"
+#include "sensors/imu.h"
+#include "utils/config.h"
+#include "utils/singleton.h"
+#include "sensors/ir_sensor.h"
+#include "sensors/ir_sensor.h"
+#include "sensors/color_sensor.h"
+#include "sensors/encoder_manager.h"
+#include "networking/websocket_manager.h"
 
 class SendDataToServer : public Singleton<SendDataToServer> {
     friend class Singleton<SendDataToServer>;

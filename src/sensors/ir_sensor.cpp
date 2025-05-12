@@ -1,4 +1,4 @@
-#include "../utils/config.h"
+#include "utils/config.h"
 #include "ir_sensor.h"
 
 IrSensor::IrSensor() {

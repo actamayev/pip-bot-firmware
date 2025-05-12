@@ -1,8 +1,8 @@
 #pragma once
 #include "imu.h"
 #include "color_sensor.h"
-#include "../utils/config.h"
-#include "../utils/singleton.h"
+#include "utils/config.h"
+#include "utils/singleton.h"
 #include "side_tof_manager.h"
 #include "multizone_tof_sensor.h"
 #include "side_time_of_flight_sensor.h"

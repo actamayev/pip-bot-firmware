@@ -1,8 +1,8 @@
 #pragma once
 #include <Arduino.h>
-#include "../utils/config.h"
-#include "../demos/straight_line_drive.h"
-#include "../sensors/encoder_manager.h"
+#include "utils/config.h"
+#include "demos/straight_line_drive.h"
+#include "sensors/encoder_manager.h"
 
 class MotorDriver {
     public:

@@ -1,7 +1,7 @@
 #pragma once
 #include "Arduino.h"
-#include "../utils/structs.h"
-#include "../utils/singleton.h"
+#include "utils/structs.h"
+#include "utils/singleton.h"
 
 class IrSensor : public Singleton<IrSensor> {
     friend class Singleton<IrSensor>;

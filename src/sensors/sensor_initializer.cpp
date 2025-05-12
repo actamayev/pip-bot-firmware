@@ -1,5 +1,5 @@
 #include "sensor_initializer.h"
-#include "../utils/utils.h"
+#include "utils/utils.h"
 
 SensorInitializer::SensorInitializer() {
     // Initialize the status array

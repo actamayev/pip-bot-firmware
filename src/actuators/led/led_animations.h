@@ -2,8 +2,8 @@
 
 #include <Adafruit_NeoPixel.h>
 #include "rgb_led.h"
-#include "../../utils/config.h"
-#include "../../utils/structs.h"
+#include "utils/config.h"
+#include "utils/structs.h"
 
 class LedAnimations {
     public:

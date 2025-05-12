@@ -1,7 +1,7 @@
 #pragma once
 #include "veml3328/veml3328.h"
-#include "../utils/structs.h"
-#include "../utils/singleton.h"
+#include "utils/structs.h"
+#include "utils/singleton.h"
 
 class ColorSensor : public Singleton<ColorSensor> {
     friend class Singleton<ColorSensor>;

@@ -4,7 +4,7 @@
 #include "./vcnl36828p/VCNL36828P_Prototypes.h"
 #include "./vcnl36828p/typedefinition.h"
 #include "./vcnl36828p/VCNL36828P_Application_Library.h"
-#include "../utils/config.h"
+#include "utils/config.h"
 #include "./utils/structs.h"
 
 class SideTimeOfFlightSensor {

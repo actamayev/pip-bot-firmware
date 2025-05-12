@@ -685,7 +685,7 @@ void BytecodeVM::updateDistanceMovement() {
 void BytecodeVM::stopProgram() {
     resetStateVariables(true);
 
-    speaker.mute();
+    speaker.setMuted(true);
     rgbLed.turn_led_off();
     motorDriver.brake_if_moving();
     return;
@@ -734,7 +734,7 @@ void BytecodeVM::pauseProgram() {
     }
     
     resetStateVariables();
-    speaker.mute();     
+    speaker.setMuted(true);
     rgbLed.turn_led_off();     
     motorDriver.brake_if_moving();
     

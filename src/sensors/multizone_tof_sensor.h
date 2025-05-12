@@ -1,9 +1,9 @@
 #pragma once
 #include <Wire.h>
 #include <vl53l7cx_class.h>
-#include "../utils/utils.h"
-#include "../utils/config.h"
-#include "../utils/singleton.h"
+#include "utils/utils.h"
+#include "utils/config.h"
+#include "utils/singleton.h"
 
 // Define ROI dimensions
 #define ROI_ROWS 2        // Rows 3-4

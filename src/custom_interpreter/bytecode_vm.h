@@ -1,12 +1,12 @@
 #pragma once
 #include <Arduino.h>
 #include "bytecode_structs.h"
-#include "../sensors/imu.h"
-#include "../utils/singleton.h"
-#include "../actuators/buttons.h"
-#include "../actuators/led/rgb_led.h"
-#include "../actuators/motor_driver.h"
-#include "../sensors/multizone_tof_sensor.h"
+#include "sensors/imu.h"
+#include "utils/singleton.h"
+#include "actuators/buttons.h"
+#include "actuators/led/rgb_led.h"
+#include "actuators/motor_driver.h"
+#include "sensors/multizone_tof_sensor.h"
 
 class BytecodeVM : public Singleton<BytecodeVM> {
     friend class Singleton<BytecodeVM>;

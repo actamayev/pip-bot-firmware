@@ -1,5 +1,5 @@
-#include "../utils/config.h"
-#include "../utils/structs.h"
+#include "utils/config.h"
+#include "utils/structs.h"
 #include "websocket_manager.h"
 
 WebSocketManager::WebSocketManager() {

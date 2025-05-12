@@ -1,6 +1,6 @@
 #pragma once
 #include "Arduino.h"
-#include "../utils/config.h"
+#include "utils/config.h"
 
 class Speaker  {
     public:
