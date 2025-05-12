@@ -5,9 +5,7 @@ void SensorPollingManager::startPolling() {
     // Set or extend polling end time to 1 minute from now
     pollingEndTime = currentTime + POLLING_DURATION_MS;
     
-    if (polling) {
-        return;
-    }
+    if (polling) return;
     
     polling = true;
     lastPollTime = currentTime;
