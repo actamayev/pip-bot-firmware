@@ -3,7 +3,6 @@
 #include <WiFi.h>
 #include <vector>
 #include <algorithm>
-#include <Preferences.h>
 #include "utils/config.h"
 #include "utils/structs.h"
 #include "utils/singleton.h"
@@ -23,7 +22,6 @@ class WiFiManager : public Singleton<WiFiManager> {
 		const std::vector<WiFiNetworkInfo>& getAvailableNetworks() const { return _availableNetworks; }
 
 		void storeWiFiCredentials(const String& ssid, const String& password, int index);
-		std::vector<WiFiCredentials> getAllStoredNetworks();
 		void checkAndReconnectWiFi();
 
 	private:
@@ -49,5 +47,3 @@ class WiFiManager : public Singleton<WiFiManager> {
 		const unsigned long printInterval = 100;  // Print dots every 100ms
 		const unsigned long checkInterval = 500;  // Check serial every 500ms
 };
-
-extern Preferences preferences;

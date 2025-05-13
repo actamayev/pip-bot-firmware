@@ -174,7 +174,6 @@ void MultizoneTofSensor::measureDistance() {
         return;
     }
     
-    Serial.println("New data ready");
     // Get the ranging data
     sensor.vl53l7cx_get_ranging_data(&sensorData);
     
