@@ -107,7 +107,7 @@ uint16_t VEMLClass::read(const uint8_t register_address) {
 
     for (uint8_t i = 0; i < 2; i++) {
         // Wait some for the result
-        delay(10);
+        vTaskDelay(pdMS_TO_TICKS(10));
 
         // We don't busy wait here to prevent dead lock. We rather want a wrong
         // result here than the device hanging here if we use a loop to check

@@ -3,6 +3,7 @@
 Buttons::Buttons() 
     : button1(BUTTON_PIN_1), 
       button2(BUTTON_PIN_2) {
+    begin();
 }
 
 void Buttons::begin() {

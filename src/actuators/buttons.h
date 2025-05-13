@@ -1,7 +1,7 @@
 #pragma once
 #include <Arduino.h>
 #include <Button2.h>
-#include <esp_sleep.h>  // Add this for deep sleep functionality
+#include <esp_sleep.h>
 #include "utils/config.h"
 #include "utils/singleton.h"
 #include "actuators/speaker.h"
@@ -14,9 +14,6 @@ class Buttons: public Singleton<Buttons> {
     
     public:
         Buttons();
-        
-        // Initialize buttons - call this in setup()
-        void begin();
         
         // Update buttons - call this in loop()
         void update();
@@ -34,6 +31,9 @@ class Buttons: public Singleton<Buttons> {
 		bool longPressFlagForSleep = false;
         bool waitingForSleepConfirmation = false; // New flag for confirmation stage
         static const uint32_t DEEP_SLEEP_TIMEOUT = 2000; // 2 seconds in milliseconds
+
+        void begin();
+
         // Deep sleep methods
         void setupDeepSleep();
         void enterDeepSleep();
