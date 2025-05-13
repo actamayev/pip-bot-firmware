@@ -11,9 +11,6 @@ class SensorPollingManager : public Singleton<SensorPollingManager> {
         SensorPollingManager() = default;
 
         void startPolling();
-        void stopPolling();
-        bool isPolling() const { return polling; }
-        
         void update();
 
     private:
@@ -29,4 +26,5 @@ class SensorPollingManager : public Singleton<SensorPollingManager> {
 
         // Helper method to poll all sensors
         void pollSensors();
+        void stopPolling();
 };

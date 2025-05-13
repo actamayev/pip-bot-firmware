@@ -82,7 +82,7 @@ void sideTofsLogger() {
     
     if (millis() - lastPrintTime < PRINT_INTERVAL) return;
     SideTofCounts tofCounts = SideTofManager::getInstance().getBothSideTofCounts();
-    // DisplayScreen::getInstance().showDistanceSensors(tofDistances);
+    // DisplayScreen::getInstance().showDistanceSensors(tofCounts);
 
     // Print side by side with alignment
     Serial.print("Left TOF: ");

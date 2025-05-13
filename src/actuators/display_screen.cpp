@@ -1,7 +1,7 @@
 #include "display_screen.h"
 
 // Initialize the display with explicit Wire reference
-bool DisplayScreen::init(TwoWire& wire) {
+bool DisplayScreen::init() {
     if (initialized) return true;  // Already initialized
     
     // Initialize the OLED display with the provided Wire instance

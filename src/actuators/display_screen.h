@@ -10,10 +10,7 @@ class DisplayScreen: public Singleton<DisplayScreen> {
     friend class Singleton<DisplayScreen>;  // Allow Singleton to access private constructor
 
     public:
-        // Explicit initialization with Wire reference
-        bool init(TwoWire& wire);
-        // 5/10/25: TODO: Change to:
-        // bool init();
+        bool init();
         
         // Main update method to call in the task loop
         void update();

@@ -32,12 +32,9 @@ void SensorAndBytecodeTask(void * parameter) {
 
     Buttons::getInstance().begin();  // Initialize the buttons
     setupButtonLoggers();
-    // if (!DisplayScreen::getInstance().init(Wire)) {
+    // if (!DisplayScreen::getInstance().init()) {
     //     Serial.println("Display initialization failed");
     // }
-    // 5/10/25: TODO: Change to:
-    // if (!DisplayScreen::getInstance().init()) {
-    
     // First attempt to initialize each sensor before entering the main loop
     if (!initializer.isSensorInitialized(SensorInitializer::IMU)) {
         Serial.println("Trying to init imu...");
