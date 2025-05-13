@@ -2,16 +2,15 @@
 #include <Wire.h>
 #include <Arduino.h>
 #include <Adafruit_SSD1306.h>
-#include "../utils/config.h"
-#include "../utils/structs.h"
-#include "../utils/singleton.h"
+#include "utils/config.h"
+#include "utils/structs.h"
+#include "utils/singleton.h"
 
 class DisplayScreen: public Singleton<DisplayScreen> {
     friend class Singleton<DisplayScreen>;  // Allow Singleton to access private constructor
 
     public:
-        // Explicit initialization with Wire reference
-        bool init(TwoWire& wire);
+        bool init();
         
         // Main update method to call in the task loop
         void update();

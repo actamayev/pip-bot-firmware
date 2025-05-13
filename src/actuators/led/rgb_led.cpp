@@ -1,4 +1,4 @@
-#include "./rgb_led.h"
+#include "rgb_led.h"
 
 RgbLed rgbLed;
 

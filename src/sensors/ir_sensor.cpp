@@ -1,9 +1,8 @@
-#include "../utils/config.h"
-#include "./ir_sensor.h"
-
-IrSensor irSensor;
+#include "utils/config.h"
+#include "ir_sensor.h"
 
 IrSensor::IrSensor() {
+    // 5/10/25: IMPORTANT TODO: These channels needs to be changed accordingly
     channels[0] = {"Y6", LOW, HIGH, HIGH};    // First IR (y6)
     channels[1] = {"Y4", LOW, LOW, HIGH};     // Second IR (y4)
     channels[2] = {"Y0", LOW, LOW, LOW};      // Third IR (y0)
@@ -21,7 +20,7 @@ IrSensor::IrSensor() {
     
     // Configure and enable IR sensor
     pinMode(PIN_IR_EN, OUTPUT);
-    digitalWrite(PIN_IR_EN, HIGH);
+    analogWrite(PIN_IR_EN, 51); // 51/255 = 20% duty cycle
 }
 
 void IrSensor::read_ir_sensor() {
@@ -39,7 +38,7 @@ void IrSensor::setMuxChannel(bool A, bool B, bool C) {
     digitalWrite(PIN_MUX_A, A);
     digitalWrite(PIN_MUX_B, B);
     digitalWrite(PIN_MUX_C, C);
-    delay(3);  // Small delay for multiplexer to settle
+    vTaskDelay(pdMS_TO_TICKS(3));  // Small delay for multiplexer to settle
 }
 
 float* IrSensor::getSensorData() {

@@ -1,8 +1,11 @@
 #pragma once
 #include "Arduino.h"
-#include "../utils/structs.h"
+#include "utils/structs.h"
+#include "utils/singleton.h"
 
-class IrSensor {
+class IrSensor : public Singleton<IrSensor> {
+    friend class Singleton<IrSensor>;
+
     public:
         IrSensor();
         float* getSensorData();
@@ -15,5 +18,3 @@ class IrSensor {
         const float cutoff = 1.75f;
         float sensorReadings[5];
 };
-
-extern IrSensor irSensor;

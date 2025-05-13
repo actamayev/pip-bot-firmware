@@ -1,4 +1,4 @@
-#include "./network_state_mangager.h"
+#include "network_state_mangager.h"
 
 NetworkMode NetworkStateManager::getCurrentMode() {
     if (SerialManager::getInstance().isConnected) {

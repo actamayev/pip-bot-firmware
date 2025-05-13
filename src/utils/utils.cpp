@@ -1,4 +1,4 @@
-#include "./utils.h"
+#include "utils.h"
 
 void quaternionToEuler(float qr, float qi, float qj, float qk, float& yaw, float& pitch, float& roll) {
     // Roll (x-axis rotation)

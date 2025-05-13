@@ -1,4 +1,4 @@
-#include "./config.h"
+#include "config.h"
 
 //Blank to be consistent with config.h
 
@@ -42,14 +42,14 @@ const int8_t OLED_RESET = -1;  // Reset pin (-1 if sharing Arduino reset pin)
 const uint8_t SCREEN_ADDRESS = 0x3C;
 
 // Color Sensor
-const uint8_t COLOR_SENSOR_LED_PIN = 16;
+const uint8_t COLOR_SENSOR_LED_PIN = 5;
 
 // IR sensor
-const uint8_t PIN_MUX_C = 4;    // Multiplexer C input
-const uint8_t PIN_MUX_B = 5;    // Multiplexer B input
-const uint8_t PIN_MUX_A = 6;    // Multiplexer A input
+const uint8_t PIN_MUX_C = 15;    // Multiplexer C input
+const uint8_t PIN_MUX_B = 16;    // Multiplexer B input
+const uint8_t PIN_MUX_A = 17;    // Multiplexer A input
 const uint8_t PIN_MUX_OUT = 7;  // Multiplexer output
-const uint8_t PIN_IR_EN = 15;    // IR sensor enable pin
+const uint8_t PIN_IR_EN = 6;    // IR sensor enable pin
 
 //Speaker
 const uint8_t AUDIO_PIN = 9;
@@ -59,7 +59,7 @@ const uint8_t BUTTON_PIN_1 = 12; // Left
 const uint8_t BUTTON_PIN_2 = 48; // Right
 
 // Assign Stack sizes for the two cores
-const uint32_t SENSOR_STACK_SIZE = 16384;  // 16KB for sensor processing
+const uint32_t SENSOR_STACK_SIZE = 20480;  // 20KB for sensor processing
 const uint32_t NETWORK_STACK_SIZE = 8192;  // 8KB for network operations
 
 // echo | openssl s_client -showcerts -connect staging-api.bluedotrobots.com:443
@@ -99,7 +99,7 @@ const char* getEnvironment() {
 const char* getServerFirmwareEndpoint() {
     const char* env = getEnvironment();
     if (env == nullptr || std::string(env) == "local") {
-        return "http://10.103.4.40:8080/pip/firmware-update";  // local can remain HTTP
+        return "http://10.202.7.40:8080/pip/firmware-update";  // local can remain HTTP
     } else if (std::string(env) == "staging") {
         return "https://staging-api.bluedotrobots.com/pip/firmware-update";
     }
@@ -109,7 +109,7 @@ const char* getServerFirmwareEndpoint() {
 const char* getWsServerUrl() {
     const char* env = getEnvironment();
     if (env == nullptr || std::string(env) == "local") {
-        return "ws://10.103.4.40:8080/esp32";  // local default
+        return "ws://10.202.7.40:8080/esp32";  // local default
     } else if (std::string(env) == "staging") {
         return "wss://staging-api.bluedotrobots.com/esp32";  // staging default
     }

@@ -1,4 +1,4 @@
-#include "./obstacle_avoider.h"
+#include "obstacle_avoider.h"
 
 void ObstacleAvoider::enable() {
     if (_avoidanceEnabled == ObstacleAvoidanceStatus::AVOID) return;

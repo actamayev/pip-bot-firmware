@@ -4,7 +4,7 @@
 #include "./vcnl36828p/VCNL36828P_Prototypes.h"
 #include "./vcnl36828p/typedefinition.h"
 #include "./vcnl36828p/VCNL36828P_Application_Library.h"
-#include "../utils/config.h"
+#include "utils/config.h"
 #include "./utils/structs.h"
 
 class SideTimeOfFlightSensor {
@@ -17,7 +17,7 @@ class SideTimeOfFlightSensor {
         unsigned int getInitRetryCount() const { return initRetryCount; }
         unsigned int getMaxInitRetries() const { return MAX_INIT_RETRIES; }
         uint16_t getCounts();
-        
+
     private:
         uint8_t sensorAddress = 0; // Store the specific sensor address
         
@@ -31,7 +31,7 @@ class SideTimeOfFlightSensor {
         // Reset a specific sensor by address
         void Reset_Specific_Sensor() {
             Reset_Sensor(sensorAddress);
-            delay(100);
+            vTaskDelay(pdMS_TO_TICKS(100));
         }
 
         // Read proximity data from the sensor
