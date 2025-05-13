@@ -18,6 +18,7 @@ class SensorInitializer : public Singleton<SensorInitializer> {
             LEFT_SIDE_TOF,
             RIGHT_SIDE_TOF,
             // IR_SENSORS,
+            // COLOR_SENSOR,
             // Add more sensors as needed
             SENSOR_COUNT
         };

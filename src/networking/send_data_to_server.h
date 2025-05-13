@@ -15,11 +15,11 @@ class SendDataToServer : public Singleton<SendDataToServer> {
 
     public:
         SendDataToServer() = default;
-        bool sendSensorData = false;
         void sendSensorDataToServer();
         void sendBytecodeMessage(String message);
 
     private:
+        bool sendSensorData = false;
         void attachRPMData(JsonObject& payload);
         void attachIRData(JsonObject& payload);
         void attachColorSensorData(JsonObject& payload);

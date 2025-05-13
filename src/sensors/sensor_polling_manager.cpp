@@ -8,7 +8,6 @@ void SensorPollingManager::startPolling() {
     if (polling) return;
     
     polling = true;
-    lastPollTime = currentTime;
     Serial.println("Sensor polling started for 1 minute");
     
     // Initialize all sensors if needed
@@ -27,6 +26,7 @@ void SensorPollingManager::startPolling() {
     if (SideTofManager::getInstance().rightSideTofSensor.needsInitialization()) {
         SideTofManager::getInstance().rightSideTofSensor.initialize(RIGHT_TOF_ADDRESS);
     }
+    lastPollTime = currentTime;
 }
 
 void SensorPollingManager::stopPolling() {

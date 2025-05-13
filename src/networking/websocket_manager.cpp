@@ -157,6 +157,5 @@ void WebSocketManager::killWiFiProcesses() {
     motorDriver.brake_if_moving();
     rgbLed.set_led_red();
     ledAnimations.startBreathing();
-    SensorPollingManager::getInstance().stopPolling();
     hasKilledWiFiProcesses = true;
 }
