@@ -1,4 +1,4 @@
-#include "./wifi_manager.h"
+#include "wifi_manager.h"
 
 Preferences preferences;
 
@@ -58,6 +58,7 @@ bool WiFiManager::attemptDirectConnectionToSavedNetworks() {
         Serial.println("No saved networks found");
         return false;
     }
+
     // if (ledAnimations.getCurrentAnimation() != LedTypes::BREATHING) {
     //     rgbLed.set_led_red();
     //     ledAnimations.startBreathing();
@@ -66,7 +67,7 @@ bool WiFiManager::attemptDirectConnectionToSavedNetworks() {
     Serial.println("Attempting direct connection to saved networks...");
     
     // Try to connect to each saved network without scanning first
-    for (const auto& network : savedNetworks) {
+    for (const WiFiCredentials& network : savedNetworks) {
         if (NetworkStateManager::getInstance().shouldStopWiFiOperations()) {
             Serial.println("Serial connection detected - aborting WiFi connection attempts");
             return false;
@@ -77,7 +78,7 @@ bool WiFiManager::attemptDirectConnectionToSavedNetworks() {
         if (attemptNewWifiConnection(network)) return true;
         
         // Brief delay before trying the next network
-        delay(100);
+        vTaskDelay(pdMS_TO_TICKS(100));
     }
     Serial.println("Failed to connect to any saved networks");
     return false;
@@ -151,7 +152,7 @@ std::vector<WiFiNetworkInfo> WiFiManager::scanWiFiNetworkInfos() {
     
     WiFi.disconnect(true);
     WiFi.scanDelete();
-    delay(100);
+    vTaskDelay(pdMS_TO_TICKS(100));
     // Set WiFi mode to station before scanning
     WiFi.mode(WIFI_STA);
 

@@ -1,25 +1,57 @@
-#include "./sensor_loggers.h"
+#include "sensor_loggers.h"
 
 void multizoneTofLogger() {
-    static unsigned long lastLogTime = 0;
-    const unsigned long LOG_INTERVAL = 100; // 100ms to match working script
+    static unsigned long lastPrintTime = 0;
+    const unsigned long PRINT_INTERVAL = 1000; // Print every second
+    const uint16_t MAX_DISTANCE = 1250; // Maximum distance cutoff in mm, same as in your example
+
+    if (millis() - lastPrintTime < PRINT_INTERVAL) return;
+
+    VL53L7CX_ResultsData multizoneTofData = MultizoneTofSensor::getInstance().getTofData();
     
-    // Only proceed if it's time to log
-    unsigned long currentTime = millis();
-    if (currentTime - lastLogTime < LOG_INTERVAL) return;
+    Serial.println("VL53L7CX ToF Sensor Data");
+    Serial.println("------------------------\n");
     
-    // Get sensor data
-    auto& sensors = Sensors::getInstance();
-    VL53L7CX_ResultsData multizoneTofData = sensors.getMultizoneTofData();
-    float avgDistance = sensors.getAverageDistanceCenterline();
-    bool objectDetected = sensors.isObjectDetected();
+    // Print separator line for the grid
+    for (int i = 0; i < 8; i++) {
+        Serial.print(" --------");
+    }
+    Serial.println("-");
     
-    // Log the grid using our LogManager - only if queue isn't too full
-    if (!LogManager::getInstance().isQueueNearlyFull()) {
-        LogManager::getInstance().logTofGrid(&multizoneTofData, avgDistance, objectDetected);
+    // Print the grid (traversing rows from bottom to top to match orientation)
+    for (int row = 8 - 1; row >= 0; row--) {
+        Serial.print("|");
+        
+        // Traverse columns from right to left to match orientation
+        for (int col = 8 - 1; col >= 0; col--) {
+            // Calculate proper index in the data array
+            int index = row * 8 + col;
+            
+            // Check if a target was detected at this position
+            if (multizoneTofData.nb_target_detected[index] > 0) {
+                // Apply the distance cutoff
+                uint16_t distance = multizoneTofData.distance_mm[index];
+                if (distance > MAX_DISTANCE) {
+                    Serial.print("    X   ");
+                } else {
+                    Serial.printf(" %4d mm", distance);
+                }
+            } else {
+                Serial.print("    X   "); // No target detected
+            }
+            Serial.print("|");
+        }
+        Serial.println();
+        
+        // Print separator line after each row
+        for (int i = 0; i < 8; i++) {
+            Serial.print(" --------");
+        }
+        Serial.println("-");
     }
     
-    lastLogTime = currentTime;
+    Serial.println();
+    lastPrintTime = millis();
 }
 
 void imuLogger() {
@@ -27,7 +59,7 @@ void imuLogger() {
     const unsigned long IMU_PRINT_INTERVAL = 500; // Print every 500ms
     
     if (millis() - lastImuPrintTime < IMU_PRINT_INTERVAL) return;
-    EulerAngles eulerAngles = Sensors::getInstance().getEulerAngles();
+    EulerAngles eulerAngles = ImuSensor::getInstance().getEulerAngles();
     
     if (!eulerAngles.isValid) {
         Serial.println("Failed to get IMU data");
@@ -49,8 +81,8 @@ void sideTofsLogger() {
     const unsigned long PRINT_INTERVAL = 50; // Print every 500ms
     
     if (millis() - lastPrintTime < PRINT_INTERVAL) return;
-    SideTofCounts tofCounts = Sensors::getInstance().getBothSideTofCounts();
-    // DisplayScreen::getInstance().showDistanceSensors(tofDistances);
+    SideTofCounts tofCounts = SideTofManager::getInstance().getBothSideTofCounts();
+    // DisplayScreen::getInstance().showDistanceSensors(tofCounts);
 
     // Print side by side with alignment
     Serial.print("Left TOF: ");

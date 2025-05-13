@@ -16,6 +16,7 @@ enum class DataMessageType : uint8_t {
     SERIAL_KEEPALIVE = 12,
     SERIAL_END = 13,
     UPDATE_HEADLIGHTS = 14,
+    START_SENSOR_POLLING = 15,
 };
 
 // Sound types

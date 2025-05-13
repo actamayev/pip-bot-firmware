@@ -4,14 +4,14 @@
 #include <vector>
 #include <algorithm>
 #include <Preferences.h>
-#include "../utils/config.h"
-#include "../utils/structs.h"
-#include "../utils/singleton.h"
-#include "./websocket_manager.h"
-#include "../actuators/led/rgb_led.h"
-#include "../sensors/encoder_manager.h"
-#include "./network_state_mangager.h"
-#include "../wifi_selection/wifi_selection_manager.h"
+#include "utils/config.h"
+#include "utils/structs.h"
+#include "utils/singleton.h"
+#include "websocket_manager.h"
+#include "actuators/led/rgb_led.h"
+#include "sensors/encoder_manager.h"
+#include "network_state_mangager.h"
+#include "wifi_selection/wifi_selection_manager.h"
 
 class WiFiManager : public Singleton<WiFiManager> {
     friend class Singleton<WiFiManager>;

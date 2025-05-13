@@ -1,4 +1,4 @@
-#include "./side_time_of_flight_sensor.h"
+#include "side_time_of_flight_sensor.h"
 
 bool SideTimeOfFlightSensor::canRetryInitialization() const {
     if (isInitialized) return false;
@@ -26,7 +26,7 @@ bool SideTimeOfFlightSensor::initialize(const uint8_t TOF_ADDRESS) {
     sensorAddress = TOF_ADDRESS;
     
     // Add a delay before trying to initialize
-    delay(50);
+    vTaskDelay(pdMS_TO_TICKS(50));
     
     // Try a few times with short delays in between
     for (int attempt = 0; attempt < 3; attempt++) {
@@ -46,7 +46,7 @@ bool SideTimeOfFlightSensor::initialize(const uint8_t TOF_ADDRESS) {
             return true;
         }
         
-        delay(50);  // Delay between attempts
+        vTaskDelay(pdMS_TO_TICKS(50));  // Delay between attempts
     }
     
     Serial.printf("Side TOF sensor 0x%02X initialization failed (retry %d of %d)\n", 
@@ -104,5 +104,5 @@ void SideTimeOfFlightSensor::Basic_Initialization_Auto_Mode() {
     VCNL36828P_SET_PS_ON(sensorAddress, VCNL36828P_PS_ON_EN);
     
     //Delay needs to be changed depending on the API of the µ-controller
-    delay(100);
+    vTaskDelay(pdMS_TO_TICKS(100));
 }

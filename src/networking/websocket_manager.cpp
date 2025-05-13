@@ -1,6 +1,6 @@
-#include "../utils/config.h"
-#include "../utils/structs.h"
-#include "./websocket_manager.h"
+#include "utils/config.h"
+#include "utils/structs.h"
+#include "websocket_manager.h"
 
 WebSocketManager::WebSocketManager() {
     wsConnected = false;
@@ -70,6 +70,7 @@ void WebSocketManager::connectToWebSocket() {
                 this->lastPingTime = millis(); // Initialize ping time
                 rgbLed.set_led_blue();
                 ledAnimations.stopAnimation();
+                SensorPollingManager::getInstance().startPolling();
                 break;
             case WebsocketsEvent::ConnectionClosed:
                 Serial.println("WebSocket disconnected");

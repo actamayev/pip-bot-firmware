@@ -1,8 +1,9 @@
-#include "./buttons.h"
+#include "buttons.h"
 
 Buttons::Buttons() 
     : button1(BUTTON_PIN_1), 
       button2(BUTTON_PIN_2) {
+    begin();
 }
 
 void Buttons::begin() {
@@ -30,8 +31,23 @@ void Buttons::setButton1ClickHandler(std::function<void(Button2&)> callback) {
     button1.setPressedHandler([this, originalCallback](Button2& btn) {
         // If we're waiting for confirmation, this click confirms deep sleep
         if (this->waitingForSleepConfirmation) return;
-        
-        // Otherwise, proceed with normal click handling
+
+        BytecodeVM& vm = BytecodeVM::getInstance();
+
+        if (vm.waitingForButtonPressToStart) {
+            vm.isPaused = BytecodeVM::RUNNING;
+            vm.waitingForButtonPressToStart = false;
+            vm.incrementPC();
+            return;
+        };
+        // Only toggle pause if program is actively running (pc > 10)
+        if (vm.isPaused != BytecodeVM::PROGRAM_NOT_STARTED) {
+            vm.togglePause();
+            return; // Skip original callback when handling VM pause/resume
+        }
+
+        // Otherwise, proceed with normal click handling to start the program
+        Serial.println("Program not running - executing normal callback");
         if (originalCallback) {
             originalCallback(btn);
         }
@@ -41,7 +57,7 @@ void Buttons::setButton1ClickHandler(std::function<void(Button2&)> callback) {
         if (!(this->waitingForSleepConfirmation)) return;
 		Serial.println("Sleep confirmed with Button 1! Entering deep sleep...");
 		this->waitingForSleepConfirmation = false;
-		delay(100); // Small delay to allow serial message to be sent
+		vTaskDelay(pdMS_TO_TICKS(100)); // Small delay to allow serial message to be sent
 		enterDeepSleep();
 		return; // Don't call the original callback in this case
     });
@@ -105,10 +121,11 @@ void Buttons::setupDeepSleep() {
 void Buttons::enterDeepSleep() {
     // Configure Button 1 (GPIO 12) as wake-up source
     rgbLed.turn_led_off();
-    speaker.mute();
-    // TODO 4/30/25: Put the TOF and IMU to sleep
-    // vl53l7cx_set_power_mode
+    speaker.setMuted(true);
+    BytecodeVM::getInstance().stopProgram();
+
     esp_sleep_enable_ext0_wakeup((gpio_num_t)BUTTON_PIN_1, LOW); // LOW = button press (since using INPUT_PULLUP)
+    esp_sleep_enable_ext0_wakeup((gpio_num_t)BUTTON_PIN_2, LOW); // LOW = button press (since using INPUT_PULLUP)
     
     Serial.println("Going to deep sleep now");
     Serial.flush();

@@ -1,4 +1,4 @@
-#include "./serial_manager.h"
+#include "serial_manager.h"
 
 void SerialManager::pollSerial() {
     if (Serial.available() <= 0) {

@@ -1,20 +1,13 @@
-#include "./bytecode_vm.h"
+#include "bytecode_vm.h"
 
 BytecodeVM::~BytecodeVM() {
-    if (program) {
-        delete[] program;
-    }
+    resetStateVariables(true);
 }
 
 bool BytecodeVM::loadProgram(const uint8_t* byteCode, uint16_t size) {
     // Free any existing program
-    if (program) {
-        delete[] program;
-        program = nullptr;
-    }
+    stopProgram();
     Serial.printf("Loading program of size %zu\n", size);
-
-    motorDriver.force_reset_motors();
 
     // Validate bytecode size (must be multiple of 20 now)
     if (size % INSTRUCTION_SIZE != 0 || size / INSTRUCTION_SIZE > MAX_PROGRAM_SIZE) {
@@ -39,34 +32,16 @@ bool BytecodeVM::loadProgram(const uint8_t* byteCode, uint16_t size) {
         memcpy(&program[i].operand3, &byteCode[offset + 12], sizeof(float));
         memcpy(&program[i].operand4, &byteCode[offset + 16], sizeof(float));
     }
-
-    // Reset VM state
-    resetStateVariables();
     
     return true;
 }
 
 void BytecodeVM::update() {
-    if (!program || pc >= programSize) {
-        return;
+    if (program && pc < programSize && isPaused == RUNNING) {
+        SensorPollingManager::getInstance().startPolling();
     }
 
-    if (waitingForButtonRelease) {
-        // Wait for any currently pressed buttons to be released
-        if (!Buttons::getInstance().isAnyButtonPressed()) {
-            waitingForButtonRelease = false;
-            waitingForButtonPress = true;
-        }
-        return;
-    }
-
-    if (waitingForButtonPress) {
-        // Check if a button is pressed
-        if (Buttons::getInstance().isAnyButtonPressed()) {
-            // Button pressed, continue execution
-            waitingForButtonPress = false;
-            pc++; // Move to next instruction
-        }
+    if (!program || pc >= programSize || isPaused == PauseState::PAUSED) {
         return;
     }
 
@@ -96,7 +71,7 @@ void BytecodeVM::update() {
 
     // Execute current instruction
     executeInstruction(program[pc]);
-    if (!waitingForButtonPress && !waitingForButtonRelease) {
+    if (!waitingForButtonPressToStart) {
         pc++; // Move to next instruction
     }
 }
@@ -226,47 +201,46 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
                 // Read the appropriate sensor
                 switch (sensorType) {
                     case SENSOR_PITCH:
-                        value = Sensors::getInstance().getPitch();
+                        value = ImuSensor::getInstance().getPitch();
                         break;
                     case SENSOR_ROLL:
-                        value = Sensors::getInstance().getRoll();
+                        value = ImuSensor::getInstance().getRoll();
                         break;
                     case SENSOR_YAW:
-                        value = Sensors::getInstance().getYaw();
+                        value = ImuSensor::getInstance().getYaw();
                         break;
                     case SENSOR_ACCEL_X:
-                        value = Sensors::getInstance().getXAccel();
+                        value = ImuSensor::getInstance().getXAccel();
                         break;
                     case SENSOR_ACCEL_Y:
-                        value = Sensors::getInstance().getYAccel();
+                        value = ImuSensor::getInstance().getYAccel();
                         break;
                     case SENSOR_ACCEL_Z:
-                        value = Sensors::getInstance().getZAccel();
+                        value = ImuSensor::getInstance().getZAccel();
                         break;
                     case SENSOR_ACCEL_MAG:
-                        value = Sensors::getInstance().getAccelMagnitude();
+                        value = ImuSensor::getInstance().getAccelMagnitude();
                         break;
                     case SENSOR_ROT_RATE_X:
-                        value = Sensors::getInstance().getXRotationRate();
+                        value = ImuSensor::getInstance().getXRotationRate();
                         break;
                     case SENSOR_ROT_RATE_Y:
-                        value = Sensors::getInstance().getYRotationRate();
+                        value = ImuSensor::getInstance().getYRotationRate();
                         break;
                     case SENSOR_ROT_RATE_Z:
-                        value = Sensors::getInstance().getZRotationRate();
+                        value = ImuSensor::getInstance().getZRotationRate();
                         break;
                     case SENSOR_MAG_FIELD_X:
-                        value = Sensors::getInstance().getMagneticFieldX();
+                        value = ImuSensor::getInstance().getMagneticFieldX();
                         break;
                     case SENSOR_MAG_FIELD_Y:
-                        value = Sensors::getInstance().getMagneticFieldY();
+                        value = ImuSensor::getInstance().getMagneticFieldY();
                         break;
                     case SENSOR_MAG_FIELD_Z:
-                        value = Sensors::getInstance().getMagneticFieldZ();
+                        value = ImuSensor::getInstance().getMagneticFieldZ();
                         break;
                     case SENSOR_SIDE_LEFT_PROXIMITY: {
-                        uint16_t counts = Sensors::getInstance().getLeftSideTofCounts();
-                        Serial.printf("counts %d\n", counts);
+                        uint16_t counts = SideTofManager::getInstance().leftSideTofSensor.getCounts();
                         registers[regId].asBool = (counts > LEFT_PROXIMITY_THRESHOLD);
                         registerTypes[regId] = VAR_BOOL;
                         registerInitialized[regId] = true;
@@ -274,7 +248,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
                         break;
                     }
                     case SENSOR_SIDE_RIGHT_PROXIMITY: {
-                        uint16_t counts = Sensors::getInstance().getRightSideTofCounts();
+                        uint16_t counts = SideTofManager::getInstance().rightSideTofSensor.getCounts();
                         registers[regId].asBool = (counts > RIGHT_PROXIMITY_THRESHOLD);
                         registerTypes[regId] = VAR_BOOL;
                         registerInitialized[regId] = true;
@@ -282,7 +256,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
                         break;
                     }
                     case SENSOR_FRONT_PROXIMITY: {
-                        float isObjectDetected = Sensors::getInstance().isObjectDetected();  // You'll need to implement this
+                        float isObjectDetected = MultizoneTofSensor::getInstance().isObjectDetected();
                         registers[regId].asBool = isObjectDetected;
                         registerTypes[regId] = VAR_BOOL;
                         registerInitialized[regId] = true;
@@ -427,7 +401,6 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             uint8_t low = static_cast<uint8_t>(instr.operand1);
             uint8_t high = static_cast<uint8_t>(instr.operand2);
             uint16_t offsetToStart = (high << 8) | low;
-            Serial.println("Jumping to start of while loop");
             if (offsetToStart <= pc * INSTRUCTION_SIZE) {
                 pc = pc - (offsetToStart / INSTRUCTION_SIZE);
             } else {
@@ -515,7 +488,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             // Initialize turning state
             turningInProgress = true;
             targetTurnDegrees = degrees;
-            initialTurnYaw = Sensors::getInstance().getYaw();
+            initialTurnYaw = ImuSensor::getInstance().getYaw();
             turnClockwise = clockwise;
             turnStartTime = millis();
 
@@ -645,9 +618,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
         }
 
         case OP_WAIT_FOR_BUTTON: {
-            // Enter button waiting state
-            waitingForButtonRelease = Buttons::getInstance().isAnyButtonPressed();
-            waitingForButtonPress = !waitingForButtonRelease;
+            waitingForButtonPressToStart = true;
 
             // Don't increment PC here - we'll do it when the button is pressed
             return; // Return without incrementing PC
@@ -663,7 +634,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
 
 void BytecodeVM::updateTurning() {
     // Get current yaw
-    float currentYaw = Sensors::getInstance().getYaw();
+    float currentYaw = ImuSensor::getInstance().getYaw();
     
     // Calculate rotation delta with wraparound handling
     float rotationDelta;
@@ -678,7 +649,7 @@ void BytecodeVM::updateTurning() {
     
     // Check for timeout (safety feature)
     unsigned long elapsed = millis() - turnStartTime;
-    bool timeout = elapsed > turnTimeout; // 10 second timeout
+    bool timeout = elapsed > TURN_TIMEOUT; // 10 second timeout
     
     // Check if turn is complete
     if (rotationDelta >= targetTurnDegrees || timeout) {
@@ -712,19 +683,15 @@ void BytecodeVM::updateDistanceMovement() {
 }
 
 void BytecodeVM::stopProgram() {
-    if (program) {
-        delete[] program;
-        program = nullptr;
-    }
-    resetStateVariables();
+    resetStateVariables(true);
 
-    speaker.mute();
+    speaker.setMuted(true);
     rgbLed.turn_led_off();
     motorDriver.brake_if_moving();
     return;
 }
 
-void BytecodeVM::resetStateVariables() {
+void BytecodeVM::resetStateVariables(bool isFullReset) {
     pc = 0;
     delayUntil = 0;
     waitingForDelay = false;
@@ -740,6 +707,67 @@ void BytecodeVM::resetStateVariables() {
     distanceMovementInProgress = false;
     motorMovementEndTime = 0;
     targetDistanceCm = 0.0f;
-    waitingForButtonPress = false;
-    waitingForButtonRelease = false;
+    waitingForButtonPressToStart = false;
+
+    // Reset registers
+    for (uint16_t i = 0; i < MAX_REGISTERS; i++) {
+        registerInitialized[i] = false;
+        registers[i].asFloat = 0.0f;
+        registers[i].asInt = 0;
+        registers[i].asBool = false;
+    }
+    for (uint16_t i = 0; i < MAX_REGISTERS; i++) {
+        registerTypes[i] = VAR_FLOAT;
+    }
+    for (uint16_t i = 0; i < MAX_REGISTERS; i++) {
+        registerInitialized[i] = false;
+    }
+    if (isFullReset) {
+        delete[] program;
+        program = nullptr;
+        isPaused = PROGRAM_NOT_STARTED;
+        programSize = 0;
+    }
+}
+
+void BytecodeVM::togglePause() {
+    if (!program || isPaused == PROGRAM_NOT_STARTED) {
+        Serial.println("togglePause: No program loaded");
+        return;
+    }
+    
+    if (isPaused == PAUSED) resumeProgram();
+    else pauseProgram();
+}
+
+void BytecodeVM::pauseProgram() {
+    if (!program || isPaused == PAUSED) {
+        Serial.println("pauseProgram: Already paused or no program");
+        return;
+    }
+    
+    resetStateVariables();
+    speaker.setMuted(true);
+    rgbLed.turn_led_off();     
+    motorDriver.brake_if_moving();
+    
+    isPaused = PAUSED;
+}
+
+void BytecodeVM::resumeProgram() {
+    if (!program || isPaused == RUNNING) {
+        Serial.println("resumeProgram: Not paused or no program");
+        return;
+    }
+    
+    isPaused = RUNNING;
+    
+    // Check if the first instruction is a WAIT_FOR_BUTTON (start block)
+    if (programSize > 0 && program[0].opcode == OP_WAIT_FOR_BUTTON) {
+        Serial.println("Resuming program - skipping initial wait for button");
+        pc = 1; // Start after the wait for button instruction
+    } else {
+        Serial.println("Resuming program from beginning");
+        pc = 0; // Start from the beginning for scripts without a start block
+    }
 }
