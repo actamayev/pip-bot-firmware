@@ -4,12 +4,10 @@ void SensorPollingManager::startPolling() {
     unsigned long currentTime = millis();
     // Set or extend polling end time to 1 minute from now
     pollingEndTime = currentTime + POLLING_DURATION_MS;
-    
-    if (isStartingInitializingPolling || isFinishedInitializingPolling) {
-        // Already polling or initializing, just extend time
-        return;
-    }
-    
+
+    // Already polling or initializing, just extend time
+    if (isStartingInitializingPolling || isFinishedInitializingPolling) return;
+
     // Just set the flags - don't do initialization here
     isStartingInitializingPolling = true;
     isFinishedInitializingPolling = false;
@@ -42,28 +40,7 @@ void SensorPollingManager::update() {
     
     // Handle initialization phase (only on Core 0)
     if (isStartingInitializingPolling && !isFinishedInitializingPolling) {
-        Serial.println("Initializing sensors...");
-        
-        // Initialize all sensors if needed
-        if (ImuSensor::getInstance().needsInitialization()) {
-            ImuSensor::getInstance().initialize();
-        }
-        
-        if (MultizoneTofSensor::getInstance().needsInitialization()) {
-            MultizoneTofSensor::getInstance().initialize();
-        }
-        
-        if (SideTofManager::getInstance().leftSideTofSensor.needsInitialization()) {
-            SideTofManager::getInstance().leftSideTofSensor.initialize(LEFT_TOF_ADDRESS);
-        }
-        
-        if (SideTofManager::getInstance().rightSideTofSensor.needsInitialization()) {
-            SideTofManager::getInstance().rightSideTofSensor.initialize(RIGHT_TOF_ADDRESS);
-        }
-        
-        // Now we're done initializing
-        isFinishedInitializingPolling = true;
-        Serial.println("Sensor initialization complete, now polling");
+        initializeAllSensors();
         return; // Skip polling on this cycle
     }
     
@@ -72,6 +49,31 @@ void SensorPollingManager::update() {
         lastPollTime = currentTime;
         pollSensors();
     }
+}
+
+void SensorPollingManager::initializeAllSensors() {
+    Serial.println("Initializing sensors...");
+    
+    // Initialize all sensors if needed
+    if (ImuSensor::getInstance().needsInitialization()) {
+        ImuSensor::getInstance().initialize();
+    }
+    
+    if (MultizoneTofSensor::getInstance().needsInitialization()) {
+        MultizoneTofSensor::getInstance().initialize();
+    }
+    
+    if (SideTofManager::getInstance().leftSideTofSensor.needsInitialization()) {
+        SideTofManager::getInstance().leftSideTofSensor.initialize(LEFT_TOF_ADDRESS);
+    }
+    
+    if (SideTofManager::getInstance().rightSideTofSensor.needsInitialization()) {
+        SideTofManager::getInstance().rightSideTofSensor.initialize(RIGHT_TOF_ADDRESS);
+    }
+    
+    // Now we're done initializing
+    isFinishedInitializingPolling = true;
+    Serial.println("Sensor initialization complete, now polling");
 }
 
 void SensorPollingManager::pollSensors() {

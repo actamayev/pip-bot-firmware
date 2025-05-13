@@ -28,4 +28,5 @@ class SensorPollingManager : public Singleton<SensorPollingManager> {
         // Helper method to poll all sensors
         void pollSensors();
         void stopPolling();
+        void initializeAllSensors();
 };
