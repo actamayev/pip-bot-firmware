@@ -14,7 +14,8 @@ class SensorPollingManager : public Singleton<SensorPollingManager> {
         void update();
 
     private:
-        bool polling = false;
+        bool isStartingInitializingPolling = false;
+        bool isFinishedInitializingPolling = false;
         unsigned long lastPollTime = 0;
         unsigned long pollingEndTime = 0;
 
