@@ -1,10 +1,7 @@
 #include "wifi_manager.h"
 
-Preferences preferences;
-
 WiFiManager::WiFiManager() {
     // Hard-coding Wifi creds during initialization (before we have encoders + screen)
-    preferences.begin("wifi-creds", false);
     storeWiFiCredentials("Another Dimension", "Iforgotit123", 0);
     // storeWiFiCredentials("NETGEAR08", "breezyshoe123", 1);
 
@@ -12,12 +9,10 @@ WiFiManager::WiFiManager() {
 }
 
 WiFiCredentials WiFiManager::getStoredWiFiCredentials() {
-	WiFiCredentials creds;
-	preferences.begin("wifi-creds", false);
-	creds.ssid = preferences.getString("ssid", "");
-	creds.password = preferences.getString("password", "");
-	preferences.end();
-	return creds;
+	WiFiCredentials credentials;
+    credentials.ssid = PreferencesManager::getInstance().getWiFiSSID();
+    credentials.password = PreferencesManager::getInstance().getWiFiPassword();
+	return credentials;
 }
 
 void WiFiManager::connectToStoredWiFi() {
@@ -52,7 +47,7 @@ void WiFiManager::connectToStoredWiFi() {
 // 4/9/25 TODO: Connect to the network we've most recently connected to first.
 bool WiFiManager::attemptDirectConnectionToSavedNetworks() {
     // Get all saved networks
-    std::vector<WiFiCredentials> savedNetworks = getAllStoredNetworks();
+    std::vector<WiFiCredentials> savedNetworks = PreferencesManager::getInstance().getAllStoredWiFiNetworks();
     
     if (savedNetworks.empty()) {
         Serial.println("No saved networks found");
@@ -133,9 +128,7 @@ bool WiFiManager::attemptNewWifiConnection(WiFiCredentials wifiCredentials) {
     _isConnecting = false;
 
     if (WiFi.status() == WL_CONNECTED) {
-        preferences.begin("wifi-creds", false);
         storeWiFiCredentials(wifiCredentials.ssid, wifiCredentials.password, 0);
-        preferences.end();
         Serial.println("Connected to Wi-Fi!");
         return true;
     } else {
@@ -263,47 +256,7 @@ void WiFiManager::setSelectedNetworkIndex(int index) {
 
 // For storing WiFi credentials:
 void WiFiManager::storeWiFiCredentials(const String& ssid, const String& password, int index) {
-    preferences.begin("wifi-creds", false);
-    
-    // Fix: Create strings first, then use c_str()
-    String ssidKey = "ssid" + String(index);
-    String passKey = "pass" + String(index);
-    
-    preferences.putString(ssidKey.c_str(), ssid);
-    preferences.putString(passKey.c_str(), password);
-    
-    // Keep track of the number of saved networks
-    int count = preferences.getInt("count", 0);
-    if (index >= count) {
-        preferences.putInt("count", index + 1);
-    }
-    preferences.end();
-}
-
-// For retrieving WiFi credentials:
-std::vector<WiFiCredentials> WiFiManager::getAllStoredNetworks() {
-    std::vector<WiFiCredentials> networks;
-    
-    preferences.begin("wifi-creds", false);
-    int count = preferences.getInt("count", 0);
-    
-    for (int i = 0; i < count; i++) {
-        WiFiCredentials creds;
-        
-        // Fix: Create strings first, then use c_str()
-        String ssidKey = "ssid" + String(i);
-        String passKey = "pass" + String(i);
-        
-        creds.ssid = preferences.getString(ssidKey.c_str(), "");
-        creds.password = preferences.getString(passKey.c_str(), "");
-        
-        if (!creds.ssid.isEmpty()) {
-            networks.push_back(creds);
-        }
-    }
-    
-    preferences.end();
-    return networks;
+    PreferencesManager::getInstance().storeWiFiCredentials(ssid, password, index);
 }
 
 void WiFiManager::checkAndReconnectWiFi() {
