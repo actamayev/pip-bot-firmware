@@ -120,7 +120,3 @@ inline const char* getWsServerUrl() {
     }
     return "wss://production-api.bluedotrobots.com/esp32";
 }
-
-inline const char* getPipID() {
-    return DEFAULT_PIP_ID;
-}

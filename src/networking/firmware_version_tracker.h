@@ -4,9 +4,8 @@
 #include <WiFiClientSecure.h>
 #include "utils/config.h"
 #include "utils/singleton.h"
-#include "wifi_manager.h"
-
-extern Preferences preferences;
+#include "actuators/led/rgb_led.h"
+#include "utils/preferences_manager.h"
 
 class FirmwareVersionTracker : public Singleton<FirmwareVersionTracker> {
     friend class Singleton<FirmwareVersionTracker>;

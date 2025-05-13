@@ -96,7 +96,7 @@ void WebSocketManager::sendInitialData() {
     StaticJsonDocument<256> initDoc;
     initDoc["route"] = "/register";
     JsonObject payload = initDoc.createNestedObject("payload");
-    payload["pipUUID"] = getPipID();
+    payload["pipUUID"] = PreferencesManager::getInstance().getPipId();
     payload["firmwareVersion"] = FirmwareVersionTracker::getInstance().getFirmwareVersion();
     String jsonString;
     serializeJson(initDoc, jsonString);
