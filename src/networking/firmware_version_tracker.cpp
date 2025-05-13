@@ -1,13 +1,9 @@
 #include "firmware_version_tracker.h"
 
 FirmwareVersionTracker::FirmwareVersionTracker() {
-    preferences.begin("firmware", false);
-    
-    firmwareVersion = preferences.getInt("fw_version", 0);
+    firmwareVersion = PreferencesManager::getInstance().getFirmwareVersion(); // used to set the class' firmwareVersion
     Serial.printf("firmwareVersion %d\n", firmwareVersion);
     
-    preferences.end();
-
     // Configure HTTPUpdate instance
     httpUpdate.onProgress([this](int curr, int total) {
         Serial.printf("Update progress: %d%%\n", (curr * 100) / total);
@@ -16,10 +12,7 @@ FirmwareVersionTracker::FirmwareVersionTracker() {
     
     // Set onEnd callback to update firmware version before reboot
     httpUpdate.onEnd([this]() {
-        // This will be called right before the device restarts
-        preferences.begin("firmware", false);
-        preferences.putInt("fw_version", this->pendingVersion);
-        preferences.end();
+        PreferencesManager::getInstance().setFirmwareVersion(this->pendingVersion);
         Serial.printf("Firmware version updated to: %d\n", this->pendingVersion);
     });
 

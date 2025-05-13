@@ -19,7 +19,6 @@
 #include "networking/firmware_version_tracker.h"
 #include "wifi_selection/wifi_selection_manager.h"
 #include "wifi_selection/haptic_feedback_manager.h"
-#include "utils/show_chip_info.h"
 
 // Task to handle sensors and bytecode on Core 0
 void SensorAndBytecodeTask(void * parameter) {
