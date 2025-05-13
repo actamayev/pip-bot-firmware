@@ -76,9 +76,9 @@ void PreferencesManager::storeWiFiCredentials(const String& ssid, const String& 
     preferences.putString(passwordKey, password);
     
     // Update the count if necessary
-    int currentCount = preferences.getInt("count", 0);
+    int currentCount = preferences.getInt(WIFI_COUNT, 0);
     if (index >= currentCount) {
-        preferences.putInt("count", index + 1);
+        preferences.putInt(WIFI_COUNT, index + 1);
     }
 }
 
@@ -103,11 +103,9 @@ String PreferencesManager::getWiFiPassword(int index) {
 std::vector<WiFiCredentials> PreferencesManager::getAllStoredWiFiNetworks() {
     std::vector<WiFiCredentials> networks;
     
-    if (!beginNamespace(NS_WIFI)) {
-        return networks;  // Return empty vector if can't access preferences
-    }
+    if (!beginNamespace(NS_WIFI)) return networks;  // Return empty vector if can't access preferences
     
-    int count = preferences.getInt("count", 0);
+    int count = preferences.getInt(WIFI_COUNT, 0);
     
     for (int i = 0; i < count; i++) {
         WiFiCredentials creds;

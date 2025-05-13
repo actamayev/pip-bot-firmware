@@ -1,7 +1,7 @@
 #include "firmware_version_tracker.h"
 
 FirmwareVersionTracker::FirmwareVersionTracker() {
-    firmwareVersion = PreferencesManager::getInstance().getFirmwareVersion();
+    firmwareVersion = PreferencesManager::getInstance().getFirmwareVersion(); // used to set the class' firmwareVersion
     Serial.printf("firmwareVersion %d\n", firmwareVersion);
     
     // Configure HTTPUpdate instance

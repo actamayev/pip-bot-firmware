@@ -37,12 +37,13 @@ class PreferencesManager : public Singleton<PreferencesManager> {
         // Method to ensure correct namespace is open
         bool beginNamespace(const char* ns);
         
-        // Namespace constants
+        // Namespace constants (akin to folders)
         static constexpr const char* NS_PIP_ID = "pip_id";
         static constexpr const char* NS_FIRMWARE = "firmware";
         static constexpr const char* NS_WIFI = "wifi";
         
-        // Key constants
+        // Key constants (akin to files in those folders)
         static constexpr const char* KEY_PIP_ID = "id";
         static constexpr const char* KEY_FW_VERSION = "fw_version";
+        static constexpr const char* WIFI_COUNT = "wifi_count";
 };
