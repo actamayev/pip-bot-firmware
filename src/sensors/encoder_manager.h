@@ -1,11 +1,11 @@
 #pragma once
 #include <Arduino.h>
 #include <ESP32Encoder.h>
-#include "./utils/structs.h"
-#include "../actuators/motor_driver.h"
-#include "../networking/wifi_manager.h"
-#include "../wifi_selection/wifi_selection_manager.h"
-#include "../wifi_selection/haptic_feedback_manager.h"
+#include "utils/structs.h"
+#include "actuators/motor_driver.h"
+#include "networking/wifi_manager.h"
+#include "wifi_selection/wifi_selection_manager.h"
+#include "wifi_selection/haptic_feedback_manager.h"
 
 class EncoderManager {
     friend class MessageProcessor;  // Allows MessageProcessor to access private members

@@ -1,7 +1,9 @@
 #pragma once
 #include <string>
 #include <cstdint>
-#include <vl53l7cx_class.h>
+#include <Wire.h>
+
+#define DEV_I2C Wire
 
 extern const uint8_t ESP_LED_PIN1;
 extern const uint8_t NUM_LEDS1;

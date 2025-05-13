@@ -7,10 +7,10 @@
  * Version	: 1.2
  */
 
-#include "./VCNL36828P_Application_Library.h"
-#include "./VCNL36828P_Prototypes.h"
-#include "./VCNL36828P.h"
-#include "./I2C_Functions.h"
+#include "VCNL36828P_Application_Library.h"
+#include "VCNL36828P_Prototypes.h"
+#include "VCNL36828P.h"
+#include "I2C_Functions.h"
 
 //****************************************************************************************************
 //***************************************Application API**********************************************
@@ -73,7 +73,7 @@ void Print_Data_Only(int slaveAddress, int i2cBus)
 	char   TransmitBuffer2[TRANSMIT_BUFFER_SIZE];
 
 	Serial.println(">>>>>>>>>>>>>>>>>>>>>>>>PS<<<<<<<<<<<<<<<<<<<<<<<<<");
-	delay(50);
+	vTaskDelay(pdMS_TO_TICKS(50));
 
 	//Print Proximity Data
 	//Set Trigger for the AF Mode + Associated delay due to IT
@@ -83,60 +83,60 @@ void Print_Data_Only(int slaveAddress, int i2cBus)
 		VCNL36828P_SET_PS_TRIG(slaveAddress, VCNL36828P_PS_TRIG_EN, i2cBus);
 
 		//Delay of PS Measurement + other Circuit Delay
-		delay(50);
+		vTaskDelay(pdMS_TO_TICKS(50));
 	}
 
 	//Delay for Auto Mode + Associated delay due to IT
 	if(VCNL36828P_GET_PS_MODE_Bit(slaveAddress, i2cBus) == 0)
 	{
 		//Delay of PS Measurement + other Circuit Delay
-		delay(50);
+		vTaskDelay(pdMS_TO_TICKS(50));
 	}
 
 	if(slaveAddress == 0x60)
 	{
 		Serial.println(">>>>>>>>>>>>>>>>>Sensor 1 - 0x60<<<<<<<<<<<<<<<<<<<");
-		delay(50);
+		vTaskDelay(pdMS_TO_TICKS(50));
 	}
 
 	if(slaveAddress == 0x51)
 	{
 		Serial.println(">>>>>>>>>>>>>>>>>Sensor 2 - 0x51<<<<<<<<<<<<<<<<<<<");
-		delay(50);
+		vTaskDelay(pdMS_TO_TICKS(50));
 	}
 
 	value = VCNL36828P_GET_ID(slaveAddress, i2cBus);
 	Serial.print(">>>>>>>ID : 0x");
 	Serial.print(value,HEX);
 	Serial.println("<<<<<<<<");
-	delay(50);
+	vTaskDelay(pdMS_TO_TICKS(50));
 
 	value = VCNL36828P_READ_REG(slaveAddress, VCNL36828P_PS_DATA, i2cBus);
 	Serial.print(">>>>>>>Proximity Data : ");
 	Serial.print(value,DEC);
 	Serial.println(" Counts<<<<<<<<");
-	delay(50);
+	vTaskDelay(pdMS_TO_TICKS(50));
 
 	//Print the Interrupt Flag
 	Serial.println("***************************************************");
-	delay(50);
+	vTaskDelay(pdMS_TO_TICKS(50));
 
 	//Print the Interrupt Flag
 	value = VCNL36828P_GET_INT_FLAG(slaveAddress, i2cBus);
 	Serial.print(">>>>>>>Interrupt Flag : 0x");
 	Serial.print(value,HEX);
 	Serial.println("<<<<<<<<");
-	delay(50);
+	vTaskDelay(pdMS_TO_TICKS(50));
 
 	Serial.println("***************************************************");
-	delay(50);
+	vTaskDelay(pdMS_TO_TICKS(50));
 
 	Serial.println(" ");
-	delay(50);
+	vTaskDelay(pdMS_TO_TICKS(50));
 
 	Serial.println(" ");
 
-	delay(1000);
+	vTaskDelay(pdMS_TO_TICKS((1000)));
 }
 
 /*Print the variable in DEC for debugging
@@ -153,16 +153,15 @@ void Print_Variable_DEC(Word Var)
 	char   TransmitBuffer2[TRANSMIT_BUFFER_SIZE];
 
 	Serial.println("***************************************************");
-	delay(50);
+	vTaskDelay(pdMS_TO_TICKS(50));
 
 	Serial.print(">>>>>>>Variable : 0d");
 	Serial.println(Var,DEC);
-	delay(50);
+	vTaskDelay(pdMS_TO_TICKS(50));
 
 	Serial.println("***************************************************");
 
-	delay(2000);
-
+	vTaskDelay(pdMS_TO_TICKS((2000)));
 }
 
 /*Print the variable in HEX for debugging
@@ -179,16 +178,15 @@ void Print_Variable_HEX(Word Var)
 	char   TransmitBuffer2[TRANSMIT_BUFFER_SIZE];
 
 	Serial.println("***************************************************");
-	delay(50);
+	vTaskDelay(pdMS_TO_TICKS(50));
 
 	Serial.print(">>>>>>>Variable : 0d");
 	Serial.println(Var,DEC);
-	delay(50);
+	vTaskDelay(pdMS_TO_TICKS(50));
 
 	Serial.println("***************************************************");
 
-	delay(2000);
-
+	vTaskDelay(pdMS_TO_TICKS((2000)));
 }
 
 //Reverses a string 'str' of length 'len'

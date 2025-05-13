@@ -1,4 +1,4 @@
-#include "./message_processor.h"
+#include "message_processor.h"
 
 void MessageProcessor::handleMotorControl(const uint8_t* data) {
     // Extract 16-bit signed integers (little-endian)
@@ -35,15 +35,7 @@ void MessageProcessor::handleSoundCommand(SoundType soundType) {
 }
 
 void MessageProcessor::handleSpeakerMute(SpeakerStatus status) {
-    if (status == SpeakerStatus::MUTED) {
-        Serial.println("Muting speaker");
-        speaker.mute();
-    } else if (status == SpeakerStatus::UNMUTED) {
-        Serial.println("Un-muting speaker");
-        speaker.unmute();
-    } else {
-        Serial.printf("Unknown mute state: %d\n", static_cast<int>(status));
-    }
+    speaker.setMuted(status == SpeakerStatus::MUTED);
 }
 
 void MessageProcessor::updateMotorSpeeds(int16_t leftSpeed, int16_t rightSpeed) {
@@ -369,10 +361,11 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
         }
         case DataMessageType::SERIAL_HANDSHAKE: {
             Serial.println("Handshake received from browser!");
+            rgbLed.set_led_blue();
             SerialManager::getInstance().isConnected = true;
             SerialManager::getInstance().lastActivityTime = millis();
             SerialManager::getInstance().sendHandshakeConfirmation();
-            rgbLed.set_led_blue();
+            SensorPollingManager::getInstance().startPolling();
             break;
         }
         case DataMessageType::SERIAL_KEEPALIVE: {
@@ -380,7 +373,9 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             break;
         }
         case DataMessageType::SERIAL_END: {
+            rgbLed.turn_led_off();
             SerialManager::getInstance().isConnected = false;
+            // Don't stop polling here. Users will frequently connect and disconnect
             break;
         }
         case DataMessageType::UPDATE_HEADLIGHTS: {
@@ -394,6 +389,10 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
                     rgbLed.reset_headlights_to_default();
                 }
             }
+            break;
+        }
+        case DataMessageType::START_SENSOR_POLLING: {
+            SensorPollingManager::getInstance().startPolling();
             break;
         }
         default:

@@ -1,18 +1,7 @@
-If having problems with the TOF setup, plug the ESP out, leave it unplugged for 10 seconds, plug back in.
-	Plug the IOVDD and AVDD of the TOF in and out as well
-
 To create a sound file:
 	1. Find a song you want.
-	2. Download in WAV
-		Conversion tool: https://g711.org/
-			Choose Standard Def 16-bit WAV
-			Choose maximum sound
-	3. Convert the WAV file to a C style array:
-		https://notisrac.github.io/FileToCArray/
-			Code format: Hex (0x00)
-			Static Checked
-			Const Checked
-			Unsigned UNCHECKED
-			Data type: Int8_t
-			PROGMEM: Checked
-	4. Place into the sounds folder
+	2. Convert to MP3
+	3. Place in the /data folder (should be in project root)
+	4. To upload to ESP, go to Upload Filesystem Image (under Platform in the PlatformIO extension)
+		This uploads the raw data
+	5. Then, upload the code normally (Upload and Monitor)

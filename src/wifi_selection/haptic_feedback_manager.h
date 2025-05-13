@@ -1,6 +1,6 @@
 #pragma once
 #include <Arduino.h>
-#include "../utils/singleton.h"
+#include "utils/singleton.h"
 
 class HapticFeedbackManager : public Singleton<HapticFeedbackManager> {
     friend class Singleton<HapticFeedbackManager>;

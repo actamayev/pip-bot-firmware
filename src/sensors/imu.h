@@ -1,10 +1,15 @@
 #pragma once
 #include <Adafruit_BNO08x.h>
-#include "../utils/config.h"
-#include "../utils/utils.h"
-#include "../utils/structs.h"
+#include "utils/config.h"
+#include "utils/utils.h"
+#include "utils/structs.h"
+#include "utils/singleton.h"
+#include "sensor_polling_manager.h"
 
-class ImuSensor {
+class ImuSensor : public Singleton<ImuSensor> {
+    friend class Singleton<ImuSensor>;
+    friend class SensorPollingManager;
+
     public:
         ImuSensor() = default;
 
@@ -40,6 +45,7 @@ class ImuSensor {
 
         uint8_t getInitRetryCount() const { return initRetryCount; }
         uint8_t getMaxInitRetries() const { return MAX_INIT_RETRIES; }
+        void turnOff();
 
     private:
         Adafruit_BNO08x imu;

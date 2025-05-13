@@ -1,12 +1,11 @@
 #pragma once
 
 #include <Arduino.h>
-#include "../utils/utils.h"
-#include "../utils/singleton.h"
-#include "../sensors/sensors.h"
-#include "../networking/protocol.h"
-#include "../actuators/led/rgb_led.h"
-#include "../actuators/motor_driver.h"
+#include "utils/utils.h"
+#include "utils/singleton.h"
+#include "networking/protocol.h"
+#include "actuators/led/rgb_led.h"
+#include "actuators/motor_driver.h"
 
 class ObstacleAvoider : public Singleton<ObstacleAvoider> {
     friend class Singleton<ObstacleAvoider>;
