@@ -13,9 +13,6 @@ bool DemoManager::startDemo(Demo::DemoType demoType) {
         disableCurrentDemo();
     }
     
-    // Store previous demo for debugging
-    _previousDemo = _currentDemo;
-    
     // Start the new demo
     if (demoType == Demo::DemoType::NONE) {
         _currentDemo = Demo::DemoType::NONE;
@@ -39,7 +36,6 @@ void DemoManager::stopCurrentDemo() {
     if (_currentDemo == Demo::DemoType::NONE) return;
     Serial.printf("Stopping demo: %s\n", getDemoName(_currentDemo));
     disableCurrentDemo();
-    _previousDemo = _currentDemo;
     _currentDemo = Demo::DemoType::NONE;
 }
 

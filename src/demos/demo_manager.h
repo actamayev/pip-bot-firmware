@@ -16,26 +16,17 @@ class DemoManager : public Singleton<DemoManager> {
         // Stop the currently running demo
         void stopCurrentDemo();
         
-        // Update the currently running demo (call this in your main loop)
         void update();
         
-        // Get the currently active demo
         Demo::DemoType getCurrentDemo() const { return _currentDemo; }
         
-        // Check if any demo is currently active
         bool isAnyDemoActive() const { return _currentDemo != Demo::DemoType::NONE; }
-        
-        // Get demo name as string (useful for debugging)
-        const char* getDemoName(Demo::DemoType demoType) const;
 
     private:
         DemoManager() = default;
         
-        // Internal methods
         void disableCurrentDemo();
         bool enableDemo(Demo::DemoType demoType);
-        
-        // State
+        const char* getDemoName(Demo::DemoType demoType) const;
         Demo::DemoType _currentDemo = Demo::DemoType::NONE;
-        Demo::DemoType _previousDemo = Demo::DemoType::NONE;
 };
