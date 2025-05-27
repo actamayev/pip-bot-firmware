@@ -198,6 +198,9 @@ void MotorDriver::force_reset_motors() {
     if (_rightMotorBraking) {
         release_right_brake();
     }
+    left_motor_stop();
+    right_motor_stop();
+
     // Reset speed targets
     _targetLeftSpeed = 0;
     _targetRightSpeed = 0;

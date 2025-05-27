@@ -87,7 +87,15 @@ namespace LedTypes {
         NONE,
         BREATHING,
         STROBING,
-        RAINBOW,
+        RAINBOW
+    };
+}
+
+namespace Demo {
+    enum DemoType {
+        NONE,
+        BALANCE_CONTROLLER,
+        OBSTACLE_AVOIDER
     };
 }
 

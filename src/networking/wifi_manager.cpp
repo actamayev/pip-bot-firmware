@@ -54,10 +54,13 @@ bool WiFiManager::attemptDirectConnectionToSavedNetworks() {
         return false;
     }
 
-    // if (ledAnimations.getCurrentAnimation() != LedTypes::BREATHING) {
-    //     rgbLed.set_led_red();
-    //     ledAnimations.startBreathing();
-    // }
+    if (
+        (ledAnimations.getCurrentAnimation() != LedTypes::BREATHING) &&
+        (BytecodeVM::getInstance().isPaused == BytecodeVM::getInstance().PROGRAM_NOT_STARTED)
+    ) {
+        rgbLed.set_led_red();
+        ledAnimations.startBreathing();
+    }
 
     Serial.println("Attempting direct connection to saved networks...");
     
