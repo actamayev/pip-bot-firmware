@@ -31,6 +31,8 @@ class MessageProcessor : public Singleton<MessageProcessor> {
         void handleObstacleAvoidanceCommand(ObstacleAvoidanceStatus status);
 
         void processBinaryMessage(const uint8_t* data, uint16_t length);
+        void resetCommandState();
+
     private:
         void updateMotorSpeeds(int16_t leftSpeed, int16_t rightSpeed);
         void executeCommand(int16_t leftSpeed, int16_t rightSpeed);

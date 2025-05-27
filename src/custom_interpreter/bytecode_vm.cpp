@@ -7,6 +7,7 @@ BytecodeVM::~BytecodeVM() {
 bool BytecodeVM::loadProgram(const uint8_t* byteCode, uint16_t size) {
     // Free any existing program
     stopProgram();
+    MessageProcessor::getInstance().resetCommandState();
     Serial.printf("Loading program of size %zu\n", size);
 
     // Validate bytecode size (must be multiple of 20 now)
@@ -701,6 +702,7 @@ void BytecodeVM::updateDistanceMovement() {
 
 void BytecodeVM::stopProgram() {
     resetStateVariables(true);
+    MessageProcessor::getInstance().resetCommandState();
 
     speaker.setMuted(true);
     rgbLed.turn_led_off();
@@ -708,6 +710,7 @@ void BytecodeVM::stopProgram() {
     return;
 }
 
+// Update BytecodeVM::resetStateVariables() in bytecode_vm.cpp
 void BytecodeVM::resetStateVariables(bool isFullReset) {
     pc = 0;
     delayUntil = 0;
@@ -725,6 +728,9 @@ void BytecodeVM::resetStateVariables(bool isFullReset) {
     motorMovementEndTime = 0;
     targetDistanceCm = 0.0f;
     waitingForButtonPressToStart = false;
+
+    // Force reset motor driver state completely
+    motorDriver.force_reset_motors();
 
     // Reset registers
     for (uint16_t i = 0; i < MAX_REGISTERS; i++) {
@@ -764,6 +770,8 @@ void BytecodeVM::pauseProgram() {
     }
     
     resetStateVariables();
+    MessageProcessor::getInstance().resetCommandState();
+
     speaker.setMuted(true);
     rgbLed.turn_led_off();     
     motorDriver.brake_if_moving();

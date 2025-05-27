@@ -400,3 +400,17 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             break;
     }
 }
+
+void MessageProcessor::resetCommandState() {
+    isExecutingCommand = false;
+    hasNextCommand = false;
+    currentLeftSpeed = 0;
+    currentRightSpeed = 0;
+    nextLeftSpeed = 0;
+    nextRightSpeed = 0;
+    startLeftCount = 0;
+    startRightCount = 0;
+    commandStartTime = 0;
+    
+    Serial.println("MessageProcessor command state reset");
+}
