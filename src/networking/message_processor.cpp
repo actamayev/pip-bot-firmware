@@ -82,14 +82,10 @@ void MessageProcessor::executeCommand(int16_t leftSpeed, int16_t rightSpeed) {
 }
 
 void MessageProcessor::processPendingCommands() {
-    // 4/24/25: TODO: Create a Demo manager that will only allow one demo to be run at a time, with no interference
-    if (BalanceController::getInstance().isEnabled()) {
-        BalanceController::getInstance().update();
-        return;
-    }
+    DemoManager::getInstance().update();
 
-    if (ObstacleAvoider::getInstance().isEnabled()) {
-        ObstacleAvoider::getInstance().update();
+    // If a demo is running, don't process motor commands
+    if (DemoManager::getInstance().isAnyDemoActive()) {
         return;
     }
 
@@ -103,10 +99,8 @@ void MessageProcessor::processPendingCommands() {
         return;
     }
 
-    // Is this a movement command (non-zero speed)?
     bool isMovementCommand = (currentLeftSpeed != 0 || currentRightSpeed != 0);
 
-    // For stop commands, mark as completed immediately and execute next command
     if (!isMovementCommand) {
         isExecutingCommand = false;
         
@@ -134,8 +128,6 @@ void MessageProcessor::processPendingCommands() {
     }
     
     // Check for command completion conditions:
-    // 1. Either encoder has moved enough
-    // 2. Command has timed out (1 second)
     bool encoderThresholdMet = (leftDelta >= MIN_ENCODER_PULSES || rightDelta >= MIN_ENCODER_PULSES);
     bool commandTimedOut = (millis() - commandStartTime) >= COMMAND_TIMEOUT_MS;
     
@@ -158,17 +150,23 @@ void MessageProcessor::processPendingCommands() {
 
 void MessageProcessor::handleBalanceCommand(BalanceStatus status) {
     if (status == BalanceStatus::BALANCED) {
-        BalanceController::getInstance().enable();
+        DemoManager::getInstance().startDemo(Demo::BALANCE_CONTROLLER);
     } else {
-        BalanceController::getInstance().disable();
+        // If balance controller is currently running, stop it
+        if (DemoManager::getInstance().getCurrentDemo() == Demo::BALANCE_CONTROLLER) {
+            DemoManager::getInstance().stopCurrentDemo();
+        }
     }
 }
 
 void MessageProcessor::handleObstacleAvoidanceCommand(ObstacleAvoidanceStatus status) {
     if (status == ObstacleAvoidanceStatus::AVOID) {
-        ObstacleAvoider::getInstance().enable();
+        DemoManager::getInstance().startDemo(Demo::OBSTACLE_AVOIDER);
     } else {
-        ObstacleAvoider::getInstance().disable();
+        // If obstacle avoider is currently running, stop it
+        if (DemoManager::getInstance().getCurrentDemo() == Demo::OBSTACLE_AVOIDER) {
+            DemoManager::getInstance().stopCurrentDemo();
+        }
     }
 }
 
