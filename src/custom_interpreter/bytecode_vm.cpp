@@ -33,6 +33,19 @@ bool BytecodeVM::loadProgram(const uint8_t* byteCode, uint16_t size) {
         memcpy(&program[i].operand4, &byteCode[offset + 16], sizeof(float));
     }
     
+    // Check if the first instruction is OP_WAIT_FOR_BUTTON
+    if (programSize > 0 && program[0].opcode == OP_WAIT_FOR_BUTTON) {
+        // Program has a start button - set to waiting state
+        isPaused = PROGRAM_NOT_STARTED;
+        waitingForButtonPressToStart = true;
+        Serial.println("Program loaded with start button - waiting for button press to begin");
+    } else {
+        // Program has no start button - set to auto-running
+        isPaused = RUNNING;
+        waitingForButtonPressToStart = false;
+        Serial.println("Program loaded without start button - auto-starting");
+    }
+    
     return true;
 }
 
