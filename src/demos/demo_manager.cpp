@@ -53,10 +53,8 @@ void DemoManager::stopCurrentDemo() {
 
 void DemoManager::update() {
     // Only update if we have an active demo
-    if (_currentDemo == Demo::DemoType::NONE) {
-        return;
-    }
-    
+    if (_currentDemo == Demo::DemoType::NONE) return;
+
     // Call the appropriate demo's update method
     switch (_currentDemo) {
         case Demo::DemoType::BALANCE_CONTROLLER:
