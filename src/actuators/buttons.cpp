@@ -125,7 +125,8 @@ void Buttons::enterDeepSleep() {
     BytecodeVM::getInstance().stopProgram();
 
     esp_sleep_enable_ext0_wakeup((gpio_num_t)BUTTON_PIN_1, LOW); // LOW = button press (since using INPUT_PULLUP)
-    esp_sleep_enable_ext0_wakeup((gpio_num_t)BUTTON_PIN_2, LOW); // LOW = button press (since using INPUT_PULLUP)
+    // Pin 48 isn't RTC, can't be used to take out of Deep sleep
+    // esp_sleep_enable_ext0_wakeup((gpio_num_t)BUTTON_PIN_2, LOW); // LOW = button press (since using INPUT_PULLUP)
     
     Serial.println("Going to deep sleep now");
     Serial.flush();

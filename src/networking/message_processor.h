@@ -2,13 +2,13 @@
 
 #include <Arduino.h>
 #include "utils/config.h"
+#include "utils/structs.h"
 #include "utils/singleton.h"
 #include "actuators/speaker.h"
+#include "demos/demo_manager.h"
 #include "networking/protocol.h"
 #include "actuators/motor_driver.h"
-#include "demos/obstacle_avoider.h"
 #include "sensors/encoder_manager.h"
-#include "demos/balance_controller.h" 
 #include "networking/serial_manager.h"
 #include "actuators/led/led_animations.h"
 #include "sensors/sensor_polling_manager.h"
@@ -31,6 +31,8 @@ class MessageProcessor : public Singleton<MessageProcessor> {
         void handleObstacleAvoidanceCommand(ObstacleAvoidanceStatus status);
 
         void processBinaryMessage(const uint8_t* data, uint16_t length);
+        void resetCommandState();
+
     private:
         void updateMotorSpeeds(int16_t leftSpeed, int16_t rightSpeed);
         void executeCommand(int16_t leftSpeed, int16_t rightSpeed);

@@ -1,5 +1,4 @@
 #include "led_animations.h"
-#include <math.h>
 
 LedAnimations::LedAnimations(Adafruit_NeoPixel& strip1, Adafruit_NeoPixel& strip2)
     : strip1(strip1), strip2(strip2) {
