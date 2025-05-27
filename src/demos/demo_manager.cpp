@@ -42,13 +42,12 @@ bool DemoManager::startDemo(Demo::DemoType demoType) {
 }
 
 void DemoManager::stopCurrentDemo() {
-    if (_currentDemo != Demo::DemoType::NONE) {
-        Serial.printf("Stopping demo: %s\n", getDemoName(_currentDemo));
-        disableCurrentDemo();
-        _previousDemo = _currentDemo;
-        _currentDemo = Demo::DemoType::NONE;
-        _lastTransitionTime = millis();
-    }
+    if (_currentDemo == Demo::DemoType::NONE) return;
+    Serial.printf("Stopping demo: %s\n", getDemoName(_currentDemo));
+    disableCurrentDemo();
+    _previousDemo = _currentDemo;
+    _currentDemo = Demo::DemoType::NONE;
+    _lastTransitionTime = millis();
 }
 
 void DemoManager::update() {
