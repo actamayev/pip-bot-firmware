@@ -15,8 +15,12 @@ bool BytecodeVM::loadProgram(const uint8_t* byteCode, uint16_t size) {
     }
     
     programSize = size / INSTRUCTION_SIZE;
-    program = new BytecodeInstruction[programSize];
-    
+    program = new(std::nothrow) BytecodeInstruction[programSize];
+    if (!program) {
+        Serial.println("Failed to allocate memory for program");
+        return false;
+    }
+
     // Iterate through program indices (0 to programSize-1)
     for (uint16_t i = 0; i < programSize; i++) {
         uint16_t offset = i * INSTRUCTION_SIZE;
@@ -137,7 +141,7 @@ bool BytecodeVM::compareValues(ComparisonOp op, float leftOperand, float rightOp
     
     // Perform comparison with retrieved values
     switch (op) {
-        case OP_EQUAL: return leftValue == rightValue;
+        case OP_EQUAL: return abs(leftValue - rightValue) < 0.0001f;
         case OP_NOT_EQUAL: return leftValue != rightValue;
         case OP_GREATER_THAN: return leftValue > rightValue;
         case OP_LESS_THAN: return leftValue < rightValue;
@@ -466,7 +470,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
 
         case OP_MOTOR_FORWARD: {
             // Convert percentage (0-100) to motor speed (0-255)
-            uint8_t throttlePercent = static_cast<uint8_t>(instr.operand1);
+            uint8_t throttlePercent = constrain(static_cast<uint8_t>(instr.operand1), 0, 100);
             uint8_t motorSpeed = map(throttlePercent, 0, 100, 0, 255);
             
             // Set both motors to forward at calculated speed
@@ -477,7 +481,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
         
         case OP_MOTOR_BACKWARD: {
             // Convert percentage (0-100) to motor speed (0-255)
-            uint8_t throttlePercent = static_cast<uint8_t>(instr.operand1);
+            uint8_t throttlePercent = constrain(static_cast<uint8_t>(instr.operand1), 0, 100);
             uint8_t motorSpeed = map(throttlePercent, 0, 100, 0, 255);
             
             // Set both motors to backward (negative speed)
@@ -518,7 +522,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
 
         case OP_MOTOR_FORWARD_TIME: {
             float seconds = instr.operand1;
-            uint8_t throttlePercent = static_cast<uint8_t>(instr.operand2);
+            uint8_t throttlePercent = constrain(static_cast<uint8_t>(instr.operand2), 0, 100);
             
             // Validate parameters
             if (seconds <= 0.0f) {
@@ -546,7 +550,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
 
         case OP_MOTOR_BACKWARD_TIME: {
             float seconds = instr.operand1;
-            uint8_t throttlePercent = static_cast<uint8_t>(instr.operand2);
+            uint8_t throttlePercent = constrain(static_cast<uint8_t>(instr.operand2), 0, 100);
             
             // Validate parameters
             if (seconds <= 0.0f) {
@@ -570,7 +574,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
 
         case OP_MOTOR_FORWARD_DISTANCE: {
             float distanceCm = instr.operand1;
-            uint8_t throttlePercent = static_cast<uint8_t>(instr.operand2);
+            uint8_t throttlePercent = constrain(static_cast<uint8_t>(instr.operand2), 0, 100);
             
             // Validate parameters
             if (distanceCm <= 0.0f) {
@@ -601,7 +605,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
 
         case OP_MOTOR_BACKWARD_DISTANCE: {
             float distanceCm = instr.operand1;
-            uint8_t throttlePercent = static_cast<uint8_t>(instr.operand2);
+            uint8_t throttlePercent = constrain(static_cast<uint8_t>(instr.operand2), 0, 100);
             
             // Validate parameters
             if (distanceCm <= 0.0f) {
