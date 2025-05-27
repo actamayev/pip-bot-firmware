@@ -11,11 +11,6 @@ bool DemoManager::startDemo(Demo::DemoType demoType) {
     if (_currentDemo != Demo::DemoType::NONE) {
         Serial.printf("Stopping current demo: %s\n", getDemoName(_currentDemo));
         disableCurrentDemo();
-        
-        // Small delay to ensure clean transition
-        if (millis() - _lastTransitionTime < TRANSITION_DELAY_MS) {
-            delay(TRANSITION_DELAY_MS);
-        }
     }
     
     // Store previous demo for debugging
@@ -31,7 +26,6 @@ bool DemoManager::startDemo(Demo::DemoType demoType) {
     bool success = enableDemo(demoType);
     if (success) {
         _currentDemo = demoType;
-        _lastTransitionTime = millis();
         Serial.printf("Demo started: %s\n", getDemoName(demoType));
     } else {
         _currentDemo = Demo::DemoType::NONE;
@@ -47,7 +41,6 @@ void DemoManager::stopCurrentDemo() {
     disableCurrentDemo();
     _previousDemo = _currentDemo;
     _currentDemo = Demo::DemoType::NONE;
-    _lastTransitionTime = millis();
 }
 
 void DemoManager::update() {

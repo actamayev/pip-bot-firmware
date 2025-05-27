@@ -38,8 +38,4 @@ class DemoManager : public Singleton<DemoManager> {
         // State
         Demo::DemoType _currentDemo = Demo::DemoType::NONE;
         Demo::DemoType _previousDemo = Demo::DemoType::NONE;
-        
-        // Timing for demo transitions
-        unsigned long _lastTransitionTime = 0;
-        static constexpr unsigned long TRANSITION_DELAY_MS = 50; // Small delay between demo switches
 };
