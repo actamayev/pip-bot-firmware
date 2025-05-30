@@ -391,6 +391,58 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             SensorPollingManager::getInstance().startPolling();
             break;
         }
+        // Add this new case in processBinaryMessage()
+        case DataMessageType::WIFI_CREDENTIALS: {
+            if (length < 3) { // At least 1 byte for each length field + message type
+                Serial.println("Invalid WiFi credentials message length");
+                break;
+            }
+            
+            uint8_t ssidLength = data[1];
+            if (ssidLength == 0 || 2 + ssidLength >= length) {
+                Serial.println("Invalid SSID length");
+                break;
+            }
+            
+            String ssid = "";
+            for (uint8_t i = 0; i < ssidLength; i++) {
+                ssid += (char)data[2 + i];
+            }
+            
+            uint8_t passwordLength = data[2 + ssidLength];
+            if (2 + ssidLength + 1 + passwordLength != length) {
+                Serial.println("Invalid password length");
+                break;
+            }
+            
+            String password = "";
+            for (uint8_t i = 0; i < passwordLength; i++) {
+                password += (char)data[3 + ssidLength + i];
+            }
+            
+            Serial.printf("Testing WiFi: %s\n", ssid.c_str());
+            
+            // Test the credentials
+            WiFiManager::WiFiTestResult result = WiFiManager::getInstance().testWiFiCredentials(ssid, password);
+            
+            // Send result back via serial as JSON
+            String status;
+            if (result.wifiConnected && result.websocketConnected) {
+                status = "success";
+            } else if (result.wifiConnected) {
+                status = "wifi_only";
+            } else {
+                status = "failed";
+            }
+            
+            SerialManager::getInstance().sendJsonMessage("/wifi-connection-result", status);
+            break;
+        }
+
+        case DataMessageType::WIFI_CONNECTION_RESULT: {
+            // This is sent FROM ESP32, not handled by ESP32
+            break;
+        }
         default:
             Serial.printf("Unknown message type: %d\n", static_cast<int>(messageType));
             break;

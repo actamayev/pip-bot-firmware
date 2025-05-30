@@ -24,6 +24,13 @@ class WiFiManager : public Singleton<WiFiManager> {
 		void storeWiFiCredentials(const String& ssid, const String& password, int index);
 		void checkAndReconnectWiFi();
 
+		struct WiFiTestResult {
+			bool wifiConnected;
+			bool websocketConnected;
+		};
+		
+		WiFiTestResult testWiFiCredentials(const String& ssid, const String& password);
+
 	private:
 		WiFiManager();
 
@@ -46,4 +53,6 @@ class WiFiManager : public Singleton<WiFiManager> {
 
 		const unsigned long printInterval = 100;  // Print dots every 100ms
 		const unsigned long checkInterval = 500;  // Check serial every 500ms
+
+		bool testConnectionOnly(const String& ssid, const String& password);
 };

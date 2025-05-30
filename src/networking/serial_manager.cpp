@@ -150,3 +150,17 @@ void SerialManager::sendJsonToSerial(const String& jsonData) {
     if (!isConnected) return;
     Serial.println(jsonData);
 }
+
+void SerialManager::sendJsonMessage(const String& route, const String& status) {
+    if (!isConnected) return;
+    
+    StaticJsonDocument<256> doc;
+    doc["route"] = route;
+    JsonObject payload = doc.createNestedObject("payload");
+    payload["status"] = status;
+    
+    String jsonString;
+    serializeJson(doc, jsonString);
+    
+    Serial.println(jsonString);  // Send with newline like other messages
+}

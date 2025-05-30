@@ -15,6 +15,7 @@ class SerialManager : public Singleton<SerialManager> {
         void sendJsonToSerial(const String& jsonData);
         bool isConnected = false;
         unsigned long lastActivityTime = 0;
+        void sendJsonMessage(const String& route, const String& status);
 
     private:
         SerialManager() = default;

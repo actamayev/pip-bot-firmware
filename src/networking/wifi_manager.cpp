@@ -287,3 +287,58 @@ void WiFiManager::checkAndReconnectWiFi() {
         WebSocketManager::getInstance().connectToWebSocket();
     }
 }
+
+WiFiManager::WiFiTestResult WiFiManager::testWiFiCredentials(const String& ssid, const String& password) {
+    WiFiTestResult result = {false, false};
+    
+    Serial.println("Testing WiFi credentials...");
+    
+    // Test WiFi connection without storing credentials
+    if (testConnectionOnly(ssid, password)) {
+        result.wifiConnected = true;
+        Serial.println("WiFi connection successful");
+        
+        // Test WebSocket connection
+        WebSocketManager::getInstance().connectToWebSocket();
+        
+        // Wait for WebSocket connection with timeout
+        unsigned long startTime = millis();
+        const unsigned long WEBSOCKET_TIMEOUT = 10000; // 10 seconds
+        
+        while (millis() - startTime < WEBSOCKET_TIMEOUT) {
+            WebSocketManager::getInstance().pollWebSocket();
+            if (WebSocketManager::getInstance().isConnected()) {
+                result.websocketConnected = true;
+                Serial.println("WebSocket connection successful");
+                
+                // Only store credentials after both WiFi and WebSocket success
+                storeWiFiCredentials(ssid, password, 0);
+                break;
+            }
+            vTaskDelay(pdMS_TO_TICKS(100));
+        }
+        
+        if (!result.websocketConnected) {
+            Serial.println("WebSocket connection failed - likely captive portal");
+            WiFi.disconnect();
+        }
+    }
+    
+    return result;
+}
+
+bool WiFiManager::testConnectionOnly(const String& ssid, const String& password) {
+    WiFi.mode(WIFI_STA);
+    WiFi.begin(ssid, password);
+    
+    unsigned long startTime = millis();
+    while (WiFi.status() != WL_CONNECTED && (millis() - startTime < CONNECT_TO_SINGLE_NETWORK_TIMEOUT)) {
+        vTaskDelay(pdMS_TO_TICKS(100));
+        
+        if (NetworkStateManager::getInstance().shouldStopWiFiOperations()) {
+            return false;
+        }
+    }
+    
+    return WiFi.status() == WL_CONNECTED;
+}
