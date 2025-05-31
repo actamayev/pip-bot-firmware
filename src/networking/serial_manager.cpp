@@ -142,8 +142,30 @@ void SerialManager::processCompleteMessage() {
     MessageProcessor::getInstance().processBinaryMessage(receiveBuffer, bufferPosition);
 }
 
+// Add this method to sendHandshakeConfirmation()
 void SerialManager::sendHandshakeConfirmation() {
     Serial.println("{\"status\":\"connected\",\"message\":\"ESP32 Web Serial connection established\"}");
+    
+    // NEW: Send PipID immediately after handshake
+    sendPipIdMessage();
+}
+
+// NEW: Add this new method
+void SerialManager::sendPipIdMessage() {
+    if (!isConnected) return;
+    
+    String pipId = PreferencesManager::getInstance().getPipId();
+    
+    StaticJsonDocument<256> doc;
+    doc["route"] = "/pip-id";
+    JsonObject payload = doc.createNestedObject("payload");
+    payload["pipId"] = pipId;
+    
+    String jsonString;
+    serializeJson(doc, jsonString);
+    
+    Serial.println(jsonString);
+    Serial.printf("Sent PipID: %s\n", pipId.c_str());
 }
 
 void SerialManager::sendJsonToSerial(const String& jsonData) {

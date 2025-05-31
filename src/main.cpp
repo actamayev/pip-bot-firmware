@@ -99,6 +99,11 @@ void NetworkTask(void * parameter) {
                 // Could add specific serial mode indicators here
                 break;
 
+            case NetworkMode::ADD_PIP_MODE:
+                // Process ADD_PIP_MODE WiFi testing
+                WiFiManager::getInstance().processAddPipMode();
+                break;
+
             case NetworkMode::WIFI_MODE:
                 // WiFi connected mode - poll websocket and send data
                 WebSocketManager::getInstance().pollWebSocket();
@@ -124,7 +129,9 @@ void setup() {
     Serial.setTxBufferSize(MAX_PROGRAM_SIZE); // This is here to make the serial buffer larger to accommodate for large serial messages (ie. when uploading bytecode programs over serial)
     Serial.begin(115200);
     // Only needed if we need to see the setup serial logs:
-    vTaskDelay(pdMS_TO_TICKS(2000));
+    if (getEnvironment() == "local") {
+        vTaskDelay(pdMS_TO_TICKS(2000));
+    }
     Wire.setPins(I2C_SDA, I2C_SCL);
     Wire.begin(I2C_SDA, I2C_SCL, I2C_CLOCK_SPEED);
     vTaskDelay(pdMS_TO_TICKS(10));

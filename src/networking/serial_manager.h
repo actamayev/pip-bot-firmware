@@ -16,6 +16,7 @@ class SerialManager : public Singleton<SerialManager> {
         bool isConnected = false;
         unsigned long lastActivityTime = 0;
         void sendJsonMessage(const String& route, const String& status);
+        void sendPipIdMessage();
 
     private:
         SerialManager() = default;

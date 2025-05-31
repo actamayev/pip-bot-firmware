@@ -420,22 +420,12 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
                 password += (char)data[3 + ssidLength + i];
             }
             
-            Serial.printf("Testing WiFi: %s\n", ssid.c_str());
+            Serial.printf("Received WiFi credentials for: %s\n", ssid.c_str());
             
-            // Test the credentials
-            WiFiManager::WiFiTestResult result = WiFiManager::getInstance().testWiFiCredentials(ssid, password);
+            // NEW: Enter ADD_PIP_MODE and store credentials for testing
+            NetworkStateManager::getInstance().setAddPipMode(true);
+            WiFiManager::getInstance().startAddPipWiFiTest(ssid, password);
             
-            // Send result back via serial as JSON
-            String status;
-            if (result.wifiConnected && result.websocketConnected) {
-                status = "success";
-            } else if (result.wifiConnected) {
-                status = "wifi_only";
-            } else {
-                status = "failed";
-            }
-            
-            SerialManager::getInstance().sendJsonMessage("/wifi-connection-result", status);
             break;
         }
 
