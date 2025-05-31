@@ -1,4 +1,20 @@
 #include "serial_manager.h"
+#include <freertos/FreeRTOS.h>  // Must be first!
+#include <freertos/semphr.h>
+
+// Static mutex declaration
+static SemaphoreHandle_t serialMutex = nullptr;
+
+// Constructor implementation
+SerialManager::SerialManager() {
+    // Initialize mutex on first use
+    if (serialMutex == nullptr) {
+        serialMutex = xSemaphoreCreateMutex();
+        if (serialMutex == nullptr) {
+            Serial.println("ERROR: Failed to create serial mutex!");
+        }
+    }
+}
 
 void SerialManager::pollSerial() {
     if (Serial.available() <= 0) {
@@ -14,7 +30,7 @@ void SerialManager::pollSerial() {
 
     if (!isConnected) {
         isConnected = true;
-        Serial.println("Serial connection detected!");
+        safePrintln("Serial connection detected!");
         sendHandshakeConfirmation();
     }
 
@@ -144,13 +160,11 @@ void SerialManager::processCompleteMessage() {
 
 // Add this method to sendHandshakeConfirmation()
 void SerialManager::sendHandshakeConfirmation() {
-    Serial.println("{\"status\":\"connected\",\"message\":\"ESP32 Web Serial connection established\"}");
-    
-    // NEW: Send PipID immediately after handshake
+    safePrintln("{\"status\":\"connected\",\"message\":\"ESP32 Web Serial connection established\"}");
+    vTaskDelay(pdMS_TO_TICKS(50)); // Small delay
     sendPipIdMessage();
 }
 
-// NEW: Add this new method
 void SerialManager::sendPipIdMessage() {
     if (!isConnected) return;
     
@@ -164,7 +178,7 @@ void SerialManager::sendPipIdMessage() {
     String jsonString;
     serializeJson(doc, jsonString);
     
-    Serial.println(jsonString);
+    safePrintln(jsonString);
     Serial.printf("Sent PipID: %s\n", pipId.c_str());
 }
 
@@ -184,5 +198,22 @@ void SerialManager::sendJsonMessage(const String& route, const String& status) {
     String jsonString;
     serializeJson(doc, jsonString);
     
-    Serial.println(jsonString);  // Send with newline like other messages
+    safePrintln(jsonString);
+}
+
+void SerialManager::safePrintln(const String& message) {
+    if (serialMutex == nullptr) {
+        // Fallback if mutex creation failed
+        Serial.println(message);
+        return;
+    }
+    
+    if (xSemaphoreTake(serialMutex, pdMS_TO_TICKS(100)) == pdTRUE) {
+        Serial.println(message);
+        Serial.flush();
+        xSemaphoreGive(serialMutex);
+    } else {
+        // Timeout - print anyway to avoid blocking
+        Serial.println(message);
+    }
 }

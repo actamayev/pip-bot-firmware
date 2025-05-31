@@ -5,6 +5,7 @@
 #include "utils/singleton.h"
 #include "actuators/led/rgb_led.h"
 #include "networking/message_processor.h"
+// Remove: #include <freertos/semphr.h>
 
 class SerialManager : public Singleton<SerialManager> {
     friend class Singleton<SerialManager>;
@@ -17,9 +18,10 @@ class SerialManager : public Singleton<SerialManager> {
         unsigned long lastActivityTime = 0;
         void sendJsonMessage(const String& route, const String& status);
         void sendPipIdMessage();
+        static void safePrintln(const String& message);
 
     private:
-        SerialManager() = default;
+        SerialManager();  // Make constructor private and implement it
         enum class ParseState {
             WAITING_FOR_START,
             READING_MESSAGE_TYPE,
@@ -30,7 +32,7 @@ class SerialManager : public Singleton<SerialManager> {
             WAITING_FOR_END
         };
         ParseState parseState = ParseState::WAITING_FOR_START;
-        uint8_t receiveBuffer[MAX_PROGRAM_SIZE];  // Buffer for incoming data
+        uint8_t receiveBuffer[MAX_PROGRAM_SIZE];
         uint16_t bufferPosition = 0;
         uint16_t expectedPayloadLength = 0;
         bool useLongFormat = false;

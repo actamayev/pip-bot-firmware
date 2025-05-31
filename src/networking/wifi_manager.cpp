@@ -266,6 +266,10 @@ void WiFiManager::storeWiFiCredentials(const String& ssid, const String& passwor
 void WiFiManager::checkAndReconnectWiFi() {
     // Check if WiFi is connected or already attempting connection
     if (WiFi.status() == WL_CONNECTED || _isConnecting) return;
+
+    std::vector<WiFiCredentials> savedNetworks = PreferencesManager::getInstance().getAllStoredWiFiNetworks();
+    if (savedNetworks.empty()) return;
+
     unsigned long currentTime = millis();
 
     if (currentTime - _lastReconnectAttempt < WIFI_RECONNECT_TIMEOUT) return;
