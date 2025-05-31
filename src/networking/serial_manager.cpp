@@ -31,7 +31,6 @@ void SerialManager::pollSerial() {
     if (!isConnected) {
         isConnected = true;
         safePrintln("Serial connection detected!");
-        sendHandshakeConfirmation();
     }
 
     // Read available bytes and process according to the current state
@@ -179,7 +178,7 @@ void SerialManager::sendPipIdMessage() {
     serializeJson(doc, jsonString);
     
     safePrintln(jsonString);
-    Serial.printf("Sent PipID: %s\n", pipId.c_str());
+    safePrintln("Sent PipID: " + pipId);  // Use safe print for this too
 }
 
 void SerialManager::sendJsonToSerial(const String& jsonData) {

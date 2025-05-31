@@ -5,7 +5,6 @@
 #include "utils/singleton.h"
 #include "actuators/led/rgb_led.h"
 #include "networking/message_processor.h"
-// Remove: #include <freertos/semphr.h>
 
 class SerialManager : public Singleton<SerialManager> {
     friend class Singleton<SerialManager>;

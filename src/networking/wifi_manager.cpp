@@ -336,6 +336,8 @@ bool WiFiManager::testConnectionOnly(const String& ssid, const String& password)
     WiFi.begin(ssid, password);
     
     unsigned long startTime = millis();
+    unsigned long lastStatusLog = 0;
+    
     while (WiFi.status() != WL_CONNECTED && (millis() - startTime < CONNECT_TO_SINGLE_NETWORK_TIMEOUT)) {
         vTaskDelay(pdMS_TO_TICKS(100));
         
@@ -358,44 +360,41 @@ void WiFiManager::startAddPipWiFiTest(const String& ssid, const String& password
 void WiFiManager::processAddPipMode() {
     if (!_isTestingAddPipCredentials) return;
     
-    _isTestingAddPipCredentials = false; // Prevent multiple attempts
-    
-    Serial.printf("Testing WiFi credentials for ADD_PIP_MODE: %s\n", _addPipSSID.c_str());
-    
+    _isTestingAddPipCredentials = false;
+
     // Test WiFi connection
     if (testConnectionOnly(_addPipSSID, _addPipPassword)) {
-        Serial.println("WiFi connection successful in ADD_PIP_MODE");
+        SerialManager::safePrintln("WiFi connection successful - testing WebSocket...");
         
         // Test WebSocket connection
         WebSocketManager::getInstance().connectToWebSocket();
         
-        // Wait for WebSocket connection with timeout
         unsigned long startTime = millis();
-        const unsigned long WEBSOCKET_TIMEOUT = 10000; // 10 seconds
+        const unsigned long WEBSOCKET_TIMEOUT = 10000;
         bool websocketConnected = false;
         
         while (millis() - startTime < WEBSOCKET_TIMEOUT) {
             WebSocketManager::getInstance().pollWebSocket();
             if (WebSocketManager::getInstance().isConnected()) {
                 websocketConnected = true;
-                Serial.println("WebSocket connection successful in ADD_PIP_MODE");
+                SerialManager::safePrintln("WebSocket connection successful!");
                 break;
             }
             vTaskDelay(pdMS_TO_TICKS(100));
         }
         
         if (websocketConnected) {
-            // Store credentials and transition to WIFI_MODE
+            SerialManager::safePrintln("=== Full connection successful - storing credentials ===");
             storeWiFiCredentials(_addPipSSID, _addPipPassword, 0);
             NetworkStateManager::getInstance().setAddPipMode(false);
             SerialManager::getInstance().sendJsonMessage("/wifi-connection-result", "success");
         } else {
-            Serial.println("WebSocket connection failed - likely captive portal");
+            SerialManager::safePrintln("=== WebSocket connection failed - likely captive portal ===");
             WiFi.disconnect();
             SerialManager::getInstance().sendJsonMessage("/wifi-connection-result", "wifi_only");
         }
     } else {
-        Serial.println("WiFi connection failed in ADD_PIP_MODE");
+        SerialManager::safePrintln("=== WiFi connection failed ===");
         SerialManager::getInstance().sendJsonMessage("/wifi-connection-result", "failed");
     }
     

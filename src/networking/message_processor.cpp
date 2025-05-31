@@ -356,7 +356,7 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             break;
         }
         case DataMessageType::SERIAL_HANDSHAKE: {
-            Serial.println("Handshake received from browser!");
+            SerialManager::safePrintln("Handshake received from browser!");  // Use safe print
             rgbLed.set_led_blue();
             SerialManager::getInstance().isConnected = true;
             SerialManager::getInstance().lastActivityTime = millis();
@@ -421,7 +421,7 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             }
             
             Serial.printf("Received WiFi credentials for: %s\n", ssid.c_str());
-            
+
             // NEW: Enter ADD_PIP_MODE and store credentials for testing
             NetworkStateManager::getInstance().setAddPipMode(true);
             WiFiManager::getInstance().startAddPipWiFiTest(ssid, password);
