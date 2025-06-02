@@ -75,8 +75,12 @@ void PreferencesManager::storeWiFiCredentials(const String& ssid, const String& 
     preferences.putString(ssidKey, ssid);
     preferences.putString(passwordKey, password);
     
-    // Update the count if necessary
-    int currentCount = preferences.getInt(WIFI_COUNT, 0);
+    // Initialize wifi_count if it doesn't exist, or update if necessary
+    int currentCount = 0;
+    if (preferences.isKey(WIFI_COUNT)) {
+        currentCount = preferences.getInt(WIFI_COUNT, 0);
+    }
+    
     if (index >= currentCount) {
         preferences.putInt(WIFI_COUNT, index + 1);
     }
@@ -100,12 +104,28 @@ String PreferencesManager::getWiFiPassword(int index) {
     return preferences.getString(passwordKey, "");
 }
 
+bool PreferencesManager::hasStoredWiFiNetworks() {
+    if (!beginNamespace(NS_WIFI)) return false;
+    
+    // Check if wifi_count key exists and is greater than 0
+    if (preferences.isKey(WIFI_COUNT)) {
+        return preferences.getInt(WIFI_COUNT, 0) > 0;
+    }
+    return false;
+}
+
+// Updated getAllStoredWiFiNetworks method:
 std::vector<WiFiCredentials> PreferencesManager::getAllStoredWiFiNetworks() {
     std::vector<WiFiCredentials> networks;
     
     if (!beginNamespace(NS_WIFI)) return networks;  // Return empty vector if can't access preferences
     
-    int count = preferences.getInt(WIFI_COUNT, 0);
+    // Check if wifi_count key exists before trying to read it
+    int count = 0;
+    if (preferences.isKey(WIFI_COUNT)) {
+        count = preferences.getInt(WIFI_COUNT, 0);
+    }
+    // If key doesn't exist, count remains 0 and we return empty vector
     
     for (int i = 0; i < count; i++) {
         WiFiCredentials creds;
