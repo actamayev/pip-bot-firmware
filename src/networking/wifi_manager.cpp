@@ -47,13 +47,14 @@ void WiFiManager::connectToStoredWiFi() {
 
 // 4/9/25 TODO: Connect to the network we've most recently connected to first.
 bool WiFiManager::attemptDirectConnectionToSavedNetworks() {
-    // Get all saved networks
-    std::vector<WiFiCredentials> savedNetworks = PreferencesManager::getInstance().getAllStoredWiFiNetworks();
-    
-    if (savedNetworks.empty()) {
+    // Quick check if any networks exist before trying to get them
+    if (!PreferencesManager::getInstance().hasStoredWiFiNetworks()) {
         Serial.println("No saved networks found");
         return false;
     }
+
+    // Get all saved networks
+    std::vector<WiFiCredentials> savedNetworks = PreferencesManager::getInstance().getAllStoredWiFiNetworks();
 
     if (
         (ledAnimations.getCurrentAnimation() != LedTypes::BREATHING) &&
@@ -267,8 +268,8 @@ void WiFiManager::checkAndReconnectWiFi() {
     // Check if WiFi is connected or already attempting connection
     if (WiFi.status() == WL_CONNECTED || _isConnecting) return;
 
-    std::vector<WiFiCredentials> savedNetworks = PreferencesManager::getInstance().getAllStoredWiFiNetworks();
-    if (savedNetworks.empty()) return;
+    // Quick check if any networks exist before trying to get them
+    if (!PreferencesManager::getInstance().hasStoredWiFiNetworks()) return;
 
     unsigned long currentTime = millis();
 
