@@ -5,17 +5,6 @@
 // Static mutex declaration
 static SemaphoreHandle_t serialMutex = nullptr;
 
-// Constructor implementation
-SerialManager::SerialManager() {
-    // Initialize mutex on first use
-    if (serialMutex == nullptr) {
-        serialMutex = xSemaphoreCreateMutex();
-        if (serialMutex == nullptr) {
-            Serial.println("ERROR: Failed to create serial mutex!");
-        }
-    }
-}
-
 void SerialManager::pollSerial() {
     if (Serial.available() <= 0) {
         // Check for timeout if we're connected but haven't received data for a while
@@ -179,11 +168,7 @@ void SerialManager::sendPipIdMessage() {
     
     safePrintln(jsonString);
     safePrintln("Sent PipID: " + pipId);  // Use safe print for this too
-}
-
-void SerialManager::sendJsonToSerial(const String& jsonData) {
-    if (!isConnected) return;
-    Serial.println(jsonData);
+    vTaskDelay(pdMS_TO_TICKS(50)); // Small delay
 }
 
 void SerialManager::sendJsonMessage(const String& route, const String& status) {
@@ -201,10 +186,16 @@ void SerialManager::sendJsonMessage(const String& route, const String& status) {
 }
 
 void SerialManager::safePrintln(const String& message) {
+    static SemaphoreHandle_t serialMutex = nullptr;  // Function-local static
+    
+    // Initialize once, when first called (after FreeRTOS is running)
     if (serialMutex == nullptr) {
-        // Fallback if mutex creation failed
-        Serial.println(message);
-        return;
+        serialMutex = xSemaphoreCreateMutex();
+        if (serialMutex == nullptr) {
+            Serial.println("ERROR: Failed to create serial mutex!");
+            Serial.println(message);  // Fallback
+            return;
+        }
     }
     
     if (xSemaphoreTake(serialMutex, pdMS_TO_TICKS(100)) == pdTRUE) {
@@ -212,7 +203,6 @@ void SerialManager::safePrintln(const String& message) {
         Serial.flush();
         xSemaphoreGive(serialMutex);
     } else {
-        // Timeout - print anyway to avoid blocking
-        Serial.println(message);
+        Serial.println(message);  // Timeout fallback
     }
 }

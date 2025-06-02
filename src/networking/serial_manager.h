@@ -20,7 +20,7 @@ class SerialManager : public Singleton<SerialManager> {
         static void safePrintln(const String& message);
 
     private:
-        SerialManager();  // Make constructor private and implement it
+        SerialManager() = default;  // Make constructor private and implement it
         enum class ParseState {
             WAITING_FOR_START,
             READING_MESSAGE_TYPE,
