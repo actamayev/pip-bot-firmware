@@ -1,10 +1,11 @@
 #pragma once
 
+#include "message_processor.h"
 #include "utils/config.h"
 #include "utils/structs.h"
 #include "utils/singleton.h"
 #include "actuators/led/rgb_led.h"
-#include "networking/message_processor.h"
+#include "serial_queue_manager.h"
 
 class SerialManager : public Singleton<SerialManager> {
     friend class Singleton<SerialManager>;
@@ -12,12 +13,11 @@ class SerialManager : public Singleton<SerialManager> {
     public:
         void pollSerial();
         void sendHandshakeConfirmation();
-        void sendJsonToSerial(const String& jsonData);
         bool isConnected = false;
         unsigned long lastActivityTime = 0;
         void sendJsonMessage(const String& route, const String& status);
         void sendPipIdMessage();
-        static void safePrintln(const String& message);
+        // static void safePrintln(const String& message, SerialPriority priority);
 
     private:
         SerialManager() = default;  // Make constructor private and implement it

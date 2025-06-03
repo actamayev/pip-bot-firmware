@@ -19,7 +19,7 @@ void SerialManager::pollSerial() {
 
     if (!isConnected) {
         isConnected = true;
-        safePrintln("Serial connection detected!");
+        SerialQueueManager::getInstance().queueMessage("Serial connection detected!");
     }
 
     // Read available bytes and process according to the current state
@@ -148,8 +148,12 @@ void SerialManager::processCompleteMessage() {
 
 // Add this method to sendHandshakeConfirmation()
 void SerialManager::sendHandshakeConfirmation() {
-    safePrintln("{\"status\":\"connected\",\"message\":\"ESP32 Web Serial connection established\"}");
-    vTaskDelay(pdMS_TO_TICKS(50)); // Small delay
+    // Use CRITICAL priority for browser responses
+    SerialQueueManager::getInstance().queueMessage(
+        "{\"status\":\"connected\",\"message\":\"ESP32 Web Serial connection established\"}", 
+        SerialPriority::CRITICAL
+    );
+    vTaskDelay(pdMS_TO_TICKS(50));
     sendPipIdMessage();
 }
 
@@ -166,9 +170,10 @@ void SerialManager::sendPipIdMessage() {
     String jsonString;
     serializeJson(doc, jsonString);
     
-    safePrintln(jsonString);
-    safePrintln("Sent PipID: " + pipId);  // Use safe print for this too
-    vTaskDelay(pdMS_TO_TICKS(50)); // Small delay
+    // Use CRITICAL priority for browser communication
+    SerialQueueManager::getInstance().queueMessage(jsonString, SerialPriority::CRITICAL);
+    SerialQueueManager::getInstance().queueMessage("Sent PipID: " + pipId, SerialPriority::HIGH_PRIO);
+    vTaskDelay(pdMS_TO_TICKS(50));
 }
 
 void SerialManager::sendJsonMessage(const String& route, const String& status) {
@@ -182,27 +187,30 @@ void SerialManager::sendJsonMessage(const String& route, const String& status) {
     String jsonString;
     serializeJson(doc, jsonString);
     
-    safePrintln(jsonString);
+    // Browser responses are CRITICAL
+    SerialQueueManager::getInstance().queueMessage(jsonString, SerialPriority::CRITICAL);
 }
 
-void SerialManager::safePrintln(const String& message) {
-    static SemaphoreHandle_t serialMutex = nullptr;  // Function-local static
+// void SerialManager::safePrintln(const String& message, SerialPriority priority) {
+    // SerialQueueManager::getInstance().queueMessage(message, priority);
+
+    // static SemaphoreHandle_t serialMutex = nullptr;  // Function-local static
     
-    // Initialize once, when first called (after FreeRTOS is running)
-    if (serialMutex == nullptr) {
-        serialMutex = xSemaphoreCreateMutex();
-        if (serialMutex == nullptr) {
-            Serial.println("ERROR: Failed to create serial mutex!");
-            Serial.println(message);  // Fallback
-            return;
-        }
-    }
+    // // Initialize once, when first called (after FreeRTOS is running)
+    // if (serialMutex == nullptr) {
+    //     serialMutex = xSemaphoreCreateMutex();
+    //     if (serialMutex == nullptr) {
+    //         Serial.println("ERROR: Failed to create serial mutex!");
+    //         Serial.println(message);  // Fallback
+    //         return;
+    //     }
+    // }
     
-    if (xSemaphoreTake(serialMutex, pdMS_TO_TICKS(100)) == pdTRUE) {
-        Serial.println(message);
-        Serial.flush();
-        xSemaphoreGive(serialMutex);
-    } else {
-        Serial.println(message);  // Timeout fallback
-    }
-}
+    // if (xSemaphoreTake(serialMutex, pdMS_TO_TICKS(100)) == pdTRUE) {
+    //     Serial.println(message);
+    //     Serial.flush();
+    //     xSemaphoreGive(serialMutex);
+    // } else {
+    //     Serial.println(message);  // Timeout fallback
+    // }
+// }
