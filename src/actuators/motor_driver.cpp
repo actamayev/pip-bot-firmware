@@ -50,14 +50,14 @@ void MotorDriver::brake_left_motor() {
     analogWrite(LEFT_MOTOR_PIN_IN_1, 255);
     analogWrite(LEFT_MOTOR_PIN_IN_2, 255);
     _leftMotorBraking = true;
-    // Serial.println("Braking left motor");
+    // SerialQueueManager::getInstance().queueMessage("Braking left motor");
 }
 
 void MotorDriver::brake_right_motor() {
     analogWrite(RIGHT_MOTOR_PIN_IN_1, 255);
     analogWrite(RIGHT_MOTOR_PIN_IN_2, 255);
     _rightMotorBraking = true;
-    // Serial.println("Braking right motor");
+    // SerialQueueManager::getInstance().queueMessage("Braking right motor");
 }
 
 void MotorDriver::brake_both_motors() {
@@ -68,13 +68,13 @@ void MotorDriver::brake_both_motors() {
 void MotorDriver::release_left_brake() {
     left_motor_stop();
     _leftMotorBraking = false;
-    // Serial.println("Released left brake");
+    // SerialQueueManager::getInstance().queueMessage("Released left brake");
 }
 
 void MotorDriver::release_right_brake() {
     right_motor_stop();
     _rightMotorBraking = false;
-    // Serial.println("Released right brake");
+    // SerialQueueManager::getInstance().queueMessage("Released right brake");
 }
 
 void MotorDriver::brake_if_moving() {

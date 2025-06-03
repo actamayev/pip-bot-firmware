@@ -19,8 +19,8 @@ bool MultizoneTofSensor::initialize() {
     lastInitAttempt = millis();
     initRetryCount++;
     
-    Serial.printf("Initializing MZ-TOF sensor (attempt %d of %d)...\n", 
-                 initRetryCount, MAX_INIT_RETRIES);
+    // SerialQueueManager::getInstance().queueMessage("Initializing MZ-TOF sensor (attempt %d of %d)...\n", 
+    //              initRetryCount, MAX_INIT_RETRIES);
     
     // Add a delay before trying to initialize
     vTaskDelay(pdMS_TO_TICKS(50));
@@ -44,7 +44,7 @@ bool MultizoneTofSensor::initialize() {
                     // Initialize point histories
                     initializePointHistories();
                     
-                    Serial.println("TOF sensor initialization complete");
+                    SerialQueueManager::getInstance().queueMessage("TOF sensor initialization complete");
                     isInitialized = true;
                     return true;
                 }
@@ -53,8 +53,8 @@ bool MultizoneTofSensor::initialize() {
         vTaskDelay(pdMS_TO_TICKS(50));  // Longer delay between attempts
     }
     
-    Serial.printf("TOF sensor initialization failed (retry %d of %d)\n", 
-                 initRetryCount, MAX_INIT_RETRIES);
+    // SerialQueueManager::getInstance().queueMessage("TOF sensor initialization failed (retry %d of %d)\n", 
+    //              initRetryCount, MAX_INIT_RETRIES);
     scanI2C();  // Scan I2C bus to help debug
     return false;
 }
@@ -72,7 +72,7 @@ void MultizoneTofSensor::initializePointHistories() {
             }
         }
     }
-    Serial.println("Point histories initialized");
+    SerialQueueManager::getInstance().queueMessage("Point histories initialized");
 }
 
 // Update the history for a specific point
@@ -120,12 +120,12 @@ bool MultizoneTofSensor::configureSensor() {
     sensor.vl53l7cx_set_integration_time_ms(integrationTimeMs);
     sensor.vl53l7cx_set_ranging_mode(VL53L7CX_RANGING_MODE_CONTINUOUS);
 
-    Serial.println("Sensor configured with optimized parameters");
+    SerialQueueManager::getInstance().queueMessage("Sensor configured with optimized parameters");
     return true;
 }
 
 bool MultizoneTofSensor::resetSensor() {
-    Serial.println("SENSOR RESET: Data stopped - performing recovery...");
+    SerialQueueManager::getInstance().queueMessage("SENSOR RESET: Data stopped - performing recovery...");
     
     // Set sensor as inactive during reset
     sensorActive = false;
@@ -138,7 +138,7 @@ bool MultizoneTofSensor::resetSensor() {
     sensor.begin();
     
     if (sensor.init_sensor()) {
-        Serial.println("Failed to reinitialize sensor!");
+        SerialQueueManager::getInstance().queueMessage("Failed to reinitialize sensor!");
         return false;
     }
     
@@ -157,7 +157,7 @@ bool MultizoneTofSensor::resetSensor() {
     // Set sensor as active again
     sensorActive = true;
     
-    Serial.println("Sensor reset complete");
+    SerialQueueManager::getInstance().queueMessage("Sensor reset complete");
     return true;
 }
 
@@ -245,7 +245,7 @@ bool MultizoneTofSensor::checkWatchdog() {
 }
 
 void MultizoneTofSensor::startRanging() {
-    Serial.println("Starting to range");
+    SerialQueueManager::getInstance().queueMessage("Starting to range");
     sensor.vl53l7cx_start_ranging();
 }
 
@@ -254,8 +254,8 @@ void MultizoneTofSensor::stopRanging() {
 }
 
 void MultizoneTofSensor::printResult(VL53L7CX_ResultsData *Result) {
-    Serial.println("VL53L7CX 8x8 Grid Distance Measurement");
-    Serial.println("--------------------------------------\n");
+    SerialQueueManager::getInstance().queueMessage("VL53L7CX 8x8 Grid Distance Measurement");
+    SerialQueueManager::getInstance().queueMessage("--------------------------------------\n");
     
     // Print 8x8 grid
     // Traverse rows from bottom to top (7 to 0) to fix vertical flip
@@ -264,7 +264,7 @@ void MultizoneTofSensor::printResult(VL53L7CX_ResultsData *Result) {
         for (int i = 0; i < 8; i++) {
         Serial.print(" --------");
         }
-        Serial.println("-");
+        SerialQueueManager::getInstance().queueMessage("-");
         
         // Print distance values
         Serial.print("|");
@@ -282,21 +282,21 @@ void MultizoneTofSensor::printResult(VL53L7CX_ResultsData *Result) {
             if (distance > maxDistance || distance < minDistance || status < signalThreshold) {
             Serial.print("    X   ");
             } else {
-            Serial.printf(" %4d mm", distance);
+            // SerialQueueManager::getInstance().queueMessage(" %4d mm", distance);
             }
         } else {
             Serial.print("    X   ");
         }
         Serial.print("|");
         }
-        Serial.println();
+        // SerialQueueManager::getInstance().queueMessage();
     }
     
     // Print final separator line
     for (int i = 0; i < 8; i++) {
         Serial.print(" --------");
     }
-    Serial.println("-\n");
+    // SerialQueueManager::getInstance().queueMessage("-\n");
     
     // Print point histories status
     // printPointHistoriesStatus(Result);
@@ -312,5 +312,5 @@ void MultizoneTofSensor::turnOffSensor() {
     
     initializePointHistories();
     
-    Serial.println("MZ sensor turned off");
+    SerialQueueManager::getInstance().queueMessage("MZ sensor turned off");
 }

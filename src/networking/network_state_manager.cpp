@@ -18,7 +18,7 @@ bool NetworkStateManager::shouldStopWiFiOperations() {
 
 void NetworkStateManager::setAddPipMode(bool enabled) {
     _isInAddPipMode = enabled;
-    Serial.printf("ADD_PIP_MODE %s\n", enabled ? "ENABLED" : "DISABLED");
+    // SerialQueueManager::getInstance().queueMessage("ADD_PIP_MODE %s\n", enabled ? "ENABLED" : "DISABLED");
 }
 
 bool NetworkStateManager::isInAddPipMode() const {

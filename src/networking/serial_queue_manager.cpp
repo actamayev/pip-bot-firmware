@@ -149,7 +149,7 @@ void SerialQueueManager::processMessage(const SerialMessage& msg) {
     }
     
     // Output the message
-    SerialQueueManager::getInstance().queueMessage(priorityStr);
+    Serial.print(priorityStr);
     Serial.println(msg.message);
     Serial.flush(); // Ensure immediate transmission
 }

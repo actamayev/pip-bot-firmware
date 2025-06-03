@@ -10,7 +10,7 @@ bool DisplayScreen::init() {
     // display = Adafruit_SSD1306(SCREEN_WIDTH, SCREEN_HEIGHT, &DEV_I2C);
 
     if(!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
-        Serial.println(F("SSD1306 allocation failed"));
+        SerialQueueManager::getInstance().queueMessage(F("SSD1306 allocation failed"));
         return false;
     }
 
@@ -21,7 +21,7 @@ bool DisplayScreen::init() {
     // Start the startup sequence
     showStartScreen();
     
-    Serial.println("OLED display initialized successfully!");
+    SerialQueueManager::getInstance().queueMessage("OLED display initialized successfully!");
     return true;
 }
 

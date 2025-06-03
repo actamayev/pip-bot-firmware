@@ -7,6 +7,7 @@
 #include "multizone_tof_sensor.h"
 #include "side_time_of_flight_sensor.h"
 #include "ir_sensor.h"
+#include "networking/serial_queue_manager.h"
 
 class SensorInitializer : public Singleton<SensorInitializer> {
     friend class Singleton<SensorInitializer>;

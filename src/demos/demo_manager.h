@@ -5,6 +5,7 @@
 #include "utils/structs.h"
 #include "demos/balance_controller.h"
 #include "demos/obstacle_avoider.h"
+#include "networking/serial_queue_manager.h"
 
 class DemoManager : public Singleton<DemoManager> {
     friend class Singleton<DemoManager>;

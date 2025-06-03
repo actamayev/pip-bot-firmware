@@ -12,24 +12,24 @@ void MessageProcessor::handleSoundCommand(SoundType soundType) {
     // Play the requested tune
     switch(soundType) {
         case SoundType::ALERT:
-            Serial.println("Playing Alert sound");
+            SerialQueueManager::getInstance().queueMessage("Playing Alert sound");
             // Call your alert sound function
             // speaker.alert();
             break;
 
         case SoundType::BEEP:
-            Serial.println("Playing Beep sound");
+            SerialQueueManager::getInstance().queueMessage("Playing Beep sound");
             // Call your beep sound function
             // speaker.beep();
             break;
 
         case SoundType::CHIME:
-            Serial.println("Playing Chime sound");
+            SerialQueueManager::getInstance().queueMessage("Playing Chime sound");
             speaker.chime();
             break;
 
         default:
-            Serial.printf("Unknown tune type: %d\n", static_cast<int>(soundType));
+            // SerialQueueManager::getInstance().queueMessage("Unknown tune type: %d\n", static_cast<int>(soundType));
             break;
     }
 }
@@ -66,7 +66,7 @@ void MessageProcessor::executeCommand(int16_t leftSpeed, int16_t rightSpeed) {
     // Start the command timer
     commandStartTime = millis();
 
-    Serial.printf("Motors updated - Left: %d, Right: %d\n", leftSpeed, rightSpeed);
+    // SerialQueueManager::getInstance().queueMessage("Motors updated - Left: %d, Right: %d\n", leftSpeed, rightSpeed);
 
     motorDriver.set_motor_speeds(leftSpeed, rightSpeed);
 
@@ -120,8 +120,8 @@ void MessageProcessor::processPendingCommands() {
     // Optional debugging (only printed once every 500ms)
     static unsigned long lastDebugTime = 0;
     if (millis() - lastDebugTime > 500) {
-        Serial.printf("Encoder deltas - Left: %lld, Right: %lld (Target: %d)\n", 
-                     leftDelta, rightDelta, MIN_ENCODER_PULSES);
+        // SerialQueueManager::getInstance().queueMessage("Encoder deltas - Left: %lld, Right: %lld (Target: %d)\n", 
+        //              leftDelta, rightDelta, MIN_ENCODER_PULSES);
         lastDebugTime = millis();
     }
     
@@ -131,10 +131,10 @@ void MessageProcessor::processPendingCommands() {
     
     if (encoderThresholdMet || commandTimedOut) {
         if (commandTimedOut) {
-            Serial.println("Command timed out after 1 second - possible motor stall");
+            SerialQueueManager::getInstance().queueMessage("Command timed out after 1 second - possible motor stall");
         } else {
-            Serial.printf("Command completed with pulses - Left: %lld, Right: %lld\n", 
-                        leftDelta, rightDelta);
+            // SerialQueueManager::getInstance().queueMessage("Command completed with pulses - Left: %lld, Right: %lld\n", 
+            //             leftDelta, rightDelta);
         }
         
         isExecutingCommand = false;
@@ -235,7 +235,7 @@ void MessageProcessor::handleNewLightColors(NewLightColors newLightColors) {
 
 void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length) {
     if (length < 1) {
-        Serial.println("Binary message too short");
+        SerialQueueManager::getInstance().queueMessage("Binary message too short");
         return;
     }
     // Extract the message type from the first byte
@@ -244,19 +244,19 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
     switch (messageType) {
         case DataMessageType::UPDATE_AVAILABLE: {
             if (length != 3) {
-                Serial.println("Invalid update available message length");
+                SerialQueueManager::getInstance().queueMessage("Invalid update available message length");
             } else {
                 // Extract the firmware version from bytes 1-2
                 uint16_t newVersion = data[1] | (data[2] << 8); // Little-endian conversion
 
-                Serial.printf("New firmware version available: %d\n", newVersion);
+                // SerialQueueManager::getInstance().queueMessage("New firmware version available: %d\n", newVersion);
                 FirmwareVersionTracker::getInstance().retrieveLatestFirmwareFromServer(newVersion);
             }
             break;
         }
         case DataMessageType::MOTOR_CONTROL: {
             if (length != 5) {
-                Serial.println("Invalid motor control message length");
+                SerialQueueManager::getInstance().queueMessage("Invalid motor control message length");
             } else {
                 handleMotorControl(data);
             }
@@ -264,7 +264,7 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
         }
         case DataMessageType::SOUND_COMMAND: {
             if (length != 2) {
-                Serial.println("Invalid sound command message length");
+                SerialQueueManager::getInstance().queueMessage("Invalid sound command message length");
             } else {
                 SoundType soundType = static_cast<SoundType>(data[1]);
                 handleSoundCommand(soundType);
@@ -273,7 +273,7 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
         }
         case DataMessageType::SPEAKER_MUTE: {
             if (length != 2) {
-                Serial.println("Invalid speaker mute message length");
+                SerialQueueManager::getInstance().queueMessage("Invalid speaker mute message length");
             } else {
                 SpeakerStatus status = static_cast<SpeakerStatus>(data[1]);
                 handleSpeakerMute(status);
@@ -282,18 +282,18 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
         }
         case DataMessageType::BALANCE_CONTROL: {
             if (length != 2) {
-                Serial.println("Invalid balance control message length");
+                SerialQueueManager::getInstance().queueMessage("Invalid balance control message length");
             } else {
                 BalanceStatus status = static_cast<BalanceStatus>(data[1]);
                 Serial.print("Balance Status: ");
-                Serial.println(status == BalanceStatus::BALANCED ? "BALANCED" : "UNBALANCED");
+                SerialQueueManager::getInstance().queueMessage(status == BalanceStatus::BALANCED ? "BALANCED" : "UNBALANCED");
                 handleBalanceCommand(status);
             }
             break;
         }
         case DataMessageType::UPDATE_LIGHT_ANIMATION: {
             if (length != 2) {
-                Serial.println("Invalid light animation message length");
+                SerialQueueManager::getInstance().queueMessage("Invalid light animation message length");
             } else {
                 LightAnimationStatus lightAnimationStatus = static_cast<LightAnimationStatus>(data[1]);
                 handleLightCommand(lightAnimationStatus);
@@ -302,7 +302,7 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
         }
         case DataMessageType::UPDATE_LED_COLORS: {
             if (length != 25) {
-                Serial.printf("Invalid update led colors message length%d", length);
+                // SerialQueueManager::getInstance().queueMessage("Invalid update led colors message length%d", length);
             } else {
                 NewLightColors newLightColors;
                 memcpy(&newLightColors, &data[1], sizeof(NewLightColors));
@@ -312,7 +312,7 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
         }
         case DataMessageType::UPDATE_BALANCE_PIDS: {
             if (length != 41) { // 1 byte for type + 40 bytes for the struct (10 floats × 4 bytes)
-                Serial.println("Invalid update balance pids message length");
+                SerialQueueManager::getInstance().queueMessage("Invalid update balance pids message length");
             } else {
                 NewBalancePids newBalancePids;
                 memcpy(&newBalancePids, &data[1], sizeof(NewBalancePids));
@@ -338,7 +338,7 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
         }
         case DataMessageType::STOP_SANDBOX_CODE: {
             if (length != 1) {
-                Serial.println("Invalid stop sandbox code message length");
+                SerialQueueManager::getInstance().queueMessage("Invalid stop sandbox code message length");
             } else {
                 BytecodeVM::getInstance().stopProgram();
             }
@@ -346,17 +346,17 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
         }
         case DataMessageType::OBSTACLE_AVOIDANCE: {
             if (length != 2) {
-                Serial.println("Invalid obstacle avoidance command");
+                SerialQueueManager::getInstance().queueMessage("Invalid obstacle avoidance command");
             } else {
                 ObstacleAvoidanceStatus status = static_cast<ObstacleAvoidanceStatus>(data[1]);
                 Serial.print("Avoidance Status: ");
-                Serial.println(status == ObstacleAvoidanceStatus::AVOID ? "AVOID" : "STOP Avoiding");
+                SerialQueueManager::getInstance().queueMessage(status == ObstacleAvoidanceStatus::AVOID ? "AVOID" : "STOP Avoiding");
                 handleObstacleAvoidanceCommand(status);
             }
             break;
         }
         case DataMessageType::SERIAL_HANDSHAKE: {
-            SerialManager::safePrintln("Handshake received from browser!");  // Use safe print
+            SerialQueueManager::getInstance().queueMessage("Handshake received from browser!");  // Use safe print
             rgbLed.set_led_blue();
             SerialManager::getInstance().isConnected = true;
             SerialManager::getInstance().lastActivityTime = millis();
@@ -376,7 +376,7 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
         }
         case DataMessageType::UPDATE_HEADLIGHTS: {
             if (length != 2) {
-                Serial.println("Invalid update headlights message length");
+                SerialQueueManager::getInstance().queueMessage("Invalid update headlights message length");
             } else {
                 HeadlightStatus status = static_cast<HeadlightStatus>(data[1]);
                 if (status == HeadlightStatus::ON) {
@@ -394,13 +394,13 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
         // Add this new case in processBinaryMessage()
         case DataMessageType::WIFI_CREDENTIALS: {
             if (length < 3) { // At least 1 byte for each length field + message type
-                Serial.println("Invalid WiFi credentials message length");
+                SerialQueueManager::getInstance().queueMessage("Invalid WiFi credentials message length");
                 break;
             }
             
             uint8_t ssidLength = data[1];
             if (ssidLength == 0 || 2 + ssidLength >= length) {
-                Serial.println("Invalid SSID length");
+                SerialQueueManager::getInstance().queueMessage("Invalid SSID length");
                 break;
             }
             
@@ -411,7 +411,7 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             
             uint8_t passwordLength = data[2 + ssidLength];
             if (2 + ssidLength + 1 + passwordLength != length) {
-                Serial.println("Invalid password length");
+                SerialQueueManager::getInstance().queueMessage("Invalid password length");
                 break;
             }
             
@@ -420,7 +420,7 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
                 password += (char)data[3 + ssidLength + i];
             }
             
-            Serial.printf("Received WiFi credentials for: %s\n", ssid.c_str());
+            // SerialQueueManager::getInstance().queueMessage("Received WiFi credentials for: %s\n", ssid.c_str());
 
             // NEW: Enter ADD_PIP_MODE and store credentials for testing
             NetworkStateManager::getInstance().setAddPipMode(true);
@@ -434,7 +434,7 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             break;
         }
         default:
-            Serial.printf("Unknown message type: %d\n", static_cast<int>(messageType));
+            // SerialQueueManager::getInstance().queueMessage("Unknown message type: %d\n", static_cast<int>(messageType));
             break;
     }
 }
@@ -450,5 +450,5 @@ void MessageProcessor::resetCommandState() {
     startRightCount = 0;
     commandStartTime = 0;
     
-    Serial.println("MessageProcessor command state reset");
+    SerialQueueManager::getInstance().queueMessage("MessageProcessor command state reset");
 }

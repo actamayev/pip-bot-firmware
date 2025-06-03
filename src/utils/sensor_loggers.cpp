@@ -9,14 +9,14 @@ void multizoneTofLogger() {
 
     VL53L7CX_ResultsData multizoneTofData = MultizoneTofSensor::getInstance().getTofData();
     
-    Serial.println("VL53L7CX ToF Sensor Data");
-    Serial.println("------------------------\n");
+    SerialQueueManager::getInstance().queueMessage("VL53L7CX ToF Sensor Data");
+    SerialQueueManager::getInstance().queueMessage("------------------------\n");
     
     // Print separator line for the grid
     for (int i = 0; i < 8; i++) {
         Serial.print(" --------");
     }
-    Serial.println("-");
+    SerialQueueManager::getInstance().queueMessage("-");
     
     // Print the grid (traversing rows from bottom to top to match orientation)
     for (int row = 8 - 1; row >= 0; row--) {
@@ -34,23 +34,23 @@ void multizoneTofLogger() {
                 if (distance > MAX_DISTANCE) {
                     Serial.print("    X   ");
                 } else {
-                    Serial.printf(" %4d mm", distance);
+                    // SerialQueueManager::getInstance().queueMessage(" %4d mm", distance);
                 }
             } else {
                 Serial.print("    X   "); // No target detected
             }
             Serial.print("|");
         }
-        Serial.println();
+        // SerialQueueManager::getInstance().queueMessage();
         
         // Print separator line after each row
         for (int i = 0; i < 8; i++) {
             Serial.print(" --------");
         }
-        Serial.println("-");
+        SerialQueueManager::getInstance().queueMessage("-");
     }
     
-    Serial.println();
+    // SerialQueueManager::getInstance().queueMessage();
     lastPrintTime = millis();
 }
 
@@ -62,7 +62,7 @@ void imuLogger() {
     EulerAngles eulerAngles = ImuSensor::getInstance().getEulerAngles();
     
     if (!eulerAngles.isValid) {
-        Serial.println("Failed to get IMU data");
+        SerialQueueManager::getInstance().queueMessage("Failed to get IMU data");
     } else {
         // Serial.print("Orientation - Yaw: ");
         // Serial.print(eulerAngles.yaw, 1);
@@ -70,7 +70,7 @@ void imuLogger() {
         Serial.print(eulerAngles.pitch, 1);
         // Serial.print("° Roll: ");
         // Serial.print(eulerAngles.roll, 1);
-        Serial.println("°");
+        SerialQueueManager::getInstance().queueMessage("°");
     }
 
     lastImuPrintTime = millis();
@@ -89,26 +89,26 @@ void sideTofsLogger() {
     Serial.print(tofCounts.leftCounts);
     Serial.print(" counts              || Right TOF: ");
     Serial.print(tofCounts.rightCounts);
-    Serial.println(" counts");
+    SerialQueueManager::getInstance().queueMessage(" counts");
 
     lastPrintTime = millis();
 }
 
 void setupButtonLoggers() {
     Buttons::getInstance().setButton1ClickHandler([](Button2& btn) {
-        Serial.println("Button 1 clicked!");
+        SerialQueueManager::getInstance().queueMessage("Button 1 clicked!");
     });
     
     Buttons::getInstance().setButton2ClickHandler([](Button2& btn) {
-        Serial.println("Button 2 clicked!");
+        SerialQueueManager::getInstance().queueMessage("Button 2 clicked!");
     });
     
     Buttons::getInstance().setButton1LongPressHandler([](Button2& btn) {
-        Serial.println("Button 1 long pressed for " + String(btn.wasPressedFor()) + " ms");
+        SerialQueueManager::getInstance().queueMessage("Button 1 long pressed for " + String(btn.wasPressedFor()) + " ms");
     });
     
     Buttons::getInstance().setButton2LongPressHandler([](Button2& btn) {
-        Serial.println("Button 2 long pressed for " + String(btn.wasPressedFor()) + " ms");
+        SerialQueueManager::getInstance().queueMessage("Button 2 long pressed for " + String(btn.wasPressedFor()) + " ms");
     });
 }
 
@@ -122,8 +122,8 @@ void log_motor_rpm() {
     auto rpms = encoderManager.getBothWheelRPMs();
 
     // Log the values
-    Serial.printf("Left wheel RPM: %.2f\n", rpms.leftWheelRPM);
-    Serial.printf("Right wheel RPM: %.2f\n", rpms.rightWheelRPM);
+    // SerialQueueManager::getInstance().queueMessage("Left wheel RPM: %.2f\n", rpms.leftWheelRPM);
+    // SerialQueueManager::getInstance().queueMessage("Right wheel RPM: %.2f\n", rpms.rightWheelRPM);
     
     // Update last log time
     lastPrintTime = millis();

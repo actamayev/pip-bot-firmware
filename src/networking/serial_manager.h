@@ -17,7 +17,6 @@ class SerialManager : public Singleton<SerialManager> {
         unsigned long lastActivityTime = 0;
         void sendJsonMessage(const String& route, const String& status);
         void sendPipIdMessage();
-        // static void safePrintln(const String& message, SerialPriority priority);
 
     private:
         SerialManager() = default;  // Make constructor private and implement it

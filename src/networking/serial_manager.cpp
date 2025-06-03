@@ -9,7 +9,7 @@ void SerialManager::pollSerial() {
     if (Serial.available() <= 0) {
         // Check for timeout if we're connected but haven't received data for a while
         if (isConnected && (millis() - lastActivityTime > SERIAL_CONNECTION_TIMEOUT)) {
-            Serial.println("Serial connection timed out!");
+            SerialQueueManager::getInstance().queueMessage("Serial connection timed out!");
             isConnected = false;
         }
         return;
@@ -87,17 +87,17 @@ void SerialManager::pollSerial() {
                     }
                 } else {
                     // Buffer overflow
-                    Serial.println("Serial buffer overflow");
+                    SerialQueueManager::getInstance().queueMessage("Serial buffer overflow");
                     parseState = ParseState::WAITING_FOR_START;
                 }
                 break;
 
             case ParseState::WAITING_FOR_END:
                 // log inbyte
-                // Serial.printf("Received byte: %02X\n", inByte);
+                // SerialQueueManager::getInstance().queueMessage("Received byte: %02X\n", inByte);
                 if (inByte == END_MARKER) {
                     // Complete message received
-                    // Serial.printf("Complete framed message received. Type: %d, Length: %d\n", 
+                    // SerialQueueManager::getInstance().queueMessage("Complete framed message received. Type: %d, Length: %d\n", 
                     //             currentMessageType, expectedPayloadLength);
                     
                     // Process the message
@@ -107,7 +107,7 @@ void SerialManager::pollSerial() {
                     parseState = ParseState::WAITING_FOR_START;
                 } else {
                     // Invalid end marker
-                    Serial.println("Invalid end marker");
+                    SerialQueueManager::getInstance().queueMessage("Invalid end marker");
                     parseState = ParseState::WAITING_FOR_START;
                 }
                 break;
@@ -127,21 +127,21 @@ void SerialManager::processCompleteMessage() {
             }
             
             if (message.indexOf("HANDSHAKE") >= 0) {
-                Serial.println("Handshake received from browser!");
+                SerialQueueManager::getInstance().queueMessage("Handshake received from browser!");
                 isConnected = true;
                 lastActivityTime = millis();
                 sendHandshakeConfirmation();
                 return;
             } else if (message.indexOf("KEEPALIVE") >= 0) {
                 // Just update the last activity time
-                Serial.println("Keepalive received from browser!");
+                SerialQueueManager::getInstance().queueMessage("Keepalive received from browser!");
                 lastActivityTime = millis();
                 return;
             }
         }
     }
     
-    Serial.printf("Processing complete message of length %zu\n", bufferPosition);
+    // SerialQueueManager::getInstance().queueMessage("Processing complete message of length %zu\n", bufferPosition);
     // Process binary message as before
     MessageProcessor::getInstance().processBinaryMessage(receiveBuffer, bufferPosition);
 }
@@ -191,7 +191,7 @@ void SerialManager::sendJsonMessage(const String& route, const String& status) {
     SerialQueueManager::getInstance().queueMessage(jsonString, SerialPriority::CRITICAL);
 }
 
-// void SerialManager::safePrintln(const String& message, SerialPriority priority) {
+// void SerialQueueManager::getInstance().queueMessage(const String& message, SerialPriority priority) {
     // SerialQueueManager::getInstance().queueMessage(message, priority);
 
     // static SemaphoreHandle_t serialMutex = nullptr;  // Function-local static
@@ -200,17 +200,17 @@ void SerialManager::sendJsonMessage(const String& route, const String& status) {
     // if (serialMutex == nullptr) {
     //     serialMutex = xSemaphoreCreateMutex();
     //     if (serialMutex == nullptr) {
-    //         Serial.println("ERROR: Failed to create serial mutex!");
-    //         Serial.println(message);  // Fallback
+    //         SerialQueueManager::getInstance().queueMessage("ERROR: Failed to create serial mutex!");
+    //         SerialQueueManager::getInstance().queueMessage(message);  // Fallback
     //         return;
     //     }
     // }
     
     // if (xSemaphoreTake(serialMutex, pdMS_TO_TICKS(100)) == pdTRUE) {
-    //     Serial.println(message);
+    //     SerialQueueManager::getInstance().queueMessage(message);
     //     Serial.flush();
     //     xSemaphoreGive(serialMutex);
     // } else {
-    //     Serial.println(message);  // Timeout fallback
+    //     SerialQueueManager::getInstance().queueMessage(message);  // Timeout fallback
     // }
 // }

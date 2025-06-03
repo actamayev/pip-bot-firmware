@@ -4,6 +4,7 @@
 #include "utils/utils.h"
 #include "utils/config.h"
 #include "utils/singleton.h"
+#include "networking/serial_queue_manager.h"
 
 // Define ROI dimensions
 #define ROI_ROWS 2        // Rows 3-4
