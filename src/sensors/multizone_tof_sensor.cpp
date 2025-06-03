@@ -253,55 +253,6 @@ void MultizoneTofSensor::stopRanging() {
     sensor.vl53l7cx_stop_ranging();
 }
 
-void MultizoneTofSensor::printResult(VL53L7CX_ResultsData *Result) {
-    SerialQueueManager::getInstance().queueMessage("VL53L7CX 8x8 Grid Distance Measurement");
-    SerialQueueManager::getInstance().queueMessage("--------------------------------------\n");
-    
-    // Print 8x8 grid
-    // Traverse rows from bottom to top (7 to 0) to fix vertical flip
-    for (int row = 7; row >= 0; row--) {
-        // Print separator line
-        for (int i = 0; i < 8; i++) {
-        Serial.print(" --------");
-        }
-        SerialQueueManager::getInstance().queueMessage("-");
-        
-        // Print distance values
-        Serial.print("|");
-        // Traverse columns from right to left (7 to 0) to fix horizontal flip
-        for (int col = 7; col >= 0; col--) {
-        // Calculate proper index in the data array
-        int index = row * 8 + col;
-        
-        if (Result->nb_target_detected[index] > 0) {
-            // Apply distance thresholds and signal quality filtering
-            uint16_t distance = Result->distance_mm[index];
-            uint8_t status = Result->target_status[index];
-            
-            // Filter out readings below MIN_DISTANCE, above MAX_DISTANCE or with poor signal quality
-            if (distance > maxDistance || distance < minDistance || status < signalThreshold) {
-            Serial.print("    X   ");
-            } else {
-            // SerialQueueManager::getInstance().queueMessage(" %4d mm", distance);
-            }
-        } else {
-            Serial.print("    X   ");
-        }
-        Serial.print("|");
-        }
-        // SerialQueueManager::getInstance().queueMessage();
-    }
-    
-    // Print final separator line
-    for (int i = 0; i < 8; i++) {
-        Serial.print(" --------");
-    }
-    // SerialQueueManager::getInstance().queueMessage("-\n");
-    
-    // Print point histories status
-    // printPointHistoriesStatus(Result);
-}
-
 void MultizoneTofSensor::turnOffSensor() {
     stopRanging();
     sensor.vl53l7cx_set_power_mode(VL53L7CX_POWER_MODE_SLEEP);

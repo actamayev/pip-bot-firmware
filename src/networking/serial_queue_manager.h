@@ -1,10 +1,10 @@
 #pragma once
-
-#include "utils/config.h"
-#include "utils/singleton.h"
+#include <Arduino.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/queue.h>
 #include <freertos/task.h>
+#include "utils/config.h"
+#include "utils/singleton.h"
 
 enum class SerialPriority {
     CRITICAL = 0,  // Browser command responses, critical errors
@@ -33,10 +33,6 @@ class SerialQueueManager : public Singleton<SerialQueueManager> {
         bool queueMessage(const char* msg, SerialPriority priority = SerialPriority::LOW_PRIO);
         void shutdown();
         
-        // Statistics for debugging
-        uint32_t getDroppedMessageCount() const { return droppedMessages; }
-        uint32_t getTotalMessageCount() const { return totalMessages; }
-        
     private:
         SerialQueueManager() = default;
         
@@ -47,10 +43,6 @@ class SerialQueueManager : public Singleton<SerialQueueManager> {
         // FreeRTOS objects
         QueueHandle_t messageQueue = nullptr;
         TaskHandle_t serialTaskHandle = nullptr;
-        
-        // Statistics
-        uint32_t droppedMessages = 0;
-        uint32_t totalMessages = 0;
         
         // Task function (must be static for FreeRTOS)
         static void serialOutputTaskWrapper(void* parameter);

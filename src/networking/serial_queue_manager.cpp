@@ -1,5 +1,4 @@
 #include "serial_queue_manager.h"
-#include <Arduino.h>
 
 void SerialQueueManager::initialize() {
     // Create the message queue
@@ -45,10 +44,8 @@ bool SerialQueueManager::queueMessage(const String& msg, SerialPriority priority
 }
 
 bool SerialQueueManager::queueMessage(const char* msg, SerialPriority priority) {
-    if (messageQueue == nullptr || msg == nullptr) {
-        return false;
-    }
-    
+    if (messageQueue == nullptr || msg == nullptr) return false;
+
     // Create message structure
     SerialMessage message;
     message.priority = priority;
@@ -63,9 +60,7 @@ bool SerialQueueManager::queueMessage(const char* msg, SerialPriority priority) 
     strncpy(message.message, msg, msgLen);
     message.message[msgLen] = '\0';
     message.length = msgLen;
-    
-    totalMessages++;
-    
+
     return addMessageToQueue(message);
 }
 
@@ -73,24 +68,17 @@ bool SerialQueueManager::addMessageToQueue(const SerialMessage& msg) {
     // Try to send to queue without blocking
     BaseType_t result = xQueueSend(messageQueue, &msg, 0);
     
-    if (result == pdPASS) {
-        return true; // Successfully queued
-    }
-    
+    if (result == pdPASS) return true; // Successfully queued
+
     // Queue is full - remove oldest message to make room
     SerialMessage oldMessage;
     if (xQueueReceive(messageQueue, &oldMessage, 0) == pdPASS) {
-        droppedMessages++;
         
         // Now try to add the new message
         result = xQueueSend(messageQueue, &msg, 0);
-        if (result == pdPASS) {
-            return true;
-        }
+        if (result == pdPASS) return true;
     }
     
-    // Failed to make room or add message
-    droppedMessages++;
     return false;
 }
 
@@ -138,18 +126,15 @@ void SerialQueueManager::serialOutputTask() {
 }
 
 void SerialQueueManager::processMessage(const SerialMessage& msg) {
-    // This is the ONLY place in the entire system that calls Serial.print/println
-    // Add priority prefix for debugging (optional)
     const char* priorityStr = "";
     switch (msg.priority) {
         case SerialPriority::CRITICAL: priorityStr = "[CRIT] "; break;
         case SerialPriority::HIGH_PRIO:     priorityStr = "[HIGH] "; break;
-        case SerialPriority::NORMAL:   priorityStr = ""; break; // No prefix for normal
+        case SerialPriority::NORMAL:   priorityStr = ""; break;
         case SerialPriority::LOW_PRIO:      priorityStr = "[LOW] "; break;
     }
-    
-    // Output the message
+
     Serial.print(priorityStr);
     Serial.println(msg.message);
-    Serial.flush(); // Ensure immediate transmission
+    Serial.flush();
 }

@@ -23,7 +23,6 @@ class MultizoneTofSensor : public Singleton<MultizoneTofSensor> {
 
         VL53L7CX_ResultsData getTofData();
         bool isObjectDetected();
-        void printResult(VL53L7CX_ResultsData *Result);
 
         unsigned int getInitRetryCount() const { return initRetryCount; }
         unsigned int getMaxInitRetries() const { return MAX_INIT_RETRIES; }
