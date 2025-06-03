@@ -56,7 +56,7 @@ void multizoneTofLogger() {
 
 void imuLogger() {
     static unsigned long lastImuPrintTime = 0;
-    const unsigned long IMU_PRINT_INTERVAL = 500; // Print every 500ms
+    const unsigned long IMU_PRINT_INTERVAL = 50; // Print every 500ms
     
     if (millis() - lastImuPrintTime < IMU_PRINT_INTERVAL) return;
     EulerAngles eulerAngles = ImuSensor::getInstance().getEulerAngles();
@@ -64,13 +64,10 @@ void imuLogger() {
     if (!eulerAngles.isValid) {
         SerialQueueManager::getInstance().queueMessage("Failed to get IMU data");
     } else {
-        // Serial.print("Orientation - Yaw: ");
-        // Serial.print(eulerAngles.yaw, 1);
-        Serial.print("° Pitch: ");
-        Serial.print(eulerAngles.pitch, 1);
-        // Serial.print("° Roll: ");
-        // Serial.print(eulerAngles.roll, 1);
-        SerialQueueManager::getInstance().queueMessage("°");
+        char buffer[128];
+        snprintf(buffer, sizeof(buffer), "Orientation - Yaw: %.1f° Pitch: %.1f° Roll: %.1f°", 
+                eulerAngles.yaw, eulerAngles.roll, eulerAngles.pitch);
+        SerialQueueManager::getInstance().queueMessage(buffer, SerialPriority::LOW_PRIO);
     }
 
     lastImuPrintTime = millis();
@@ -84,13 +81,10 @@ void sideTofsLogger() {
     SideTofCounts tofCounts = SideTofManager::getInstance().getBothSideTofCounts();
     // DisplayScreen::getInstance().showDistanceSensors(tofCounts);
 
-    // Print side by side with alignment
-    Serial.print("Left TOF: ");
-    Serial.print(tofCounts.leftCounts);
-    Serial.print(" counts              || Right TOF: ");
-    Serial.print(tofCounts.rightCounts);
-    SerialQueueManager::getInstance().queueMessage(" counts");
-
+    char buffer[128];
+    snprintf(buffer, sizeof(buffer), "Left TOF: %u counts              || Right TOF: %u counts", 
+            tofCounts.leftCounts, tofCounts.rightCounts);
+    SerialQueueManager::getInstance().queueMessage(buffer, SerialPriority::LOW_PRIO);
     lastPrintTime = millis();
 }
 
