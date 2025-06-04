@@ -48,7 +48,7 @@ void WebSocketManager::handleBinaryMessage(WebsocketsMessage message) {
             
             delete[] processedData;
         } else {
-            Serial.println("Invalid framed message (bad end marker or length)");
+            SerialQueueManager::getInstance().queueMessage("Invalid framed message (bad end marker or length)");
         }
     } else {
         // For backward compatibility: handle legacy non-framed messages
@@ -64,7 +64,7 @@ void WebSocketManager::connectToWebSocket() {
     wsClient.onEvent([this](WebsocketsEvent event, String data) {
         switch (event) {
             case WebsocketsEvent::ConnectionOpened:
-                Serial.println("WebSocket connected");
+                SerialQueueManager::getInstance().queueMessage("WebSocket connected");
                 this->wsConnected = true;
                 this->hasKilledWiFiProcesses = false; // Reset the flag
                 this->lastPingTime = millis(); // Initialize ping time
@@ -73,16 +73,16 @@ void WebSocketManager::connectToWebSocket() {
                 SensorPollingManager::getInstance().startPolling();
                 break;
             case WebsocketsEvent::ConnectionClosed:
-                Serial.println("WebSocket disconnected");
+                SerialQueueManager::getInstance().queueMessage("WebSocket disconnected");
                 killWiFiProcesses();
                 this->wsConnected = false;
                 break;
             case WebsocketsEvent::GotPing:
-                Serial.println("Got ping");
+                SerialQueueManager::getInstance().queueMessage("Got ping");
                 this->lastPingTime = millis(); // Update ping time
                 break;
             case WebsocketsEvent::GotPong:
-                Serial.println("Got pong");
+                SerialQueueManager::getInstance().queueMessage("Got pong");
                 this->lastPingTime = millis(); // Update ping time
                 break;
         }
@@ -92,7 +92,7 @@ void WebSocketManager::connectToWebSocket() {
 }
 
 void WebSocketManager::sendInitialData() {
-    Serial.println("WebSocket connected. Sending initial data...");
+    SerialQueueManager::getInstance().queueMessage("WebSocket connected. Sending initial data...");
     StaticJsonDocument<256> initDoc;
     initDoc["route"] = "/register";
     JsonObject payload = initDoc.createNestedObject("payload");
@@ -112,12 +112,12 @@ void WebSocketManager::pollWebSocket() {
     lastPollTime = currentTime;
     
     if (WiFi.status() != WL_CONNECTED) {
-        Serial.println("WiFi disconnected, cannot connect to WebSocket");
+        SerialQueueManager::getInstance().queueMessage("WiFi disconnected, cannot connect to WebSocket");
         return;
     }
 
     if (wsConnected && (currentTime - lastPingTime >= WS_TIMEOUT)) {
-        Serial.println("WebSocket ping timeout - connection lost");
+        SerialQueueManager::getInstance().queueMessage("WebSocket ping timeout - connection lost");
         wsConnected = false;
         killWiFiProcesses();
     }
@@ -126,14 +126,14 @@ void WebSocketManager::pollWebSocket() {
     if (!wsConnected && (currentTime - lastConnectionAttempt >= CONNECTION_INTERVAL)) {
         lastConnectionAttempt = currentTime;
         
-        Serial.println("Attempting to connect to WebSocket...");
+        SerialQueueManager::getInstance().queueMessage("Attempting to connect to WebSocket...");
         
         if (wsClient.connect(getWsServerUrl())) {
-            Serial.println("WebSocket connected successfully");
+            SerialQueueManager::getInstance().queueMessage("WebSocket connected successfully");
             wsConnected = true;
             sendInitialData();
         } else {
-            Serial.println("WebSocket connection failed. Will try again in 3 seconds");
+            SerialQueueManager::getInstance().queueMessage("WebSocket connection failed. Will try again in 3 seconds");
         }
         return;
     }
@@ -143,7 +143,7 @@ void WebSocketManager::pollWebSocket() {
         try {
             wsClient.poll();
         } catch (const std::exception& e) {
-            Serial.printf("Error during WebSocket poll: %s\n", e.what());
+            // SerialQueueManager::getInstance().queueMessage("Error during WebSocket poll: %s\n", e.what());
             wsConnected = false;  // Mark as disconnected to trigger reconnect
         }
     }
@@ -153,7 +153,7 @@ void WebSocketManager::killWiFiProcesses() {
     // This method activates when the ESP has been disconnected from WS.
     // Should only run once.
     if (hasKilledWiFiProcesses) return;
-    Serial.println("Killing WiFi processes...");
+    SerialQueueManager::getInstance().queueMessage("Killing WiFi processes...");
     motorDriver.brake_if_moving();
     rgbLed.set_led_red();
     ledAnimations.startBreathing();

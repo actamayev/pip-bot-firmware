@@ -25,15 +25,15 @@ bool ImuSensor::initialize() {
     // Try a few times with short delays in between
     for (int attempt = 0; attempt < 3; attempt++) {
         if (imu.begin_I2C(IMU_DEFAULT_ADDRESS)) {
-            Serial.println("BNO08x Found!");
+            SerialQueueManager::getInstance().queueMessage("BNO08x Found!");
             isInitialized = true;
             return true;
         }
         vTaskDelay(pdMS_TO_TICKS(20));
     }
     
-    Serial.printf("Failed to find BNO08x chip (retry %d of %d)\n", 
-                 initRetryCount, MAX_INIT_RETRIES);
+    // SerialQueueManager::getInstance().queueMessage("Failed to find BNO08x chip (retry %d of %d)\n", 
+    //              initRetryCount, MAX_INIT_RETRIES);
     scanI2C();
     return false;
 }
@@ -44,7 +44,7 @@ bool ImuSensor::enableGameRotationVector() {
     if (enabledReports.gameRotationVector == true) return true;
 
     if (!imu.enableReport(SH2_GAME_ROTATION_VECTOR, IMU_UPDATE_FREQ_MICROSECS)) {
-        Serial.println("Could not enable game rotation vector");
+        SerialQueueManager::getInstance().queueMessage("Could not enable game rotation vector");
         return false;
     }
     
@@ -58,7 +58,7 @@ bool ImuSensor::enableAccelerometer() {
     if (enabledReports.accelerometer == true) return true;
 
     if (!imu.enableReport(SH2_ACCELEROMETER, IMU_UPDATE_FREQ_MICROSECS)) {
-        Serial.println("Could not enable accelerometer");
+        SerialQueueManager::getInstance().queueMessage("Could not enable accelerometer");
         return false;
     }
     
@@ -72,7 +72,7 @@ bool ImuSensor::enableGyroscope() {
     if (enabledReports.gyroscope == true) return true;
 
     if (!imu.enableReport(SH2_GYROSCOPE_CALIBRATED, IMU_UPDATE_FREQ_MICROSECS)) {
-        Serial.println("Could not enable gyroscope");
+        SerialQueueManager::getInstance().queueMessage("Could not enable gyroscope");
         return false;
     }
     
@@ -86,7 +86,7 @@ bool ImuSensor::enableMagneticField() {
     if (enabledReports.magneticField == true) return true;
 
     if (!imu.enableReport(SH2_MAGNETIC_FIELD_CALIBRATED, IMU_UPDATE_FREQ_MICROSECS)) {
-        Serial.println("Could not enable magnetic field");
+        SerialQueueManager::getInstance().queueMessage("Could not enable magnetic field");
         return false;
     }
     

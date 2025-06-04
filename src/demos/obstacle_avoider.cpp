@@ -6,14 +6,14 @@ void ObstacleAvoider::enable() {
     _avoidanceEnabled = ObstacleAvoidanceStatus::AVOID;
     StraightLineDrive::getInstance().disable();
 
-    Serial.println("Obstacle Avoidance mode enabled");
+    SerialQueueManager::getInstance().queueMessage("Obstacle Avoidance mode enabled");
 }
 
 void ObstacleAvoider::disable() {
     if (_avoidanceEnabled == ObstacleAvoidanceStatus::STOP_AVOIDANCE) return;
     _avoidanceEnabled = ObstacleAvoidanceStatus::STOP_AVOIDANCE;
     motorDriver.brake_if_moving();
-    Serial.println("Obstacle Avoidance mode disabled");
+    SerialQueueManager::getInstance().queueMessage("Obstacle Avoidance mode disabled");
 }
 
 void ObstacleAvoider::update() {

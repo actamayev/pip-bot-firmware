@@ -7,6 +7,7 @@
 #include "actuators/led/rgb_led.h"
 #include "actuators/motor_driver.h"
 #include "sensors/multizone_tof_sensor.h"
+#include "networking/serial_queue_manager.h"
 
 class BytecodeVM : public Singleton<BytecodeVM> {
     friend class Singleton<BytecodeVM>;

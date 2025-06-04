@@ -5,6 +5,7 @@
 #include "utils/singleton.h"
 #include "actuators/motor_driver.h"
 #include "sensors/imu.h"
+#include "networking/serial_queue_manager.h"
 
 class StraightLineDrive : public Singleton<StraightLineDrive> {
     friend class Singleton<StraightLineDrive>;

@@ -4,6 +4,7 @@
 #include "utils/utils.h"
 #include "utils/config.h"
 #include "utils/singleton.h"
+#include "networking/serial_queue_manager.h"
 
 // Define ROI dimensions
 #define ROI_ROWS 2        // Rows 3-4
@@ -22,7 +23,6 @@ class MultizoneTofSensor : public Singleton<MultizoneTofSensor> {
 
         VL53L7CX_ResultsData getTofData();
         bool isObjectDetected();
-        void printResult(VL53L7CX_ResultsData *Result);
 
         unsigned int getInitRetryCount() const { return initRetryCount; }
         unsigned int getMaxInitRetries() const { return MAX_INIT_RETRIES; }

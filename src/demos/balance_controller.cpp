@@ -29,7 +29,7 @@ void BalanceController::enable() {
     // Set LED to indicate balancing mode
     rgbLed.set_led_green();
     
-    Serial.println("Balance mode enabled");
+    SerialQueueManager::getInstance().queueMessage("Balance mode enabled");
 }
 
 void BalanceController::disable() {
@@ -37,7 +37,7 @@ void BalanceController::disable() {
     _balancingEnabled = BalanceStatus::UNBALANCED;
     motorDriver.brake_if_moving();
     rgbLed.turn_led_off();
-    Serial.println("Balance mode disabled");
+    SerialQueueManager::getInstance().queueMessage("Balance mode disabled");
 }
 
 void BalanceController::update() {
@@ -81,7 +81,7 @@ void BalanceController::update() {
 
     // Safety check
     if (abs(safetyAverage - TARGET_ANGLE) > MAX_SAFE_ANGLE_DEVIATION) {
-        Serial.printf("Safety cutoff triggered: Avg Angle %.2f exceeds limits\n", safetyAverage);
+        // SerialQueueManager::getInstance().queueMessage("Safety cutoff triggered: Avg Angle %.2f exceeds limits\n", safetyAverage);
         disable();
         return;
     } 
@@ -130,9 +130,9 @@ void BalanceController::update() {
     // Debug output
     static unsigned long lastDebugTime = 0;
     if (currentTime - lastDebugTime > 100) {
-        Serial.printf("Bal: Raw: %.2f, Filtered: %.2f, Error: %.2f, P: %.2f, I: %.2f, D: %.2f, Power: %d\n",
-                     rawAngle, currentAngle, error, 
-                     proportionalTerm, integralTerm, derivativeTerm, motorPower);
+        // SerialQueueManager::getInstance().queueMessage("Bal: Raw: %.2f, Filtered: %.2f, Error: %.2f, P: %.2f, I: %.2f, D: %.2f, Power: %d\n",
+        //              rawAngle, currentAngle, error, 
+        //              proportionalTerm, integralTerm, derivativeTerm, motorPower);
         lastDebugTime = currentTime;
     }
 }

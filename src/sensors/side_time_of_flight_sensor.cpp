@@ -19,8 +19,8 @@ bool SideTimeOfFlightSensor::initialize(const uint8_t TOF_ADDRESS) {
     lastInitAttempt = millis();
     initRetryCount++;
     
-    Serial.printf("Initializing side TOF sensor 0x%02X (attempt %d of %d)...\n", 
-                 TOF_ADDRESS, initRetryCount, MAX_INIT_RETRIES);
+    // SerialQueueManager::getInstance().queueMessage("Initializing side TOF sensor 0x%02X (attempt %d of %d)...\n", 
+    //              TOF_ADDRESS, initRetryCount, MAX_INIT_RETRIES);
     
     // Save the sensor address to the class member variable
     sensorAddress = TOF_ADDRESS;
@@ -42,15 +42,15 @@ bool SideTimeOfFlightSensor::initialize(const uint8_t TOF_ADDRESS) {
         // Check if the reading seems valid (this may need to be adjusted based on your sensor)
         if (testValue != 0xFFFF && testValue != 0) {  // Adjust these values based on what indicates failure
             isInitialized = true;
-            Serial.printf("Side TOF sensor 0x%02X initialization complete\n", sensorAddress);
+            // SerialQueueManager::getInstance().queueMessage("Side TOF sensor 0x%02X initialization complete\n", sensorAddress);
             return true;
         }
         
         vTaskDelay(pdMS_TO_TICKS(50));  // Delay between attempts
     }
     
-    Serial.printf("Side TOF sensor 0x%02X initialization failed (retry %d of %d)\n", 
-                 sensorAddress, initRetryCount, MAX_INIT_RETRIES);
+    // SerialQueueManager::getInstance().queueMessage("Side TOF sensor 0x%02X initialization failed (retry %d of %d)\n", 
+    //              sensorAddress, initRetryCount, MAX_INIT_RETRIES);
     return false;
 }
 

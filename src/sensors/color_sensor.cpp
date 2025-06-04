@@ -9,7 +9,7 @@ bool ColorSensor::initialize() {
     // Try to initialize the sensor
     lastUpdateTime = millis();
     if (Veml3328.begin()) {
-        Serial.println("Warning: VEML3328 sensor not detected");
+        SerialQueueManager::getInstance().queueMessage("Warning: VEML3328 sensor not detected");
         return false;
     }
     sensorConnected = true;
@@ -88,7 +88,7 @@ void ColorSensor::read_color_sensor() {
     uint8_t normalizedGreen = (uint8_t)(greenPercent * 2.55);
     uint8_t normalizedBlue = (uint8_t)(bluePercent * 2.55);
     
-    Serial.printf("Color: R:%u G:%u B:%u\r\n", normalizedRed, normalizedGreen, normalizedBlue);
+    // SerialQueueManager::getInstance().queueMessage("Color: R:%u G:%u B:%u\r\n", normalizedRed, normalizedGreen, normalizedBlue);
     colorSensorData.redValue = normalizedRed;
     colorSensorData.greenValue = normalizedGreen;
     colorSensorData.blueValue = normalizedBlue;
@@ -97,15 +97,15 @@ void ColorSensor::read_color_sensor() {
 // 2/27/25 TODO: only take sensor reading if it was more than 20ms ago
 ColorSensorData ColorSensor::getSensorData() {
     if (!sensorConnected) {
-        // Serial.println("Sensor not connected - returning default values");
+        // SerialQueueManager::getInstance().queueMessage("Sensor not connected - returning default values");
         colorSensorData.redValue = 0;
         colorSensorData.greenValue = 0;
         colorSensorData.blueValue = 0;
         return colorSensorData;
     }
     read_color_sensor();
-    // Serial.printf("red%d\n", colorSensorData.redValue);
-    // Serial.printf("green%d\n", colorSensorData.greenValue);
-    // Serial.printf("blue%d\n", colorSensorData.blueValue);
+    // SerialQueueManager::getInstance().queueMessage("red%d\n", colorSensorData.redValue);
+    // SerialQueueManager::getInstance().queueMessage("green%d\n", colorSensorData.greenValue);
+    // SerialQueueManager::getInstance().queueMessage("blue%d\n", colorSensorData.blueValue);
     return colorSensorData;
 }
