@@ -424,8 +424,6 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
                 password += (char)data[3 + ssidLength + i];
             }
             
-            // SerialQueueManager::getInstance().queueMessage("Received WiFi credentials for: %s\n", ssid.c_str());
-
             // NEW: Enter ADD_PIP_MODE and store credentials for testing
             NetworkStateManager::getInstance().setAddPipMode(true);
             WiFiManager::getInstance().startAddPipWiFiTest(ssid, password);

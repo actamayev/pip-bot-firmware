@@ -25,19 +25,24 @@ void quaternionToEuler(float qr, float qi, float qj, float qk, float& yaw, float
 bool check_address_on_i2c_line(uint8_t addr) {
   byte error;
   
-  // SerialQueueManager::getInstance().queueMessage("Checking for device at address %d...", addr);
+  char logMessage[64];
+  snprintf(logMessage, sizeof(logMessage), "Checking for device at address %d...", addr);
+  SerialQueueManager::getInstance().queueMessage(logMessage);
 
   Wire.beginTransmission(addr);
   error = Wire.endTransmission();
   
   if (error == 0) {
-    // SerialQueueManager::getInstance().queueMessage("Device found at address %d!", addr);
+    snprintf(logMessage, sizeof(logMessage), "Device found at address %d!", addr);
+    SerialQueueManager::getInstance().queueMessage(logMessage);
     return true;
   } else {
     if (error == 4) {
-      // SerialQueueManager::getInstance().queueMessage("Unknown error while checking address %d", addr);
+      snprintf(logMessage, sizeof(logMessage), "Unknown error while checking address %d", addr);
+      SerialQueueManager::getInstance().queueMessage(logMessage);
     } else {
-      // SerialQueueManager::getInstance().queueMessage("No device found at address %d", addr);
+      snprintf(logMessage, sizeof(logMessage), "No device found at address %d", addr);
+      SerialQueueManager::getInstance().queueMessage(logMessage);
     }
     return false;
   }
@@ -46,6 +51,7 @@ bool check_address_on_i2c_line(uint8_t addr) {
 void scanI2C() {
   byte error, address;
   int devicesFound = 0;
+  char logMessage[64];
   
   SerialQueueManager::getInstance().queueMessage("Scanning I2C bus...");
   
@@ -54,9 +60,8 @@ void scanI2C() {
     error = Wire.endTransmission();
     
     if (error == 0) {
-      SerialQueueManager::getInstance().queueMessage("Device found at address 0x");
-      if (address < 16) SerialQueueManager::getInstance().queueMessage("0");
-      // SerialQueueManager::getInstance().queueMessage(address, HEX);
+      snprintf(logMessage, sizeof(logMessage), "Device found at address 0x%02X", address);
+      SerialQueueManager::getInstance().queueMessage(logMessage);
       devicesFound++;
     }
   }
@@ -64,9 +69,9 @@ void scanI2C() {
   if (devicesFound == 0) {
     SerialQueueManager::getInstance().queueMessage("No I2C devices found");
   } else {
-    // SerialQueueManager::getInstance().queueMessage("Found %d device(s)\n", devicesFound);
+    snprintf(logMessage, sizeof(logMessage), "Found %d device(s)", devicesFound);
+    SerialQueueManager::getInstance().queueMessage(logMessage);
   }
-  // SerialQueueManager::getInstance().queueMessage();
 }
 
 float calculateCircularMean(const float angles[], uint8_t count) {
