@@ -248,6 +248,16 @@ void MessageProcessor::handleGetSavedWiFiNetworks() {
     SerialManager::getInstance().sendSavedNetworksResponse(savedNetworks);
 }
 
+void MessageProcessor::handleScanWiFiNetworks() {
+    SerialQueueManager::getInstance().queueMessage("Starting WiFi network scan...");
+    
+    // Get scan results from WiFiManager
+    std::vector<WiFiNetworkInfo> scannedNetworks = WiFiManager::getInstance().scanAndReturnNetworks();
+    
+    // Send response via SerialManager
+    SerialManager::getInstance().sendScanResultsResponse(scannedNetworks);
+}
+
 void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length) {
     if (length < 1) {
         SerialQueueManager::getInstance().queueMessage("Binary message too short");
@@ -465,6 +475,15 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
                 SerialQueueManager::getInstance().queueMessage("Invalid get saved wifi networks message length");
             } else {
                 handleGetSavedWiFiNetworks();
+            }
+            break;
+        }
+
+        case DataMessageType::SCAN_WIFI_NETWORKS: {
+            if (length != 1) {
+                SerialQueueManager::getInstance().queueMessage("Invalid scan wifi networks message length");
+            } else {
+                handleScanWiFiNetworks();
             }
             break;
         }

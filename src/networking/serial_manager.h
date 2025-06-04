@@ -18,6 +18,7 @@ class SerialManager : public Singleton<SerialManager> {
         void sendJsonMessage(const String& route, const String& status);
         void sendPipIdMessage();
         void sendSavedNetworksResponse(const std::vector<WiFiCredentials>& networks);
+        void sendScanResultsResponse(const std::vector<WiFiNetworkInfo>& networks);
 
     private:
         SerialManager() = default;  // Make constructor private and implement it

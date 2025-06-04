@@ -176,3 +176,25 @@ void SerialManager::sendSavedNetworksResponse(const std::vector<WiFiCredentials>
     // Use CRITICAL priority for browser responses
     SerialQueueManager::getInstance().queueMessage(jsonString, SerialPriority::CRITICAL);
 }
+
+void SerialManager::sendScanResultsResponse(const std::vector<WiFiNetworkInfo>& networks) {
+    if (!isConnected) return;
+    
+    // Build JSON response
+    StaticJsonDocument<2048> doc;
+    doc["route"] = "/scan-results";
+    JsonArray payload = doc.createNestedArray("payload");
+    
+    for (size_t i = 0; i < networks.size(); i++) {
+        JsonObject network = payload.createNestedObject();
+        network["ssid"] = networks[i].ssid;
+        network["rssi"] = networks[i].rssi;
+        network["encrypted"] = (networks[i].encryptionType != WIFI_AUTH_OPEN);
+    }
+    
+    String jsonString;
+    serializeJson(doc, jsonString);
+    
+    // Use CRITICAL priority for browser responses
+    SerialQueueManager::getInstance().queueMessage(jsonString, SerialPriority::CRITICAL);
+}

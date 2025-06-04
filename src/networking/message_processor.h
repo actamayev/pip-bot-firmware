@@ -33,6 +33,7 @@ class MessageProcessor : public Singleton<MessageProcessor> {
         void handleObstacleAvoidanceCommand(ObstacleAvoidanceStatus status);
         void handleClearWiFiNetworks();
         void handleGetSavedWiFiNetworks();
+        void handleScanWiFiNetworks();
 
         void processBinaryMessage(const uint8_t* data, uint16_t length);
         void resetCommandState();

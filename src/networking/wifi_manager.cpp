@@ -483,3 +483,14 @@ std::vector<WiFiCredentials> WiFiManager::getSavedNetworksForResponse() {
     
     return savedNetworks;
 }
+
+std::vector<WiFiNetworkInfo> WiFiManager::scanAndReturnNetworks() {
+    SerialQueueManager::getInstance().queueMessage("Performing WiFi scan for browser...");
+    
+    // Use your existing scan method
+    std::vector<WiFiNetworkInfo> networks = scanWiFiNetworkInfos();
+    
+    SerialQueueManager::getInstance().queueMessage("Scan complete. Found " + String(networks.size()) + " networks");
+    
+    return networks;
+}
