@@ -19,7 +19,8 @@ enum class DataMessageType : uint8_t {
     START_SENSOR_POLLING = 15,
     WIFI_CREDENTIALS = 16,
     WIFI_CONNECTION_RESULT = 17,
-    CLEAR_WIFI_NETWORKS = 18  // New message type
+    CLEAR_WIFI_NETWORKS = 18,
+    GET_SAVED_WIFI_NETWORKS = 19
 };
 
 // Sound types

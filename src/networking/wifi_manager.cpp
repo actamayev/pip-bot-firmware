@@ -468,3 +468,18 @@ void WiFiManager::clearAllWiFiData() {
         SerialQueueManager::getInstance().queueMessage("WiFi data partially cleared - preferences clear failed");
     }
 }
+
+std::vector<WiFiCredentials> WiFiManager::getSavedNetworksForResponse() {
+    // Check if any networks exist
+    if (!PreferencesManager::getInstance().hasStoredWiFiNetworks()) {
+        SerialQueueManager::getInstance().queueMessage("No saved networks found");
+        return std::vector<WiFiCredentials>(); // Return empty vector
+    }
+
+    // Get all saved networks from preferences
+    std::vector<WiFiCredentials> savedNetworks = PreferencesManager::getInstance().getAllStoredWiFiNetworks();
+    
+    SerialQueueManager::getInstance().queueMessage("Found " + String(savedNetworks.size()) + " saved networks");
+    
+    return savedNetworks;
+}
