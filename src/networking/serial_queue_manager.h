@@ -31,7 +31,6 @@ class SerialQueueManager : public Singleton<SerialQueueManager> {
         void initialize();
         bool queueMessage(const String& msg, SerialPriority priority = SerialPriority::LOW_PRIO);
         bool queueMessage(const char* msg, SerialPriority priority = SerialPriority::LOW_PRIO);
-        void shutdown();
         
     private:
         SerialQueueManager() = default;

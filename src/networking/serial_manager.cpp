@@ -2,9 +2,6 @@
 #include <freertos/FreeRTOS.h>  // Must be first!
 #include <freertos/semphr.h>
 
-// Static mutex declaration
-static SemaphoreHandle_t serialMutex = nullptr;
-
 void SerialManager::pollSerial() {
     if (Serial.available() <= 0) {
         // Check for timeout if we're connected but haven't received data for a while
@@ -36,7 +33,6 @@ void SerialManager::pollSerial() {
                 break;
                 
             case ParseState::READING_MESSAGE_TYPE:
-                currentMessageType = inByte;
                 receiveBuffer[bufferPosition++] = inByte;  // Store message type as first byte
                 parseState = ParseState::READING_FORMAT_FLAG;
                 break;
@@ -115,37 +111,6 @@ void SerialManager::pollSerial() {
     }
 }
 
-void SerialManager::processCompleteMessage() {  
-    // Check if the message is a text message (handshake or keepalive)
-    if (messageStarted && bufferPosition > 0) {
-        // Check if this is a text message by checking first byte isn't a valid DataMessageType
-        if (receiveBuffer[0] >= static_cast<uint8_t>(DataMessageType::SERIAL_HANDSHAKE)) {
-            // Convert buffer to string for text-based commands
-            String message = "";
-            for (uint16_t i = 0; i < bufferPosition; i++) {
-                message += (char)receiveBuffer[i];
-            }
-            
-            if (message.indexOf("HANDSHAKE") >= 0) {
-                SerialQueueManager::getInstance().queueMessage("Handshake received from browser!");
-                isConnected = true;
-                lastActivityTime = millis();
-                sendHandshakeConfirmation();
-                return;
-            } else if (message.indexOf("KEEPALIVE") >= 0) {
-                // Just update the last activity time
-                SerialQueueManager::getInstance().queueMessage("Keepalive received from browser!");
-                lastActivityTime = millis();
-                return;
-            }
-        }
-    }
-    
-    // SerialQueueManager::getInstance().queueMessage("Processing complete message of length %zu\n", bufferPosition);
-    // Process binary message as before
-    MessageProcessor::getInstance().processBinaryMessage(receiveBuffer, bufferPosition);
-}
-
 // Add this method to sendHandshakeConfirmation()
 void SerialManager::sendHandshakeConfirmation() {
     // Use CRITICAL priority for browser responses
@@ -190,27 +155,3 @@ void SerialManager::sendJsonMessage(const String& route, const String& status) {
     // Browser responses are CRITICAL
     SerialQueueManager::getInstance().queueMessage(jsonString, SerialPriority::CRITICAL);
 }
-
-// void SerialQueueManager::getInstance().queueMessage(const String& message, SerialPriority priority) {
-    // SerialQueueManager::getInstance().queueMessage(message, priority);
-
-    // static SemaphoreHandle_t serialMutex = nullptr;  // Function-local static
-    
-    // // Initialize once, when first called (after FreeRTOS is running)
-    // if (serialMutex == nullptr) {
-    //     serialMutex = xSemaphoreCreateMutex();
-    //     if (serialMutex == nullptr) {
-    //         SerialQueueManager::getInstance().queueMessage("ERROR: Failed to create serial mutex!");
-    //         SerialQueueManager::getInstance().queueMessage(message);  // Fallback
-    //         return;
-    //     }
-    // }
-    
-    // if (xSemaphoreTake(serialMutex, pdMS_TO_TICKS(100)) == pdTRUE) {
-    //     SerialQueueManager::getInstance().queueMessage(message);
-    //     Serial.flush();
-    //     xSemaphoreGive(serialMutex);
-    // } else {
-    //     SerialQueueManager::getInstance().queueMessage(message);  // Timeout fallback
-    // }
-// }

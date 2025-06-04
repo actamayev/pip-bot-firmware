@@ -27,18 +27,6 @@ void SerialQueueManager::initialize() {
     Serial.println("SerialQueueManager initialized successfully");
 }
 
-void SerialQueueManager::shutdown() {
-    if (serialTaskHandle != nullptr) {
-        vTaskDelete(serialTaskHandle);
-        serialTaskHandle = nullptr;
-    }
-    
-    if (messageQueue != nullptr) {
-        vQueueDelete(messageQueue);
-        messageQueue = nullptr;
-    }
-}
-
 bool SerialQueueManager::queueMessage(const String& msg, SerialPriority priority) {
     return queueMessage(msg.c_str(), priority);
 }

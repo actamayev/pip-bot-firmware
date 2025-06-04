@@ -34,9 +34,6 @@ class SerialManager : public Singleton<SerialManager> {
         uint16_t bufferPosition = 0;
         uint16_t expectedPayloadLength = 0;
         bool useLongFormat = false;
-        uint8_t currentMessageType = 0;
-        bool messageStarted = false;
 
-        void processCompleteMessage();
         const unsigned long SERIAL_CONNECTION_TIMEOUT = 10000;
 };

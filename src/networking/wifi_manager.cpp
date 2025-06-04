@@ -332,24 +332,6 @@ WiFiManager::WiFiTestResult WiFiManager::testWiFiCredentials(const String& ssid,
     return result;
 }
 
-bool WiFiManager::testConnectionOnly(const String& ssid, const String& password) {
-    WiFi.mode(WIFI_STA);
-    WiFi.begin(ssid, password);
-    
-    unsigned long startTime = millis();
-    unsigned long lastStatusLog = 0;
-    
-    while (WiFi.status() != WL_CONNECTED && (millis() - startTime < CONNECT_TO_SINGLE_NETWORK_TIMEOUT)) {
-        vTaskDelay(pdMS_TO_TICKS(100));
-        
-        if (NetworkStateManager::getInstance().shouldStopWiFiOperations()) {
-            return false;
-        }
-    }
-    
-    return WiFi.status() == WL_CONNECTED;
-}
-
 void WiFiManager::startAddPipWiFiTest(const String& ssid, const String& password) {
     _addPipSSID = ssid;
     _addPipPassword = password;
@@ -363,7 +345,10 @@ void WiFiManager::processAddPipMode() {
     
     _isTestingAddPipCredentials = false;
 
-    // Test WiFi connection
+    SerialQueueManager::getInstance().queueMessage("=== Starting WiFi credential test ===");
+    SerialQueueManager::getInstance().queueMessage("Target SSID: " + _addPipSSID);
+
+    // Directly attempt connection without scanning
     if (testConnectionOnly(_addPipSSID, _addPipPassword)) {
         SerialQueueManager::getInstance().queueMessage("WiFi connection successful - testing WebSocket...");
         
@@ -391,15 +376,69 @@ void WiFiManager::processAddPipMode() {
             SerialManager::getInstance().sendJsonMessage("/wifi-connection-result", "success");
         } else {
             SerialQueueManager::getInstance().queueMessage("=== WebSocket connection failed - likely captive portal ===");
-            WiFi.disconnect();
+            WiFi.setAutoReconnect(false);
+            WiFi.disconnect(true);
             SerialManager::getInstance().sendJsonMessage("/wifi-connection-result", "wifi_only");
         }
     } else {
         SerialQueueManager::getInstance().queueMessage("=== WiFi connection failed ===");
+        WiFi.setAutoReconnect(false);
+        WiFi.disconnect(true);
         SerialManager::getInstance().sendJsonMessage("/wifi-connection-result", "failed");
     }
     
     // Clear stored credentials
     _addPipSSID = "";
     _addPipPassword = "";
+}
+
+bool WiFiManager::testConnectionOnly(const String& ssid, const String& password) {
+    SerialQueueManager::getInstance().queueMessage("Testing connection to: " + ssid);
+    
+    // Disable auto-reconnect before starting the test
+    WiFi.setAutoReconnect(false);
+    WiFi.mode(WIFI_STA);
+    WiFi.begin(ssid, password);
+    
+    unsigned long startTime = millis();
+    unsigned long lastStatusLog = 0;
+    
+    while (WiFi.status() != WL_CONNECTED && (millis() - startTime < CONNECT_TO_SINGLE_NETWORK_TIMEOUT)) {
+        // Log WiFi status every second for debugging
+        if (millis() - lastStatusLog > 1000) {
+            String statusStr = "";
+            switch(WiFi.status()) {
+                case WL_IDLE_STATUS: statusStr = "IDLE"; break;
+                case WL_NO_SSID_AVAIL: statusStr = "NO_SSID_AVAIL"; break;
+                case WL_SCAN_COMPLETED: statusStr = "SCAN_COMPLETED"; break;
+                case WL_CONNECTED: statusStr = "CONNECTED"; break;
+                case WL_CONNECT_FAILED: statusStr = "CONNECT_FAILED"; break;
+                case WL_CONNECTION_LOST: statusStr = "CONNECTION_LOST"; break;
+                case WL_DISCONNECTED: statusStr = "DISCONNECTED"; break;
+                default: statusStr = "UNKNOWN(" + String(WiFi.status()) + ")"; break;
+            }
+            SerialQueueManager::getInstance().queueMessage("WiFi Status: " + statusStr);
+            lastStatusLog = millis();
+        }
+        
+        vTaskDelay(pdMS_TO_TICKS(100));
+        
+        if (NetworkStateManager::getInstance().shouldStopWiFiOperations()) {
+            SerialQueueManager::getInstance().queueMessage("Serial connection detected - aborting WiFi test");
+            WiFi.disconnect(true);
+            return false;
+        }
+    }
+    
+    bool connected = WiFi.status() == WL_CONNECTED;
+    
+    if (connected) {
+        SerialQueueManager::getInstance().queueMessage("✓ WiFi connection successful!");
+        SerialQueueManager::getInstance().queueMessage("IP Address: " + WiFi.localIP().toString());
+    } else {
+        WiFi.disconnect(true);
+        SerialQueueManager::getInstance().queueMessage("✗ WiFi connection failed after " + String(CONNECT_TO_SINGLE_NETWORK_TIMEOUT) + "ms");
+    }
+    
+    return connected;
 }
