@@ -1,6 +1,7 @@
 #pragma once
 #include "Arduino.h"
 #include "utils/config.h"
+#include "networking/serial_queue_manager.h"
 
 class Speaker  {
     public:

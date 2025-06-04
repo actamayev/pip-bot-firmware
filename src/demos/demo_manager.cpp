@@ -3,30 +3,30 @@
 bool DemoManager::startDemo(Demo::DemoType demoType) {
     // Don't start the same demo that's already running
     if (_currentDemo == demoType && demoType != Demo::DemoType::NONE) {
-        Serial.printf("Demo %s is already running\n", getDemoName(demoType));
+        // SerialQueueManager::getInstance().queueMessage("Demo %s is already running\n", getDemoName(demoType));
         return true;
     }
     
     // Stop current demo if running
     if (_currentDemo != Demo::DemoType::NONE) {
-        Serial.printf("Stopping current demo: %s\n", getDemoName(_currentDemo));
+        // SerialQueueManager::getInstance().queueMessage("Stopping current demo: %s\n", getDemoName(_currentDemo));
         disableCurrentDemo();
     }
     
     // Start the new demo
     if (demoType == Demo::DemoType::NONE) {
         _currentDemo = Demo::DemoType::NONE;
-        Serial.println("All demos stopped");
+        SerialQueueManager::getInstance().queueMessage("All demos stopped");
         return true;
     }
     
     bool success = enableDemo(demoType);
     if (success) {
         _currentDemo = demoType;
-        Serial.printf("Demo started: %s\n", getDemoName(demoType));
+        // SerialQueueManager::getInstance().queueMessage("Demo started: %s\n", getDemoName(demoType));
     } else {
         _currentDemo = Demo::DemoType::NONE;
-        Serial.printf("Failed to start demo: %s\n", getDemoName(demoType));
+        // SerialQueueManager::getInstance().queueMessage("Failed to start demo: %s\n", getDemoName(demoType));
     }
     
     return success;
@@ -34,7 +34,7 @@ bool DemoManager::startDemo(Demo::DemoType demoType) {
 
 void DemoManager::stopCurrentDemo() {
     if (_currentDemo == Demo::DemoType::NONE) return;
-    Serial.printf("Stopping demo: %s\n", getDemoName(_currentDemo));
+    // SerialQueueManager::getInstance().queueMessage("Stopping demo: %s\n", getDemoName(_currentDemo));
     disableCurrentDemo();
     _currentDemo = Demo::DemoType::NONE;
 }
@@ -58,7 +58,7 @@ void DemoManager::update() {
             break;
             
         default:
-            Serial.printf("Unknown demo type in update: %d\n", static_cast<int>(_currentDemo));
+            // SerialQueueManager::getInstance().queueMessage("Unknown demo type in update: %d\n", static_cast<int>(_currentDemo));
             stopCurrentDemo(); // Stop unknown demo
             break;
     }
@@ -79,7 +79,7 @@ void DemoManager::disableCurrentDemo() {
             break;
             
         default:
-            Serial.printf("Unknown demo type in disable: %d\n", static_cast<int>(_currentDemo));
+            // SerialQueueManager::getInstance().queueMessage("Unknown demo type in disable: %d\n", static_cast<int>(_currentDemo));
             break;
     }
 }
@@ -98,7 +98,7 @@ bool DemoManager::enableDemo(Demo::DemoType demoType) {
             return true; // "Enabling" none is always successful
             
         default:
-            Serial.printf("Unknown demo type in enable: %d\n", static_cast<int>(demoType));
+            // SerialQueueManager::getInstance().queueMessage("Unknown demo type in enable: %d\n", static_cast<int>(demoType));
             return false;
     }
 }

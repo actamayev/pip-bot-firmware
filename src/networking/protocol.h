@@ -17,6 +17,8 @@ enum class DataMessageType : uint8_t {
     SERIAL_END = 13,
     UPDATE_HEADLIGHTS = 14,
     START_SENSOR_POLLING = 15,
+    WIFI_CREDENTIALS = 16,
+    WIFI_CONNECTION_RESULT = 17,
 };
 
 // Sound types
@@ -54,6 +56,12 @@ enum class LightAnimationStatus : uint8_t {
     STROBE = 3,
     TURN_OFF = 4,
     FADE_OUT = 5
+};
+
+enum class WiFiConnectionStatus : uint8_t {
+    FAILED = 0,
+    WIFI_ONLY = 1,
+    WIFI_AND_WEBSOCKET_SUCCESS = 2
 };
 
 struct NewBalancePids {

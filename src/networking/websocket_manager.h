@@ -21,6 +21,9 @@ class WebSocketManager : public Singleton<WebSocketManager> {
         void pollWebSocket();
 
         websockets::WebsocketsClient wsClient;
+
+        bool isConnected() const { return wsConnected; }
+
     private:
         // Make constructor private for singleton
         WebSocketManager();

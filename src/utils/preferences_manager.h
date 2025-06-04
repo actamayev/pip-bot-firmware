@@ -5,6 +5,7 @@
 #include <Preferences.h>
 #include "utils/structs.h"
 #include "utils/singleton.h"
+#include "networking/serial_queue_manager.h"
 
 class PreferencesManager : public Singleton<PreferencesManager> {
     friend class Singleton<PreferencesManager>;
@@ -23,6 +24,7 @@ class PreferencesManager : public Singleton<PreferencesManager> {
         String getWiFiSSID(int index = 0);
         String getWiFiPassword(int index = 0);
         std::vector<WiFiCredentials> getAllStoredWiFiNetworks();
+        bool hasStoredWiFiNetworks();  // Add this new method
 
     private:
         PreferencesManager() = default;

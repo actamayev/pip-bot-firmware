@@ -8,7 +8,7 @@ bool BytecodeVM::loadProgram(const uint8_t* byteCode, uint16_t size) {
     // Free any existing program
     stopProgram();
     MessageProcessor::getInstance().resetCommandState();
-    Serial.printf("Loading program of size %zu\n", size);
+    // SerialQueueManager::getInstance().queueMessage("Loading program of size %zu\n", size);
 
     // Validate bytecode size (must be multiple of 20 now)
     if (size % INSTRUCTION_SIZE != 0 || size / INSTRUCTION_SIZE > MAX_PROGRAM_SIZE) {
@@ -18,7 +18,7 @@ bool BytecodeVM::loadProgram(const uint8_t* byteCode, uint16_t size) {
     programSize = size / INSTRUCTION_SIZE;
     program = new(std::nothrow) BytecodeInstruction[programSize];
     if (!program) {
-        Serial.println("Failed to allocate memory for program");
+        SerialQueueManager::getInstance().queueMessage("Failed to allocate memory for program");
         return false;
     }
 
@@ -43,12 +43,12 @@ bool BytecodeVM::loadProgram(const uint8_t* byteCode, uint16_t size) {
         // Program has a start button - set to waiting state
         isPaused = PROGRAM_NOT_STARTED;
         waitingForButtonPressToStart = true;
-        Serial.println("Program loaded with start button - waiting for button press to begin");
+        SerialQueueManager::getInstance().queueMessage("Program loaded with start button - waiting for button press to begin");
     } else {
         // Program has no start button - set to auto-running
         isPaused = RUNNING;
         waitingForButtonPressToStart = false;
-        Serial.println("Program loaded without start button - auto-starting");
+        SerialQueueManager::getInstance().queueMessage("Program loaded without start button - auto-starting");
     }
     
     return true;
@@ -281,11 +281,12 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
                         skipDefaultAssignment = true;  // Set flag
                         break;
                     }
-                    default:
-                        // Unknown sensor type
-                        Serial.print("Unknown sensor type: ");
-                        Serial.println(sensorType);
+                    default: {
+                        char logMessage[32];
+                        snprintf(logMessage, sizeof(logMessage), "Unknown sensor type: %u", sensorType);
+                        SerialQueueManager::getInstance().queueMessage(logMessage);
                         break;
+                    }
                 }
 
                 if (!skipDefaultAssignment) {
@@ -423,7 +424,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
                 pc = pc - (offsetToStart / INSTRUCTION_SIZE);
             } else {
                 pc = programSize;
-                Serial.println("Invalid loop jump - stopping execution");
+                SerialQueueManager::getInstance().queueMessage("Invalid loop jump - stopping execution");
             }
             break;
         }
@@ -527,7 +528,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             
             // Validate parameters
             if (seconds <= 0.0f) {
-                Serial.println("Invalid time value for forward movement");
+                SerialQueueManager::getInstance().queueMessage("Invalid time value for forward movement");
                 break;
             }
             
@@ -555,7 +556,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             
             // Validate parameters
             if (seconds <= 0.0f) {
-                Serial.println("Invalid time value for backward movement");
+                SerialQueueManager::getInstance().queueMessage("Invalid time value for backward movement");
                 break;
             }
             
@@ -579,7 +580,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             
             // Validate parameters
             if (distanceCm <= 0.0f) {
-                Serial.println("Invalid distance value for forward movement");
+                SerialQueueManager::getInstance().queueMessage("Invalid distance value for forward movement");
                 break;
             }
             
@@ -610,7 +611,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             
             // Validate parameters
             if (distanceCm <= 0.0f) {
-                Serial.println("Invalid distance value for backward movement");
+                SerialQueueManager::getInstance().queueMessage("Invalid distance value for backward movement");
                 break;
             }
             
@@ -645,7 +646,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
         default:
             // Unknown opcode, stop execution
             pc = programSize;
-            Serial.printf("Unknown code - stopping execution %d\n", instr.opcode);
+            // SerialQueueManager::getInstance().queueMessage("Unknown code - stopping execution %d\n", instr.opcode);
             break;
     }
 }
@@ -755,7 +756,7 @@ void BytecodeVM::resetStateVariables(bool isFullReset) {
 
 void BytecodeVM::togglePause() {
     if (!program || isPaused == PROGRAM_NOT_STARTED) {
-        Serial.println("togglePause: No program loaded");
+        SerialQueueManager::getInstance().queueMessage("togglePause: No program loaded");
         return;
     }
     
@@ -765,7 +766,7 @@ void BytecodeVM::togglePause() {
 
 void BytecodeVM::pauseProgram() {
     if (!program || isPaused == PAUSED) {
-        Serial.println("pauseProgram: Already paused or no program");
+        SerialQueueManager::getInstance().queueMessage("pauseProgram: Already paused or no program");
         return;
     }
     
@@ -781,7 +782,7 @@ void BytecodeVM::pauseProgram() {
 
 void BytecodeVM::resumeProgram() {
     if (!program || isPaused == RUNNING) {
-        Serial.println("resumeProgram: Not paused or no program");
+        SerialQueueManager::getInstance().queueMessage("resumeProgram: Not paused or no program");
         return;
     }
     
@@ -789,10 +790,10 @@ void BytecodeVM::resumeProgram() {
     
     // Check if the first instruction is a WAIT_FOR_BUTTON (start block)
     if (programSize > 0 && program[0].opcode == OP_WAIT_FOR_BUTTON) {
-        Serial.println("Resuming program - skipping initial wait for button");
+        SerialQueueManager::getInstance().queueMessage("Resuming program - skipping initial wait for button");
         pc = 1; // Start after the wait for button instruction
     } else {
-        Serial.println("Resuming program from beginning");
+        SerialQueueManager::getInstance().queueMessage("Resuming program from beginning");
         pc = 0; // Start from the beginning for scripts without a start block
     }
 }

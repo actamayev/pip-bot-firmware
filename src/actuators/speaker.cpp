@@ -22,14 +22,14 @@ void Speaker::mute() {
     // Immediately silence the speaker
     ledcWrite(0, 0);
     
-    Serial.println("Speaker muted");
+    SerialQueueManager::getInstance().queueMessage("Speaker muted");
 }
 
 void Speaker::unMute() {
     if (!isMuted) return;
     isMuted = false;
 
-    Serial.println("Speaker unmuted");
+    SerialQueueManager::getInstance().queueMessage("Speaker unmuted");
 }
 
 void Speaker::chime() {

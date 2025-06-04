@@ -2,8 +2,9 @@
 
 WiFiManager::WiFiManager() {
     // Hard-coding Wifi creds during initialization (before we have encoders + screen)
-    storeWiFiCredentials("Another Dimension", "Iforgotit123", 0);
+    // storeWiFiCredentials("Another Dimension", "Iforgotit123", 0);
     // storeWiFiCredentials("NETGEAR08", "breezyshoe123", 1);
+    // storeWiFiCredentials("iPhone", "12345678", 0);
 
 	connectToStoredWiFi();
 }
@@ -30,7 +31,7 @@ void WiFiManager::connectToStoredWiFi() {
 
     // if (networks.empty()) {
     //     // If no networks found
-    //     Serial.println("No networks found in full scan.");
+    //     SerialQueueManager::getInstance().queueMessage("No networks found in full scan.");
     //     return;
     // }
     
@@ -41,18 +42,19 @@ void WiFiManager::connectToStoredWiFi() {
     // // Init encoder for network selection
     // WifiSelectionManager::getInstance().initNetworkSelection();
 
-    // Serial.println("Use the right motor to scroll through networks");
+    // SerialQueueManager::getInstance().queueMessage("Use the right motor to scroll through networks");
 }
 
 // 4/9/25 TODO: Connect to the network we've most recently connected to first.
 bool WiFiManager::attemptDirectConnectionToSavedNetworks() {
-    // Get all saved networks
-    std::vector<WiFiCredentials> savedNetworks = PreferencesManager::getInstance().getAllStoredWiFiNetworks();
-    
-    if (savedNetworks.empty()) {
-        Serial.println("No saved networks found");
+    // Quick check if any networks exist before trying to get them
+    if (!PreferencesManager::getInstance().hasStoredWiFiNetworks()) {
+        SerialQueueManager::getInstance().queueMessage("No saved networks found");
         return false;
     }
+
+    // Get all saved networks
+    std::vector<WiFiCredentials> savedNetworks = PreferencesManager::getInstance().getAllStoredWiFiNetworks();
 
     if (
         (ledAnimations.getCurrentAnimation() != LedTypes::BREATHING) &&
@@ -62,15 +64,15 @@ bool WiFiManager::attemptDirectConnectionToSavedNetworks() {
         ledAnimations.startBreathing();
     }
 
-    Serial.println("Attempting direct connection to saved networks...");
+    SerialQueueManager::getInstance().queueMessage("Attempting direct connection to saved networks...");
     
     // Try to connect to each saved network without scanning first
     for (const WiFiCredentials& network : savedNetworks) {
         if (NetworkStateManager::getInstance().shouldStopWiFiOperations()) {
-            Serial.println("Serial connection detected - aborting WiFi connection attempts");
+            SerialQueueManager::getInstance().queueMessage("Serial connection detected - aborting WiFi connection attempts");
             return false;
         }
-        Serial.printf("Trying to connect to: %s\n", network.ssid.c_str());
+        // SerialQueueManager::getInstance().queueMessage("Trying to connect to: %s\n", network.ssid.c_str());
         
         // Attempt connection
         if (attemptNewWifiConnection(network)) return true;
@@ -78,14 +80,14 @@ bool WiFiManager::attemptDirectConnectionToSavedNetworks() {
         // Brief delay before trying the next network
         vTaskDelay(pdMS_TO_TICKS(100));
     }
-    Serial.println("Failed to connect to any saved networks");
+    SerialQueueManager::getInstance().queueMessage("Failed to connect to any saved networks");
     return false;
 }
 
 bool WiFiManager::attemptNewWifiConnection(WiFiCredentials wifiCredentials) {
     // Set WiFi mode to Station (client mode)
     if (NetworkStateManager::getInstance().shouldStopWiFiOperations()) {
-        Serial.println("Serial connection detected - aborting WiFi connection attempt");
+        SerialQueueManager::getInstance().queueMessage("Serial connection detected - aborting WiFi connection attempt");
         return false;
     }
 
@@ -93,14 +95,14 @@ bool WiFiManager::attemptNewWifiConnection(WiFiCredentials wifiCredentials) {
     WiFi.mode(WIFI_STA);
 
     if (wifiCredentials.ssid.isEmpty()) {
-        Serial.println("No SSID supplied.");
+        SerialQueueManager::getInstance().queueMessage("No SSID supplied.");
         return false;
     }
 
     WiFi.begin(wifiCredentials.ssid, wifiCredentials.password);
-    Serial.println("SSID: " + wifiCredentials.ssid);
-    Serial.println("Password: " + wifiCredentials.password);
-    Serial.println("Attempting to connect to Wi-Fi...");
+    SerialQueueManager::getInstance().queueMessage("SSID: " + wifiCredentials.ssid);
+    SerialQueueManager::getInstance().queueMessage("Password: " + wifiCredentials.password);
+    SerialQueueManager::getInstance().queueMessage("Attempting to connect to Wi-Fi...");
 
     unsigned long startAttemptTime = millis();
     unsigned long lastPrintTime = startAttemptTime;
@@ -110,7 +112,7 @@ bool WiFiManager::attemptNewWifiConnection(WiFiCredentials wifiCredentials) {
         // Non-blocking print of dots
         unsigned long currentTime = millis();
         if (currentTime - lastPrintTime >= printInterval) {
-            Serial.print(".");
+            SerialQueueManager::getInstance().queueMessage(".");
             lastPrintTime = currentTime;
             yield();  // Allow the ESP32 to handle background tasks
         }
@@ -121,7 +123,7 @@ bool WiFiManager::attemptNewWifiConnection(WiFiCredentials wifiCredentials) {
             SerialManager::getInstance().pollSerial();
             
             if (NetworkStateManager::getInstance().shouldStopWiFiOperations()) {
-                Serial.println("\nSerial connection detected - aborting WiFi connection");
+                SerialQueueManager::getInstance().queueMessage("\nSerial connection detected - aborting WiFi connection");
                 _isConnecting = false;
                 return false;
             }
@@ -132,10 +134,10 @@ bool WiFiManager::attemptNewWifiConnection(WiFiCredentials wifiCredentials) {
 
     if (WiFi.status() == WL_CONNECTED) {
         storeWiFiCredentials(wifiCredentials.ssid, wifiCredentials.password, 0);
-        Serial.println("Connected to Wi-Fi!");
+        SerialQueueManager::getInstance().queueMessage("Connected to Wi-Fi!");
         return true;
     } else {
-        Serial.println("Failed to connect to Wi-Fi.");
+        SerialQueueManager::getInstance().queueMessage("Failed to connect to Wi-Fi.");
         return false;
     }
 }
@@ -144,7 +146,7 @@ std::vector<WiFiNetworkInfo> WiFiManager::scanWiFiNetworkInfos() {
     std::vector<WiFiNetworkInfo> networks;
     int numNetworks = 0;
     
-    Serial.println("Starting WiFi scan...");
+    SerialQueueManager::getInstance().queueMessage("Starting WiFi scan...");
     
     WiFi.disconnect(true);
     WiFi.scanDelete();
@@ -164,13 +166,13 @@ std::vector<WiFiNetworkInfo> WiFiManager::scanWiFiNetworkInfos() {
     // Handle scan results
     if (numNetworks <= 0) {
         if (numNetworks == 0) {
-            Serial.println("No networks found");
+            SerialQueueManager::getInstance().queueMessage("No networks found");
         } else if (numNetworks == -1) {
-            Serial.println("Scan still running");
+            SerialQueueManager::getInstance().queueMessage("Scan still running");
         } else if (numNetworks == -2) {
-            Serial.println("Error with scan");
+            SerialQueueManager::getInstance().queueMessage("Error with scan");
         } else {
-            Serial.printf("Unknown scan error: %d\n", numNetworks);
+            // SerialQueueManager::getInstance().queueMessage("Unknown scan error: %d\n", numNetworks);
         }
         return networks;  // Return empty network list
     }
@@ -184,8 +186,8 @@ std::vector<WiFiNetworkInfo> WiFiManager::scanWiFiNetworkInfos() {
         networks.push_back(network);
         
         // Debug output
-        Serial.printf("  Network %d: %s (Signal: %d dBm)\n", 
-                     i + 1, network.ssid.c_str(), network.rssi);
+        // SerialQueueManager::getInstance().queueMessage("  Network %d: %s (Signal: %d dBm)\n", 
+        //              i + 1, network.ssid.c_str(), network.rssi);
     }
     
     // Clean up scan results to free memory
@@ -210,8 +212,8 @@ void WiFiManager::sortNetworksBySignalStrength(std::vector<WiFiNetworkInfo>& net
 }
 
 void WiFiManager::printNetworkList(const std::vector<WiFiNetworkInfo>& networks) {
-    Serial.println("Available WiFi Networks (sorted by signal strength):");
-    Serial.println("----------------------------------------------------");
+    SerialQueueManager::getInstance().queueMessage("Available WiFi Networks (sorted by signal strength):");
+    SerialQueueManager::getInstance().queueMessage("----------------------------------------------------");
     
     for (uint16_t i = 0; i < networks.size(); i++) {
         const auto& network = networks[i];
@@ -227,14 +229,14 @@ void WiFiManager::printNetworkList(const std::vector<WiFiNetworkInfo>& networks)
             default: encryption = "Unknown"; break;
         }
 
-        Serial.printf("%2d. %s | Signal: %d dBm | Security: %s %s\n", 
-                    (int)i + 1, 
-                    network.ssid.c_str(), 
-                    network.rssi,
-                    encryption.c_str(),
-                    (i == _selectedNetworkIndex) ? " <SELECTED>" : "");
+        // SerialQueueManager::getInstance().queueMessage("%2d. %s | Signal: %d dBm | Security: %s %s\n", 
+        //             (int)i + 1, 
+        //             network.ssid.c_str(), 
+        //             network.rssi,
+        //             encryption.c_str(),
+        //             (i == _selectedNetworkIndex) ? " <SELECTED>" : "");
     }
-    Serial.println("----------------------------------------------------");
+    SerialQueueManager::getInstance().queueMessage("----------------------------------------------------");
 }
 
 void WiFiManager::setSelectedNetworkIndex(int index) {
@@ -251,9 +253,9 @@ void WiFiManager::setSelectedNetworkIndex(int index) {
     
     // Print the selected network
     if (!_availableNetworks.empty()) {
-        Serial.printf("Selected Network: %s (Signal: %d dBm)\n", 
-                    _availableNetworks[_selectedNetworkIndex].ssid.c_str(),
-                    _availableNetworks[_selectedNetworkIndex].rssi);
+        // SerialQueueManager::getInstance().queueMessage("Selected Network: %s (Signal: %d dBm)\n", 
+        //             _availableNetworks[_selectedNetworkIndex].ssid.c_str(),
+        //             _availableNetworks[_selectedNetworkIndex].rssi);
     }
 }
 
@@ -265,10 +267,14 @@ void WiFiManager::storeWiFiCredentials(const String& ssid, const String& passwor
 void WiFiManager::checkAndReconnectWiFi() {
     // Check if WiFi is connected or already attempting connection
     if (WiFi.status() == WL_CONNECTED || _isConnecting) return;
+
+    // Quick check if any networks exist before trying to get them
+    if (!PreferencesManager::getInstance().hasStoredWiFiNetworks()) return;
+
     unsigned long currentTime = millis();
 
     if (currentTime - _lastReconnectAttempt < WIFI_RECONNECT_TIMEOUT) return;
-    Serial.println("WiFi disconnected, attempting to reconnect...");
+    SerialQueueManager::getInstance().queueMessage("WiFi disconnected, attempting to reconnect...");
     
     // Update last reconnect attempt time
     _lastReconnectAttempt = currentTime;
@@ -285,4 +291,154 @@ void WiFiManager::checkAndReconnectWiFi() {
     if (connectionStatus) {
         WebSocketManager::getInstance().connectToWebSocket();
     }
+}
+
+WiFiManager::WiFiTestResult WiFiManager::testWiFiCredentials(const String& ssid, const String& password) {
+    WiFiTestResult result = {false, false};
+    
+    SerialQueueManager::getInstance().queueMessage("Testing WiFi credentials...");
+    
+    // Test WiFi connection without storing credentials
+    if (testConnectionOnly(ssid, password)) {
+        result.wifiConnected = true;
+        SerialQueueManager::getInstance().queueMessage("WiFi connection successful");
+        
+        // Test WebSocket connection
+        WebSocketManager::getInstance().connectToWebSocket();
+        
+        // Wait for WebSocket connection with timeout
+        unsigned long startTime = millis();
+        const unsigned long WEBSOCKET_TIMEOUT = 10000; // 10 seconds
+        
+        while (millis() - startTime < WEBSOCKET_TIMEOUT) {
+            WebSocketManager::getInstance().pollWebSocket();
+            if (WebSocketManager::getInstance().isConnected()) {
+                result.websocketConnected = true;
+                SerialQueueManager::getInstance().queueMessage("WebSocket connection successful");
+                
+                // Only store credentials after both WiFi and WebSocket success
+                storeWiFiCredentials(ssid, password, 0);
+                break;
+            }
+            vTaskDelay(pdMS_TO_TICKS(100));
+        }
+        
+        if (!result.websocketConnected) {
+            SerialQueueManager::getInstance().queueMessage("WebSocket connection failed - likely captive portal");
+            WiFi.disconnect();
+        }
+    }
+    
+    return result;
+}
+
+void WiFiManager::startAddPipWiFiTest(const String& ssid, const String& password) {
+    _addPipSSID = ssid;
+    _addPipPassword = password;
+    _isTestingAddPipCredentials = true;
+    
+    SerialQueueManager::getInstance().queueMessage("Starting ADD_PIP_MODE WiFi test...");
+}
+
+void WiFiManager::processAddPipMode() {
+    if (!_isTestingAddPipCredentials) return;
+    
+    _isTestingAddPipCredentials = false;
+
+    SerialQueueManager::getInstance().queueMessage("=== Starting WiFi credential test ===");
+    SerialQueueManager::getInstance().queueMessage("Target SSID: " + _addPipSSID);
+
+    // Directly attempt connection without scanning
+    if (testConnectionOnly(_addPipSSID, _addPipPassword)) {
+        SerialQueueManager::getInstance().queueMessage("WiFi connection successful - testing WebSocket...");
+        
+        // Test WebSocket connection
+        WebSocketManager::getInstance().connectToWebSocket();
+        
+        unsigned long startTime = millis();
+        const unsigned long WEBSOCKET_TIMEOUT = 10000;
+        bool websocketConnected = false;
+        
+        while (millis() - startTime < WEBSOCKET_TIMEOUT) {
+            WebSocketManager::getInstance().pollWebSocket();
+            if (WebSocketManager::getInstance().isConnected()) {
+                websocketConnected = true;
+                SerialQueueManager::getInstance().queueMessage("WebSocket connection successful!");
+                break;
+            }
+            vTaskDelay(pdMS_TO_TICKS(100));
+        }
+        
+        if (websocketConnected) {
+            SerialQueueManager::getInstance().queueMessage("=== Full connection successful - storing credentials ===");
+            storeWiFiCredentials(_addPipSSID, _addPipPassword, 0);
+            NetworkStateManager::getInstance().setAddPipMode(false);
+            SerialManager::getInstance().sendJsonMessage("/wifi-connection-result", "success");
+        } else {
+            SerialQueueManager::getInstance().queueMessage("=== WebSocket connection failed - likely captive portal ===");
+            WiFi.setAutoReconnect(false);
+            WiFi.disconnect(true);
+            SerialManager::getInstance().sendJsonMessage("/wifi-connection-result", "wifi_only");
+        }
+    } else {
+        SerialQueueManager::getInstance().queueMessage("=== WiFi connection failed ===");
+        WiFi.setAutoReconnect(false);
+        WiFi.disconnect(true);
+        SerialManager::getInstance().sendJsonMessage("/wifi-connection-result", "failed");
+    }
+    
+    // Clear stored credentials
+    _addPipSSID = "";
+    _addPipPassword = "";
+}
+
+bool WiFiManager::testConnectionOnly(const String& ssid, const String& password) {
+    SerialQueueManager::getInstance().queueMessage("Testing connection to: " + ssid);
+    
+    // Disable auto-reconnect before starting the test
+    WiFi.setAutoReconnect(false);
+    WiFi.mode(WIFI_STA);
+    WiFi.begin(ssid, password);
+    
+    unsigned long startTime = millis();
+    unsigned long lastStatusLog = 0;
+    
+    while (WiFi.status() != WL_CONNECTED && (millis() - startTime < CONNECT_TO_SINGLE_NETWORK_TIMEOUT)) {
+        // Log WiFi status every second for debugging
+        if (millis() - lastStatusLog > 1000) {
+            String statusStr = "";
+            switch(WiFi.status()) {
+                case WL_IDLE_STATUS: statusStr = "IDLE"; break;
+                case WL_NO_SSID_AVAIL: statusStr = "NO_SSID_AVAIL"; break;
+                case WL_SCAN_COMPLETED: statusStr = "SCAN_COMPLETED"; break;
+                case WL_CONNECTED: statusStr = "CONNECTED"; break;
+                case WL_CONNECT_FAILED: statusStr = "CONNECT_FAILED"; break;
+                case WL_CONNECTION_LOST: statusStr = "CONNECTION_LOST"; break;
+                case WL_DISCONNECTED: statusStr = "DISCONNECTED"; break;
+                default: statusStr = "UNKNOWN(" + String(WiFi.status()) + ")"; break;
+            }
+            SerialQueueManager::getInstance().queueMessage("WiFi Status: " + statusStr);
+            lastStatusLog = millis();
+        }
+        
+        vTaskDelay(pdMS_TO_TICKS(100));
+        
+        if (NetworkStateManager::getInstance().shouldStopWiFiOperations()) {
+            SerialQueueManager::getInstance().queueMessage("Serial connection detected - aborting WiFi test");
+            WiFi.disconnect(true);
+            return false;
+        }
+    }
+    
+    bool connected = WiFi.status() == WL_CONNECTED;
+    
+    if (connected) {
+        SerialQueueManager::getInstance().queueMessage("✓ WiFi connection successful!");
+        SerialQueueManager::getInstance().queueMessage("IP Address: " + WiFi.localIP().toString());
+    } else {
+        WiFi.disconnect(true);
+        SerialQueueManager::getInstance().queueMessage("✗ WiFi connection failed after " + String(CONNECT_TO_SINGLE_NETWORK_TIMEOUT) + "ms");
+    }
+    
+    return connected;
 }
