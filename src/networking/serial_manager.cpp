@@ -1,10 +1,12 @@
 #include "serial_manager.h"
+#include <freertos/FreeRTOS.h>  // Must be first!
+#include <freertos/semphr.h>
 
 void SerialManager::pollSerial() {
     if (Serial.available() <= 0) {
         // Check for timeout if we're connected but haven't received data for a while
         if (isConnected && (millis() - lastActivityTime > SERIAL_CONNECTION_TIMEOUT)) {
-            Serial.println("Serial connection timed out!");
+            SerialQueueManager::getInstance().queueMessage("Serial connection timed out!");
             isConnected = false;
         }
         return;
@@ -14,8 +16,7 @@ void SerialManager::pollSerial() {
 
     if (!isConnected) {
         isConnected = true;
-        Serial.println("Serial connection detected!");
-        sendHandshakeConfirmation();
+        SerialQueueManager::getInstance().queueMessage("Serial connection detected!");
     }
 
     // Read available bytes and process according to the current state
@@ -32,7 +33,6 @@ void SerialManager::pollSerial() {
                 break;
                 
             case ParseState::READING_MESSAGE_TYPE:
-                currentMessageType = inByte;
                 receiveBuffer[bufferPosition++] = inByte;  // Store message type as first byte
                 parseState = ParseState::READING_FORMAT_FLAG;
                 break;
@@ -83,17 +83,17 @@ void SerialManager::pollSerial() {
                     }
                 } else {
                     // Buffer overflow
-                    Serial.println("Serial buffer overflow");
+                    SerialQueueManager::getInstance().queueMessage("Serial buffer overflow");
                     parseState = ParseState::WAITING_FOR_START;
                 }
                 break;
 
             case ParseState::WAITING_FOR_END:
                 // log inbyte
-                // Serial.printf("Received byte: %02X\n", inByte);
+                // SerialQueueManager::getInstance().queueMessage("Received byte: %02X\n", inByte);
                 if (inByte == END_MARKER) {
                     // Complete message received
-                    // Serial.printf("Complete framed message received. Type: %d, Length: %d\n", 
+                    // SerialQueueManager::getInstance().queueMessage("Complete framed message received. Type: %d, Length: %d\n", 
                     //             currentMessageType, expectedPayloadLength);
                     
                     // Process the message
@@ -103,7 +103,7 @@ void SerialManager::pollSerial() {
                     parseState = ParseState::WAITING_FOR_START;
                 } else {
                     // Invalid end marker
-                    Serial.println("Invalid end marker");
+                    SerialQueueManager::getInstance().queueMessage("Invalid end marker");
                     parseState = ParseState::WAITING_FOR_START;
                 }
                 break;
@@ -111,42 +111,47 @@ void SerialManager::pollSerial() {
     }
 }
 
-void SerialManager::processCompleteMessage() {  
-    // Check if the message is a text message (handshake or keepalive)
-    if (messageStarted && bufferPosition > 0) {
-        // Check if this is a text message by checking first byte isn't a valid DataMessageType
-        if (receiveBuffer[0] >= static_cast<uint8_t>(DataMessageType::SERIAL_HANDSHAKE)) {
-            // Convert buffer to string for text-based commands
-            String message = "";
-            for (uint16_t i = 0; i < bufferPosition; i++) {
-                message += (char)receiveBuffer[i];
-            }
-            
-            if (message.indexOf("HANDSHAKE") >= 0) {
-                Serial.println("Handshake received from browser!");
-                isConnected = true;
-                lastActivityTime = millis();
-                sendHandshakeConfirmation();
-                return;
-            } else if (message.indexOf("KEEPALIVE") >= 0) {
-                // Just update the last activity time
-                Serial.println("Keepalive received from browser!");
-                lastActivityTime = millis();
-                return;
-            }
-        }
-    }
-    
-    Serial.printf("Processing complete message of length %zu\n", bufferPosition);
-    // Process binary message as before
-    MessageProcessor::getInstance().processBinaryMessage(receiveBuffer, bufferPosition);
-}
-
+// Add this method to sendHandshakeConfirmation()
 void SerialManager::sendHandshakeConfirmation() {
-    Serial.println("{\"status\":\"connected\",\"message\":\"ESP32 Web Serial connection established\"}");
+    // Use CRITICAL priority for browser responses
+    SerialQueueManager::getInstance().queueMessage(
+        "{\"status\":\"connected\",\"message\":\"ESP32 Web Serial connection established\"}", 
+        SerialPriority::CRITICAL
+    );
+    vTaskDelay(pdMS_TO_TICKS(50));
+    sendPipIdMessage();
 }
 
-void SerialManager::sendJsonToSerial(const String& jsonData) {
+void SerialManager::sendPipIdMessage() {
     if (!isConnected) return;
-    Serial.println(jsonData);
+    
+    String pipId = PreferencesManager::getInstance().getPipId();
+    
+    StaticJsonDocument<256> doc;
+    doc["route"] = "/pip-id";
+    JsonObject payload = doc.createNestedObject("payload");
+    payload["pipId"] = pipId;
+    
+    String jsonString;
+    serializeJson(doc, jsonString);
+    
+    // Use CRITICAL priority for browser communication
+    SerialQueueManager::getInstance().queueMessage(jsonString, SerialPriority::CRITICAL);
+    SerialQueueManager::getInstance().queueMessage("Sent PipID: " + pipId, SerialPriority::HIGH_PRIO);
+    vTaskDelay(pdMS_TO_TICKS(50));
+}
+
+void SerialManager::sendJsonMessage(const String& route, const String& status) {
+    if (!isConnected) return;
+    
+    StaticJsonDocument<256> doc;
+    doc["route"] = route;
+    JsonObject payload = doc.createNestedObject("payload");
+    payload["status"] = status;
+    
+    String jsonString;
+    serializeJson(doc, jsonString);
+    
+    // Browser responses are CRITICAL
+    SerialQueueManager::getInstance().queueMessage(jsonString, SerialPriority::CRITICAL);
 }

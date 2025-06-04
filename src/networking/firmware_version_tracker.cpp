@@ -2,18 +2,18 @@
 
 FirmwareVersionTracker::FirmwareVersionTracker() {
     firmwareVersion = PreferencesManager::getInstance().getFirmwareVersion(); // used to set the class' firmwareVersion
-    Serial.printf("firmwareVersion %d\n", firmwareVersion);
+    // SerialQueueManager::getInstance().queueMessage("firmwareVersion %d\n", firmwareVersion);
     
     // Configure HTTPUpdate instance
     httpUpdate.onProgress([this](int curr, int total) {
-        Serial.printf("Update progress: %d%%\n", (curr * 100) / total);
+        // SerialQueueManager::getInstance().queueMessage("Update progress: %d%%\n", (curr * 100) / total);
         this->updateProgressLeds(curr, total);
     });
     
     // Set onEnd callback to update firmware version before reboot
     httpUpdate.onEnd([this]() {
         PreferencesManager::getInstance().setFirmwareVersion(this->pendingVersion);
-        Serial.printf("Firmware version updated to: %d\n", this->pendingVersion);
+        // SerialQueueManager::getInstance().queueMessage("Firmware version updated to: %d\n", this->pendingVersion);
     });
 
     // Setup clients based on environment
@@ -27,16 +27,16 @@ FirmwareVersionTracker::FirmwareVersionTracker() {
 
 void FirmwareVersionTracker::retrieveLatestFirmwareFromServer(uint16_t newVersion) {
     if (isRetrievingFirmwareFromServer || WiFi.status() != WL_CONNECTED) {
-        Serial.println("Cannot update: Either already updating or WiFi not connected");
+        SerialQueueManager::getInstance().queueMessage("Cannot update: Either already updating or WiFi not connected");
         return;
     }
 
     if (firmwareVersion >= newVersion) {
-        Serial.printf("Pip is up to date. Current version is: %d, new version is: %d\n", firmwareVersion, newVersion);
+        // SerialQueueManager::getInstance().queueMessage("Pip is up to date. Current version is: %d, new version is: %d\n", firmwareVersion, newVersion);
         return;
     }
 
-    Serial.printf("Starting update to version %d...\n", newVersion);
+    // SerialQueueManager::getInstance().queueMessage("Starting update to version %d...\n", newVersion);
     pendingVersion = newVersion;  // Store for the callback to use
     isRetrievingFirmwareFromServer = true;
 
@@ -48,12 +48,12 @@ void FirmwareVersionTracker::retrieveLatestFirmwareFromServer(uint16_t newVersio
     
     switch (result) {
         case HTTP_UPDATE_FAILED:
-            Serial.printf("HTTP update failed: %s\n", httpUpdate.getLastErrorString().c_str());
+            // SerialQueueManager::getInstance().queueMessage("HTTP update failed: %s\n", httpUpdate.getLastErrorString().c_str());
             isRetrievingFirmwareFromServer = false;
             break;
             
         case HTTP_UPDATE_NO_UPDATES:
-            Serial.println("No updates needed");
+            SerialQueueManager::getInstance().queueMessage("No updates needed");
             isRetrievingFirmwareFromServer = false;
             break;
             

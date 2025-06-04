@@ -6,8 +6,8 @@ void WifiSelectionManager::initNetworkSelection() {
     encoderManager._rightEncoder.clearCount();
     _lastRightEncoderValue = 0;
     _networkSelectionActive = true;
-    Serial.println("Network selection mode activated");
-    Serial.println("Turn right encoder to scroll through networks");
+    SerialQueueManager::getInstance().queueMessage("Network selection mode activated");
+    SerialQueueManager::getInstance().queueMessage("Turn right encoder to scroll through networks");
 }
 
 void WifiSelectionManager::updateNetworkSelection() {
@@ -27,7 +27,7 @@ void WifiSelectionManager::updateNetworkSelection() {
         // Reset encoder position once cooldown is complete
         encoderManager._rightEncoder.clearCount();
         _lastRightEncoderValue = 0;
-        Serial.println("Scrolling re-enabled after cooldown");
+        SerialQueueManager::getInstance().queueMessage("Scrolling re-enabled after cooldown");
     }
 
     // Get current encoder value
@@ -85,8 +85,8 @@ void WifiSelectionManager::updateNetworkSelection() {
         // This way we don't get false readings during haptic feedback
         _lastRightEncoderValue = currentValue;
 
-        Serial.printf("Network selection changed to index %d, entering cooldown for %d ms\n", 
-                     newIndex, _scrollCooldownDuration);
+        // SerialQueueManager::getInstance().queueMessage("Network selection changed to index %d, entering cooldown for %d ms\n", 
+        //              newIndex, _scrollCooldownDuration);
     }
 }
 

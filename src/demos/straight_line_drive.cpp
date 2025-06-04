@@ -21,12 +21,12 @@ void StraightLineDrive::enable() {
     _lastYawError = 0.0f;
     _lastRawYaw = 0.0f;
 
-    Serial.printf("Straight driving enabled. Initial yaw: %.2f\n", _initialYaw);
+    // SerialQueueManager::getInstance().queueMessage("Straight driving enabled. Initial yaw: %.2f\n", _initialYaw);
 }
 
 void StraightLineDrive::disable() {
     _straightDrivingEnabled = false;
-    Serial.println("Straight driving disabled");
+    SerialQueueManager::getInstance().queueMessage("Straight driving disabled");
 }
 
 void StraightLineDrive::update(int16_t& leftSpeed, int16_t& rightSpeed) {
@@ -41,8 +41,8 @@ void StraightLineDrive::update(int16_t& leftSpeed, int16_t& rightSpeed) {
     float yawDelta = abs(shortestAnglePath(_lastRawYaw, rawYaw));
     if (yawDelta > 90.0f && _yawBufferCount > 0) {
         // Skip this reading - likely an outlier
-        Serial.printf("Rejecting outlier: %.2f (last: %.2f, delta: %.2f)\n", 
-                    rawYaw, _lastRawYaw, yawDelta);
+        // SerialQueueManager::getInstance().queueMessage("Rejecting outlier: %.2f (last: %.2f, delta: %.2f)\n", 
+        //             rawYaw, _lastRawYaw, yawDelta);
     } else {
         // Add to buffer and get the filtered average
         _yawBuffer[_yawBufferIndex] = rawYaw;

@@ -5,6 +5,7 @@
 #include "utils/config.h"
 #include "utils/structs.h"
 #include "utils/singleton.h"
+#include "networking/serial_queue_manager.h"
 
 class DisplayScreen: public Singleton<DisplayScreen> {
     friend class Singleton<DisplayScreen>;  // Allow Singleton to access private constructor

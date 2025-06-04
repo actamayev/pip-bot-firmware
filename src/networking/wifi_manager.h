@@ -11,6 +11,7 @@
 #include "sensors/encoder_manager.h"
 #include "network_state_mangager.h"
 #include "wifi_selection/wifi_selection_manager.h"
+#include "serial_queue_manager.h"
 
 class WiFiManager : public Singleton<WiFiManager> {
     friend class Singleton<WiFiManager>;
@@ -23,6 +24,15 @@ class WiFiManager : public Singleton<WiFiManager> {
 
 		void storeWiFiCredentials(const String& ssid, const String& password, int index);
 		void checkAndReconnectWiFi();
+
+		struct WiFiTestResult {
+			bool wifiConnected;
+			bool websocketConnected;
+		};
+		
+		WiFiTestResult testWiFiCredentials(const String& ssid, const String& password);
+		void startAddPipWiFiTest(const String& ssid, const String& password);
+		void processAddPipMode();
 
 	private:
 		WiFiManager();
@@ -46,4 +56,10 @@ class WiFiManager : public Singleton<WiFiManager> {
 
 		const unsigned long printInterval = 100;  // Print dots every 100ms
 		const unsigned long checkInterval = 500;  // Check serial every 500ms
+
+		bool testConnectionOnly(const String& ssid, const String& password);
+
+		bool _isTestingAddPipCredentials = false;
+		String _addPipSSID = "";
+		String _addPipPassword = "";
 };

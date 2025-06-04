@@ -11,7 +11,7 @@ void SensorPollingManager::startPolling() {
     // Just set the flags - don't do initialization here
     isStartingInitializingPolling = true;
     isFinishedInitializingPolling = false;
-    Serial.println("Sensor polling requested for 1 minute");
+    SerialQueueManager::getInstance().queueMessage("Sensor polling requested for 1 minute");
     lastPollTime = currentTime;
 }
 
@@ -20,7 +20,7 @@ void SensorPollingManager::stopPolling() {
     
     isStartingInitializingPolling = false;
     isFinishedInitializingPolling = false;
-    Serial.println("Sensor polling stopped");
+    SerialQueueManager::getInstance().queueMessage("Sensor polling stopped");
     
     // Turn off all sensors to save power
     ImuSensor::getInstance().turnOff();
@@ -33,7 +33,7 @@ void SensorPollingManager::update() {
 
     // Still need to check for polling timeout even during initialization
     if (isStartingInitializingPolling && currentTime >= pollingEndTime) {
-        Serial.println("Sensor polling timeout reached");
+        SerialQueueManager::getInstance().queueMessage("Sensor polling timeout reached");
         stopPolling();
         return;
     }
@@ -52,7 +52,7 @@ void SensorPollingManager::update() {
 }
 
 void SensorPollingManager::initializeAllSensors() {
-    Serial.println("Initializing sensors...");
+    SerialQueueManager::getInstance().queueMessage("Initializing sensors...");
     
     // Initialize all sensors if needed
     if (ImuSensor::getInstance().needsInitialization()) {
@@ -73,7 +73,7 @@ void SensorPollingManager::initializeAllSensors() {
     
     // Now we're done initializing
     isFinishedInitializingPolling = true;
-    Serial.println("Sensor initialization complete, now polling");
+    SerialQueueManager::getInstance().queueMessage("Sensor initialization complete, now polling");
 }
 
 void SensorPollingManager::pollSensors() {

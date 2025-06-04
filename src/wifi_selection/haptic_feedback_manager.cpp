@@ -34,8 +34,8 @@ void HapticFeedbackManager::startFeedback(int8_t direction, uint8_t strength, ui
         motorDriver.right_motor_forward(_resistanceStrength);
     }
     
-    Serial.printf("Haptic feedback: dir=%d, str=%d, dur=%d\n", 
-                 direction, strength, duration_ms);
+    // SerialQueueManager::getInstance().queueMessage("Haptic feedback: dir=%d, str=%d, dur=%d\n", 
+    //              direction, strength, duration_ms);
 }
 
 void HapticFeedbackManager::update() {

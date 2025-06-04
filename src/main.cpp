@@ -25,38 +25,38 @@ void SensorAndBytecodeTask(void * parameter) {
     disableCore0WDT();
     vTaskDelay(pdMS_TO_TICKS(10));
     // Initialize sensors on Core 0
-    Serial.println("Initializing sensors on Core 0...");
+    SerialQueueManager::getInstance().queueMessage("Initializing sensors on Core 0...");
 
     Buttons::getInstance();
     setupButtonLoggers();
     // if (!DisplayScreen::getInstance().init()) {
-    //     Serial.println("Display initialization failed");
+    //     SerialQueueManager::getInstance().queueMessage("Display initialization failed");
     // }
 
     SensorInitializer& initializer = SensorInitializer::getInstance();
 
     // First attempt to initialize each sensor before entering the main loop
     if (!initializer.isSensorInitialized(SensorInitializer::IMU)) {
-        Serial.println("Trying to init imu...");
+        SerialQueueManager::getInstance().queueMessage("Trying to init imu...");
         initializer.tryInitializeIMU();
     }
     
     if (!initializer.isSensorInitialized(SensorInitializer::MULTIZONE_TOF)) {
-        Serial.println("Trying to init MZ...");
+        SerialQueueManager::getInstance().queueMessage("Trying to init MZ...");
         initializer.tryInitializeMultizoneTof();
     }
     
     if (!initializer.isSensorInitialized(SensorInitializer::LEFT_SIDE_TOF)) {
-        Serial.println("Trying to init Left Tof...");
+        SerialQueueManager::getInstance().queueMessage("Trying to init Left Tof...");
         initializer.tryInitializeLeftSideTof();
     }
     
     if (!initializer.isSensorInitialized(SensorInitializer::RIGHT_SIDE_TOF)) {
-        Serial.println("Trying to init Right Tof...");
+        SerialQueueManager::getInstance().queueMessage("Trying to init Right Tof...");
         initializer.tryInitializeRightSideTof();
     }
     
-    Serial.println("Sensors initialized on Core 0");
+    SerialQueueManager::getInstance().queueMessage("Sensors initialized on Core 0");
     enableCore0WDT();
 
     // Only check if all sensors are initialized, but don't try to initialize here
@@ -83,9 +83,9 @@ void SensorAndBytecodeTask(void * parameter) {
 // Task to handle WiFi and networking on Core 1
 void NetworkTask(void * parameter) {
     // Initialize WiFi and networking components
-    Serial.println("Initializing WiFi on Core 1...");
+    SerialQueueManager::getInstance().queueMessage("Initializing WiFi on Core 1...");
     WiFiManager::getInstance();
-    Serial.println("WiFi initialization complete on Core 1");
+    SerialQueueManager::getInstance().queueMessage("WiFi initialization complete on Core 1");
     FirmwareVersionTracker::getInstance();
 
     // Main network loop
@@ -97,6 +97,11 @@ void NetworkTask(void * parameter) {
             case NetworkMode::SERIAL_MODE:
                 // When in serial mode, we don't do any WiFi operations
                 // Could add specific serial mode indicators here
+                break;
+
+            case NetworkMode::ADD_PIP_MODE:
+                // Process ADD_PIP_MODE WiFi testing
+                WiFiManager::getInstance().processAddPipMode();
                 break;
 
             case NetworkMode::WIFI_MODE:
@@ -124,10 +129,13 @@ void setup() {
     Serial.setTxBufferSize(MAX_PROGRAM_SIZE); // This is here to make the serial buffer larger to accommodate for large serial messages (ie. when uploading bytecode programs over serial)
     Serial.begin(115200);
     // Only needed if we need to see the setup serial logs:
-    vTaskDelay(pdMS_TO_TICKS(2000));
+    // if (getEnvironment() == "local") {
+    //     vTaskDelay(pdMS_TO_TICKS(2000));
+    // }
     Wire.setPins(I2C_SDA, I2C_SCL);
     Wire.begin(I2C_SDA, I2C_SCL, I2C_CLOCK_SPEED);
     vTaskDelay(pdMS_TO_TICKS(10));
+    SerialQueueManager::getInstance().initialize();
 
     rgbLed.turn_led_off();
 

@@ -7,7 +7,7 @@ EncoderManager::EncoderManager() {
     _leftWheelRPM = 0;
     _rightWheelRPM = 0;
     _lastUpdateTime = 0;
-    Serial.println("Creating encoder manager");
+    SerialQueueManager::getInstance().queueMessage("Creating encoder manager");
 
     // Initialize ESP32Encoder library
     ESP32Encoder::useInternalWeakPullResistors = puType::up;
