@@ -233,6 +233,11 @@ void MessageProcessor::handleNewLightColors(NewLightColors newLightColors) {
     rgbLed.set_right_headlight(rightHeadlightRed, rightHeadlightGreen, rightHeadlightBlue);
 }
 
+void MessageProcessor::handleClearWiFiNetworks() {
+    SerialQueueManager::getInstance().queueMessage("Clearing all WiFi networks...");
+    WiFiManager::getInstance().clearAllWiFiData();
+}
+
 void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length) {
     if (length < 1) {
         SerialQueueManager::getInstance().queueMessage("Binary message too short");
@@ -433,6 +438,15 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
 
         case DataMessageType::WIFI_CONNECTION_RESULT: {
             // This is sent FROM ESP32, not handled by ESP32
+            break;
+        }
+
+        case DataMessageType::CLEAR_WIFI_NETWORKS: {
+            if (length != 1) {
+                SerialQueueManager::getInstance().queueMessage("Invalid clear WiFi networks message length");
+            } else {
+                handleClearWiFiNetworks();
+            }
             break;
         }
         default:

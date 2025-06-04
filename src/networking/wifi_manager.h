@@ -33,6 +33,7 @@ class WiFiManager : public Singleton<WiFiManager> {
 		WiFiTestResult testWiFiCredentials(const String& ssid, const String& password);
 		void startAddPipWiFiTest(const String& ssid, const String& password);
 		void processAddPipMode();
+        void clearAllWiFiData();
 
 	private:
 		WiFiManager();
