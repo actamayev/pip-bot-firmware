@@ -54,8 +54,8 @@ void scanI2C() {
     error = Wire.endTransmission();
     
     if (error == 0) {
-      Serial.print("Device found at address 0x");
-      if (address < 16) Serial.print("0");
+      SerialQueueManager::getInstance().queueMessage("Device found at address 0x");
+      if (address < 16) SerialQueueManager::getInstance().queueMessage("0");
       // SerialQueueManager::getInstance().queueMessage(address, HEX);
       devicesFound++;
     }

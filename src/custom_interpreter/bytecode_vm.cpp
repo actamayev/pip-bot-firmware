@@ -281,11 +281,12 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
                         skipDefaultAssignment = true;  // Set flag
                         break;
                     }
-                    default:
-                        // Unknown sensor type
-                        Serial.print("Unknown sensor type: ");
-                        // SerialQueueManager::getInstance().queueMessage(sensorType);
+                    default: {
+                        char logMessage[32];
+                        snprintf(logMessage, sizeof(logMessage), "Unknown sensor type: %u", sensorType);
+                        SerialQueueManager::getInstance().queueMessage(logMessage);
                         break;
+                    }
                 }
 
                 if (!skipDefaultAssignment) {

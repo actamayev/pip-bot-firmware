@@ -22,7 +22,9 @@ bool PreferencesManager::beginNamespace(const char* ns) {
         currentNamespace = ns;
     } else {
         currentNamespace = "";
-        // SerialQueueManager::getInstance().queueMessage("Failed to open preferences namespace: %s\n", ns);
+        char logMessage[128];
+        snprintf(logMessage, sizeof(logMessage), "Failed to open preferences namespace: %s", ns);
+        SerialQueueManager::getInstance().queueMessage(logMessage);
     }
     
     return success;
@@ -34,12 +36,14 @@ String PreferencesManager::getPipId() {
 
     // Check if PIP ID exists in preferences
     String pipId = preferences.getString(KEY_PIP_ID, "");
-    
+
     if (pipId.length() == 0) {
         // First boot - initialize with the compile-time default
         pipId = String(DEFAULT_PIP_ID);
         preferences.putString(KEY_PIP_ID, pipId);
-        // SerialQueueManager::getInstance().queueMessage("First boot: Initialized PIP ID to default: %s\n", pipId.c_str());
+        char logMessage[128];
+        snprintf(logMessage, sizeof(logMessage), "First boot: Initialized PIP ID to default: %s", pipId.c_str());
+        SerialQueueManager::getInstance().queueMessage(logMessage);
     }
     
     return pipId;

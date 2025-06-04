@@ -285,8 +285,10 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
                 SerialQueueManager::getInstance().queueMessage("Invalid balance control message length");
             } else {
                 BalanceStatus status = static_cast<BalanceStatus>(data[1]);
-                Serial.print("Balance Status: ");
-                SerialQueueManager::getInstance().queueMessage(status == BalanceStatus::BALANCED ? "BALANCED" : "UNBALANCED");
+                char logMessage[64];
+                snprintf(logMessage, sizeof(logMessage), "Balance Status: %s", 
+                        status == BalanceStatus::BALANCED ? "BALANCED" : "UNBALANCED");
+                SerialQueueManager::getInstance().queueMessage(logMessage);
                 handleBalanceCommand(status);
             }
             break;
@@ -349,8 +351,10 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
                 SerialQueueManager::getInstance().queueMessage("Invalid obstacle avoidance command");
             } else {
                 ObstacleAvoidanceStatus status = static_cast<ObstacleAvoidanceStatus>(data[1]);
-                Serial.print("Avoidance Status: ");
-                SerialQueueManager::getInstance().queueMessage(status == ObstacleAvoidanceStatus::AVOID ? "AVOID" : "STOP Avoiding");
+                char logMessage[64];
+                snprintf(logMessage, sizeof(logMessage), "Avoidance Status: %s", 
+                        status == ObstacleAvoidanceStatus::AVOID ? "AVOID" : "STOP Avoiding");
+                SerialQueueManager::getInstance().queueMessage(logMessage);
                 handleObstacleAvoidanceCommand(status);
             }
             break;

@@ -112,7 +112,7 @@ bool WiFiManager::attemptNewWifiConnection(WiFiCredentials wifiCredentials) {
         // Non-blocking print of dots
         unsigned long currentTime = millis();
         if (currentTime - lastPrintTime >= printInterval) {
-            Serial.print(".");
+            SerialQueueManager::getInstance().queueMessage(".");
             lastPrintTime = currentTime;
             yield();  // Allow the ESP32 to handle background tasks
         }
