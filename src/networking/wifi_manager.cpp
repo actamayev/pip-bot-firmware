@@ -442,3 +442,29 @@ bool WiFiManager::testConnectionOnly(const String& ssid, const String& password)
     
     return connected;
 }
+
+void WiFiManager::clearAllWiFiData() {
+    // Clear stored credentials from preferences
+    bool prefsCleared = PreferencesManager::getInstance().clearAllWiFiNetworks();
+    
+    // Clear in-memory state
+    _availableNetworks.clear();
+    _selectedNetworkIndex = 0;
+    
+    // Disconnect from current WiFi if connected
+    if (WiFi.status() == WL_CONNECTED) {
+        SerialQueueManager::getInstance().queueMessage("Disconnecting from current WiFi...");
+        WiFi.disconnect(true);
+    }
+    
+    // Clear any ongoing test credentials
+    _addPipSSID = "";
+    _addPipPassword = "";
+    _isTestingAddPipCredentials = false;
+    
+    if (prefsCleared) {
+        SerialQueueManager::getInstance().queueMessage("All WiFi data cleared successfully");
+    } else {
+        SerialQueueManager::getInstance().queueMessage("WiFi data partially cleared - preferences clear failed");
+    }
+}
