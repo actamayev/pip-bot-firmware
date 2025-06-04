@@ -25,6 +25,7 @@ class PreferencesManager : public Singleton<PreferencesManager> {
         String getWiFiPassword(int index = 0);
         std::vector<WiFiCredentials> getAllStoredWiFiNetworks();
         bool hasStoredWiFiNetworks();  // Add this new method
+        bool clearAllWiFiNetworks();
 
     private:
         PreferencesManager() = default;
