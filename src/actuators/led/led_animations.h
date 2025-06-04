@@ -12,7 +12,7 @@ class LedAnimations {
 
         // Set the current animation
         void startBreathing(int speed = 2000);
-        void startStrobing(int speed = 100);
+        void startStrobing(int speed = 500);
         void startRainbow(int cycleTime = 2000);
         void turnOff();
 
@@ -45,7 +45,7 @@ class LedAnimations {
         
         // Strobing animation parameters
         uint8_t strobeColor[3] = {0, 0, 0};
-        int strobeSpeed = 100;
+        int strobeSpeed = 500;
         bool strobeState = false;
         unsigned long lastStrobeUpdate = 0;
         

@@ -172,11 +172,11 @@ void MessageProcessor::handleLightCommand(LightAnimationStatus lightAnimationSta
     if (lightAnimationStatus == LightAnimationStatus::NO_ANIMATION) {
         ledAnimations.stopAnimation();
     } else if (lightAnimationStatus == LightAnimationStatus::BREATHING) {
-        ledAnimations.startBreathing(2000);
+        ledAnimations.startBreathing();
     } else if (lightAnimationStatus == LightAnimationStatus::RAINBOW) {
-        ledAnimations.startRainbow(2000);
+        ledAnimations.startRainbow();
     } else if (lightAnimationStatus == LightAnimationStatus::STROBE) {
-        ledAnimations.startStrobing(100);
+        ledAnimations.startStrobing();
     } else if (lightAnimationStatus == LightAnimationStatus::TURN_OFF) {
         ledAnimations.turnOff();
     } else if (lightAnimationStatus == LightAnimationStatus::FADE_OUT) {
