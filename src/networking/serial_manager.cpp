@@ -155,3 +155,60 @@ void SerialManager::sendJsonMessage(const String& route, const String& status) {
     // Browser responses are CRITICAL
     SerialQueueManager::getInstance().queueMessage(jsonString, SerialPriority::CRITICAL);
 }
+
+void SerialManager::sendSavedNetworksResponse(const std::vector<WiFiCredentials>& networks) {
+    if (!isConnected) return;
+    
+    // Build JSON response
+    StaticJsonDocument<1024> doc;
+    doc["route"] = "/saved-networks";
+    JsonArray payload = doc.createNestedArray("payload");
+    
+    for (size_t i = 0; i < networks.size(); i++) {
+        JsonObject network = payload.createNestedObject();
+        network["ssid"] = networks[i].ssid;
+        network["index"] = i;
+    }
+    
+    String jsonString;
+    serializeJson(doc, jsonString);
+    
+    // Use CRITICAL priority for browser responses
+    SerialQueueManager::getInstance().queueMessage(jsonString, SerialPriority::CRITICAL);
+}
+
+void SerialManager::sendScanResultsResponse(const std::vector<WiFiNetworkInfo>& networks) {
+    if (!isConnected) return;
+    
+    SerialQueueManager::getInstance().queueMessage("Sending " + String(networks.size()) + " networks individually...");
+    
+    // Send each network as individual message
+    for (size_t i = 0; i < networks.size(); i++) {
+        StaticJsonDocument<256> doc;
+        doc["route"] = "/scan-result-item";
+        JsonObject payload = doc.createNestedObject("payload");
+        payload["ssid"] = networks[i].ssid;
+        payload["rssi"] = networks[i].rssi;
+        payload["encrypted"] = (networks[i].encryptionType != WIFI_AUTH_OPEN);
+        
+        String jsonString;
+        serializeJson(doc, jsonString);
+        
+        SerialQueueManager::getInstance().queueMessage(jsonString, SerialPriority::CRITICAL);
+        
+        // Small delay between messages to prevent overwhelming the queue
+        vTaskDelay(pdMS_TO_TICKS(10));
+    }
+    
+    // Send completion message
+    StaticJsonDocument<128> completeDoc;
+    completeDoc["route"] = "/scan-complete";
+    JsonObject completePayload = completeDoc.createNestedObject("payload");
+    completePayload["totalNetworks"] = networks.size();
+    
+    String completeJsonString;
+    serializeJson(completeDoc, completeJsonString);
+    
+    SerialQueueManager::getInstance().queueMessage(completeJsonString, SerialPriority::CRITICAL);
+    SerialQueueManager::getInstance().queueMessage("Scan results transmission complete");
+}

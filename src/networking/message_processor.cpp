@@ -172,11 +172,11 @@ void MessageProcessor::handleLightCommand(LightAnimationStatus lightAnimationSta
     if (lightAnimationStatus == LightAnimationStatus::NO_ANIMATION) {
         ledAnimations.stopAnimation();
     } else if (lightAnimationStatus == LightAnimationStatus::BREATHING) {
-        ledAnimations.startBreathing(2000);
+        ledAnimations.startBreathing();
     } else if (lightAnimationStatus == LightAnimationStatus::RAINBOW) {
-        ledAnimations.startRainbow(2000);
+        ledAnimations.startRainbow();
     } else if (lightAnimationStatus == LightAnimationStatus::STROBE) {
-        ledAnimations.startStrobing(100);
+        ledAnimations.startStrobing();
     } else if (lightAnimationStatus == LightAnimationStatus::TURN_OFF) {
         ledAnimations.turnOff();
     } else if (lightAnimationStatus == LightAnimationStatus::FADE_OUT) {
@@ -233,9 +233,24 @@ void MessageProcessor::handleNewLightColors(NewLightColors newLightColors) {
     rgbLed.set_right_headlight(rightHeadlightRed, rightHeadlightGreen, rightHeadlightBlue);
 }
 
-void MessageProcessor::handleClearWiFiNetworks() {
-    SerialQueueManager::getInstance().queueMessage("Clearing all WiFi networks...");
-    WiFiManager::getInstance().clearAllWiFiData();
+void MessageProcessor::handleGetSavedWiFiNetworks() {
+    SerialQueueManager::getInstance().queueMessage("Retrieving saved WiFi networks...");
+    
+    // Get saved networks from WiFiManager
+    std::vector<WiFiCredentials> savedNetworks = WiFiManager::getInstance().getSavedNetworksForResponse();
+    
+    // Send response via SerialManager
+    SerialManager::getInstance().sendSavedNetworksResponse(savedNetworks);
+}
+
+void MessageProcessor::handleScanWiFiNetworks() {
+    SerialQueueManager::getInstance().queueMessage("Starting WiFi network scan...");
+    
+    // Get scan results from WiFiManager
+    std::vector<WiFiNetworkInfo> scannedNetworks = WiFiManager::getInstance().scanAndReturnNetworks();
+    
+    // Send response via SerialManager
+    SerialManager::getInstance().sendScanResultsResponse(scannedNetworks);
 }
 
 void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length) {
@@ -441,11 +456,20 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             break;
         }
 
-        case DataMessageType::CLEAR_WIFI_NETWORKS: {
+        case DataMessageType::GET_SAVED_WIFI_NETWORKS: {
             if (length != 1) {
-                SerialQueueManager::getInstance().queueMessage("Invalid clear WiFi networks message length");
+                SerialQueueManager::getInstance().queueMessage("Invalid get saved wifi networks message length");
             } else {
-                handleClearWiFiNetworks();
+                handleGetSavedWiFiNetworks();
+            }
+            break;
+        }
+
+        case DataMessageType::SCAN_WIFI_NETWORKS: {
+            if (length != 1) {
+                SerialQueueManager::getInstance().queueMessage("Invalid scan wifi networks message length");
+            } else {
+                handleScanWiFiNetworks();
             }
             break;
         }
