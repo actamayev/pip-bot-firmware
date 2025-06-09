@@ -33,7 +33,8 @@ class WiFiManager : public Singleton<WiFiManager> {
 		WiFiTestResult testWiFiCredentials(const String& ssid, const String& password);
 		void startAddPipWiFiTest(const String& ssid, const String& password);
 		void processAddPipMode();
-        void clearAllWiFiData();
+		std::vector<WiFiCredentials> getSavedNetworksForResponse();
+		std::vector<WiFiNetworkInfo> scanAndReturnNetworks();
 
 	private:
 		WiFiManager();
