@@ -149,21 +149,3 @@ std::vector<WiFiCredentials> PreferencesManager::getAllStoredWiFiNetworks() {
     
     return networks;
 }
-
-bool PreferencesManager::clearAllWiFiNetworks() {
-    if (!beginNamespace(NS_WIFI)) {
-        SerialQueueManager::getInstance().queueMessage("Failed to open WiFi namespace for clearing");
-        return false;
-    }
-    
-    // Clear the entire WiFi namespace
-    bool success = preferences.clear();
-    
-    if (success) {
-        SerialQueueManager::getInstance().queueMessage("All WiFi networks cleared from storage");
-    } else {
-        SerialQueueManager::getInstance().queueMessage("Failed to clear WiFi networks from storage");
-    }
-    
-    return success;
-}

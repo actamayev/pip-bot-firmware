@@ -31,7 +31,6 @@ class MessageProcessor : public Singleton<MessageProcessor> {
         void handleLightCommand(LightAnimationStatus lightAnimationStatus);
         void handleNewLightColors(NewLightColors newLightColors);
         void handleObstacleAvoidanceCommand(ObstacleAvoidanceStatus status);
-        void handleClearWiFiNetworks();
         void handleGetSavedWiFiNetworks();
         void handleScanWiFiNetworks();
 
