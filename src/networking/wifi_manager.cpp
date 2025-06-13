@@ -142,67 +142,6 @@ bool WiFiManager::attemptNewWifiConnection(WiFiCredentials wifiCredentials) {
     }
 }
 
-std::vector<WiFiNetworkInfo> WiFiManager::scanWiFiNetworkInfos() {
-    std::vector<WiFiNetworkInfo> networks;
-    int numNetworks = 0;
-    
-    SerialQueueManager::getInstance().queueMessage("Starting WiFi scan...");
-    
-    WiFi.disconnect(true);
-    WiFi.scanDelete();
-    vTaskDelay(pdMS_TO_TICKS(100));
-    // Set WiFi mode to station before scanning
-    WiFi.mode(WIFI_STA);
-
-    rgbLed.set_led_purple();
-    ledAnimations.startBreathing();
-
-    // Perform synchronous scan
-    numNetworks = WiFi.scanNetworks(false);
-
-    // Turn off LED after scanning
-    rgbLed.turn_led_off();
-    
-    // Handle scan results
-    if (numNetworks <= 0) {
-        if (numNetworks == 0) {
-            SerialQueueManager::getInstance().queueMessage("No networks found");
-        } else if (numNetworks == -1) {
-            SerialQueueManager::getInstance().queueMessage("Scan still running");
-        } else if (numNetworks == -2) {
-            SerialQueueManager::getInstance().queueMessage("Error with scan");
-        } else {
-            // SerialQueueManager::getInstance().queueMessage("Unknown scan error: %d\n", numNetworks);
-        }
-        return networks;  // Return empty network list
-    }
-    
-    // Extract network information
-    for (int i = 0; i < numNetworks; i++) {
-        WiFiNetworkInfo network;
-        network.ssid = WiFi.SSID(i);
-        network.rssi = WiFi.RSSI(i);
-        network.encryptionType = WiFi.encryptionType(i);
-        networks.push_back(network);
-        
-        // Debug output
-        // SerialQueueManager::getInstance().queueMessage("  Network %d: %s (Signal: %d dBm)\n", 
-        //              i + 1, network.ssid.c_str(), network.rssi);
-    }
-    
-    // Clean up scan results to free memory
-    WiFi.scanDelete();
-    
-    // Sort networks by signal strength
-    sortNetworksBySignalStrength(networks);
-    
-    // Update class members
-    _availableNetworks = networks;
-    _selectedNetworkIndex = 0;
-    
-    return networks;
-}
-
 void WiFiManager::sortNetworksBySignalStrength(std::vector<WiFiNetworkInfo>& networks) {
     // Sort networks by RSSI (higher values = stronger signal)
     std::sort(networks.begin(), networks.end(), 
@@ -228,13 +167,6 @@ void WiFiManager::printNetworkList(const std::vector<WiFiNetworkInfo>& networks)
             case WIFI_AUTH_WPA_WPA2_PSK: encryption = "WPA/WPA2"; break;
             default: encryption = "Unknown"; break;
         }
-
-        // SerialQueueManager::getInstance().queueMessage("%2d. %s | Signal: %d dBm | Security: %s %s\n", 
-        //             (int)i + 1, 
-        //             network.ssid.c_str(), 
-        //             network.rssi,
-        //             encryption.c_str(),
-        //             (i == _selectedNetworkIndex) ? " <SELECTED>" : "");
     }
     SerialQueueManager::getInstance().queueMessage("----------------------------------------------------");
 }
@@ -249,13 +181,6 @@ void WiFiManager::setSelectedNetworkIndex(int index) {
         _selectedNetworkIndex = _availableNetworks.size() - 1;
     } else {
         _selectedNetworkIndex = index;
-    }
-    
-    // Print the selected network
-    if (!_availableNetworks.empty()) {
-        // SerialQueueManager::getInstance().queueMessage("Selected Network: %s (Signal: %d dBm)\n", 
-        //             _availableNetworks[_selectedNetworkIndex].ssid.c_str(),
-        //             _availableNetworks[_selectedNetworkIndex].rssi);
     }
 }
 
@@ -459,12 +384,116 @@ std::vector<WiFiCredentials> WiFiManager::getSavedNetworksForResponse() {
 }
 
 std::vector<WiFiNetworkInfo> WiFiManager::scanAndReturnNetworks() {
-    SerialQueueManager::getInstance().queueMessage("Performing WiFi scan for browser...");
+    SerialQueueManager::getInstance().queueMessage("Legacy sync scan called - using async scan instead");
     
-    // Use your existing scan method
-    std::vector<WiFiNetworkInfo> networks = scanWiFiNetworkInfos();
+    // Start async scan
+    if (startAsyncScan()) {
+        // Return empty vector - results will be sent asynchronously
+        SerialQueueManager::getInstance().queueMessage("Async scan started, results will be sent when ready");
+    } else {
+        SerialQueueManager::getInstance().queueMessage("Failed to start async scan");
+    }
     
-    SerialQueueManager::getInstance().queueMessage("Scan complete. Found " + String(networks.size()) + " networks");
+    return std::vector<WiFiNetworkInfo>(); // Return empty vector
+}
+
+bool WiFiManager::startAsyncScan() {
+    // Ignore if scan already in progress
+    if (_asyncScanInProgress) {
+        SerialQueueManager::getInstance().queueMessage("Scan already in progress, ignoring request");
+        return false;
+    }
+
+    SerialQueueManager::getInstance().queueMessage("Starting async WiFi scan...");
     
-    return networks;
+    // Clear any previous scan results
+    _availableNetworks.clear();
+    _selectedNetworkIndex = 0;
+    
+    // Prepare WiFi for scanning
+    WiFi.disconnect(true);
+    WiFi.scanDelete();
+    vTaskDelay(pdMS_TO_TICKS(100));
+    WiFi.mode(WIFI_STA);
+
+    // Set LED to indicate scanning
+    rgbLed.set_led_purple();
+    ledAnimations.startBreathing();
+
+    // Start async scan
+    int16_t result = WiFi.scanNetworks(true); // true = async
+    
+    if (result == WIFI_SCAN_RUNNING) {
+        _asyncScanInProgress = true;
+        _asyncScanStartTime = millis();
+        SerialQueueManager::getInstance().queueMessage("Async scan initiated successfully");
+        return true;
+    } else {
+        SerialQueueManager::getInstance().queueMessage("Failed to start async scan");
+        rgbLed.turn_led_off();
+        return false;
+    }
+}
+
+void WiFiManager::checkAsyncScanProgress() {
+    if (!_asyncScanInProgress) return; // No scan in progress
+
+    unsigned long currentTime = millis();
+    unsigned long scanDuration = currentTime - _asyncScanStartTime;
+
+    // Don't check status too soon - give the scan time to actually start
+    if (scanDuration < ASYNC_SCAN_MIN_CHECK_DELAY) return; // Too early to check
+
+    // Check for timeout
+    if (scanDuration > ASYNC_SCAN_TIMEOUT_MS) {
+        SerialQueueManager::getInstance().queueMessage("Async WiFi scan timed out after " + String(scanDuration) + "ms");
+        _asyncScanInProgress = false;
+        rgbLed.turn_led_off();
+        
+        // Clean up any scan results
+        WiFi.scanDelete();
+        
+        // Send empty scan complete message to browser
+        std::vector<WiFiNetworkInfo> emptyNetworks;
+        SerialManager::getInstance().sendScanResultsResponse(emptyNetworks);
+        return;
+    }
+
+    // Check scan status
+    int16_t scanResult = WiFi.scanComplete();
+    
+    // Only handle completion (positive numbers) - ignore WIFI_SCAN_FAILED and WIFI_SCAN_RUNNING
+    if (scanResult >= 0) {
+        // Scan completed successfully
+        SerialQueueManager::getInstance().queueMessage("Async WiFi scan completed in " + String(scanDuration) + "ms. Found " + String(scanResult) + " networks");
+        _asyncScanInProgress = false;
+        rgbLed.turn_led_off();
+        
+        // Process scan results
+        std::vector<WiFiNetworkInfo> networks;
+        
+        for (int i = 0; i < scanResult; i++) {
+            WiFiNetworkInfo network;
+            network.ssid = WiFi.SSID(i);
+            network.rssi = WiFi.RSSI(i);
+            network.encryptionType = WiFi.encryptionType(i);
+            networks.push_back(network);
+        }
+        
+        // Sort networks by signal strength
+        sortNetworksBySignalStrength(networks);
+        
+        // Update class members
+        _availableNetworks = networks;
+        _selectedNetworkIndex = 0;
+        
+        // Clean up scan results to free memory
+        WiFi.scanDelete();
+        
+        // Send results to browser
+        SerialManager::getInstance().sendScanResultsResponse(networks);
+    }
+    
+    // For WIFI_SCAN_RUNNING (-1) and WIFI_SCAN_FAILED (-2), just keep waiting until timeout
+    // The ESP32 WiFi library seems to return WIFI_SCAN_FAILED sometimes even when scan is progressing
 }

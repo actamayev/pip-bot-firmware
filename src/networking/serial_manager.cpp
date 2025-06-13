@@ -118,7 +118,6 @@ void SerialManager::sendHandshakeConfirmation() {
         "{\"status\":\"connected\",\"message\":\"ESP32 Web Serial connection established\"}", 
         SerialPriority::CRITICAL
     );
-    vTaskDelay(pdMS_TO_TICKS(50));
     sendPipIdMessage();
 }
 
@@ -138,7 +137,10 @@ void SerialManager::sendPipIdMessage() {
     // Use CRITICAL priority for browser communication
     SerialQueueManager::getInstance().queueMessage(jsonString, SerialPriority::CRITICAL);
     SerialQueueManager::getInstance().queueMessage("Sent PipID: " + pipId, SerialPriority::HIGH_PRIO);
-    vTaskDelay(pdMS_TO_TICKS(50));
+    
+    // Auto-start WiFi scan for user convenience
+    SerialQueueManager::getInstance().queueMessage("Auto-starting WiFi scan...");
+    WiFiManager::getInstance().startAsyncScan();
 }
 
 void SerialManager::sendJsonMessage(const String& route, const String& status) {
