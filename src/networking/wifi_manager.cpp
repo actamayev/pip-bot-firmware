@@ -427,6 +427,10 @@ bool WiFiManager::startAsyncScan() {
         _asyncScanInProgress = true;
         _asyncScanStartTime = millis();
         SerialQueueManager::getInstance().queueMessage("Async scan initiated successfully");
+        
+        // Send scan started message to browser
+        SerialManager::getInstance().sendScanStartedMessage();
+        
         return true;
     } else {
         SerialQueueManager::getInstance().queueMessage("Failed to start async scan");

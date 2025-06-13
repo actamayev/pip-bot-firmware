@@ -214,3 +214,18 @@ void SerialManager::sendScanResultsResponse(const std::vector<WiFiNetworkInfo>& 
     SerialQueueManager::getInstance().queueMessage(completeJsonString, SerialPriority::CRITICAL);
     SerialQueueManager::getInstance().queueMessage("Scan results transmission complete");
 }
+
+void SerialManager::sendScanStartedMessage() {
+    if (!isConnected) return;
+    
+    StaticJsonDocument<128> doc;
+    doc["route"] = "/scan-started";
+    JsonObject payload = doc.createNestedObject("payload");
+    payload["scanning"] = true;
+    
+    String jsonString;
+    serializeJson(doc, jsonString);
+    
+    // Use CRITICAL priority for browser responses
+    SerialQueueManager::getInstance().queueMessage(jsonString, SerialPriority::CRITICAL);
+}
