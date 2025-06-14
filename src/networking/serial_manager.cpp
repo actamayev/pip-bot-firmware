@@ -118,7 +118,6 @@ void SerialManager::sendHandshakeConfirmation() {
         "{\"status\":\"connected\",\"message\":\"ESP32 Web Serial connection established\"}", 
         SerialPriority::CRITICAL
     );
-    vTaskDelay(pdMS_TO_TICKS(50));
     sendPipIdMessage();
 }
 
@@ -138,7 +137,10 @@ void SerialManager::sendPipIdMessage() {
     // Use CRITICAL priority for browser communication
     SerialQueueManager::getInstance().queueMessage(jsonString, SerialPriority::CRITICAL);
     SerialQueueManager::getInstance().queueMessage("Sent PipID: " + pipId, SerialPriority::HIGH_PRIO);
-    vTaskDelay(pdMS_TO_TICKS(50));
+    
+    // Auto-start WiFi scan for user convenience
+    SerialQueueManager::getInstance().queueMessage("Auto-starting WiFi scan...");
+    WiFiManager::getInstance().startAsyncScan();
 }
 
 void SerialManager::sendJsonMessage(const String& route, const String& status) {
@@ -211,4 +213,19 @@ void SerialManager::sendScanResultsResponse(const std::vector<WiFiNetworkInfo>& 
     
     SerialQueueManager::getInstance().queueMessage(completeJsonString, SerialPriority::CRITICAL);
     SerialQueueManager::getInstance().queueMessage("Scan results transmission complete");
+}
+
+void SerialManager::sendScanStartedMessage() {
+    if (!isConnected) return;
+    
+    StaticJsonDocument<128> doc;
+    doc["route"] = "/scan-started";
+    JsonObject payload = doc.createNestedObject("payload");
+    payload["scanning"] = true;
+    
+    String jsonString;
+    serializeJson(doc, jsonString);
+    
+    // Use CRITICAL priority for browser responses
+    SerialQueueManager::getInstance().queueMessage(jsonString, SerialPriority::CRITICAL);
 }
