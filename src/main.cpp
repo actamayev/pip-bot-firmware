@@ -91,6 +91,7 @@ void NetworkTask(void * parameter) {
     // Main network loop
     for(;;) {
         NetworkMode mode = NetworkStateManager::getInstance().getCurrentMode();
+        WiFiManager::getInstance().checkAsyncScanProgress();
 
         switch (mode) {
             // TODO 5/1/25: Why isn't poll serial here?

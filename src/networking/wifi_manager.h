@@ -7,11 +7,11 @@
 #include "utils/structs.h"
 #include "utils/singleton.h"
 #include "websocket_manager.h"
-#include "actuators/led/rgb_led.h"
-#include "sensors/encoder_manager.h"
-#include "network_state_mangager.h"
-#include "wifi_selection/wifi_selection_manager.h"
 #include "serial_queue_manager.h"
+#include "actuators/led/rgb_led.h"
+#include "network_state_mangager.h"
+#include "sensors/encoder_manager.h"
+#include "wifi_selection/wifi_selection_manager.h"
 
 class WiFiManager : public Singleton<WiFiManager> {
     friend class Singleton<WiFiManager>;
@@ -35,6 +35,9 @@ class WiFiManager : public Singleton<WiFiManager> {
 		void processAddPipMode();
 		std::vector<WiFiCredentials> getSavedNetworksForResponse();
 		std::vector<WiFiNetworkInfo> scanAndReturnNetworks();
+		bool startAsyncScan();
+		void checkAsyncScanProgress();
+		bool isAsyncScanInProgress() const { return _asyncScanInProgress; }
 
 	private:
 		WiFiManager();
@@ -43,7 +46,7 @@ class WiFiManager : public Singleton<WiFiManager> {
 		WiFiCredentials getStoredWiFiCredentials();
 		bool attemptNewWifiConnection(WiFiCredentials wifiCredentials);
 
-		std::vector<WiFiNetworkInfo> scanWiFiNetworkInfos();
+		// std::vector<WiFiNetworkInfo> scanWiFiNetworkInfos();
 		void sortNetworksBySignalStrength(std::vector<WiFiNetworkInfo>& networks);
 		
 		std::vector<WiFiNetworkInfo> _availableNetworks;
@@ -64,4 +67,8 @@ class WiFiManager : public Singleton<WiFiManager> {
 		bool _isTestingAddPipCredentials = false;
 		String _addPipSSID = "";
 		String _addPipPassword = "";
+		bool _asyncScanInProgress = false;
+		unsigned long _asyncScanStartTime = 0;
+		static constexpr unsigned long ASYNC_SCAN_TIMEOUT_MS = 10000; // 10 seconds
+		static constexpr unsigned long ASYNC_SCAN_MIN_CHECK_DELAY = 500; // Don't check status for first 500ms
 };

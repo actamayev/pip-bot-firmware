@@ -244,13 +244,18 @@ void MessageProcessor::handleGetSavedWiFiNetworks() {
 }
 
 void MessageProcessor::handleScanWiFiNetworks() {
-    SerialQueueManager::getInstance().queueMessage("Starting WiFi network scan...");
+    SerialQueueManager::getInstance().queueMessage("Starting async WiFi network scan...");
     
-    // Get scan results from WiFiManager
-    std::vector<WiFiNetworkInfo> scannedNetworks = WiFiManager::getInstance().scanAndReturnNetworks();
+    // Start async scan instead of blocking scan
+    bool success = WiFiManager::getInstance().startAsyncScan();
     
-    // Send response via SerialManager
-    SerialManager::getInstance().sendScanResultsResponse(scannedNetworks);
+    if (!success) {
+        SerialQueueManager::getInstance().queueMessage("Failed to start WiFi scan");
+        // Send empty scan results to indicate failure
+        std::vector<WiFiNetworkInfo> emptyNetworks;
+        SerialManager::getInstance().sendScanResultsResponse(emptyNetworks);
+    }
+    // Note: Results will be sent asynchronously when scan completes
 }
 
 void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length) {
