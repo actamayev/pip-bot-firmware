@@ -30,6 +30,10 @@ void Buttons::setButton1ClickHandler(std::function<void(Button2&)> callback) {
     
     button1.setPressedHandler([this, originalCallback](Button2& btn) {
         // If we're waiting for confirmation, this click confirms deep sleep
+        if (TimeoutManager::getInstance().isInConfirmationState()) {
+            TimeoutManager::getInstance().cancelConfirmation();
+            return; // Don't process other button logic
+        }
         if (this->waitingForSleepConfirmation) return;
 
         BytecodeVM& vm = BytecodeVM::getInstance();

@@ -25,6 +25,8 @@ class Buttons: public Singleton<Buttons> {
         // Add more event handlers as needed:
         void setButton1LongPressHandler(std::function<void(Button2&)> callback);
         void setButton2LongPressHandler(std::function<void(Button2&)> callback);
+        void enterDeepSleep();
+
     private:
         Button2 button1;
         Button2 button2;
@@ -36,5 +38,4 @@ class Buttons: public Singleton<Buttons> {
 
         // Deep sleep methods
         void setupDeepSleep();
-        void enterDeepSleep();
 };

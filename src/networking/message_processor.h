@@ -7,6 +7,7 @@
 #include "actuators/speaker.h"
 #include "demos/demo_manager.h"
 #include "networking/protocol.h"
+#include "utils/timeout_manager.h"
 #include "actuators/motor_driver.h"
 #include "sensors/encoder_manager.h"
 #include "networking/serial_manager.h"
