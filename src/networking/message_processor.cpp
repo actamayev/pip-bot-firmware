@@ -259,6 +259,7 @@ void MessageProcessor::handleScanWiFiNetworks() {
 }
 
 void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length) {
+    TimeoutManager::getInstance().resetActivity();
     if (length < 1) {
         SerialQueueManager::getInstance().queueMessage("Binary message too short");
         return;
