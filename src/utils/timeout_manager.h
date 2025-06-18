@@ -17,8 +17,8 @@ class TimeoutManager : public Singleton<TimeoutManager> {
         bool inConfirmationState = false;
         unsigned long confirmationStartTime = 0;
 
-        static constexpr unsigned long INACTIVITY_TIMEOUT = 30 * 1000; //9 * 60 * 1000; // 9 minutes
-        static constexpr unsigned long CONFIRMATION_TIMEOUT = 30 * 1000;// 1 * 60 * 1000; // 1 minute
+        static constexpr unsigned long INACTIVITY_TIMEOUT = 9 * 60 * 1000; // 9 minutes
+        static constexpr unsigned long CONFIRMATION_TIMEOUT = 1 * 60 * 1000; // 1 minute
 
         void cancelConfirmation();
         void enterConfirmationState();
