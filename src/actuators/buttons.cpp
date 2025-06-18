@@ -25,10 +25,18 @@ void Buttons::update() {
 }
 
 void Buttons::setButton1ClickHandler(std::function<void(Button2&)> callback) {
-    // Store the user's callback to call it after our internal handling
     auto originalCallback = callback;
     
     button1.setPressedHandler([this, originalCallback](Button2& btn) {
+        // Reset timeout on any button activity
+        TimeoutManager::getInstance().resetActivity();
+        
+        // Check if timeout manager is in confirmation state
+        if (TimeoutManager::getInstance().isInConfirmationState()) {
+            // resetActivity() above already handled canceling confirmation
+            return; // Don't process other button logic
+        }
+        
         // If we're waiting for confirmation, this click confirms deep sleep
         if (this->waitingForSleepConfirmation) return;
 
@@ -53,21 +61,32 @@ void Buttons::setButton1ClickHandler(std::function<void(Button2&)> callback) {
         }
     });
 
-	button1.setClickHandler([this, originalCallback](Button2& btn) {
+    button1.setClickHandler([this, originalCallback](Button2& btn) {
+        // Reset timeout on any button activity
+        TimeoutManager::getInstance().resetActivity();
+        
         if (!(this->waitingForSleepConfirmation)) return;
-		SerialQueueManager::getInstance().queueMessage("Sleep confirmed with Button 1! Entering deep sleep...");
-		this->waitingForSleepConfirmation = false;
-		vTaskDelay(pdMS_TO_TICKS(100)); // Small delay to allow serial message to be sent
-		enterDeepSleep();
-		return; // Don't call the original callback in this case
+        SerialQueueManager::getInstance().queueMessage("Sleep confirmed with Button 1! Entering deep sleep...");
+        this->waitingForSleepConfirmation = false;
+        vTaskDelay(pdMS_TO_TICKS(100)); // Small delay to allow serial message to be sent
+        enterDeepSleep();
+        return; // Don't call the original callback in this case
     });
 }
 
 void Buttons::setButton2ClickHandler(std::function<void(Button2&)> callback) {
-    // Store the user's callback to call it after our internal handling
     auto originalCallback = callback;
     
     button2.setPressedHandler([this, originalCallback](Button2& btn) {
+        // Reset timeout on any button activity
+        TimeoutManager::getInstance().resetActivity();
+        
+        // Check if timeout manager is in confirmation state
+        if (TimeoutManager::getInstance().isInConfirmationState()) {
+            // resetActivity() above already handled canceling confirmation
+            return; // Don't process other button logic
+        }
+        
         // If we're waiting for confirmation, this click cancels deep sleep
         if (this->waitingForSleepConfirmation) {
             SerialQueueManager::getInstance().queueMessage("Sleep canceled with Button 2!");
@@ -84,17 +103,30 @@ void Buttons::setButton2ClickHandler(std::function<void(Button2&)> callback) {
 }
 
 void Buttons::setButton1LongPressHandler(std::function<void(Button2&)> callback) {
-    button1.setLongClickHandler(callback);
+    auto wrappedCallback = [callback](Button2& btn) {
+        // Reset timeout on any button activity
+        TimeoutManager::getInstance().resetActivity();
+        if (callback) callback(btn);
+    };
+    button1.setLongClickHandler(wrappedCallback);
 }
 
 void Buttons::setButton2LongPressHandler(std::function<void(Button2&)> callback) {
-    button2.setLongClickHandler(callback);
+    auto wrappedCallback = [callback](Button2& btn) {
+        // Reset timeout on any button activity
+        TimeoutManager::getInstance().resetActivity();
+        if (callback) callback(btn);
+    };
+    button2.setLongClickHandler(wrappedCallback);
 }
 
 void Buttons::setupDeepSleep() {
     // First, detect when long press threshold is reached
     button1.setLongClickTime(DEEP_SLEEP_TIMEOUT);
     button1.setLongClickDetectedHandler([this](Button2& btn) {
+        // Reset timeout on any button activity
+        TimeoutManager::getInstance().resetActivity();
+        
         SerialQueueManager::getInstance().queueMessage("Long press detected on Button 1! Release to enter confirmation stage...");
         BytecodeVM::getInstance().stopProgram();
         rgbLed.captureCurrentState();
@@ -104,6 +136,9 @@ void Buttons::setupDeepSleep() {
     
     // Then, detect when button is released after long press
     button1.setReleasedHandler([this](Button2& btn) {
+        // Reset timeout on any button activity
+        TimeoutManager::getInstance().resetActivity();
+        
         if (!(this->longPressFlagForSleep)) return;
         SerialQueueManager::getInstance().queueMessage("Button released after long press, entering deep sleep confirmation...");
         SerialQueueManager::getInstance().queueMessage("Press Button 1 to confirm sleep or Button 2 to cancel");

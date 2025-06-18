@@ -4,6 +4,7 @@
 #include "actuators/speaker.h"
 #include "utils/show_chip_info.h"
 #include "utils/sensor_loggers.h"
+#include "utils/timeout_manager.h"
 #include "sensors/encoder_manager.h"
 #include "networking/wifi_manager.h"
 #include "actuators/display_screen.h"
@@ -92,6 +93,7 @@ void NetworkTask(void * parameter) {
     for(;;) {
         NetworkMode mode = NetworkStateManager::getInstance().getCurrentMode();
         WiFiManager::getInstance().checkAsyncScanProgress();
+        TimeoutManager::getInstance().update();
 
         switch (mode) {
             // TODO 5/1/25: Why isn't poll serial here?
