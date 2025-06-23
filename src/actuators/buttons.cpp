@@ -32,11 +32,8 @@ void Buttons::setButton1ClickHandler(std::function<void(Button2&)> callback) {
         TimeoutManager::getInstance().resetActivity();
         
         // Check if timeout manager is in confirmation state
-        if (TimeoutManager::getInstance().isInConfirmationState()) {
-            // resetActivity() above already handled canceling confirmation
-            return; // Don't process other button logic
-        }
-        
+        if (TimeoutManager::getInstance().isInConfirmationState()) return; // Don't process other button logic
+
         // If we're waiting for confirmation, this click confirms deep sleep
         if (this->waitingForSleepConfirmation) return;
 
@@ -82,11 +79,8 @@ void Buttons::setButton2ClickHandler(std::function<void(Button2&)> callback) {
         TimeoutManager::getInstance().resetActivity();
         
         // Check if timeout manager is in confirmation state
-        if (TimeoutManager::getInstance().isInConfirmationState()) {
-            // resetActivity() above already handled canceling confirmation
-            return; // Don't process other button logic
-        }
-        
+        if (TimeoutManager::getInstance().isInConfirmationState()) return; // Don't process other button logic
+
         // If we're waiting for confirmation, this click cancels deep sleep
         if (this->waitingForSleepConfirmation) {
             SerialQueueManager::getInstance().queueMessage("Sleep canceled with Button 2!");

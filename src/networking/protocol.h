@@ -25,9 +25,11 @@ enum class DataMessageType : uint8_t {
 
 // Sound types
 enum class SoundType : uint8_t {
-    ALERT = 0,
-    BEEP = 1,
-    CHIME = 2
+    BREEZE = 0,
+    CHIME = 1,
+    CHIRP = 2,
+    POP = 3,
+    SPLASH = 4,
 };
 
 // Speaker status

@@ -11,20 +11,30 @@ void MessageProcessor::handleMotorControl(const uint8_t* data) {
 void MessageProcessor::handleSoundCommand(SoundType soundType) {
     // Play the requested tune
     switch(soundType) {
-        case SoundType::ALERT:
-            SerialQueueManager::getInstance().queueMessage("Playing Alert sound");
+        case SoundType::BREEZE:
+            SerialQueueManager::getInstance().queueMessage("Playing BREEZE sound");
             // Call your alert sound function
             // speaker.alert();
             break;
 
-        case SoundType::BEEP:
-            SerialQueueManager::getInstance().queueMessage("Playing Beep sound");
+        case SoundType::CHIME:
+            SerialQueueManager::getInstance().queueMessage("Playing CHIME sound");
             // Call your beep sound function
             // speaker.beep();
             break;
 
-        case SoundType::CHIME:
-            SerialQueueManager::getInstance().queueMessage("Playing Chime sound");
+        case SoundType::CHIRP:
+            SerialQueueManager::getInstance().queueMessage("Playing CHIRP sound");
+            speaker.chime();
+            break;
+        
+        case SoundType::POP:
+            SerialQueueManager::getInstance().queueMessage("Playing POP sound");
+            speaker.chime();
+            break;
+        
+        case SoundType::SPLASH:
+            SerialQueueManager::getInstance().queueMessage("Playing SPLASH sound");
             speaker.chime();
             break;
 
