@@ -2,6 +2,7 @@
 #include "utils/config.h"
 #include "actuators/buttons.h"
 #include "actuators/speaker.h"
+#include "utils/task_manager.h"
 #include "utils/show_chip_info.h"
 #include "utils/sensor_loggers.h"
 #include "utils/timeout_manager.h"
@@ -27,6 +28,8 @@ bool checkHoldToWakeCondition() {
     
     // Only apply hold-to-wake behavior if woken from deep sleep by button
     if (wakeup_reason != ESP_SLEEP_WAKEUP_EXT0) {
+        rgbLed.setDefaultColors(0, 0, MAX_LED_BRIGHTNESS);
+        ledAnimations.startBreathing(2000, 0.0f);
         return true; // Normal startup for other wake reasons
     }
     
@@ -39,7 +42,7 @@ bool checkHoldToWakeCondition() {
     if (digitalRead(BUTTON_PIN_1) == HIGH) {
         SerialQueueManager::getInstance().queueMessage("Button already released. Going back to sleep...");
         Buttons::getInstance().enterDeepSleep();
-        return false; // This line won't be reached
+        return false;
     }
     
     // Start timing - button must be held for 1000ms
@@ -47,28 +50,29 @@ bool checkHoldToWakeCondition() {
     uint32_t startTime = millis();
     
     while ((millis() - startTime) < HOLD_DURATION_MS) {
-        // Check if button was released
         if (digitalRead(BUTTON_PIN_1) == HIGH) {
             uint32_t heldTime = millis() - startTime;
             String message = "Button released after " + String(heldTime) + "ms. Going back to sleep...";
             SerialQueueManager::getInstance().queueMessage(message.c_str());
             Buttons::getInstance().enterDeepSleep();
-            return false; // This line won't be reached
+            return false;
         }
-        
-        // Small delay to avoid busy waiting
         vTaskDelay(pdMS_TO_TICKS(10));
     }
     
-    return true; // Proceed with full startup
-}
+    // WAKE-UP SUCCESSFUL - Reset button state so this press doesn't count toward shutdown
+    SerialQueueManager::getInstance().queueMessage("Wake-up successful - clearing button state");
+    rgbLed.setDefaultColors(0, 0, MAX_LED_BRIGHTNESS);
+    ledAnimations.startBreathing(2000, 0.0f);
 
-// Task to handle LED animations on Core 1 (low priority)
-void LedTask(void * parameter) {
-    for(;;) {
-        ledAnimations.update();
-        vTaskDelay(pdMS_TO_TICKS(5));
+    // Wait for user to release the button before proceeding
+    while (digitalRead(BUTTON_PIN_1) == LOW) {
+        vTaskDelay(pdMS_TO_TICKS(10));
     }
+    
+    SerialQueueManager::getInstance().queueMessage("Button released - ready for normal operation");
+    
+    return true; // Proceed with full startup
 }
 
 // Task to handle sensors and bytecode on Core 0
@@ -78,7 +82,6 @@ void SensorAndBytecodeTask(void * parameter) {
     // Initialize sensors on Core 0
     SerialQueueManager::getInstance().queueMessage("Initializing sensors on Core 0...");
 
-    Buttons::getInstance();
     setupButtonLoggers();
     // if (!DisplayScreen::getInstance().init()) {
     //     SerialQueueManager::getInstance().queueMessage("Display initialization failed");
@@ -117,8 +120,7 @@ void SensorAndBytecodeTask(void * parameter) {
     SensorPollingManager::getInstance().startPolling();
     // Main sensor and bytecode loop
     for(;;) {
-        Buttons::getInstance().update();  // Update button states
-        SerialManager::getInstance().pollSerial();
+        // SerialManager::getInstance().pollSerial();
         BytecodeVM::getInstance().update();
         MessageProcessor::getInstance().processPendingCommands();
         SensorPollingManager::getInstance().update();
@@ -182,57 +184,28 @@ void setup() {
     Serial.begin(115200);
     SerialQueueManager::getInstance().initialize();
 
+    rgbLed.turn_led_off(); // Start with LEDs off
+    TaskManager::createLedTask(); // Start LED task so updates work
+
     // Check hold-to-wake condition BEFORE any other initialization
-    // This must be done early to minimize delay between wake and button state check
     if (!checkHoldToWakeCondition()) {
         // Function handles going back to sleep if conditions aren't met
         // This return should never be reached, but added for completeness
         return;
     }
-    
-    // Start breathing blue LED to indicate device is turning on (fade from dark to blue)
-    rgbLed.setDefaultColors(0, 0, MAX_LED_BRIGHTNESS);
-    ledAnimations.startBreathing(2000, 0.0f);
-    
-    // Start LED animation task immediately with low priority
-    xTaskCreatePinnedToCore(
-        LedTask,                // LED animation task
-        "LED",                  // Task name
-        2048,                   // Stack size (small since it's just updating animations)
-        NULL,                   // Task parameters
-        0,                      // Priority (0 = lowest priority)
-        NULL,                   // Task handle
-        1                       // Run on Core 1
-    );
-    
-    // Only needed if we need to see the setup serial logs:
-    // if (getEnvironment() == "local") {
-    //     vTaskDelay(pdMS_TO_TICKS(2000));
-    // }
+
+    // Clean task creation - all managed by TaskManager
+    TaskManager::createButtonTask();
+
+    // I2C setup
     Wire.setPins(I2C_SDA, I2C_SCL);
     Wire.begin(I2C_SDA, I2C_SCL, I2C_CLOCK_SPEED);
     vTaskDelay(pdMS_TO_TICKS(10));
 
-    // Create tasks for parallel execution
-    xTaskCreatePinnedToCore(
-        SensorAndBytecodeTask,  // Sensor and bytecode task
-        "SensorAndBytecode",    // Task name
-        SENSOR_STACK_SIZE,      // Stack size
-        NULL,                   // Task parameters
-        1,                      // Priority
-        NULL,                   // Task handle
-        0                       // Run on Core 0
-    );
-
-    xTaskCreatePinnedToCore(
-        NetworkTask,            // Network handling task
-        "Network",              // Task name
-        NETWORK_STACK_SIZE,      // Stack size
-        NULL,                   // Task parameters
-        1,                      // Priority
-        NULL,                   // Task handle
-        1                       // Run on Core 1
-    );
+    // Create remaining tasks
+    TaskManager::createSensorTask();     // External function
+    TaskManager::createSerialInputTask(); // Internal function
+    TaskManager::createNetworkTask();    // External function
 }
 
 // Main loop runs on Core 1
