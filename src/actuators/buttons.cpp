@@ -140,11 +140,7 @@ void Buttons::setupDeepSleep() {
         this->waitingForSleepConfirmation = true; // Enter confirmation stage instead of sleeping directly
     });
 
-    // Check if we woke up from deep sleep due to button press
-    esp_sleep_wakeup_cause_t wakeup_reason = esp_sleep_get_wakeup_cause();
-    if (wakeup_reason == ESP_SLEEP_WAKEUP_EXT0) {
-        SerialQueueManager::getInstance().queueMessage("Woke up from deep sleep due to button press on GPIO 12");
-    }
+    // Note: Wakeup detection is now handled in main.cpp checkHoldToWakeCondition()
 }
 
 void Buttons::enterDeepSleep() {
