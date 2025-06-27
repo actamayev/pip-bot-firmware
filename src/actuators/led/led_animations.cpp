@@ -4,14 +4,24 @@ LedAnimations::LedAnimations(Adafruit_NeoPixel& strip1, Adafruit_NeoPixel& strip
     : strip1(strip1), strip2(strip2) {
 }
 
-void LedAnimations::startBreathing(int speed) {
+void LedAnimations::startBreathing(int speed, float startingBrightness) {
     // Stop any current animation
     currentAnimation = LedTypes::NONE;
     
     updateBreathingColor();
     
     breathSpeed = speed;
-    breathProgress = 0.0;
+    
+    // Convert startingBrightness (0.0-1.0) to breathProgress
+    // 0.0 (min) -> 1.5, 0.5 (mid) -> 0.0, 1.0 (max) -> 0.5
+    if (startingBrightness <= 0.0f) {
+        breathProgress = 1.5f;  // Start at minimum
+    } else if (startingBrightness >= 1.0f) {
+        breathProgress = 0.5f;  // Start at maximum  
+    } else {
+        // Linear interpolation for values between 0 and 1
+        breathProgress = 1.5f - (startingBrightness * 1.5f);
+    }
     
     // Set as current animation
     currentAnimation = LedTypes::BREATHING;

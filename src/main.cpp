@@ -30,25 +30,19 @@ bool checkHoldToWakeCondition() {
         return true; // Normal startup for other wake reasons
     }
     
-    Serial.println("Woke up from deep sleep due to button press. Checking hold duration...");
+    SerialQueueManager::getInstance().queueMessage("Woke up from deep sleep due to button press. Checking hold duration...");
     
     // Configure button pin for reading
     pinMode(BUTTON_PIN_1, INPUT_PULLUP);
     
     // Check if button is still pressed (LOW due to INPUT_PULLUP)
     if (digitalRead(BUTTON_PIN_1) == HIGH) {
-        Serial.println("Button already released. Going back to sleep...");
-        Serial.flush();
-        
-        // Configure wake source and go back to sleep immediately
-        esp_sleep_enable_ext0_wakeup((gpio_num_t)BUTTON_PIN_1, LOW);
-        esp_deep_sleep_start();
+        SerialQueueManager::getInstance().queueMessage("Button already released. Going back to sleep...");
+        Buttons::getInstance().enterDeepSleep();
         return false; // This line won't be reached
     }
     
-    Serial.println("Button is held. Starting 1.5s timer...");
-    
-    // Start timing - button must be held for 1500ms
+    // Start timing - button must be held for 1000ms
     const uint32_t HOLD_DURATION_MS = 1000;
     uint32_t startTime = millis();
     
@@ -56,12 +50,9 @@ bool checkHoldToWakeCondition() {
         // Check if button was released
         if (digitalRead(BUTTON_PIN_1) == HIGH) {
             uint32_t heldTime = millis() - startTime;
-            Serial.printf("Button released after %ums. Going back to sleep...\n", heldTime);
-            Serial.flush();
-            
-            // Go back to sleep immediately
-            esp_sleep_enable_ext0_wakeup((gpio_num_t)BUTTON_PIN_1, LOW);
-            esp_deep_sleep_start();
+            String message = "Button released after " + String(heldTime) + "ms. Going back to sleep...";
+            SerialQueueManager::getInstance().queueMessage(message.c_str());
+            Buttons::getInstance().enterDeepSleep();
             return false; // This line won't be reached
         }
         
@@ -69,8 +60,15 @@ bool checkHoldToWakeCondition() {
         vTaskDelay(pdMS_TO_TICKS(10));
     }
     
-    Serial.println("Button held for 1.5+ seconds. Proceeding with normal startup...");
     return true; // Proceed with full startup
+}
+
+// Task to handle LED animations on Core 1 (low priority)
+void LedTask(void * parameter) {
+    for(;;) {
+        ledAnimations.update();
+        vTaskDelay(pdMS_TO_TICKS(5));
+    }
 }
 
 // Task to handle sensors and bytecode on Core 0
@@ -119,7 +117,6 @@ void SensorAndBytecodeTask(void * parameter) {
     SensorPollingManager::getInstance().startPolling();
     // Main sensor and bytecode loop
     for(;;) {
-        ledAnimations.update();
         Buttons::getInstance().update();  // Update button states
         SerialManager::getInstance().pollSerial();
         BytecodeVM::getInstance().update();
@@ -183,7 +180,8 @@ void setup() {
     Serial.setRxBufferSize(MAX_PROGRAM_SIZE); // This is here to make the serial buffer larger to accommodate for large serial messages (ie. when uploading bytecode programs over serial)
     Serial.setTxBufferSize(MAX_PROGRAM_SIZE); // This is here to make the serial buffer larger to accommodate for large serial messages (ie. when uploading bytecode programs over serial)
     Serial.begin(115200);
-    
+    SerialQueueManager::getInstance().initialize();
+
     // Check hold-to-wake condition BEFORE any other initialization
     // This must be done early to minimize delay between wake and button state check
     if (!checkHoldToWakeCondition()) {
@@ -192,9 +190,20 @@ void setup() {
         return;
     }
     
-    // Start breathing blue LED to indicate device is turning on
-    rgbLed.set_led_blue();
-    ledAnimations.startBreathing();
+    // Start breathing blue LED to indicate device is turning on (fade from dark to blue)
+    rgbLed.setDefaultColors(0, 0, MAX_LED_BRIGHTNESS);
+    ledAnimations.startBreathing(2000, 0.0f);
+    
+    // Start LED animation task immediately with low priority
+    xTaskCreatePinnedToCore(
+        LedTask,                // LED animation task
+        "LED",                  // Task name
+        2048,                   // Stack size (small since it's just updating animations)
+        NULL,                   // Task parameters
+        0,                      // Priority (0 = lowest priority)
+        NULL,                   // Task handle
+        1                       // Run on Core 1
+    );
     
     // Only needed if we need to see the setup serial logs:
     // if (getEnvironment() == "local") {
@@ -203,9 +212,6 @@ void setup() {
     Wire.setPins(I2C_SDA, I2C_SCL);
     Wire.begin(I2C_SDA, I2C_SCL, I2C_CLOCK_SPEED);
     vTaskDelay(pdMS_TO_TICKS(10));
-    SerialQueueManager::getInstance().initialize();
-
-    // rgbLed.turn_led_off();
 
     // Create tasks for parallel execution
     xTaskCreatePinnedToCore(
