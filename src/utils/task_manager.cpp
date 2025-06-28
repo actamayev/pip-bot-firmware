@@ -1,35 +1,110 @@
 #include "task_manager.h"
 
+TaskHandle_t TaskManager::buttonTaskHandle = NULL;
+TaskHandle_t TaskManager::serialInputTaskHandle = NULL;
+TaskHandle_t TaskManager::ledTaskHandle = NULL;
+TaskHandle_t TaskManager::messageProcessorTaskHandle = NULL;
+TaskHandle_t TaskManager::bytecodeVMTaskHandle = NULL;
+TaskHandle_t TaskManager::sensorTaskHandle = NULL;
+TaskHandle_t TaskManager::networkTaskHandle = NULL;
+
 // Task function declarations (put these in main.cpp)
 extern void SensorAndBytecodeTask(void* parameter);
 extern void NetworkTask(void* parameter);
 
 bool TaskManager::createButtonTask() {
-    return createTask("Buttons", buttonTask, BUTTON_STACK_SIZE, Priority::HIGHEST, Core::CORE_0);
+    BaseType_t result = xTaskCreatePinnedToCore(
+        buttonTask,
+        "Buttons",
+        BUTTON_STACK_SIZE,
+        NULL,
+        static_cast<uint8_t>(Priority::HIGHEST),
+        &buttonTaskHandle,  // <-- Store handle instead of NULL
+        static_cast<BaseType_t>(Core::CORE_0)
+    );
+    return logTaskCreation("Buttons", result == pdPASS);
 }
 
 bool TaskManager::createSerialInputTask() {
-    return createTask("SerialInput", serialInputTask, SERIAL_INPUT_STACK_SIZE, Priority::MEDIUM_HIGH, Core::CORE_0);
+    BaseType_t result = xTaskCreatePinnedToCore(
+        serialInputTask,
+        "SerialInput",
+        SERIAL_INPUT_STACK_SIZE,
+        NULL,
+        static_cast<uint8_t>(Priority::MEDIUM_HIGH),
+        &serialInputTaskHandle,  // <-- Store handle
+        static_cast<BaseType_t>(Core::CORE_0)
+    );
+    return logTaskCreation("SerialInput", result == pdPASS);
+    // return createTask("SerialInput", serialInputTask, SERIAL_INPUT_STACK_SIZE, Priority::MEDIUM_HIGH, Core::CORE_0);
 }
 
 bool TaskManager::createLedTask() {
-    return createTask("LED", ledTask, LED_STACK_SIZE, Priority::LOWEST, Core::CORE_0);
+    BaseType_t result = xTaskCreatePinnedToCore(
+        ledTask,
+        "LED",
+        LED_STACK_SIZE,
+        NULL,
+        static_cast<uint8_t>(Priority::LOWEST),
+        &ledTaskHandle,  // <-- Store handle
+        static_cast<BaseType_t>(Core::CORE_0)
+    );
+    return logTaskCreation("LED", result == pdPASS);
+    // return createTask("LED", ledTask, LED_STACK_SIZE, Priority::LOWEST, Core::CORE_0);
 }
 
 bool TaskManager::createMessageProcessorTask() {
-    return createTask("MessageProcessor", messageProcessorTask, MESSAGE_PROCESSOR_STACK_SIZE, Priority::MEDIUM, Core::CORE_0);
+    BaseType_t result = xTaskCreatePinnedToCore(
+        messageProcessorTask,
+        "MessageProcessor",
+        MESSAGE_PROCESSOR_STACK_SIZE,
+        NULL,
+        static_cast<uint8_t>(Priority::MEDIUM),
+        &messageProcessorTaskHandle,  // <-- Store handle
+        static_cast<BaseType_t>(Core::CORE_0)
+    );
+    return logTaskCreation("MessageProcessor", result == pdPASS);
 }
 
 bool TaskManager::createBytecodeVMTask() {
-    return createTask("BytecodeVM", bytecodeVMTask, BYTECODE_VM_STACK_SIZE, Priority::LOW_MEDIUM, Core::CORE_0);
+    BaseType_t result = xTaskCreatePinnedToCore(
+        bytecodeVMTask,
+        "BytecodeVM",
+        BYTECODE_VM_STACK_SIZE,
+        NULL,
+        static_cast<uint8_t>(Priority::LOW_MEDIUM),
+        &bytecodeVMTaskHandle,  // <-- Store handle
+        static_cast<BaseType_t>(Core::CORE_0)
+    );
+    return logTaskCreation("BytecodeVM", result == pdPASS);
 }
 
 bool TaskManager::createSensorTask() {
-    return createTask("SensorAndBytecode", SensorAndBytecodeTask, SENSOR_STACK_SIZE, Priority::LOW_MEDIUM, Core::CORE_0);
+    BaseType_t result = xTaskCreatePinnedToCore(
+        SensorAndBytecodeTask,
+        "SensorAndBytecode",
+        SENSOR_STACK_SIZE,
+        NULL,
+        static_cast<uint8_t>(Priority::LOW_MEDIUM),
+        &sensorTaskHandle,  // <-- Store handle
+        static_cast<BaseType_t>(Core::CORE_0)
+    );
+    return logTaskCreation("SensorAndBytecode", result == pdPASS);
+    // return createTask("SensorAndBytecode", SensorAndBytecodeTask, SENSOR_STACK_SIZE, Priority::LOW_MEDIUM, Core::CORE_0);
 }
 
 bool TaskManager::createNetworkTask() {
-    return createTask("Network", NetworkTask, NETWORK_STACK_SIZE, Priority::LOW_MEDIUM, Core::CORE_1);
+    BaseType_t result = xTaskCreatePinnedToCore(
+        NetworkTask,
+        "Network",
+        NETWORK_STACK_SIZE,
+        NULL,
+        static_cast<uint8_t>(Priority::LOW_MEDIUM),
+        &networkTaskHandle,  // <-- Store handle
+        static_cast<BaseType_t>(Core::CORE_0)
+    );
+    return logTaskCreation("Network", result == pdPASS);
+    // return createTask("Network", NetworkTask, NETWORK_STACK_SIZE, Priority::LOW_MEDIUM, Core::CORE_1);
 }
 
 void TaskManager::buttonTask(void* parameter) {
@@ -61,9 +136,18 @@ void TaskManager::messageProcessorTask(void* parameter) {
 }
 
 void TaskManager::bytecodeVMTask(void* parameter) {
+    static unsigned long lastStackCheck = 0;
+    
     for(;;) {
         BytecodeVM::getInstance().update();
-        vTaskDelay(pdMS_TO_TICKS(5)); // User programs don't need super fast updates
+        
+        // Check stack usage every 10 seconds
+        if (millis() - lastStackCheck > 1000) {
+            printStackUsage();
+            lastStackCheck = millis();
+        }
+        
+        vTaskDelay(pdMS_TO_TICKS(5));
     }
 }
 
@@ -103,33 +187,59 @@ bool TaskManager::logTaskCreation(const char* name, bool success) {
     return success;
 }
 
-// Add this function to TaskManager
-// void TaskManager::printStackUsage() {
-//     SerialQueueManager::getInstance().queueMessage("=== STACK USAGE ===", SerialPriority::HIGH_PRIO);
+void TaskManager::printStackUsage() {
+    SerialQueueManager::getInstance().queueMessage("", SerialPriority::CRITICAL);
+    SerialQueueManager::getInstance().queueMessage("╔══════════════════════════════════════╗", SerialPriority::CRITICAL);
+    SerialQueueManager::getInstance().queueMessage("║           TASK STACK USAGE           ║", SerialPriority::CRITICAL);
+    SerialQueueManager::getInstance().queueMessage("╠══════════════════════════════════════╣", SerialPriority::CRITICAL);
     
-//     // Check each task's remaining stack
-//     TaskHandle_t tasks[] = {
-//         buttonTaskHandle,
-//         serialInputTaskHandle, 
-//         ledTaskHandle,
-//         messageProcessorTaskHandle,
-//         bytecodeVMTaskHandle,
-//         sensorTaskHandle,
-//         networkTaskHandle
-//     };
+    struct TaskInfo {
+        TaskHandle_t handle;
+        const char* name;
+        uint32_t allocatedSize;
+    };
     
-//     const char* names[] = {
-//         "Buttons", "SerialInput", "LED", "MessageProcessor", 
-//         "BytecodeVM", "Sensor", "Network"
-//     };
+    TaskInfo tasks[] = {
+        {buttonTaskHandle, "Buttons", BUTTON_STACK_SIZE},
+        {serialInputTaskHandle, "SerialInput", SERIAL_INPUT_STACK_SIZE},
+        {ledTaskHandle, "LED", LED_STACK_SIZE},
+        {messageProcessorTaskHandle, "MessageProcessor", MESSAGE_PROCESSOR_STACK_SIZE},
+        {bytecodeVMTaskHandle, "BytecodeVM", BYTECODE_VM_STACK_SIZE},
+        {sensorTaskHandle, "Sensor", SENSOR_STACK_SIZE},
+        {networkTaskHandle, "Network", NETWORK_STACK_SIZE}
+    };
     
-//     for (int i = 0; i < 7; i++) {
-//         if (tasks[i] != NULL) {
-//             UBaseType_t freeStack = uxTaskGetStackHighWaterMark(tasks[i]);
-//             SerialQueueManager::getInstance().queueMessage(
-//                 String(names[i]) + ": " + String(freeStack) + " bytes free",
-//                 SerialPriority::HIGH_PRIO
-//             );
-//         }
-//     }
-// }
+    for (int i = 0; i < 7; i++) {
+        if (tasks[i].handle != NULL) {
+            UBaseType_t freeStack = uxTaskGetStackHighWaterMark(tasks[i].handle);
+            uint32_t usedStack = tasks[i].allocatedSize - (freeStack * sizeof(StackType_t));
+            float percentUsed = (float)usedStack / tasks[i].allocatedSize * 100.0f;
+            
+            // Format with fixed width for alignment
+            char taskName[16];
+            snprintf(taskName, sizeof(taskName), "%-15s", tasks[i].name);
+            
+            String message = "║ " + String(taskName) + " " + 
+                           String(usedStack, DEC) + "/" + String(tasks[i].allocatedSize) + 
+                           " (" + String(percentUsed, 1) + "%)";
+                           
+            // Pad to consistent width
+            while (message.length() < 37) {
+                message += " ";
+            }
+            message += "║";
+            
+            if (percentUsed > 90.0f) {
+                message += " 🔴";
+                SerialQueueManager::getInstance().queueMessage(message, SerialPriority::CRITICAL);
+            } else if (percentUsed > 75.0f) {
+                message += " 🟡";
+                SerialQueueManager::getInstance().queueMessage(message, SerialPriority::CRITICAL);
+            } else {
+                SerialQueueManager::getInstance().queueMessage(message, SerialPriority::CRITICAL);
+            }
+        }
+    }
+    SerialQueueManager::getInstance().queueMessage("╚══════════════════════════════════════╝", SerialPriority::CRITICAL);
+    SerialQueueManager::getInstance().queueMessage("", SerialPriority::CRITICAL);
+}

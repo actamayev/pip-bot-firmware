@@ -17,6 +17,7 @@ class TaskManager {
         static bool createBytecodeVMTask();
         static bool createSensorTask();
         static bool createNetworkTask();
+        static void printStackUsage();
 
     private:
         static bool logTaskCreation(const char* name, bool success);
@@ -26,9 +27,9 @@ class TaskManager {
         static void messageProcessorTask(void* parameter);
         static void bytecodeVMTask(void* parameter);
 
-        static constexpr uint32_t BUTTON_STACK_SIZE = 6144;
-        static constexpr uint32_t SERIAL_INPUT_STACK_SIZE = 4096;
-        static constexpr uint32_t LED_STACK_SIZE = 2048;
+        static constexpr uint32_t BUTTON_STACK_SIZE = 4096;
+        static constexpr uint32_t SERIAL_INPUT_STACK_SIZE = 8192;
+        static constexpr uint32_t LED_STACK_SIZE = 6144;
         static constexpr uint32_t MESSAGE_PROCESSOR_STACK_SIZE = 8192; // Increase - motor + encoder logic
         static constexpr uint32_t BYTECODE_VM_STACK_SIZE = 16384;
         static constexpr uint32_t SENSOR_STACK_SIZE = 20480;
@@ -58,4 +59,12 @@ class TaskManager {
             Core coreId,
             void* parameters = NULL
         );
+
+        static TaskHandle_t buttonTaskHandle;
+        static TaskHandle_t serialInputTaskHandle;
+        static TaskHandle_t ledTaskHandle;
+        static TaskHandle_t messageProcessorTaskHandle;
+        static TaskHandle_t bytecodeVMTaskHandle;
+        static TaskHandle_t sensorTaskHandle;
+        static TaskHandle_t networkTaskHandle;
 };
