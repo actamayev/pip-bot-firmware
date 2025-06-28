@@ -63,8 +63,6 @@ constexpr uint8_t BUTTON_PIN_1 = 12; // Left
 constexpr uint8_t BUTTON_PIN_2 = 48; // Right
 
 // Assign Stack sizes for the two cores
-constexpr uint32_t SENSOR_STACK_SIZE = 20480;  // 20KB for sensor processing
-constexpr uint32_t NETWORK_STACK_SIZE = 8192;  // 8KB for network operations
 constexpr uint16_t MAX_PROGRAM_SIZE = 8192;
 
 // echo | openssl s_client -showcerts -connect staging-api.bluedotrobots.com:443

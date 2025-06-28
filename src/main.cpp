@@ -9,13 +9,11 @@
 #include "sensors/encoder_manager.h"
 #include "networking/wifi_manager.h"
 #include "actuators/display_screen.h"
-#include "networking/serial_manager.h"
 #include "sensors/sensor_initializer.h"
 #include "networking/message_processor.h"
 #include "networking/websocket_manager.h"
 #include "actuators/led/led_animations.h"
 #include "networking/send_data_to_server.h"
-#include "sensors/sensor_polling_manager.h"
 #include "custom_interpreter/bytecode_vm.h"
 #include "networking/network_state_mangager.h"
 #include "networking/firmware_version_tracker.h"
@@ -120,9 +118,8 @@ void SensorAndBytecodeTask(void * parameter) {
     SensorPollingManager::getInstance().startPolling();
     // Main sensor and bytecode loop
     for(;;) {
-        // SerialManager::getInstance().pollSerial();
-        BytecodeVM::getInstance().update();
-        MessageProcessor::getInstance().processPendingCommands();
+        // BytecodeVM::getInstance().update();
+        // MessageProcessor::getInstance().processPendingCommands();
         SensorPollingManager::getInstance().update();
         // DisplayScreen::getInstance().update();
         // multizoneTofLogger();
@@ -182,6 +179,11 @@ void setup() {
     Serial.setRxBufferSize(MAX_PROGRAM_SIZE); // This is here to make the serial buffer larger to accommodate for large serial messages (ie. when uploading bytecode programs over serial)
     Serial.setTxBufferSize(MAX_PROGRAM_SIZE); // This is here to make the serial buffer larger to accommodate for large serial messages (ie. when uploading bytecode programs over serial)
     Serial.begin(115200);
+    // I2C setup
+    Wire.setPins(I2C_SDA, I2C_SCL);
+    Wire.begin(I2C_SDA, I2C_SCL, I2C_CLOCK_SPEED);
+    // vTaskDelay(pdMS_TO_TICKS(10));
+
     SerialQueueManager::getInstance().initialize();
 
     rgbLed.turn_led_off(); // Start with LEDs off
@@ -197,14 +199,11 @@ void setup() {
     // Clean task creation - all managed by TaskManager
     TaskManager::createButtonTask();
 
-    // I2C setup
-    Wire.setPins(I2C_SDA, I2C_SCL);
-    Wire.begin(I2C_SDA, I2C_SCL, I2C_CLOCK_SPEED);
-    vTaskDelay(pdMS_TO_TICKS(10));
-
     // Create remaining tasks
-    TaskManager::createSensorTask();     // External function
     TaskManager::createSerialInputTask(); // Internal function
+    TaskManager::createMessageProcessorTask();  // Core 0 - motor control
+    TaskManager::createBytecodeVMTask();        // Core 1 - user programs
+    TaskManager::createSensorTask();     // External function
     TaskManager::createNetworkTask();    // External function
 }
 
