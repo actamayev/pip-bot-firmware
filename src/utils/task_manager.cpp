@@ -10,7 +10,7 @@ TaskHandle_t TaskManager::networkTaskHandle = NULL;
 TaskHandle_t TaskManager::stackMonitorTaskHandle = NULL;
 
 // Task function declarations (put these in main.cpp)
-extern void SensorAndBytecodeTask(void* parameter);
+extern void SensorTask(void* parameter);
 extern void NetworkTask(void* parameter);
 
 void TaskManager::buttonTask(void* parameter) {
@@ -41,17 +41,17 @@ void TaskManager::messageProcessorTask(void* parameter) {
     }
 }
 
-void TaskManager::stackMonitorTask(void* parameter) {
-    for(;;) {
-        printStackUsage();
-        vTaskDelay(pdMS_TO_TICKS(1000));  // Every 10 seconds, not 1 second
-    }
-}
-
 void TaskManager::bytecodeVMTask(void* parameter) {
     for(;;) {
         BytecodeVM::getInstance().update();
         vTaskDelay(pdMS_TO_TICKS(5));  // No monitoring code here!
+    }
+}
+
+void TaskManager::stackMonitorTask(void* parameter) {
+    for(;;) {
+        printStackUsage();
+        vTaskDelay(pdMS_TO_TICKS(1000));  // Every 10 seconds, not 1 second
     }
 }
 
@@ -67,7 +67,7 @@ bool TaskManager::createSerialInputTask() {
 
 bool TaskManager::createLedTask() {
     return createTask("LED", ledTask, LED_STACK_SIZE,
-                     Priority::BACKGROUND, Core::CORE_0, &ledTaskHandle);
+                     Priority::BACKGROUND, Core::CORE_1, &ledTaskHandle);
 }
 
 bool TaskManager::createMessageProcessorTask() {
@@ -80,19 +80,19 @@ bool TaskManager::createBytecodeVMTask() {
                      Priority::USER_PROGRAMS, Core::CORE_0, &bytecodeVMTaskHandle);
 }
 
+bool TaskManager::createStackMonitorTask() {
+    return createTask("StackMonitor", stackMonitorTask, STACK_MONITOR_STACK_SIZE,
+                     Priority::BACKGROUND, Core::CORE_1, &stackMonitorTaskHandle);
+}
+
 bool TaskManager::createSensorTask() {
-    return createTask("SensorAndBytecode", SensorAndBytecodeTask, SENSOR_STACK_SIZE,
+    return createTask("SensorAndBytecode", SensorTask, SENSOR_STACK_SIZE,
                      Priority::SYSTEM_CONTROL, Core::CORE_0, &sensorTaskHandle);
 }
 
 bool TaskManager::createNetworkTask() {
     return createTask("Network", NetworkTask, NETWORK_STACK_SIZE,
                      Priority::COMMUNICATION, Core::CORE_1, &networkTaskHandle);
-}
-
-bool TaskManager::createStackMonitorTask() {
-    return createTask("StackMonitor", stackMonitorTask, STACK_MONITOR_STACK_SIZE,
-                     Priority::BACKGROUND, Core::CORE_1, &stackMonitorTaskHandle);
 }
 
 bool TaskManager::createTask(

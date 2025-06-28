@@ -74,7 +74,7 @@ bool checkHoldToWakeCondition() {
 }
 
 // Task to handle sensors and bytecode on Core 0
-void SensorAndBytecodeTask(void * parameter) {
+void SensorTask(void * parameter) {
     disableCore0WDT();
     vTaskDelay(pdMS_TO_TICKS(10));
     // Initialize sensors on Core 0
