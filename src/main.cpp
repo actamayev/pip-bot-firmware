@@ -144,9 +144,7 @@ void setup() {
         return;
     }
 
-    // Clean task creation - all managed by TaskManager
     TaskManager::createButtonTask();
-
     // Create remaining tasks
     TaskManager::createSerialInputTask(); // Internal function
     TaskManager::createMessageProcessorTask();  // Core 0 - motor control
