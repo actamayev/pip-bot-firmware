@@ -13,101 +13,6 @@ TaskHandle_t TaskManager::stackMonitorTaskHandle = NULL;
 extern void SensorAndBytecodeTask(void* parameter);
 extern void NetworkTask(void* parameter);
 
-bool TaskManager::createButtonTask() {
-    BaseType_t result = xTaskCreatePinnedToCore(
-        buttonTask,
-        "Buttons",
-        BUTTON_STACK_SIZE,
-        NULL,
-        static_cast<uint8_t>(Priority::CRITICAL),
-        &buttonTaskHandle,  // <-- Store handle instead of NULL
-        static_cast<BaseType_t>(Core::CORE_0)
-    );
-    return logTaskCreation("Buttons", result == pdPASS);
-}
-
-bool TaskManager::createSerialInputTask() {
-    BaseType_t result = xTaskCreatePinnedToCore(
-        serialInputTask,
-        "SerialInput",
-        SERIAL_INPUT_STACK_SIZE,
-        NULL,
-        static_cast<uint8_t>(Priority::COMMUNICATION),
-        &serialInputTaskHandle,  // <-- Store handle
-        static_cast<BaseType_t>(Core::CORE_0)
-    );
-    return logTaskCreation("SerialInput", result == pdPASS);
-    // return createTask("SerialInput", serialInputTask, SERIAL_INPUT_STACK_SIZE, Priority::MEDIUM_HIGH, Core::CORE_0);
-}
-
-bool TaskManager::createLedTask() {
-    BaseType_t result = xTaskCreatePinnedToCore(
-        ledTask,
-        "LED",
-        LED_STACK_SIZE,
-        NULL,
-        static_cast<uint8_t>(Priority::BACKGROUND),
-        &ledTaskHandle,  // <-- Store handle
-        static_cast<BaseType_t>(Core::CORE_0)
-    );
-    return logTaskCreation("LED", result == pdPASS);
-    // return createTask("LED", ledTask, LED_STACK_SIZE, Priority::LOWEST, Core::CORE_0);
-}
-
-bool TaskManager::createMessageProcessorTask() {
-    BaseType_t result = xTaskCreatePinnedToCore(
-        messageProcessorTask,
-        "MessageProcessor",
-        MESSAGE_PROCESSOR_STACK_SIZE,
-        NULL,
-        static_cast<uint8_t>(Priority::SYSTEM_CONTROL),
-        &messageProcessorTaskHandle,  // <-- Store handle
-        static_cast<BaseType_t>(Core::CORE_0)
-    );
-    return logTaskCreation("MessageProcessor", result == pdPASS);
-}
-
-bool TaskManager::createBytecodeVMTask() {
-    BaseType_t result = xTaskCreatePinnedToCore(
-        bytecodeVMTask,
-        "BytecodeVM",
-        BYTECODE_VM_STACK_SIZE,
-        NULL,
-        static_cast<uint8_t>(Priority::USER_PROGRAMS),
-        &bytecodeVMTaskHandle,  // <-- Store handle
-        static_cast<BaseType_t>(Core::CORE_0)
-    );
-    return logTaskCreation("BytecodeVM", result == pdPASS);
-}
-
-bool TaskManager::createSensorTask() {
-    BaseType_t result = xTaskCreatePinnedToCore(
-        SensorAndBytecodeTask,
-        "SensorAndBytecode",
-        SENSOR_STACK_SIZE,
-        NULL,
-        static_cast<uint8_t>(Priority::USER_PROGRAMS),
-        &sensorTaskHandle,  // <-- Store handle
-        static_cast<BaseType_t>(Core::CORE_0)
-    );
-    return logTaskCreation("SensorAndBytecode", result == pdPASS);
-    // return createTask("SensorAndBytecode", SensorAndBytecodeTask, SENSOR_STACK_SIZE, Priority::LOW_MEDIUM, Core::CORE_0);
-}
-
-bool TaskManager::createNetworkTask() {
-    BaseType_t result = xTaskCreatePinnedToCore(
-        NetworkTask,
-        "Network",
-        NETWORK_STACK_SIZE,
-        NULL,
-        static_cast<uint8_t>(Priority::COMMUNICATION),
-        &networkTaskHandle,  // <-- Store handle
-        static_cast<BaseType_t>(Core::CORE_0)
-    );
-    return logTaskCreation("Network", result == pdPASS);
-    // return createTask("Network", NetworkTask, NETWORK_STACK_SIZE, Priority::LOW_MEDIUM, Core::CORE_1);
-}
-
 void TaskManager::buttonTask(void* parameter) {
     for(;;) {
         Buttons::getInstance().update();
@@ -136,20 +41,6 @@ void TaskManager::messageProcessorTask(void* parameter) {
     }
 }
 
-void TaskManager::createStackMonitorTask() {
-    BaseType_t result = xTaskCreatePinnedToCore(
-        stackMonitorTask,
-        "StackMonitor",
-        STACK_MONITOR_STACK_SIZE,
-        NULL,
-        static_cast<uint8_t>(Priority::BACKGROUND),  // Background monitoring
-        &stackMonitorTaskHandle,
-        static_cast<BaseType_t>(Core::CORE_1)    // Use Core 1 - not time critical
-    );
-    logTaskCreation("StackMonitor", result == pdPASS);
-    return;
-}
-
 void TaskManager::stackMonitorTask(void* parameter) {
     for(;;) {
         printStackUsage();
@@ -162,6 +53,46 @@ void TaskManager::bytecodeVMTask(void* parameter) {
         BytecodeVM::getInstance().update();
         vTaskDelay(pdMS_TO_TICKS(5));  // No monitoring code here!
     }
+}
+
+bool TaskManager::createButtonTask() {
+    return createTask("Buttons", buttonTask, BUTTON_STACK_SIZE, 
+                     Priority::CRITICAL, Core::CORE_0, &buttonTaskHandle);
+}
+
+bool TaskManager::createSerialInputTask() {
+    return createTask("SerialInput", serialInputTask, SERIAL_INPUT_STACK_SIZE,
+                     Priority::COMMUNICATION, Core::CORE_0, &serialInputTaskHandle);
+}
+
+bool TaskManager::createLedTask() {
+    return createTask("LED", ledTask, LED_STACK_SIZE,
+                     Priority::BACKGROUND, Core::CORE_0, &ledTaskHandle);
+}
+
+bool TaskManager::createMessageProcessorTask() {
+    return createTask("MessageProcessor", messageProcessorTask, MESSAGE_PROCESSOR_STACK_SIZE,
+                     Priority::SYSTEM_CONTROL, Core::CORE_0, &messageProcessorTaskHandle);
+}
+
+bool TaskManager::createBytecodeVMTask() {
+    return createTask("BytecodeVM", bytecodeVMTask, BYTECODE_VM_STACK_SIZE,
+                     Priority::USER_PROGRAMS, Core::CORE_0, &bytecodeVMTaskHandle);
+}
+
+bool TaskManager::createSensorTask() {
+    return createTask("SensorAndBytecode", SensorAndBytecodeTask, SENSOR_STACK_SIZE,
+                     Priority::SYSTEM_CONTROL, Core::CORE_0, &sensorTaskHandle);
+}
+
+bool TaskManager::createNetworkTask() {
+    return createTask("Network", NetworkTask, NETWORK_STACK_SIZE,
+                     Priority::COMMUNICATION, Core::CORE_1, &networkTaskHandle);
+}
+
+bool TaskManager::createStackMonitorTask() {
+    return createTask("StackMonitor", stackMonitorTask, STACK_MONITOR_STACK_SIZE,
+                     Priority::BACKGROUND, Core::CORE_1, &stackMonitorTaskHandle);
 }
 
 bool TaskManager::createTask(

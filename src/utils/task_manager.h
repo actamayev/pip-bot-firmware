@@ -17,7 +17,7 @@ class TaskManager {
         static bool createBytecodeVMTask();
         static bool createSensorTask();
         static bool createNetworkTask();
-        static void createStackMonitorTask();  // Conditional creation
+        static bool createStackMonitorTask();  // Conditional creation
 
     private:
         static bool logTaskCreation(const char* name, bool success);
