@@ -2,7 +2,9 @@
 #include <freertos/FreeRTOS.h> // MUST BE BEFORE TASK.h
 #include <freertos/task.h>
 #include "actuators/buttons.h"
+#include "utils/sensor_loggers.h"
 #include "networking/serial_manager.h"
+#include "sensors/sensor_initializer.h"
 #include "actuators/led/led_animations.h"
 #include "networking/serial_queue_manager.h"
 #include "custom_interpreter/bytecode_vm.h"
@@ -15,10 +17,11 @@ class TaskManager {
         static bool createLedTask();
         static bool createMessageProcessorTask();
         static bool createBytecodeVMTask();
-        static bool createSensorTask();
         static bool createNetworkTask();
-        static bool createStackMonitorTask();  // Conditional creation
-
+        static bool createStackMonitorTask();
+        static bool createSensorInitTask();
+        static bool createSensorPollingTask();  // Called by SensorInit when ready
+ 
     private:
         static bool logTaskCreation(const char* name, bool success);
         static void buttonTask(void* parameter);
@@ -27,15 +30,18 @@ class TaskManager {
         static void messageProcessorTask(void* parameter);
         static void bytecodeVMTask(void* parameter);
         static void stackMonitorTask(void* parameter);
+        static void sensorInitTask(void* parameter);
+        static void sensorPollingTask(void* parameter);
 
         static constexpr uint32_t BUTTON_STACK_SIZE = 4096;
         static constexpr uint32_t SERIAL_INPUT_STACK_SIZE = 8192;
         static constexpr uint32_t LED_STACK_SIZE = 6144;
         static constexpr uint32_t MESSAGE_PROCESSOR_STACK_SIZE = 8192; // Increase - motor + encoder logic
         static constexpr uint32_t BYTECODE_VM_STACK_SIZE = 16384;
-        static constexpr uint32_t SENSOR_STACK_SIZE = 20480;
         static constexpr uint32_t NETWORK_STACK_SIZE = 8192;
         static constexpr uint32_t STACK_MONITOR_STACK_SIZE = 2048;  // Small - just logging
+        static constexpr uint32_t SENSOR_INIT_STACK_SIZE = 6144;    // For I2C init complexity
+        static constexpr uint32_t SENSOR_POLLING_STACK_SIZE = 8192; // Just polling
 
         // Task priorities (higher number = higher priority)
         enum class Priority : uint8_t {
@@ -68,8 +74,9 @@ class TaskManager {
         static TaskHandle_t ledTaskHandle;
         static TaskHandle_t messageProcessorTaskHandle;
         static TaskHandle_t bytecodeVMTaskHandle;
-        static TaskHandle_t sensorTaskHandle;
         static TaskHandle_t networkTaskHandle;
         static TaskHandle_t stackMonitorTaskHandle;
+        static TaskHandle_t sensorInitTaskHandle;
+        static TaskHandle_t sensorPollingTaskHandle;
         static void printStackUsage();
 };

@@ -5,12 +5,11 @@ TaskHandle_t TaskManager::serialInputTaskHandle = NULL;
 TaskHandle_t TaskManager::ledTaskHandle = NULL;
 TaskHandle_t TaskManager::messageProcessorTaskHandle = NULL;
 TaskHandle_t TaskManager::bytecodeVMTaskHandle = NULL;
-TaskHandle_t TaskManager::sensorTaskHandle = NULL;
 TaskHandle_t TaskManager::networkTaskHandle = NULL;
 TaskHandle_t TaskManager::stackMonitorTaskHandle = NULL;
+TaskHandle_t TaskManager::sensorInitTaskHandle = NULL;
+TaskHandle_t TaskManager::sensorPollingTaskHandle = NULL;
 
-// Task function declarations (put these in main.cpp)
-extern void SensorTask(void* parameter);
 extern void NetworkTask(void* parameter);
 
 void TaskManager::buttonTask(void* parameter) {
@@ -55,6 +54,80 @@ void TaskManager::stackMonitorTask(void* parameter) {
     }
 }
 
+void TaskManager::sensorInitTask(void* parameter) {
+    disableCore0WDT();
+    vTaskDelay(pdMS_TO_TICKS(10));
+    
+    SerialQueueManager::getInstance().queueMessage("Starting sensor initialization on Core 0...");
+    
+    // Setup button loggers (from original sensor task)
+    setupButtonLoggers();
+    
+    if (!DisplayScreen::getInstance().init()) {
+        SerialQueueManager::getInstance().queueMessage("Display initialization failed");
+    }
+    // Get the sensor initializer
+    SensorInitializer& initializer = SensorInitializer::getInstance();
+    
+    // Keep trying until ALL sensors are initialized
+    // This preserves the existing behavior where we don't give up
+    while (!initializer.areAllSensorsInitialized()) {
+        // Try each sensor type individually
+        if (!initializer.isSensorInitialized(SensorInitializer::IMU)) {
+            SerialQueueManager::getInstance().queueMessage("Trying to init IMU...");
+            initializer.tryInitializeIMU();
+        }
+        
+        if (!initializer.isSensorInitialized(SensorInitializer::MULTIZONE_TOF)) {
+            SerialQueueManager::getInstance().queueMessage("Trying to init Multizone TOF...");
+            initializer.tryInitializeMultizoneTof();
+        }
+        
+        if (!initializer.isSensorInitialized(SensorInitializer::LEFT_SIDE_TOF)) {
+            SerialQueueManager::getInstance().queueMessage("Trying to init Left TOF...");
+            initializer.tryInitializeLeftSideTof();
+        }
+        
+        if (!initializer.isSensorInitialized(SensorInitializer::RIGHT_SIDE_TOF)) {
+            SerialQueueManager::getInstance().queueMessage("Trying to init Right TOF...");
+            initializer.tryInitializeRightSideTof();
+        }
+        
+        // Small delay between retry cycles
+        vTaskDelay(pdMS_TO_TICKS(100));
+    }
+    
+    SerialQueueManager::getInstance().queueMessage("All sensors initialized successfully!");
+    enableCore0WDT();
+    
+    // Create the sensor polling task now that init is complete
+    bool pollingTaskCreated = createSensorPollingTask();
+    
+    if (pollingTaskCreated) {
+        SerialQueueManager::getInstance().queueMessage("Sensor polling task created - initialization complete");
+        // Start polling since sensors are ready
+        SensorPollingManager::getInstance().startPolling();
+    } else {
+        SerialQueueManager::getInstance().queueMessage("ERROR: Failed to create sensor polling task!");
+    }
+    
+    // Self-delete - our job is done
+    SerialQueueManager::getInstance().queueMessage("SensorInit task self-deleting");
+    sensorInitTaskHandle = NULL;  // Clear handle before deletion
+    vTaskDelete(NULL);
+}
+
+// SensorPolling Task - handles ongoing sensor data collection
+void TaskManager::sensorPollingTask(void* parameter) {
+    SerialQueueManager::getInstance().queueMessage("Sensor polling task started");
+    
+    // Main polling loop - this preserves all existing SensorPollingManager behavior
+    for(;;) {
+        SensorPollingManager::getInstance().update();
+        vTaskDelay(pdMS_TO_TICKS(5));  // Same timing as before
+    }
+}
+
 bool TaskManager::createButtonTask() {
     return createTask("Buttons", buttonTask, BUTTON_STACK_SIZE, 
                      Priority::CRITICAL, Core::CORE_0, &buttonTaskHandle);
@@ -85,14 +158,19 @@ bool TaskManager::createStackMonitorTask() {
                      Priority::BACKGROUND, Core::CORE_1, &stackMonitorTaskHandle);
 }
 
-bool TaskManager::createSensorTask() {
-    return createTask("SensorAndBytecode", SensorTask, SENSOR_STACK_SIZE,
-                     Priority::SYSTEM_CONTROL, Core::CORE_0, &sensorTaskHandle);
-}
-
 bool TaskManager::createNetworkTask() {
     return createTask("Network", NetworkTask, NETWORK_STACK_SIZE,
                      Priority::COMMUNICATION, Core::CORE_1, &networkTaskHandle);
+}
+
+bool TaskManager::createSensorInitTask() {
+    return createTask("SensorInit", sensorInitTask, SENSOR_INIT_STACK_SIZE,
+                     Priority::SYSTEM_CONTROL, Core::CORE_0, &sensorInitTaskHandle);
+}
+
+bool TaskManager::createSensorPollingTask() {
+    return createTask("SensorPolling", sensorPollingTask, SENSOR_POLLING_STACK_SIZE,
+                     Priority::SYSTEM_CONTROL, Core::CORE_0, &sensorPollingTaskHandle);
 }
 
 bool TaskManager::createTask(
@@ -150,7 +228,8 @@ void TaskManager::printStackUsage() {
         {ledTaskHandle, "LED", LED_STACK_SIZE},
         {messageProcessorTaskHandle, "MessageProcessor", MESSAGE_PROCESSOR_STACK_SIZE},
         {bytecodeVMTaskHandle, "BytecodeVM", BYTECODE_VM_STACK_SIZE},
-        {sensorTaskHandle, "Sensor", SENSOR_STACK_SIZE},
+        {sensorInitTaskHandle, "SensorInit", SENSOR_INIT_STACK_SIZE},        // May be NULL after self-delete
+        {sensorPollingTaskHandle, "SensorPolling", SENSOR_POLLING_STACK_SIZE}, // May be NULL initially
         {networkTaskHandle, "Network", NETWORK_STACK_SIZE}
     };
     
