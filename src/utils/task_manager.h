@@ -17,7 +17,7 @@ class TaskManager {
         static bool createBytecodeVMTask();
         static bool createSensorTask();
         static bool createNetworkTask();
-        static void printStackUsage();
+        static void createStackMonitorTask();  // Conditional creation
 
     private:
         static bool logTaskCreation(const char* name, bool success);
@@ -26,6 +26,7 @@ class TaskManager {
         static void ledTask(void* parameter);
         static void messageProcessorTask(void* parameter);
         static void bytecodeVMTask(void* parameter);
+        static void stackMonitorTask(void* parameter);
 
         static constexpr uint32_t BUTTON_STACK_SIZE = 4096;
         static constexpr uint32_t SERIAL_INPUT_STACK_SIZE = 8192;
@@ -34,14 +35,15 @@ class TaskManager {
         static constexpr uint32_t BYTECODE_VM_STACK_SIZE = 16384;
         static constexpr uint32_t SENSOR_STACK_SIZE = 20480;
         static constexpr uint32_t NETWORK_STACK_SIZE = 8192;
-        
+        static constexpr uint32_t STACK_MONITOR_STACK_SIZE = 2048;  // Small - just logging
+
         // Task priorities (higher number = higher priority)
         enum class Priority : uint8_t {
-            LOWEST = 0,      // Background tasks
-            LOW_MEDIUM = 1,         // User programs, sensors
-            MEDIUM = 2,      // Motor control, system functions  
-            MEDIUM_HIGH = 3,        // Communication, serial
-            HIGHEST = 4      // User interaction (buttons)
+            BACKGROUND = 0,     // Stack monitor, LED animations
+            USER_PROGRAMS = 1,  // BytecodeVM - user code shouldn't block system
+            SYSTEM_CONTROL = 2, // MessageProcessor, sensors
+            COMMUNICATION = 3,  // SerialInput, Network - user interaction
+            CRITICAL = 4        // Buttons - immediate response required
         };
 
         // Core assignments
@@ -57,6 +59,7 @@ class TaskManager {
             uint32_t stackSize,
             Priority priority,
             Core coreId,
+            TaskHandle_t* taskHandle,  // <-- ADD THIS PARAMETER
             void* parameters = NULL
         );
 
@@ -67,4 +70,6 @@ class TaskManager {
         static TaskHandle_t bytecodeVMTaskHandle;
         static TaskHandle_t sensorTaskHandle;
         static TaskHandle_t networkTaskHandle;
+        static TaskHandle_t stackMonitorTaskHandle;
+        static void printStackUsage();
 };

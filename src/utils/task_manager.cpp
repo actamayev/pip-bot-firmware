@@ -7,6 +7,7 @@ TaskHandle_t TaskManager::messageProcessorTaskHandle = NULL;
 TaskHandle_t TaskManager::bytecodeVMTaskHandle = NULL;
 TaskHandle_t TaskManager::sensorTaskHandle = NULL;
 TaskHandle_t TaskManager::networkTaskHandle = NULL;
+TaskHandle_t TaskManager::stackMonitorTaskHandle = NULL;
 
 // Task function declarations (put these in main.cpp)
 extern void SensorAndBytecodeTask(void* parameter);
@@ -18,7 +19,7 @@ bool TaskManager::createButtonTask() {
         "Buttons",
         BUTTON_STACK_SIZE,
         NULL,
-        static_cast<uint8_t>(Priority::HIGHEST),
+        static_cast<uint8_t>(Priority::CRITICAL),
         &buttonTaskHandle,  // <-- Store handle instead of NULL
         static_cast<BaseType_t>(Core::CORE_0)
     );
@@ -31,7 +32,7 @@ bool TaskManager::createSerialInputTask() {
         "SerialInput",
         SERIAL_INPUT_STACK_SIZE,
         NULL,
-        static_cast<uint8_t>(Priority::MEDIUM_HIGH),
+        static_cast<uint8_t>(Priority::COMMUNICATION),
         &serialInputTaskHandle,  // <-- Store handle
         static_cast<BaseType_t>(Core::CORE_0)
     );
@@ -45,7 +46,7 @@ bool TaskManager::createLedTask() {
         "LED",
         LED_STACK_SIZE,
         NULL,
-        static_cast<uint8_t>(Priority::LOWEST),
+        static_cast<uint8_t>(Priority::BACKGROUND),
         &ledTaskHandle,  // <-- Store handle
         static_cast<BaseType_t>(Core::CORE_0)
     );
@@ -59,7 +60,7 @@ bool TaskManager::createMessageProcessorTask() {
         "MessageProcessor",
         MESSAGE_PROCESSOR_STACK_SIZE,
         NULL,
-        static_cast<uint8_t>(Priority::MEDIUM),
+        static_cast<uint8_t>(Priority::SYSTEM_CONTROL),
         &messageProcessorTaskHandle,  // <-- Store handle
         static_cast<BaseType_t>(Core::CORE_0)
     );
@@ -72,7 +73,7 @@ bool TaskManager::createBytecodeVMTask() {
         "BytecodeVM",
         BYTECODE_VM_STACK_SIZE,
         NULL,
-        static_cast<uint8_t>(Priority::LOW_MEDIUM),
+        static_cast<uint8_t>(Priority::USER_PROGRAMS),
         &bytecodeVMTaskHandle,  // <-- Store handle
         static_cast<BaseType_t>(Core::CORE_0)
     );
@@ -85,7 +86,7 @@ bool TaskManager::createSensorTask() {
         "SensorAndBytecode",
         SENSOR_STACK_SIZE,
         NULL,
-        static_cast<uint8_t>(Priority::LOW_MEDIUM),
+        static_cast<uint8_t>(Priority::USER_PROGRAMS),
         &sensorTaskHandle,  // <-- Store handle
         static_cast<BaseType_t>(Core::CORE_0)
     );
@@ -99,7 +100,7 @@ bool TaskManager::createNetworkTask() {
         "Network",
         NETWORK_STACK_SIZE,
         NULL,
-        static_cast<uint8_t>(Priority::LOW_MEDIUM),
+        static_cast<uint8_t>(Priority::COMMUNICATION),
         &networkTaskHandle,  // <-- Store handle
         static_cast<BaseType_t>(Core::CORE_0)
     );
@@ -135,19 +136,31 @@ void TaskManager::messageProcessorTask(void* parameter) {
     }
 }
 
+void TaskManager::createStackMonitorTask() {
+    BaseType_t result = xTaskCreatePinnedToCore(
+        stackMonitorTask,
+        "StackMonitor",
+        STACK_MONITOR_STACK_SIZE,
+        NULL,
+        static_cast<uint8_t>(Priority::BACKGROUND),  // Background monitoring
+        &stackMonitorTaskHandle,
+        static_cast<BaseType_t>(Core::CORE_1)    // Use Core 1 - not time critical
+    );
+    logTaskCreation("StackMonitor", result == pdPASS);
+    return;
+}
+
+void TaskManager::stackMonitorTask(void* parameter) {
+    for(;;) {
+        printStackUsage();
+        vTaskDelay(pdMS_TO_TICKS(1000));  // Every 10 seconds, not 1 second
+    }
+}
+
 void TaskManager::bytecodeVMTask(void* parameter) {
-    static unsigned long lastStackCheck = 0;
-    
     for(;;) {
         BytecodeVM::getInstance().update();
-        
-        // Check stack usage every 10 seconds
-        if (millis() - lastStackCheck > 1000) {
-            printStackUsage();
-            lastStackCheck = millis();
-        }
-        
-        vTaskDelay(pdMS_TO_TICKS(5));
+        vTaskDelay(pdMS_TO_TICKS(5));  // No monitoring code here!
     }
 }
 
@@ -157,6 +170,7 @@ bool TaskManager::createTask(
     uint32_t stackSize,
     Priority priority,
     Core coreId,
+    TaskHandle_t* taskHandle,  // <-- ADD THIS PARAMETER
     void* parameters
 ) {
     BaseType_t result = xTaskCreatePinnedToCore(
@@ -164,9 +178,9 @@ bool TaskManager::createTask(
         name,
         stackSize,
         parameters,
-        static_cast<uint8_t>(priority),    // Convert enum to uint8_t
-        NULL,
-        static_cast<BaseType_t>(coreId)    // Convert enum to BaseType_t
+        static_cast<uint8_t>(priority),
+        taskHandle,  // <-- USE THE PASSED HANDLE INSTEAD OF NULL
+        static_cast<BaseType_t>(coreId)
     );
     
     return logTaskCreation(name, result == pdPASS);

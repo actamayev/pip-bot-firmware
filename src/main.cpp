@@ -205,6 +205,7 @@ void setup() {
     TaskManager::createBytecodeVMTask();        // Core 1 - user programs
     TaskManager::createSensorTask();     // External function
     TaskManager::createNetworkTask();    // External function
+    TaskManager::createStackMonitorTask();   // Enable in debug builds
 }
 
 // Main loop runs on Core 1
