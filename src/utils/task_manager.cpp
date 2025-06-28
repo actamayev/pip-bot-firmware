@@ -63,9 +63,9 @@ void TaskManager::sensorInitTask(void* parameter) {
     // Setup button loggers (from original sensor task)
     setupButtonLoggers();
     
-    if (!DisplayScreen::getInstance().init()) {
-        SerialQueueManager::getInstance().queueMessage("Display initialization failed");
-    }
+    // if (!DisplayScreen::getInstance().init()) {
+    //     SerialQueueManager::getInstance().queueMessage("Display initialization failed");
+    // }
     // Get the sensor initializer
     SensorInitializer& initializer = SensorInitializer::getInstance();
     
