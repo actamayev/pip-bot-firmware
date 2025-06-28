@@ -21,62 +21,6 @@
 #include "wifi_selection/wifi_selection_manager.h"
 #include "wifi_selection/haptic_feedback_manager.h"
 
-// Task to handle sensors and bytecode on Core 0
-// void SensorTask(void * parameter) {
-//     disableCore0WDT();
-//     vTaskDelay(pdMS_TO_TICKS(10));
-//     // Initialize sensors on Core 0
-//     SerialQueueManager::getInstance().queueMessage("Initializing sensors on Core 0...");
-
-//     setupButtonLoggers();
-//     // if (!DisplayScreen::getInstance().init()) {
-//     //     SerialQueueManager::getInstance().queueMessage("Display initialization failed");
-//     // }
-
-//     SensorInitializer& initializer = SensorInitializer::getInstance();
-
-//     // First attempt to initialize each sensor before entering the main loop
-//     if (!initializer.isSensorInitialized(SensorInitializer::IMU)) {
-//         SerialQueueManager::getInstance().queueMessage("Trying to init imu...");
-//         initializer.tryInitializeIMU();
-//     }
-    
-//     if (!initializer.isSensorInitialized(SensorInitializer::MULTIZONE_TOF)) {
-//         SerialQueueManager::getInstance().queueMessage("Trying to init MZ...");
-//         initializer.tryInitializeMultizoneTof();
-//     }
-    
-//     if (!initializer.isSensorInitialized(SensorInitializer::LEFT_SIDE_TOF)) {
-//         SerialQueueManager::getInstance().queueMessage("Trying to init Left Tof...");
-//         initializer.tryInitializeLeftSideTof();
-//     }
-    
-//     if (!initializer.isSensorInitialized(SensorInitializer::RIGHT_SIDE_TOF)) {
-//         SerialQueueManager::getInstance().queueMessage("Trying to init Right Tof...");
-//         initializer.tryInitializeRightSideTof();
-//     }
-    
-//     SerialQueueManager::getInstance().queueMessage("Sensors initialized on Core 0");
-//     enableCore0WDT();
-
-//     // Only check if all sensors are initialized, but don't try to initialize here
-//     if (!initializer.areAllSensorsInitialized()) {
-//         while (1);
-//     }
-//     SensorPollingManager::getInstance().startPolling();
-//     // Main sensor and bytecode loop
-//     for(;;) {
-//         // BytecodeVM::getInstance().update();
-//         // MessageProcessor::getInstance().processPendingCommands();
-//         SensorPollingManager::getInstance().update();
-//         // DisplayScreen::getInstance().update();
-//         // multizoneTofLogger();
-//         // imuLogger();
-//         // sideTofsLogger();
-//         vTaskDelay(pdMS_TO_TICKS(5));  // Use proper FreeRTOS delay
-//     }
-// }
-
 // Task to handle WiFi and networking on Core 1
 void NetworkTask(void * parameter) {
     // Initialize WiFi and networking components
