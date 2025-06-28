@@ -62,7 +62,7 @@ bool TaskManager::createButtonTask() {
 
 bool TaskManager::createSerialInputTask() {
     return createTask("SerialInput", serialInputTask, SERIAL_INPUT_STACK_SIZE,
-                     Priority::COMMUNICATION, Core::CORE_0, &serialInputTaskHandle);
+                     Priority::COMMUNICATION, Core::CORE_1, &serialInputTaskHandle);
 }
 
 bool TaskManager::createLedTask() {
