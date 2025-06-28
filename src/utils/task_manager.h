@@ -21,7 +21,8 @@ class TaskManager {
         static bool createStackMonitorTask();
         static bool createSensorInitTask();
         static bool createSensorPollingTask();  // Called by SensorInit when ready
- 
+        // static bool createDisplayTask();
+
     private:
         static bool logTaskCreation(const char* name, bool success);
         static void buttonTask(void* parameter);
@@ -32,6 +33,7 @@ class TaskManager {
         static void stackMonitorTask(void* parameter);
         static void sensorInitTask(void* parameter);
         static void sensorPollingTask(void* parameter);
+        // static void displayTask(void* parameter);
 
         static constexpr uint32_t BUTTON_STACK_SIZE = 4096;
         static constexpr uint32_t SERIAL_INPUT_STACK_SIZE = 8192;
@@ -42,6 +44,7 @@ class TaskManager {
         static constexpr uint32_t STACK_MONITOR_STACK_SIZE = 2048;  // Small - just logging
         static constexpr uint32_t SENSOR_INIT_STACK_SIZE = 6144;    // For I2C init complexity
         static constexpr uint32_t SENSOR_POLLING_STACK_SIZE = 8192; // Just polling
+        // static constexpr uint32_t DISPLAY_STACK_SIZE = 4096;  // I2C + display buffer operations
 
         // Task priorities (higher number = higher priority)
         enum class Priority : uint8_t {
@@ -78,5 +81,7 @@ class TaskManager {
         static TaskHandle_t stackMonitorTaskHandle;
         static TaskHandle_t sensorInitTaskHandle;
         static TaskHandle_t sensorPollingTaskHandle;
+        // static TaskHandle_t displayTaskHandle;
+
         static void printStackUsage();
 };

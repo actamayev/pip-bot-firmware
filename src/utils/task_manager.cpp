@@ -9,6 +9,7 @@ TaskHandle_t TaskManager::networkTaskHandle = NULL;
 TaskHandle_t TaskManager::stackMonitorTaskHandle = NULL;
 TaskHandle_t TaskManager::sensorInitTaskHandle = NULL;
 TaskHandle_t TaskManager::sensorPollingTaskHandle = NULL;
+// TaskHandle_t TaskManager::displayTaskHandle = NULL;
 
 extern void NetworkTask(void* parameter);
 
@@ -54,6 +55,15 @@ void TaskManager::stackMonitorTask(void* parameter) {
     }
 }
 
+// void TaskManager::displayTask(void* parameter) {
+//     SerialQueueManager::getInstance().queueMessage("Display task started");
+    
+//     for(;;) {
+//         DisplayScreen::getInstance().update();
+//         vTaskDelay(pdMS_TO_TICKS(20));  // 50Hz update rate, smooth for animations
+//     }
+// }
+
 void TaskManager::sensorInitTask(void* parameter) {
     disableCore0WDT();
     vTaskDelay(pdMS_TO_TICKS(10));
@@ -63,9 +73,11 @@ void TaskManager::sensorInitTask(void* parameter) {
     // Setup button loggers (from original sensor task)
     setupButtonLoggers();
     
-    // if (!DisplayScreen::getInstance().init()) {
-    //     SerialQueueManager::getInstance().queueMessage("Display initialization failed");
-    // }
+//    if (!DisplayScreen::getInstance().init()) {
+//         SerialQueueManager::getInstance().queueMessage("Display initialization failed");
+//     } else {
+//         SerialQueueManager::getInstance().queueMessage("Display initialized successfully");
+//     }
     // Get the sensor initializer
     SensorInitializer& initializer = SensorInitializer::getInstance();
     
@@ -102,13 +114,13 @@ void TaskManager::sensorInitTask(void* parameter) {
     
     // Create the sensor polling task now that init is complete
     bool pollingTaskCreated = createSensorPollingTask();
-    
+    // bool displayTaskCreated = createDisplayTask();
+
     if (pollingTaskCreated) {
-        SerialQueueManager::getInstance().queueMessage("Sensor polling task created - initialization complete");
-        // Start polling since sensors are ready
+        SerialQueueManager::getInstance().queueMessage("All tasks created - initialization complete");
         SensorPollingManager::getInstance().startPolling();
     } else {
-        SerialQueueManager::getInstance().queueMessage("ERROR: Failed to create sensor polling task!");
+        SerialQueueManager::getInstance().queueMessage("ERROR: Failed to create required tasks!");
     }
     
     // Self-delete - our job is done
@@ -173,6 +185,11 @@ bool TaskManager::createSensorPollingTask() {
                      Priority::SYSTEM_CONTROL, Core::CORE_0, &sensorPollingTaskHandle);
 }
 
+// bool TaskManager::createDisplayTask() {
+//     return createTask("Display", displayTask, DISPLAY_STACK_SIZE,
+//                      Priority::BACKGROUND, Core::CORE_1, &displayTaskHandle);
+// }
+
 bool TaskManager::createTask(
     const char* name,
     TaskFunction_t taskFunction, 
@@ -230,23 +247,24 @@ void TaskManager::printStackUsage() {
         {bytecodeVMTaskHandle, "BytecodeVM", BYTECODE_VM_STACK_SIZE},
         {sensorInitTaskHandle, "SensorInit", SENSOR_INIT_STACK_SIZE},        // May be NULL after self-delete
         {sensorPollingTaskHandle, "SensorPolling", SENSOR_POLLING_STACK_SIZE}, // May be NULL initially
+        // {displayTaskHandle, "Display", DISPLAY_STACK_SIZE},  // Add this line
         {networkTaskHandle, "Network", NETWORK_STACK_SIZE}
     };
     
-    for (int i = 0; i < 7; i++) {
-        if (tasks[i].handle != NULL) {
-            UBaseType_t freeStack = uxTaskGetStackHighWaterMark(tasks[i].handle);
-            uint32_t usedStack = tasks[i].allocatedSize - (freeStack * sizeof(StackType_t));
-            float percentUsed = (float)usedStack / tasks[i].allocatedSize * 100.0f;
+    for (const auto& task : tasks) {
+        if (task.handle != NULL) {
+            UBaseType_t freeStack = uxTaskGetStackHighWaterMark(task.handle);
+            uint32_t usedStack = task.allocatedSize - (freeStack * sizeof(StackType_t));
+            float percentUsed = (float)usedStack / task.allocatedSize * 100.0f;
             
             // Format with fixed width for alignment
             char taskName[16];
-            snprintf(taskName, sizeof(taskName), "%-15s", tasks[i].name);
+            snprintf(taskName, sizeof(taskName), "%-15s", task.name);
             
             String message = "║ " + String(taskName) + " " + 
-                           String(usedStack, DEC) + "/" + String(tasks[i].allocatedSize) + 
-                           " (" + String(percentUsed, 1) + "%)";
-                           
+                        String(usedStack, DEC) + "/" + String(task.allocatedSize) + 
+                        " (" + String(percentUsed, 1) + "%)";
+                        
             // Pad to consistent width
             while (message.length() < 37) {
                 message += " ";
