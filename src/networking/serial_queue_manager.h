@@ -38,7 +38,6 @@ class SerialQueueManager : public Singleton<SerialQueueManager> {
         
         // Queue configuration
         static constexpr uint16_t SERIAL_QUEUE_SIZE = 50;
-        static constexpr UBaseType_t SERIAL_TASK_PRIORITY = 2; // Medium priority
         
         // FreeRTOS objects
         QueueHandle_t messageQueue = nullptr;
