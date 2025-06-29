@@ -125,7 +125,7 @@ bool MultizoneTofSensor::configureSensor() {
 }
 
 bool MultizoneTofSensor::resetSensor() {
-    SerialQueueManager::getInstance().queueMessage("SENSOR RESET: Data stopped - performing recovery...");
+    SerialQueueManager::getInstance().queueMessage("MZ SENSOR RESET: Data stopped - performing recovery...");
     
     // Set sensor as inactive during reset
     sensorActive = false;

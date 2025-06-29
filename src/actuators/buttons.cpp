@@ -32,11 +32,8 @@ void Buttons::setButton1ClickHandler(std::function<void(Button2&)> callback) {
         TimeoutManager::getInstance().resetActivity();
         
         // Check if timeout manager is in confirmation state
-        if (TimeoutManager::getInstance().isInConfirmationState()) {
-            // resetActivity() above already handled canceling confirmation
-            return; // Don't process other button logic
-        }
-        
+        if (TimeoutManager::getInstance().isInConfirmationState()) return; // Don't process other button logic
+
         // If we're waiting for confirmation, this click confirms deep sleep
         if (this->waitingForSleepConfirmation) return;
 
@@ -82,11 +79,8 @@ void Buttons::setButton2ClickHandler(std::function<void(Button2&)> callback) {
         TimeoutManager::getInstance().resetActivity();
         
         // Check if timeout manager is in confirmation state
-        if (TimeoutManager::getInstance().isInConfirmationState()) {
-            // resetActivity() above already handled canceling confirmation
-            return; // Don't process other button logic
-        }
-        
+        if (TimeoutManager::getInstance().isInConfirmationState()) return; // Don't process other button logic
+
         // If we're waiting for confirmation, this click cancels deep sleep
         if (this->waitingForSleepConfirmation) {
             SerialQueueManager::getInstance().queueMessage("Sleep canceled with Button 2!");
@@ -146,11 +140,7 @@ void Buttons::setupDeepSleep() {
         this->waitingForSleepConfirmation = true; // Enter confirmation stage instead of sleeping directly
     });
 
-    // Check if we woke up from deep sleep due to button press
-    esp_sleep_wakeup_cause_t wakeup_reason = esp_sleep_get_wakeup_cause();
-    if (wakeup_reason == ESP_SLEEP_WAKEUP_EXT0) {
-        SerialQueueManager::getInstance().queueMessage("Woke up from deep sleep due to button press on GPIO 12");
-    }
+    // Note: Wakeup detection is now handled in checkHoldToWakeCondition()
 }
 
 void Buttons::enterDeepSleep() {

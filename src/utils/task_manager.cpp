@@ -1,0 +1,375 @@
+#include "task_manager.h"
+
+TaskHandle_t TaskManager::buttonTaskHandle = NULL;
+TaskHandle_t TaskManager::serialInputTaskHandle = NULL;
+TaskHandle_t TaskManager::ledTaskHandle = NULL;
+TaskHandle_t TaskManager::messageProcessorTaskHandle = NULL;
+TaskHandle_t TaskManager::bytecodeVMTaskHandle = NULL;
+TaskHandle_t TaskManager::stackMonitorTaskHandle = NULL;
+TaskHandle_t TaskManager::sensorInitTaskHandle = NULL;
+TaskHandle_t TaskManager::sensorPollingTaskHandle = NULL;
+// TaskHandle_t TaskManager::displayTaskHandle = NULL;
+TaskHandle_t TaskManager::networkManagementTaskHandle = NULL;
+TaskHandle_t TaskManager::networkCommunicationTaskHandle = NULL;
+TaskHandle_t TaskManager::serialQueueTaskHandle = NULL;
+
+void TaskManager::buttonTask(void* parameter) {
+    for(;;) {
+        Buttons::getInstance().update();
+        vTaskDelay(pdMS_TO_TICKS(1));
+    }
+}
+
+void TaskManager::serialInputTask(void* parameter) {
+    for(;;) {
+        SerialManager::getInstance().pollSerial();
+        vTaskDelay(pdMS_TO_TICKS(2));
+    }
+}
+
+void TaskManager::ledTask(void* parameter) {
+    for(;;) {
+        ledAnimations.update();
+        vTaskDelay(pdMS_TO_TICKS(5));
+    }
+}
+
+void TaskManager::messageProcessorTask(void* parameter) {
+    for(;;) {
+        MessageProcessor::getInstance().processPendingCommands();
+        vTaskDelay(pdMS_TO_TICKS(2)); // Fast motor command processing
+    }
+}
+
+void TaskManager::bytecodeVMTask(void* parameter) {
+    for(;;) {
+        BytecodeVM::getInstance().update();
+        vTaskDelay(pdMS_TO_TICKS(5));
+    }
+}
+
+void TaskManager::stackMonitorTask(void* parameter) {
+    for(;;) {
+        printStackUsage();
+        vTaskDelay(pdMS_TO_TICKS(1000));
+    }
+}
+
+// void TaskManager::displayTask(void* parameter) {
+//     SerialQueueManager::getInstance().queueMessage("Display task started");
+    
+//     for(;;) {
+//         DisplayScreen::getInstance().update();
+//         vTaskDelay(pdMS_TO_TICKS(20));  // 50Hz update rate, smooth for animations
+//     }
+// }
+
+void TaskManager::sensorInitTask(void* parameter) {
+    disableCore0WDT();
+    vTaskDelay(pdMS_TO_TICKS(10));
+    
+    SerialQueueManager::getInstance().queueMessage("Starting sensor initialization on Core 0...");
+    
+    // Setup button loggers (from original sensor task)
+    setupButtonLoggers();
+    
+//    if (!DisplayScreen::getInstance().init()) {
+//         SerialQueueManager::getInstance().queueMessage("Display initialization failed");
+//     } else {
+//         SerialQueueManager::getInstance().queueMessage("Display initialized successfully");
+//     }
+    // Get the sensor initializer
+    SensorInitializer& initializer = SensorInitializer::getInstance();
+
+    // Keep trying until ALL sensors are initialized
+    // This preserves the existing behavior where we don't give up
+    while (!initializer.areAllSensorsInitialized()) {
+        // Try each sensor type individually
+        if (!initializer.isSensorInitialized(SensorInitializer::IMU)) {
+            SerialQueueManager::getInstance().queueMessage("Trying to init IMU...");
+            initializer.tryInitializeIMU();
+        }
+        
+        if (!initializer.isSensorInitialized(SensorInitializer::MULTIZONE_TOF)) {
+            SerialQueueManager::getInstance().queueMessage("Trying to init Multizone TOF...");
+            initializer.tryInitializeMultizoneTof();
+        }
+        
+        if (!initializer.isSensorInitialized(SensorInitializer::LEFT_SIDE_TOF)) {
+            SerialQueueManager::getInstance().queueMessage("Trying to init Left TOF...");
+            initializer.tryInitializeLeftSideTof();
+        }
+        
+        if (!initializer.isSensorInitialized(SensorInitializer::RIGHT_SIDE_TOF)) {
+            SerialQueueManager::getInstance().queueMessage("Trying to init Right TOF...");
+            initializer.tryInitializeRightSideTof();
+        }
+        
+        // Small delay between retry cycles
+        vTaskDelay(pdMS_TO_TICKS(100));
+    }
+    
+    SerialQueueManager::getInstance().queueMessage("All sensors initialized successfully!");
+    enableCore0WDT();
+    
+    // Create the sensor polling task now that init is complete
+    bool pollingTaskCreated = createSensorPollingTask();
+    // bool displayTaskCreated = createDisplayTask();
+
+    if (pollingTaskCreated) {
+        SerialQueueManager::getInstance().queueMessage("All tasks created - initialization complete");
+        SensorPollingManager::getInstance().startPolling();
+    } else {
+        SerialQueueManager::getInstance().queueMessage("ERROR: Failed to create required tasks!");
+    }
+    
+    // Self-delete - our job is done
+    SerialQueueManager::getInstance().queueMessage("SensorInit task self-deleting");
+    sensorInitTaskHandle = NULL;  // Clear handle before deletion
+    vTaskDelete(NULL);
+}
+
+// SensorPolling Task - handles ongoing sensor data collection
+void TaskManager::sensorPollingTask(void* parameter) {
+    SerialQueueManager::getInstance().queueMessage("Sensor polling task started");
+    
+    // Main polling loop - this preserves all existing SensorPollingManager behavior
+    for(;;) {
+        SensorPollingManager::getInstance().update();
+        vTaskDelay(pdMS_TO_TICKS(5));  // Same timing as before
+    }
+}
+
+void TaskManager::networkManagementTask(void* parameter) {
+    // Initialize WiFi and networking components (heavy setup)
+    SerialQueueManager::getInstance().queueMessage("Initializing WiFi on Core 1...");
+    WiFiManager::getInstance();
+    SerialQueueManager::getInstance().queueMessage("WiFi initialization complete on Core 1");
+    FirmwareVersionTracker::getInstance();
+    
+    // Create the communication task now that management is initialized
+    bool commTaskCreated = createNetworkCommunicationTask();
+    if (!commTaskCreated) {
+        SerialQueueManager::getInstance().queueMessage("ERROR: Failed to create NetworkCommunication task!");
+    }
+
+    // Main management loop - slower operations
+    for(;;) {
+        NetworkMode mode = NetworkStateManager::getInstance().getCurrentMode();
+        
+        // Heavy/infrequent operations
+        WiFiManager::getInstance().checkAsyncScanProgress();
+        TimeoutManager::getInstance().update();
+
+        switch (mode) {
+            case NetworkMode::SERIAL_MODE:
+                // When in serial mode, we don't do any WiFi operations
+                break;
+
+            case NetworkMode::ADD_PIP_MODE:
+                // Process ADD_PIP_MODE WiFi testing
+                WiFiManager::getInstance().processAddPipMode();
+                break;
+
+            case NetworkMode::WIFI_MODE:
+                // WiFi connected mode - management tasks only
+                // (Communication task handles WebSocket polling)
+                break;
+
+            case NetworkMode::NONE:
+                // No connectivity - try to establish WiFi
+                WiFiManager::getInstance().checkAndReconnectWiFi();
+                HapticFeedbackManager::getInstance().update();
+                WifiSelectionManager::getInstance().processNetworkSelection();
+                break;
+        }
+
+        // Slower update rate for management operations
+        vTaskDelay(pdMS_TO_TICKS(50));
+    }
+}
+
+void TaskManager::networkCommunicationTask(void* parameter) {
+    SerialQueueManager::getInstance().queueMessage("Network communication task started");
+    
+    // Main communication loop - fast operations
+    for(;;) {
+        NetworkMode mode = NetworkStateManager::getInstance().getCurrentMode();
+        
+        // Only do communication tasks when in WiFi mode
+        if (mode == NetworkMode::WIFI_MODE) {
+            // Lightweight, frequent operations
+            WebSocketManager::getInstance().pollWebSocket();
+            SendDataToServer::getInstance().sendSensorDataToServer();
+        }
+
+        // Fast update rate for real-time communication
+        vTaskDelay(pdMS_TO_TICKS(5));
+    }
+}
+
+void TaskManager::serialQueueTask(void* parameter) {
+    // Cast back to SerialQueueManager and call its task method
+    SerialQueueManager* instance = static_cast<SerialQueueManager*>(parameter);
+    instance->serialOutputTask();
+}
+
+bool TaskManager::createButtonTask() {
+    return createTask("Buttons", buttonTask, BUTTON_STACK_SIZE, 
+                     Priority::CRITICAL, Core::CORE_0, &buttonTaskHandle);
+}
+
+bool TaskManager::createSerialInputTask() {
+    return createTask("SerialInput", serialInputTask, SERIAL_INPUT_STACK_SIZE,
+                     Priority::COMMUNICATION, Core::CORE_1, &serialInputTaskHandle);
+}
+
+bool TaskManager::createLedTask() {
+    return createTask("LED", ledTask, LED_STACK_SIZE,
+                     Priority::BACKGROUND, Core::CORE_1, &ledTaskHandle);
+}
+
+bool TaskManager::createMessageProcessorTask() {
+    return createTask("MessageProcessor", messageProcessorTask, MESSAGE_PROCESSOR_STACK_SIZE,
+                     Priority::SYSTEM_CONTROL, Core::CORE_0, &messageProcessorTaskHandle);
+}
+
+bool TaskManager::createBytecodeVMTask() {
+    return createTask("BytecodeVM", bytecodeVMTask, BYTECODE_VM_STACK_SIZE,
+                     Priority::USER_PROGRAMS, Core::CORE_0, &bytecodeVMTaskHandle);
+}
+
+bool TaskManager::createStackMonitorTask() {
+    return createTask("StackMonitor", stackMonitorTask, STACK_MONITOR_STACK_SIZE,
+                     Priority::BACKGROUND, Core::CORE_1, &stackMonitorTaskHandle);
+}
+
+// bool TaskManager::createDisplayTask() {
+//     return createTask("Display", displayTask, DISPLAY_STACK_SIZE,
+//                      Priority::BACKGROUND, Core::CORE_1, &displayTaskHandle);
+// }
+
+bool TaskManager::createSensorInitTask() {
+    return createTask("SensorInit", sensorInitTask, SENSOR_INIT_STACK_SIZE,
+                     Priority::SYSTEM_CONTROL, Core::CORE_0, &sensorInitTaskHandle);
+}
+
+bool TaskManager::createSensorPollingTask() {
+    return createTask("SensorPolling", sensorPollingTask, SENSOR_POLLING_STACK_SIZE,
+                     Priority::SYSTEM_CONTROL, Core::CORE_0, &sensorPollingTaskHandle);
+}
+
+bool TaskManager::createNetworkManagementTask() {
+    return createTask("NetworkMgmt", networkManagementTask, NETWORK_MANAGEMENT_STACK_SIZE,
+                     Priority::COMMUNICATION, Core::CORE_1, &networkManagementTaskHandle);
+}
+
+bool TaskManager::createNetworkCommunicationTask() {
+    return createTask("NetworkComm", networkCommunicationTask, NETWORK_COMMUNICATION_STACK_SIZE,
+                     Priority::REALTIME_COMM, Core::CORE_1, &networkCommunicationTaskHandle);
+}
+
+bool TaskManager::createSerialQueueTask() {
+    // Pass the SerialQueueManager instance as parameter
+    void* instance = &SerialQueueManager::getInstance();
+    return createTask("SerialQueue", serialQueueTask, SERIAL_QUEUE_STACK_SIZE,
+                     Priority::CRITICAL, Core::CORE_1, &serialQueueTaskHandle, instance);
+}
+
+bool TaskManager::createTask(
+    const char* name,
+    TaskFunction_t taskFunction, 
+    uint32_t stackSize,
+    Priority priority,
+    Core coreId,
+    TaskHandle_t* taskHandle,  // <-- ADD THIS PARAMETER
+    void* parameters
+) {
+    BaseType_t result = xTaskCreatePinnedToCore(
+        taskFunction,
+        name,
+        stackSize,
+        parameters,
+        static_cast<uint8_t>(priority),
+        taskHandle,  // <-- USE THE PASSED HANDLE INSTEAD OF NULL
+        static_cast<BaseType_t>(coreId)
+    );
+    
+    return logTaskCreation(name, result == pdPASS);
+}
+
+bool TaskManager::logTaskCreation(const char* name, bool success) {
+    if (success) {
+        SerialQueueManager::getInstance().queueMessage(
+            String("✓ Created task: ") + name, 
+            SerialPriority::HIGH_PRIO
+        );
+    } else {
+        SerialQueueManager::getInstance().queueMessage(
+            String("✗ Failed to create task: ") + name, 
+            SerialPriority::CRITICAL
+        );
+    }
+    return success;
+}
+
+void TaskManager::printStackUsage() {
+    SerialQueueManager::getInstance().queueMessage("", SerialPriority::CRITICAL);
+    SerialQueueManager::getInstance().queueMessage("╔══════════════════════════════════════╗", SerialPriority::CRITICAL);
+    SerialQueueManager::getInstance().queueMessage("║           TASK STACK USAGE           ║", SerialPriority::CRITICAL);
+    SerialQueueManager::getInstance().queueMessage("╠══════════════════════════════════════╣", SerialPriority::CRITICAL);
+    
+    struct TaskInfo {
+        TaskHandle_t handle;
+        const char* name;
+        uint32_t allocatedSize;
+    };
+    
+    TaskInfo tasks[] = {
+        {buttonTaskHandle, "Buttons", BUTTON_STACK_SIZE},
+        {serialInputTaskHandle, "SerialInput", SERIAL_INPUT_STACK_SIZE},
+        {ledTaskHandle, "LED", LED_STACK_SIZE},
+        {messageProcessorTaskHandle, "MessageProcessor", MESSAGE_PROCESSOR_STACK_SIZE},
+        {bytecodeVMTaskHandle, "BytecodeVM", BYTECODE_VM_STACK_SIZE},
+        {sensorInitTaskHandle, "SensorInit", SENSOR_INIT_STACK_SIZE},        // May be NULL after self-delete
+        {sensorPollingTaskHandle, "SensorPolling", SENSOR_POLLING_STACK_SIZE}, // May be NULL initially
+        // {displayTaskHandle, "Display", DISPLAY_STACK_SIZE},  // Add this line
+        {networkManagementTaskHandle, "NetworkMgmt", NETWORK_MANAGEMENT_STACK_SIZE},
+        {networkCommunicationTaskHandle, "NetworkComm", NETWORK_COMMUNICATION_STACK_SIZE},
+        {serialQueueTaskHandle, "SerialQueue", SERIAL_QUEUE_STACK_SIZE}, // ADD THIS LINE
+    };
+    
+    for (const auto& task : tasks) {
+        if (task.handle != NULL) {
+            UBaseType_t freeStack = uxTaskGetStackHighWaterMark(task.handle);
+            uint32_t usedStack = task.allocatedSize - (freeStack * sizeof(StackType_t));
+            float percentUsed = (float)usedStack / task.allocatedSize * 100.0f;
+            
+            // Format with fixed width for alignment
+            char taskName[16];
+            snprintf(taskName, sizeof(taskName), "%-15s", task.name);
+            
+            String message = "║ " + String(taskName) + " " + 
+                        String(usedStack, DEC) + "/" + String(task.allocatedSize) + 
+                        " (" + String(percentUsed, 1) + "%)";
+                        
+            // Pad to consistent width
+            while (message.length() < 37) {
+                message += " ";
+            }
+            message += "║";
+            
+            if (percentUsed > 90.0f) {
+                message += " 🔴";
+                SerialQueueManager::getInstance().queueMessage(message, SerialPriority::CRITICAL);
+            } else if (percentUsed > 75.0f) {
+                message += " 🟡";
+                SerialQueueManager::getInstance().queueMessage(message, SerialPriority::CRITICAL);
+            } else {
+                SerialQueueManager::getInstance().queueMessage(message, SerialPriority::CRITICAL);
+            }
+        }
+    }
+    SerialQueueManager::getInstance().queueMessage("╚══════════════════════════════════════╝", SerialPriority::CRITICAL);
+    SerialQueueManager::getInstance().queueMessage("", SerialPriority::CRITICAL);
+}

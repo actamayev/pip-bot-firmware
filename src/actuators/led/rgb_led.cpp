@@ -35,6 +35,21 @@ void RgbLed::set_led_yellow() {
     set_all_leds_to_color(MAX_LED_BRIGHTNESS, MAX_LED_BRIGHTNESS, 0);
 }
 
+void RgbLed::setDefaultColors(uint8_t red, uint8_t green, uint8_t blue) {
+    // Set default color for all LEDs without showing them
+    for (int i = 0; i < 8; i++) {
+        defaultColors[i][0] = red;
+        defaultColors[i][1] = green;
+        defaultColors[i][2] = blue;
+        defaultColorsSet[i] = true;
+    }
+    
+    // Update current color tracking (for getCurrentRed/Green/Blue)
+    currentRed = red;
+    currentGreen = green;
+    currentBlue = blue;
+}
+
 void RgbLed::set_all_leds_to_color(uint8_t red, uint8_t green, uint8_t blue) {
     currentRed = red;
     currentGreen = green;

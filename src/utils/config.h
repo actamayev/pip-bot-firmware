@@ -63,8 +63,6 @@ constexpr uint8_t BUTTON_PIN_1 = 12; // Left
 constexpr uint8_t BUTTON_PIN_2 = 48; // Right
 
 // Assign Stack sizes for the two cores
-constexpr uint32_t SENSOR_STACK_SIZE = 20480;  // 20KB for sensor processing
-constexpr uint32_t NETWORK_STACK_SIZE = 8192;  // 8KB for network operations
 constexpr uint16_t MAX_PROGRAM_SIZE = 8192;
 
 // echo | openssl s_client -showcerts -connect staging-api.bluedotrobots.com:443
@@ -104,7 +102,7 @@ inline const char* getEnvironment() {
 inline const char* getServerFirmwareEndpoint() {
     std::string env = getEnvironment();
     if (env == "local") {
-        return "http://10.62.224.40:8080/pip/firmware-update";
+        return "http://10.33.58.40:8080/pip/firmware-update";
     } else if (env == "staging") {
         return "https://staging-api.bluedotrobots.com/pip/firmware-update";
     }
@@ -114,7 +112,7 @@ inline const char* getServerFirmwareEndpoint() {
 inline const char* getWsServerUrl() {
     std::string env = getEnvironment();
     if (env == "local") {
-        return "ws://10.62.224.40:8080/esp32";
+        return "ws://10.33.58.40:8080/esp32";
     } else if (env == "staging") {
         return "wss://staging-api.bluedotrobots.com/esp32";
     }
