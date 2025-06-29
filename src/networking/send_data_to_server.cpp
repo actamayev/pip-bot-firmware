@@ -62,7 +62,7 @@ void SendDataToServer::sendSensorDataToServer() {
     StaticJsonDocument<256> doc;
 
     // Add routing information
-    doc["route"] = "/sensor-data";
+    doc["route"] = routeToString(RouteType::SENSOR_DATA);
 
     // Add the actual payload
     JsonObject payload = doc.createNestedObject("payload");
@@ -87,7 +87,7 @@ void SendDataToServer::sendBytecodeMessage(String message) {
     StaticJsonDocument<256> doc;
 
     // Add routing information
-    doc["route"] = "/bytecode-status";
+    doc["route"] = routeToString(RouteType::BYTECODE_STATUS);
 
     JsonObject payload = doc.createNestedObject("payload");
 

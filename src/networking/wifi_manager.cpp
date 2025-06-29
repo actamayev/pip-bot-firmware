@@ -298,18 +298,18 @@ void WiFiManager::processAddPipMode() {
             SerialQueueManager::getInstance().queueMessage("=== Full connection successful - storing credentials ===");
             storeWiFiCredentials(_addPipSSID, _addPipPassword, 0);
             NetworkStateManager::getInstance().setAddPipMode(false);
-            SerialManager::getInstance().sendJsonMessage("/wifi-connection-result", "success");
+            SerialManager::getInstance().sendJsonMessage(RouteType::WIFI_CONNECTION_RESULT, "success");
         } else {
             SerialQueueManager::getInstance().queueMessage("=== WebSocket connection failed - likely captive portal ===");
             WiFi.setAutoReconnect(false);
             WiFi.disconnect(true);
-            SerialManager::getInstance().sendJsonMessage("/wifi-connection-result", "wifi_only");
+            SerialManager::getInstance().sendJsonMessage(RouteType::WIFI_CONNECTION_RESULT, "wifi_only");
         }
     } else {
         SerialQueueManager::getInstance().queueMessage("=== WiFi connection failed ===");
         WiFi.setAutoReconnect(false);
         WiFi.disconnect(true);
-        SerialManager::getInstance().sendJsonMessage("/wifi-connection-result", "failed");
+        SerialManager::getInstance().sendJsonMessage(RouteType::WIFI_CONNECTION_RESULT, "failed");
     }
     
     // Clear stored credentials

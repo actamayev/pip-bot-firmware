@@ -1,6 +1,4 @@
 #include "serial_manager.h"
-#include <freertos/FreeRTOS.h>  // Must be first!
-#include <freertos/semphr.h>
 
 void SerialManager::pollSerial() {
     if (Serial.available() <= 0) {
@@ -127,7 +125,7 @@ void SerialManager::sendPipIdMessage() {
     String pipId = PreferencesManager::getInstance().getPipId();
     
     StaticJsonDocument<256> doc;
-    doc["route"] = "/pip-id";
+    doc["route"] = routeToString(RouteType::PIP_ID);
     JsonObject payload = doc.createNestedObject("payload");
     payload["pipId"] = pipId;
     
@@ -143,11 +141,11 @@ void SerialManager::sendPipIdMessage() {
     WiFiManager::getInstance().startAsyncScan();
 }
 
-void SerialManager::sendJsonMessage(const String& route, const String& status) {
+void SerialManager::sendJsonMessage(RouteType route, const String& status) {
     if (!isConnected) return;
-    
+
     StaticJsonDocument<256> doc;
-    doc["route"] = route;
+    doc["route"] = routeToString(route);
     JsonObject payload = doc.createNestedObject("payload");
     payload["status"] = status;
     
@@ -163,7 +161,7 @@ void SerialManager::sendSavedNetworksResponse(const std::vector<WiFiCredentials>
     
     // Build JSON response
     StaticJsonDocument<1024> doc;
-    doc["route"] = "/saved-networks";
+    doc["route"] = routeToString(RouteType::SAVED_NETWORKS);
     JsonArray payload = doc.createNestedArray("payload");
     
     for (size_t i = 0; i < networks.size(); i++) {
@@ -187,7 +185,7 @@ void SerialManager::sendScanResultsResponse(const std::vector<WiFiNetworkInfo>& 
     // Send each network as individual message
     for (size_t i = 0; i < networks.size(); i++) {
         StaticJsonDocument<256> doc;
-        doc["route"] = "/scan-result-item";
+        doc["route"] = routeToString(RouteType::SCAN_RESULT_ITEM);
         JsonObject payload = doc.createNestedObject("payload");
         payload["ssid"] = networks[i].ssid;
         payload["rssi"] = networks[i].rssi;
@@ -204,7 +202,7 @@ void SerialManager::sendScanResultsResponse(const std::vector<WiFiNetworkInfo>& 
     
     // Send completion message
     StaticJsonDocument<128> completeDoc;
-    completeDoc["route"] = "/scan-complete";
+    completeDoc["route"] = routeToString(RouteType::SCAN_COMPLETE);
     JsonObject completePayload = completeDoc.createNestedObject("payload");
     completePayload["totalNetworks"] = networks.size();
     
@@ -219,7 +217,7 @@ void SerialManager::sendScanStartedMessage() {
     if (!isConnected) return;
     
     StaticJsonDocument<128> doc;
-    doc["route"] = "/scan-started";
+    doc["route"] = routeToString(RouteType::SCAN_STARTED);
     JsonObject payload = doc.createNestedObject("payload");
     payload["scanning"] = true;
     
