@@ -266,7 +266,7 @@ bool TaskManager::createNetworkManagementTask() {
 
 bool TaskManager::createNetworkCommunicationTask() {
     return createTask("NetworkComm", networkCommunicationTask, NETWORK_COMMUNICATION_STACK_SIZE,
-                     Priority::COMMUNICATION, Core::CORE_1, &networkCommunicationTaskHandle);
+                     Priority::REALTIME_COMM, Core::CORE_1, &networkCommunicationTaskHandle);
 }
 
 bool TaskManager::createSerialQueueTask() {

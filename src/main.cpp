@@ -49,7 +49,7 @@ void setup() {
     TaskManager::createBytecodeVMTask();        // Core 1 - user programs
     TaskManager::createSensorInitTask();  // Only create init task at startup
     TaskManager::createNetworkManagementTask();    // External function
-    TaskManager::createStackMonitorTask();   // Enable in debug builds
+    // TaskManager::createStackMonitorTask();   // Enable in debug builds
 }
 
 // Main loop runs on Core 1
