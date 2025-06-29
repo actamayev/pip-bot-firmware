@@ -15,6 +15,7 @@ void SerialManager::pollSerial() {
     if (!isConnected) {
         isConnected = true;
         SerialQueueManager::getInstance().queueMessage("Serial connection detected!");
+        ledAnimations.turnOff();
     }
 
     // Read available bytes and process according to the current state

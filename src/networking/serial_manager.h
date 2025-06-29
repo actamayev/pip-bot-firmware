@@ -38,5 +38,5 @@ class SerialManager : public Singleton<SerialManager> {
         uint16_t expectedPayloadLength = 0;
         bool useLongFormat = false;
 
-        const unsigned long SERIAL_CONNECTION_TIMEOUT = 10000;
+        const unsigned long SERIAL_CONNECTION_TIMEOUT = 400;
 };
