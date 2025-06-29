@@ -140,7 +140,7 @@ void Buttons::setupDeepSleep() {
         this->waitingForSleepConfirmation = true; // Enter confirmation stage instead of sleeping directly
     });
 
-    // Note: Wakeup detection is now handled in main.cpp checkHoldToWakeCondition()
+    // Note: Wakeup detection is now handled in checkHoldToWakeCondition()
 }
 
 void Buttons::enterDeepSleep() {

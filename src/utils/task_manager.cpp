@@ -44,14 +44,14 @@ void TaskManager::messageProcessorTask(void* parameter) {
 void TaskManager::bytecodeVMTask(void* parameter) {
     for(;;) {
         BytecodeVM::getInstance().update();
-        vTaskDelay(pdMS_TO_TICKS(5));  // No monitoring code here!
+        vTaskDelay(pdMS_TO_TICKS(5));
     }
 }
 
 void TaskManager::stackMonitorTask(void* parameter) {
     for(;;) {
         printStackUsage();
-        vTaskDelay(pdMS_TO_TICKS(1000));  // Every 10 seconds, not 1 second
+        vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }
 
@@ -80,7 +80,7 @@ void TaskManager::sensorInitTask(void* parameter) {
 //     }
     // Get the sensor initializer
     SensorInitializer& initializer = SensorInitializer::getInstance();
-    
+
     // Keep trying until ALL sensors are initialized
     // This preserves the existing behavior where we don't give up
     while (!initializer.areAllSensorsInitialized()) {
