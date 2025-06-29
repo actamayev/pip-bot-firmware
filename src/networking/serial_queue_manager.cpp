@@ -7,24 +7,8 @@ void SerialQueueManager::initialize() {
         Serial.println("ERROR: Failed to create serial message queue!");
         return;
     }
-    
-    // Create the serial output task pinned to Core 1
-    BaseType_t result = xTaskCreatePinnedToCore(
-        serialOutputTaskWrapper,    // Task function
-        "SerialOutputTask",         // Task name
-        MAX_PROGRAM_SIZE,     // Stack size
-        this,                       // Task parameter (pass this instance)
-        SERIAL_TASK_PRIORITY,       // Priority
-        &serialTaskHandle,          // Task handle
-        1                           // Core 1 (same as networking)
-    );
-    
-    if (result != pdPASS) {
-        Serial.println("ERROR: Failed to create serial output task!");
-        return;
-    }
-    
-    Serial.println("SerialQueueManager initialized successfully");
+
+    Serial.println("SerialQueueManager initialized - task will be created by TaskManager");
 }
 
 bool SerialQueueManager::queueMessage(const String& msg, SerialPriority priority) {
@@ -68,11 +52,6 @@ bool SerialQueueManager::addMessageToQueue(const SerialMessage& msg) {
     }
     
     return false;
-}
-
-void SerialQueueManager::serialOutputTaskWrapper(void* parameter) {
-    SerialQueueManager* instance = static_cast<SerialQueueManager*>(parameter);
-    instance->serialOutputTask();
 }
 
 void SerialQueueManager::serialOutputTask() {

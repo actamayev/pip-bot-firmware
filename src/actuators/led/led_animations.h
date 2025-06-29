@@ -11,7 +11,7 @@ class LedAnimations {
         LedAnimations(Adafruit_NeoPixel& strip1, Adafruit_NeoPixel& strip2);
 
         // Set the current animation
-        void startBreathing(int speed = 2000);
+        void startBreathing(int speed = 2000, float startingBrightness = 0.5f);
         void startStrobing(int speed = 500);
         void startRainbow(int cycleTime = 2000);
         void turnOff();
