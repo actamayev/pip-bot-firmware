@@ -31,7 +31,8 @@ class SerialQueueManager : public Singleton<SerialQueueManager> {
         void initialize();
         bool queueMessage(const String& msg, SerialPriority priority = SerialPriority::LOW_PRIO);
         bool queueMessage(const char* msg, SerialPriority priority = SerialPriority::LOW_PRIO);
-        
+        void serialOutputTask();
+
     private:
         SerialQueueManager() = default;
         
@@ -41,12 +42,7 @@ class SerialQueueManager : public Singleton<SerialQueueManager> {
         
         // FreeRTOS objects
         QueueHandle_t messageQueue = nullptr;
-        TaskHandle_t serialTaskHandle = nullptr;
-        
-        // Task function (must be static for FreeRTOS)
-        static void serialOutputTaskWrapper(void* parameter);
-        void serialOutputTask();
-        
+
         // Helper functions
         bool addMessageToQueue(const SerialMessage& msg);
         void processMessage(const SerialMessage& msg);

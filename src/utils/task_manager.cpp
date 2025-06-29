@@ -11,6 +11,7 @@ TaskHandle_t TaskManager::sensorPollingTaskHandle = NULL;
 // TaskHandle_t TaskManager::displayTaskHandle = NULL;
 TaskHandle_t TaskManager::networkManagementTaskHandle = NULL;
 TaskHandle_t TaskManager::networkCommunicationTaskHandle = NULL;
+TaskHandle_t TaskManager::serialQueueTaskHandle = NULL;
 
 void TaskManager::buttonTask(void* parameter) {
     for(;;) {
@@ -62,16 +63,6 @@ void TaskManager::stackMonitorTask(void* parameter) {
 //         vTaskDelay(pdMS_TO_TICKS(20));  // 50Hz update rate, smooth for animations
 //     }
 // }
-
-bool TaskManager::createNetworkManagementTask() {
-    return createTask("NetworkMgmt", networkManagementTask, NETWORK_MANAGEMENT_STACK_SIZE,
-                     Priority::COMMUNICATION, Core::CORE_1, &networkManagementTaskHandle);
-}
-
-bool TaskManager::createNetworkCommunicationTask() {
-    return createTask("NetworkComm", networkCommunicationTask, NETWORK_COMMUNICATION_STACK_SIZE,
-                     Priority::COMMUNICATION, Core::CORE_1, &networkCommunicationTaskHandle);
-}
 
 void TaskManager::sensorInitTask(void* parameter) {
     disableCore0WDT();
@@ -149,51 +140,6 @@ void TaskManager::sensorPollingTask(void* parameter) {
     }
 }
 
-bool TaskManager::createButtonTask() {
-    return createTask("Buttons", buttonTask, BUTTON_STACK_SIZE, 
-                     Priority::CRITICAL, Core::CORE_0, &buttonTaskHandle);
-}
-
-bool TaskManager::createSerialInputTask() {
-    return createTask("SerialInput", serialInputTask, SERIAL_INPUT_STACK_SIZE,
-                     Priority::COMMUNICATION, Core::CORE_1, &serialInputTaskHandle);
-}
-
-bool TaskManager::createLedTask() {
-    return createTask("LED", ledTask, LED_STACK_SIZE,
-                     Priority::BACKGROUND, Core::CORE_1, &ledTaskHandle);
-}
-
-bool TaskManager::createMessageProcessorTask() {
-    return createTask("MessageProcessor", messageProcessorTask, MESSAGE_PROCESSOR_STACK_SIZE,
-                     Priority::SYSTEM_CONTROL, Core::CORE_0, &messageProcessorTaskHandle);
-}
-
-bool TaskManager::createBytecodeVMTask() {
-    return createTask("BytecodeVM", bytecodeVMTask, BYTECODE_VM_STACK_SIZE,
-                     Priority::USER_PROGRAMS, Core::CORE_0, &bytecodeVMTaskHandle);
-}
-
-bool TaskManager::createStackMonitorTask() {
-    return createTask("StackMonitor", stackMonitorTask, STACK_MONITOR_STACK_SIZE,
-                     Priority::BACKGROUND, Core::CORE_1, &stackMonitorTaskHandle);
-}
-
-bool TaskManager::createSensorInitTask() {
-    return createTask("SensorInit", sensorInitTask, SENSOR_INIT_STACK_SIZE,
-                     Priority::SYSTEM_CONTROL, Core::CORE_0, &sensorInitTaskHandle);
-}
-
-bool TaskManager::createSensorPollingTask() {
-    return createTask("SensorPolling", sensorPollingTask, SENSOR_POLLING_STACK_SIZE,
-                     Priority::SYSTEM_CONTROL, Core::CORE_0, &sensorPollingTaskHandle);
-}
-
-// bool TaskManager::createDisplayTask() {
-//     return createTask("Display", displayTask, DISPLAY_STACK_SIZE,
-//                      Priority::BACKGROUND, Core::CORE_1, &displayTaskHandle);
-// }
-
 void TaskManager::networkManagementTask(void* parameter) {
     // Initialize WiFi and networking components (heavy setup)
     SerialQueueManager::getInstance().queueMessage("Initializing WiFi on Core 1...");
@@ -262,6 +208,74 @@ void TaskManager::networkCommunicationTask(void* parameter) {
     }
 }
 
+void TaskManager::serialQueueTask(void* parameter) {
+    // Cast back to SerialQueueManager and call its task method
+    SerialQueueManager* instance = static_cast<SerialQueueManager*>(parameter);
+    instance->serialOutputTask();
+}
+
+bool TaskManager::createButtonTask() {
+    return createTask("Buttons", buttonTask, BUTTON_STACK_SIZE, 
+                     Priority::CRITICAL, Core::CORE_0, &buttonTaskHandle);
+}
+
+bool TaskManager::createSerialInputTask() {
+    return createTask("SerialInput", serialInputTask, SERIAL_INPUT_STACK_SIZE,
+                     Priority::COMMUNICATION, Core::CORE_1, &serialInputTaskHandle);
+}
+
+bool TaskManager::createLedTask() {
+    return createTask("LED", ledTask, LED_STACK_SIZE,
+                     Priority::BACKGROUND, Core::CORE_1, &ledTaskHandle);
+}
+
+bool TaskManager::createMessageProcessorTask() {
+    return createTask("MessageProcessor", messageProcessorTask, MESSAGE_PROCESSOR_STACK_SIZE,
+                     Priority::SYSTEM_CONTROL, Core::CORE_0, &messageProcessorTaskHandle);
+}
+
+bool TaskManager::createBytecodeVMTask() {
+    return createTask("BytecodeVM", bytecodeVMTask, BYTECODE_VM_STACK_SIZE,
+                     Priority::USER_PROGRAMS, Core::CORE_0, &bytecodeVMTaskHandle);
+}
+
+bool TaskManager::createStackMonitorTask() {
+    return createTask("StackMonitor", stackMonitorTask, STACK_MONITOR_STACK_SIZE,
+                     Priority::BACKGROUND, Core::CORE_1, &stackMonitorTaskHandle);
+}
+
+// bool TaskManager::createDisplayTask() {
+//     return createTask("Display", displayTask, DISPLAY_STACK_SIZE,
+//                      Priority::BACKGROUND, Core::CORE_1, &displayTaskHandle);
+// }
+
+bool TaskManager::createSensorInitTask() {
+    return createTask("SensorInit", sensorInitTask, SENSOR_INIT_STACK_SIZE,
+                     Priority::SYSTEM_CONTROL, Core::CORE_0, &sensorInitTaskHandle);
+}
+
+bool TaskManager::createSensorPollingTask() {
+    return createTask("SensorPolling", sensorPollingTask, SENSOR_POLLING_STACK_SIZE,
+                     Priority::SYSTEM_CONTROL, Core::CORE_0, &sensorPollingTaskHandle);
+}
+
+bool TaskManager::createNetworkManagementTask() {
+    return createTask("NetworkMgmt", networkManagementTask, NETWORK_MANAGEMENT_STACK_SIZE,
+                     Priority::COMMUNICATION, Core::CORE_1, &networkManagementTaskHandle);
+}
+
+bool TaskManager::createNetworkCommunicationTask() {
+    return createTask("NetworkComm", networkCommunicationTask, NETWORK_COMMUNICATION_STACK_SIZE,
+                     Priority::COMMUNICATION, Core::CORE_1, &networkCommunicationTaskHandle);
+}
+
+bool TaskManager::createSerialQueueTask() {
+    // Pass the SerialQueueManager instance as parameter
+    void* instance = &SerialQueueManager::getInstance();
+    return createTask("SerialQueue", serialQueueTask, SERIAL_QUEUE_STACK_SIZE,
+                     Priority::CRITICAL, Core::CORE_1, &serialQueueTaskHandle, instance);
+}
+
 bool TaskManager::createTask(
     const char* name,
     TaskFunction_t taskFunction, 
@@ -322,6 +336,7 @@ void TaskManager::printStackUsage() {
         // {displayTaskHandle, "Display", DISPLAY_STACK_SIZE},  // Add this line
         {networkManagementTaskHandle, "NetworkMgmt", NETWORK_MANAGEMENT_STACK_SIZE},
         {networkCommunicationTaskHandle, "NetworkComm", NETWORK_COMMUNICATION_STACK_SIZE},
+        {serialQueueTaskHandle, "SerialQueue", SERIAL_QUEUE_STACK_SIZE}, // ADD THIS LINE
     };
     
     for (const auto& task : tasks) {

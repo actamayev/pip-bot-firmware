@@ -30,6 +30,7 @@ void setup() {
     Wire.begin(I2C_SDA, I2C_SCL, I2C_CLOCK_SPEED);
 
     SerialQueueManager::getInstance().initialize();
+    TaskManager::createSerialQueueTask();
 
     rgbLed.turn_led_off(); // Start with LEDs off
     TaskManager::createLedTask(); // Start LED task so updates work

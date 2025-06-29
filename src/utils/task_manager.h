@@ -22,6 +22,7 @@ class TaskManager {
         // static bool createDisplayTask();
         static bool createNetworkManagementTask();
         static bool createNetworkCommunicationTask();
+        static bool createSerialQueueTask();
 
     private:
         static bool logTaskCreation(const char* name, bool success);
@@ -36,6 +37,7 @@ class TaskManager {
         // static void displayTask(void* parameter);
         static void networkManagementTask(void* parameter);
         static void networkCommunicationTask(void* parameter);
+        static void serialQueueTask(void* parameter);
 
         static constexpr uint32_t BUTTON_STACK_SIZE = 4096;
         static constexpr uint32_t SERIAL_INPUT_STACK_SIZE = 8192;
@@ -48,6 +50,7 @@ class TaskManager {
         // static constexpr uint32_t DISPLAY_STACK_SIZE = 4096;  // I2C + display buffer operations
         static constexpr uint32_t NETWORK_MANAGEMENT_STACK_SIZE = 8192;    // Heavy WiFi operations
         static constexpr uint32_t NETWORK_COMMUNICATION_STACK_SIZE = 8192; // Lightweight WebSocket polling
+        static constexpr uint32_t SERIAL_QUEUE_STACK_SIZE = MAX_PROGRAM_SIZE;
 
         // Task priorities (higher number = higher priority)
         enum class Priority : uint8_t {
@@ -86,6 +89,7 @@ class TaskManager {
         // static TaskHandle_t displayTaskHandle;
         static TaskHandle_t networkManagementTaskHandle;
         static TaskHandle_t networkCommunicationTaskHandle;
+        static TaskHandle_t serialQueueTaskHandle;
 
         static void printStackUsage();
 };
