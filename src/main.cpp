@@ -21,52 +21,6 @@
 #include "wifi_selection/wifi_selection_manager.h"
 #include "wifi_selection/haptic_feedback_manager.h"
 
-// Task to handle WiFi and networking on Core 1
-void NetworkTask(void * parameter) {
-    // Initialize WiFi and networking components
-    SerialQueueManager::getInstance().queueMessage("Initializing WiFi on Core 1...");
-    WiFiManager::getInstance();
-    SerialQueueManager::getInstance().queueMessage("WiFi initialization complete on Core 1");
-    FirmwareVersionTracker::getInstance();
-
-    // Main network loop
-    for(;;) {
-        NetworkMode mode = NetworkStateManager::getInstance().getCurrentMode();
-        WiFiManager::getInstance().checkAsyncScanProgress();
-        TimeoutManager::getInstance().update();
-
-        switch (mode) {
-            // TODO 5/1/25: Why isn't poll serial here?
-            case NetworkMode::SERIAL_MODE:
-                // When in serial mode, we don't do any WiFi operations
-                // Could add specific serial mode indicators here
-                break;
-
-            case NetworkMode::ADD_PIP_MODE:
-                // Process ADD_PIP_MODE WiFi testing
-                WiFiManager::getInstance().processAddPipMode();
-                break;
-
-            case NetworkMode::WIFI_MODE:
-                // WiFi connected mode - poll websocket and send data
-                WebSocketManager::getInstance().pollWebSocket();
-                SendDataToServer::getInstance().sendSensorDataToServer();
-                break;
-
-            case NetworkMode::NONE:
-                // No connectivity - try to establish WiFi
-                WiFiManager::getInstance().checkAndReconnectWiFi();
-                HapticFeedbackManager::getInstance().update();
-                WifiSelectionManager::getInstance().processNetworkSelection();
-                break;
-        }
-
-        // Small delay to avoid overwhelming the websocket and allow IMU data to be processed
-        vTaskDelay(pdMS_TO_TICKS(5));
-    }
-}
-
-// Main setup runs on Core 1
 void setup() {
     Serial.setRxBufferSize(MAX_PROGRAM_SIZE); // This is here to make the serial buffer larger to accommodate for large serial messages (ie. when uploading bytecode programs over serial)
     Serial.setTxBufferSize(MAX_PROGRAM_SIZE); // This is here to make the serial buffer larger to accommodate for large serial messages (ie. when uploading bytecode programs over serial)
@@ -74,7 +28,6 @@ void setup() {
     // I2C setup
     Wire.setPins(I2C_SDA, I2C_SCL);
     Wire.begin(I2C_SDA, I2C_SCL, I2C_CLOCK_SPEED);
-    // vTaskDelay(pdMS_TO_TICKS(10));
 
     SerialQueueManager::getInstance().initialize();
 
@@ -94,7 +47,7 @@ void setup() {
     TaskManager::createMessageProcessorTask();  // Core 0 - motor control
     TaskManager::createBytecodeVMTask();        // Core 1 - user programs
     TaskManager::createSensorInitTask();  // Only create init task at startup
-    TaskManager::createNetworkTask();    // External function
+    TaskManager::createNetworkManagementTask();    // External function
     TaskManager::createStackMonitorTask();   // Enable in debug builds
 }
 

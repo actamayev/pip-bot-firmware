@@ -5,13 +5,12 @@ TaskHandle_t TaskManager::serialInputTaskHandle = NULL;
 TaskHandle_t TaskManager::ledTaskHandle = NULL;
 TaskHandle_t TaskManager::messageProcessorTaskHandle = NULL;
 TaskHandle_t TaskManager::bytecodeVMTaskHandle = NULL;
-TaskHandle_t TaskManager::networkTaskHandle = NULL;
 TaskHandle_t TaskManager::stackMonitorTaskHandle = NULL;
 TaskHandle_t TaskManager::sensorInitTaskHandle = NULL;
 TaskHandle_t TaskManager::sensorPollingTaskHandle = NULL;
 // TaskHandle_t TaskManager::displayTaskHandle = NULL;
-
-extern void NetworkTask(void* parameter);
+TaskHandle_t TaskManager::networkManagementTaskHandle = NULL;
+TaskHandle_t TaskManager::networkCommunicationTaskHandle = NULL;
 
 void TaskManager::buttonTask(void* parameter) {
     for(;;) {
@@ -63,6 +62,16 @@ void TaskManager::stackMonitorTask(void* parameter) {
 //         vTaskDelay(pdMS_TO_TICKS(20));  // 50Hz update rate, smooth for animations
 //     }
 // }
+
+bool TaskManager::createNetworkManagementTask() {
+    return createTask("NetworkMgmt", networkManagementTask, NETWORK_MANAGEMENT_STACK_SIZE,
+                     Priority::COMMUNICATION, Core::CORE_1, &networkManagementTaskHandle);
+}
+
+bool TaskManager::createNetworkCommunicationTask() {
+    return createTask("NetworkComm", networkCommunicationTask, NETWORK_COMMUNICATION_STACK_SIZE,
+                     Priority::COMMUNICATION, Core::CORE_1, &networkCommunicationTaskHandle);
+}
 
 void TaskManager::sensorInitTask(void* parameter) {
     disableCore0WDT();
@@ -170,11 +179,6 @@ bool TaskManager::createStackMonitorTask() {
                      Priority::BACKGROUND, Core::CORE_1, &stackMonitorTaskHandle);
 }
 
-bool TaskManager::createNetworkTask() {
-    return createTask("Network", NetworkTask, NETWORK_STACK_SIZE,
-                     Priority::COMMUNICATION, Core::CORE_1, &networkTaskHandle);
-}
-
 bool TaskManager::createSensorInitTask() {
     return createTask("SensorInit", sensorInitTask, SENSOR_INIT_STACK_SIZE,
                      Priority::SYSTEM_CONTROL, Core::CORE_0, &sensorInitTaskHandle);
@@ -189,6 +193,74 @@ bool TaskManager::createSensorPollingTask() {
 //     return createTask("Display", displayTask, DISPLAY_STACK_SIZE,
 //                      Priority::BACKGROUND, Core::CORE_1, &displayTaskHandle);
 // }
+
+void TaskManager::networkManagementTask(void* parameter) {
+    // Initialize WiFi and networking components (heavy setup)
+    SerialQueueManager::getInstance().queueMessage("Initializing WiFi on Core 1...");
+    WiFiManager::getInstance();
+    SerialQueueManager::getInstance().queueMessage("WiFi initialization complete on Core 1");
+    FirmwareVersionTracker::getInstance();
+    
+    // Create the communication task now that management is initialized
+    bool commTaskCreated = createNetworkCommunicationTask();
+    if (!commTaskCreated) {
+        SerialQueueManager::getInstance().queueMessage("ERROR: Failed to create NetworkCommunication task!");
+    }
+
+    // Main management loop - slower operations
+    for(;;) {
+        NetworkMode mode = NetworkStateManager::getInstance().getCurrentMode();
+        
+        // Heavy/infrequent operations
+        WiFiManager::getInstance().checkAsyncScanProgress();
+        TimeoutManager::getInstance().update();
+
+        switch (mode) {
+            case NetworkMode::SERIAL_MODE:
+                // When in serial mode, we don't do any WiFi operations
+                break;
+
+            case NetworkMode::ADD_PIP_MODE:
+                // Process ADD_PIP_MODE WiFi testing
+                WiFiManager::getInstance().processAddPipMode();
+                break;
+
+            case NetworkMode::WIFI_MODE:
+                // WiFi connected mode - management tasks only
+                // (Communication task handles WebSocket polling)
+                break;
+
+            case NetworkMode::NONE:
+                // No connectivity - try to establish WiFi
+                WiFiManager::getInstance().checkAndReconnectWiFi();
+                HapticFeedbackManager::getInstance().update();
+                WifiSelectionManager::getInstance().processNetworkSelection();
+                break;
+        }
+
+        // Slower update rate for management operations
+        vTaskDelay(pdMS_TO_TICKS(50));
+    }
+}
+
+void TaskManager::networkCommunicationTask(void* parameter) {
+    SerialQueueManager::getInstance().queueMessage("Network communication task started");
+    
+    // Main communication loop - fast operations
+    for(;;) {
+        NetworkMode mode = NetworkStateManager::getInstance().getCurrentMode();
+        
+        // Only do communication tasks when in WiFi mode
+        if (mode == NetworkMode::WIFI_MODE) {
+            // Lightweight, frequent operations
+            WebSocketManager::getInstance().pollWebSocket();
+            SendDataToServer::getInstance().sendSensorDataToServer();
+        }
+
+        // Fast update rate for real-time communication
+        vTaskDelay(pdMS_TO_TICKS(5));
+    }
+}
 
 bool TaskManager::createTask(
     const char* name,
@@ -248,7 +320,8 @@ void TaskManager::printStackUsage() {
         {sensorInitTaskHandle, "SensorInit", SENSOR_INIT_STACK_SIZE},        // May be NULL after self-delete
         {sensorPollingTaskHandle, "SensorPolling", SENSOR_POLLING_STACK_SIZE}, // May be NULL initially
         // {displayTaskHandle, "Display", DISPLAY_STACK_SIZE},  // Add this line
-        {networkTaskHandle, "Network", NETWORK_STACK_SIZE}
+        {networkManagementTaskHandle, "NetworkMgmt", NETWORK_MANAGEMENT_STACK_SIZE},
+        {networkCommunicationTaskHandle, "NetworkComm", NETWORK_COMMUNICATION_STACK_SIZE},
     };
     
     for (const auto& task : tasks) {
