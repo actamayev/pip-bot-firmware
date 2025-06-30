@@ -1,5 +1,5 @@
 #pragma once
-
+#include <freertos/FreeRTOS.h>  // Must be first!
 #include "message_processor.h"
 #include "utils/config.h"
 #include "utils/structs.h"
@@ -15,7 +15,7 @@ class SerialManager : public Singleton<SerialManager> {
         void sendHandshakeConfirmation();
         bool isConnected = false;
         unsigned long lastActivityTime = 0;
-        void sendJsonMessage(const String& route, const String& status);
+        void sendJsonMessage(RouteType route, const String& status);
         void sendPipIdMessage();
         void sendSavedNetworksResponse(const std::vector<WiFiCredentials>& networks);
         void sendScanResultsResponse(const std::vector<WiFiNetworkInfo>& networks);
@@ -38,5 +38,5 @@ class SerialManager : public Singleton<SerialManager> {
         uint16_t expectedPayloadLength = 0;
         bool useLongFormat = false;
 
-        const unsigned long SERIAL_CONNECTION_TIMEOUT = 10000;
+        const unsigned long SERIAL_CONNECTION_TIMEOUT = 400;
 };

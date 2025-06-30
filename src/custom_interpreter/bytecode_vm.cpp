@@ -50,11 +50,15 @@ bool BytecodeVM::loadProgram(const uint8_t* byteCode, uint16_t size) {
         waitingForButtonPressToStart = false;
         SerialQueueManager::getInstance().queueMessage("Program loaded without start button - auto-starting");
     }
-    
+
+    scanProgramForMotors();
+    stoppedDueToUsbSafety = false; // Reset safety flag on new program load
+
     return true;
 }
 
 void BytecodeVM::update() {
+    checkUsbSafetyConditions();
     if (program && pc < programSize && isPaused == RUNNING) {
         SensorPollingManager::getInstance().startPolling();
     }
@@ -705,13 +709,14 @@ void BytecodeVM::stopProgram() {
     resetStateVariables(true);
     MessageProcessor::getInstance().resetCommandState();
 
+    stoppedDueToUsbSafety = false; // Reset safety flag when manually stopping
+
     speaker.setMuted(true);
     rgbLed.turn_led_off();
     motorDriver.brake_if_moving();
     return;
 }
 
-// Update BytecodeVM::resetStateVariables() in bytecode_vm.cpp
 void BytecodeVM::resetStateVariables(bool isFullReset) {
     pc = 0;
     delayUntil = 0;
@@ -729,6 +734,10 @@ void BytecodeVM::resetStateVariables(bool isFullReset) {
     motorMovementEndTime = 0;
     targetDistanceCm = 0.0f;
     waitingForButtonPressToStart = false;
+
+    // ADD THESE USB safety resets:
+    stoppedDueToUsbSafety = false;
+    // Note: Don't reset programContainsMotors or lastUsbState here as they persist across pause/resume
 
     // Force reset motor driver state completely
     motorDriver.force_reset_motors();
@@ -751,6 +760,10 @@ void BytecodeVM::resetStateVariables(bool isFullReset) {
         program = nullptr;
         isPaused = PROGRAM_NOT_STARTED;
         programSize = 0;
+        
+        // ADD THESE for full reset:
+        programContainsMotors = false;
+        lastUsbState = false;
     }
 }
 
@@ -785,7 +798,9 @@ void BytecodeVM::resumeProgram() {
         SerialQueueManager::getInstance().queueMessage("resumeProgram: Not paused or no program");
         return;
     }
-    
+    // canStartProgram() already logs the reason
+    if (!canStartProgram()) return;
+
     isPaused = RUNNING;
     
     // Check if the first instruction is a WAIT_FOR_BUTTON (start block)
@@ -796,4 +811,66 @@ void BytecodeVM::resumeProgram() {
         SerialQueueManager::getInstance().queueMessage("Resuming program from beginning");
         pc = 0; // Start from the beginning for scripts without a start block
     }
+}
+
+void BytecodeVM::scanProgramForMotors() {
+    programContainsMotors = false;
+    
+    if (!program || programSize == 0) return;
+    
+    // Define all motor opcodes that should block USB execution
+    const BytecodeOpCode motorOpcodes[] = {
+        OP_MOTOR_FORWARD,
+        OP_MOTOR_BACKWARD, 
+        OP_MOTOR_STOP,
+        OP_MOTOR_TURN,
+        OP_MOTOR_FORWARD_TIME,
+        OP_MOTOR_BACKWARD_TIME,
+        OP_MOTOR_FORWARD_DISTANCE,
+        OP_MOTOR_BACKWARD_DISTANCE
+    };
+    
+    // Scan entire program for any motor commands
+    for (uint16_t i = 0; i < programSize; i++) {
+        for (const auto& motorOpcode : motorOpcodes) {
+            if (program[i].opcode == motorOpcode) {
+                programContainsMotors = true;
+                SerialQueueManager::getInstance().queueMessage("Program contains motor commands - USB safety restrictions apply");
+                return;
+            }
+        }
+    }
+    
+    SerialQueueManager::getInstance().queueMessage("Program contains no motor commands - safe for USB execution");
+}
+
+void BytecodeVM::checkUsbSafetyConditions() {
+    bool currentUsbState = SerialManager::getInstance().isConnected;
+    
+    // Detect USB connection change (disconnected -> connected)
+    if (!lastUsbState && currentUsbState) {
+        handleUsbConnect();
+    }
+    
+    lastUsbState = currentUsbState;
+}
+
+void BytecodeVM::handleUsbConnect() {
+    // If program contains motors and is currently running, stop it
+    if (programContainsMotors && isPaused == RUNNING) {
+        SerialQueueManager::getInstance().queueMessage("USB connected - stopping motor program for safety");
+        stopProgram();
+        stoppedDueToUsbSafety = true;
+    }
+}
+
+bool BytecodeVM::canStartProgram() {
+    // Block start if program contains motors and USB is connected
+    if (programContainsMotors && SerialManager::getInstance().isConnected) {
+        SerialQueueManager::getInstance().queueMessage("Cannot start motor program while USB connected - disconnect USB first");
+        SerialManager::getInstance().sendJsonMessage(RouteType::MOTORS_DISABLED_USB, "Cannot start motor program while USB connected - disconnect USB first");
+        return false;
+    }
+    
+    return true;
 }

@@ -105,3 +105,17 @@ struct LedState {
     int animationSpeed;
     bool wasAnimationActive;
 };
+
+enum class RouteType {
+    REGISTER,
+    SENSOR_DATA,
+    BYTECODE_STATUS,
+    WIFI_CONNECTION_RESULT,
+    PIP_ID,
+    SAVED_NETWORKS,
+    SCAN_RESULT_ITEM,
+    SCAN_COMPLETE,
+    SCAN_STARTED,
+    MOTORS_DISABLED_USB,
+    PROGRAM_PAUSED_USB
+};

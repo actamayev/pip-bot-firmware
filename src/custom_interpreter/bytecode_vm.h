@@ -34,6 +34,7 @@ class BytecodeVM : public Singleton<BytecodeVM> {
 
         void togglePause();
         bool waitingForButtonPressToStart = false;
+        bool canStartProgram();
 
     private:
         // Constants:
@@ -100,4 +101,13 @@ class BytecodeVM : public Singleton<BytecodeVM> {
         void incrementPC() {
             pc++;
         };
+
+        bool programContainsMotors = false;
+        bool stoppedDueToUsbSafety = false;
+        bool lastUsbState = false;
+        
+        // USB Safety Methods
+        void scanProgramForMotors();
+        void checkUsbSafetyConditions();
+        void handleUsbConnect();
 };
