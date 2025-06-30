@@ -40,6 +40,7 @@ void Buttons::setButton1ClickHandler(std::function<void(Button2&)> callback) {
         BytecodeVM& vm = BytecodeVM::getInstance();
 
         if (vm.waitingForButtonPressToStart) {
+            if (!vm.canStartProgram()) return; // canStartProgram() already logs the reason
             vm.isPaused = BytecodeVM::RUNNING;
             vm.waitingForButtonPressToStart = false;
             vm.incrementPC();
@@ -47,6 +48,9 @@ void Buttons::setButton1ClickHandler(std::function<void(Button2&)> callback) {
         };
         // Only toggle pause if program is actively running (pc > 10)
         if (vm.isPaused != BytecodeVM::PROGRAM_NOT_STARTED) {
+            if (vm.isPaused == BytecodeVM::PAUSED && !vm.canStartProgram()) {
+                return; // canStartProgram() already logs the reason
+            }
             vm.togglePause();
             return; // Skip original callback when handling VM pause/resume
         }

@@ -94,7 +94,7 @@ void WebSocketManager::connectToWebSocket() {
 void WebSocketManager::sendInitialData() {
     SerialQueueManager::getInstance().queueMessage("WebSocket connected. Sending initial data...");
     StaticJsonDocument<256> initDoc;
-    initDoc["route"] = "/register";
+    initDoc["route"] = routeToString(RouteType::REGISTER);
     JsonObject payload = initDoc.createNestedObject("payload");
     payload["pipUUID"] = PreferencesManager::getInstance().getPipId();
     payload["firmwareVersion"] = FirmwareVersionTracker::getInstance().getFirmwareVersion();

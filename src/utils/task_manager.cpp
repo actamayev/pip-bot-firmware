@@ -179,8 +179,8 @@ void TaskManager::networkManagementTask(void* parameter) {
             case NetworkMode::NONE:
                 // No connectivity - try to establish WiFi
                 WiFiManager::getInstance().checkAndReconnectWiFi();
-                HapticFeedbackManager::getInstance().update();
-                WifiSelectionManager::getInstance().processNetworkSelection();
+                // HapticFeedbackManager::getInstance().update();
+                // WifiSelectionManager::getInstance().processNetworkSelection();
                 break;
         }
 
