@@ -110,7 +110,6 @@ void SerialManager::pollSerial() {
     }
 }
 
-// Add this method to sendHandshakeConfirmation()
 void SerialManager::sendHandshakeConfirmation() {
     // Use CRITICAL priority for browser responses
     SerialQueueManager::getInstance().queueMessage(
