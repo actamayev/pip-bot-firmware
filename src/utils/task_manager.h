@@ -3,11 +3,12 @@
 #include <freertos/task.h>
 #include "actuators/buttons.h"
 #include "utils/sensor_loggers.h"
+#include "sensors/battery_monitor.h"
 #include "networking/serial_manager.h"
 #include "sensors/sensor_initializer.h"
 #include "actuators/led/led_animations.h"
-#include "networking/serial_queue_manager.h"
 #include "custom_interpreter/bytecode_vm.h"
+#include "networking/serial_queue_manager.h"
 
 class TaskManager {
     public:
@@ -23,6 +24,7 @@ class TaskManager {
         static bool createNetworkManagementTask();
         static bool createNetworkCommunicationTask();
         static bool createSerialQueueTask();
+        static bool createBatteryMonitorTask();
 
     private:
         static bool logTaskCreation(const char* name, bool success);
@@ -38,6 +40,7 @@ class TaskManager {
         static void networkManagementTask(void* parameter);
         static void networkCommunicationTask(void* parameter);
         static void serialQueueTask(void* parameter);
+        static void batteryMonitorTask(void* parameter);
 
         static constexpr uint32_t BUTTON_STACK_SIZE = 4096;
         static constexpr uint32_t SERIAL_INPUT_STACK_SIZE = 8192;
@@ -51,6 +54,7 @@ class TaskManager {
         static constexpr uint32_t NETWORK_MANAGEMENT_STACK_SIZE = 8192;    // Heavy WiFi operations
         static constexpr uint32_t NETWORK_COMMUNICATION_STACK_SIZE = 8192; // Lightweight WebSocket polling
         static constexpr uint32_t SERIAL_QUEUE_STACK_SIZE = MAX_PROGRAM_SIZE;
+        static constexpr uint32_t BATTERY_MONITOR_STACK_SIZE = 4096;
 
         // Task priorities (higher number = higher priority)
         enum class Priority : uint8_t {
@@ -91,6 +95,7 @@ class TaskManager {
         static TaskHandle_t networkManagementTaskHandle;
         static TaskHandle_t networkCommunicationTaskHandle;
         static TaskHandle_t serialQueueTaskHandle;
+        static TaskHandle_t batteryMonitorTaskHandle;
 
         static void printStackUsage();
 };

@@ -25,17 +25,17 @@ void MessageProcessor::handleSoundCommand(SoundType soundType) {
 
         case SoundType::CHIRP:
             SerialQueueManager::getInstance().queueMessage("Playing CHIRP sound");
-            speaker.chime();
+            // speaker.chime();
             break;
         
         case SoundType::POP:
             SerialQueueManager::getInstance().queueMessage("Playing POP sound");
-            speaker.chime();
+            // speaker.chime();
             break;
         
         case SoundType::SPLASH:
             SerialQueueManager::getInstance().queueMessage("Playing SPLASH sound");
-            speaker.chime();
+            // speaker.chime();
             break;
 
         default:
@@ -45,7 +45,7 @@ void MessageProcessor::handleSoundCommand(SoundType soundType) {
 }
 
 void MessageProcessor::handleSpeakerMute(SpeakerStatus status) {
-    speaker.setMuted(status == SpeakerStatus::MUTED);
+    // speaker.setMuted(status == SpeakerStatus::MUTED);
 }
 
 void MessageProcessor::updateMotorSpeeds(int16_t leftSpeed, int16_t rightSpeed) {

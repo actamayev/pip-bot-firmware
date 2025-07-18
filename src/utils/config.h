@@ -27,13 +27,13 @@ constexpr uint16_t IMU_UPDATE_FREQ_MICROSECS = 5000;  // 5ms, 200Hz
 constexpr uint8_t IMU_DEFAULT_ADDRESS = 0x4A;
 
 // Motors + Encoders
-constexpr uint8_t LEFT_MOTOR_PIN_IN_1 = 13;
-constexpr uint8_t LEFT_MOTOR_PIN_IN_2 = 14;
-constexpr uint8_t LEFT_MOTOR_ENCODER_A = 11;
-constexpr uint8_t LEFT_MOTOR_ENCODER_B = 10;
+constexpr uint8_t LEFT_MOTOR_PIN_IN_1 = 47;
+constexpr uint8_t LEFT_MOTOR_PIN_IN_2 = 48;
+constexpr uint8_t LEFT_MOTOR_ENCODER_A = 12;
+constexpr uint8_t LEFT_MOTOR_ENCODER_B = 13;
 
-constexpr uint8_t RIGHT_MOTOR_PIN_IN_1 = 21;
-constexpr uint8_t RIGHT_MOTOR_PIN_IN_2 = 47;
+constexpr uint8_t RIGHT_MOTOR_PIN_IN_1 = 41;
+constexpr uint8_t RIGHT_MOTOR_PIN_IN_2 = 40;
 constexpr uint8_t RIGHT_MOTOR_ENCODER_A = 1;
 constexpr uint8_t RIGHT_MOTOR_ENCODER_B = 2;
 
@@ -54,11 +54,13 @@ constexpr uint8_t PIN_MUX_OUT = 7;  // Multiplexer output
 constexpr uint8_t PIN_IR_EN = 6;    // IR sensor enable pin
 
 //Speaker
-constexpr uint8_t AUDIO_PIN = 9;
+constexpr uint8_t I2S_BCLK = 10;
+constexpr uint8_t I2S_LRC = 11;
+constexpr uint8_t I2S_DOUT = 9;
 
 // Buttons
-constexpr uint8_t BUTTON_PIN_1 = 12; // Left
-constexpr uint8_t BUTTON_PIN_2 = 48; // Right
+constexpr uint8_t BUTTON_PIN_1 = 21; // Left
+constexpr uint8_t BUTTON_PIN_2 = 14; // Right
 
 // Assign Stack sizes for the two cores
 constexpr uint16_t MAX_PROGRAM_SIZE = 8192;

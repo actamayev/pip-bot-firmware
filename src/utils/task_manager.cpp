@@ -12,6 +12,7 @@ TaskHandle_t TaskManager::sensorPollingTaskHandle = NULL;
 TaskHandle_t TaskManager::networkManagementTaskHandle = NULL;
 TaskHandle_t TaskManager::networkCommunicationTaskHandle = NULL;
 TaskHandle_t TaskManager::serialQueueTaskHandle = NULL;
+TaskHandle_t TaskManager::batteryMonitorTaskHandle = NULL;
 
 void TaskManager::buttonTask(void* parameter) {
     for(;;) {
@@ -214,6 +215,15 @@ void TaskManager::serialQueueTask(void* parameter) {
     instance->serialOutputTask();
 }
 
+void TaskManager::batteryMonitorTask(void* parameter) {
+    BatteryMonitor::getInstance().initialize();
+    
+    for(;;) {
+        BatteryMonitor::getInstance().update();
+        vTaskDelay(pdMS_TO_TICKS(2000));
+    }
+}
+
 bool TaskManager::createButtonTask() {
     return createTask("Buttons", buttonTask, BUTTON_STACK_SIZE, 
                      Priority::CRITICAL, Core::CORE_0, &buttonTaskHandle);
@@ -274,6 +284,11 @@ bool TaskManager::createSerialQueueTask() {
     void* instance = &SerialQueueManager::getInstance();
     return createTask("SerialQueue", serialQueueTask, SERIAL_QUEUE_STACK_SIZE,
                      Priority::CRITICAL, Core::CORE_1, &serialQueueTaskHandle, instance);
+}
+
+bool TaskManager::createBatteryMonitorTask() {
+    return createTask("BatteryMonitor", batteryMonitorTask, BATTERY_MONITOR_STACK_SIZE,
+                     Priority::BACKGROUND, Core::CORE_1, &batteryMonitorTaskHandle);
 }
 
 bool TaskManager::createTask(
@@ -337,6 +352,7 @@ void TaskManager::printStackUsage() {
         {networkManagementTaskHandle, "NetworkMgmt", NETWORK_MANAGEMENT_STACK_SIZE},
         {networkCommunicationTaskHandle, "NetworkComm", NETWORK_COMMUNICATION_STACK_SIZE},
         {serialQueueTaskHandle, "SerialQueue", SERIAL_QUEUE_STACK_SIZE}, // ADD THIS LINE
+        {batteryMonitorTaskHandle, "BatteryMonitor", BATTERY_MONITOR_STACK_SIZE},
     };
     
     for (const auto& task : tasks) {
