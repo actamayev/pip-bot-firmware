@@ -92,20 +92,20 @@ void TaskManager::sensorInitTask(void* parameter) {
             initializer.tryInitializeIMU();
         }
         
-        if (!initializer.isSensorInitialized(SensorInitializer::MULTIZONE_TOF)) {
-            SerialQueueManager::getInstance().queueMessage("Trying to init Multizone TOF...");
-            initializer.tryInitializeMultizoneTof();
-        }
+        // if (!initializer.isSensorInitialized(SensorInitializer::MULTIZONE_TOF)) {
+        //     SerialQueueManager::getInstance().queueMessage("Trying to init Multizone TOF...");
+        //     initializer.tryInitializeMultizoneTof();
+        // }
         
-        if (!initializer.isSensorInitialized(SensorInitializer::LEFT_SIDE_TOF)) {
-            SerialQueueManager::getInstance().queueMessage("Trying to init Left TOF...");
-            initializer.tryInitializeLeftSideTof();
-        }
+        // if (!initializer.isSensorInitialized(SensorInitializer::LEFT_SIDE_TOF)) {
+        //     SerialQueueManager::getInstance().queueMessage("Trying to init Left TOF...");
+        //     initializer.tryInitializeLeftSideTof();
+        // }
         
-        if (!initializer.isSensorInitialized(SensorInitializer::RIGHT_SIDE_TOF)) {
-            SerialQueueManager::getInstance().queueMessage("Trying to init Right TOF...");
-            initializer.tryInitializeRightSideTof();
-        }
+        // if (!initializer.isSensorInitialized(SensorInitializer::RIGHT_SIDE_TOF)) {
+        //     SerialQueueManager::getInstance().queueMessage("Trying to init Right TOF...");
+        //     initializer.tryInitializeRightSideTof();
+        // }
         
         // Small delay between retry cycles
         vTaskDelay(pdMS_TO_TICKS(100));
@@ -119,8 +119,8 @@ void TaskManager::sensorInitTask(void* parameter) {
     // bool displayTaskCreated = createDisplayTask();
 
     if (pollingTaskCreated) {
-        SerialQueueManager::getInstance().queueMessage("All tasks created - initialization complete");
         SensorPollingManager::getInstance().startPolling();
+        SerialQueueManager::getInstance().queueMessage("All tasks created - initialization complete");
     } else {
         SerialQueueManager::getInstance().queueMessage("ERROR: Failed to create required tasks!");
     }
@@ -202,7 +202,7 @@ void TaskManager::networkCommunicationTask(void* parameter) {
         if (mode == NetworkMode::WIFI_MODE) {
             // Lightweight, frequent operations
             WebSocketManager::getInstance().pollWebSocket();
-            SendDataToServer::getInstance().sendSensorDataToServer();
+            // SendDataToServer::getInstance().sendSensorDataToServer();
         }
 
         // Fast update rate for real-time communication
