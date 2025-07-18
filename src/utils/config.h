@@ -6,10 +6,8 @@
 #define DEV_I2C Wire
 
 // LED Configuration
-constexpr uint8_t ESP_LED_PIN1 = 38;
-constexpr uint8_t NUM_LEDS1 = 2;
-constexpr uint8_t ESP_LED_PIN2 = 4;
-constexpr uint8_t NUM_LEDS2 = 6;
+constexpr uint8_t ESP_LED_PIN = 4;
+constexpr uint8_t NUM_LEDS = 8;
 constexpr uint8_t MAX_LED_BRIGHTNESS = 75;
 
 // I2C Configuration
