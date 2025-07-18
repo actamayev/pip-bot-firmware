@@ -13,29 +13,27 @@ void MessageProcessor::handleSoundCommand(SoundType soundType) {
     switch(soundType) {
         case SoundType::BREEZE:
             SerialQueueManager::getInstance().queueMessage("Playing BREEZE sound");
-            // Call your alert sound function
-            // speaker.alert();
+            Speaker::getInstance().playFile(AudioFile::BREEZE);
             break;
 
         case SoundType::CHIME:
             SerialQueueManager::getInstance().queueMessage("Playing CHIME sound");
-            // Call your beep sound function
-            // speaker.beep();
+            Speaker::getInstance().playFile(AudioFile::CHIME);
             break;
 
         case SoundType::CHIRP:
             SerialQueueManager::getInstance().queueMessage("Playing CHIRP sound");
-            // speaker.chime();
+            Speaker::getInstance().playFile(AudioFile::CHIRP);
             break;
         
         case SoundType::POP:
             SerialQueueManager::getInstance().queueMessage("Playing POP sound");
-            // speaker.chime();
+            Speaker::getInstance().playFile(AudioFile::POP);
             break;
         
         case SoundType::SPLASH:
             SerialQueueManager::getInstance().queueMessage("Playing SPLASH sound");
-            // speaker.chime();
+            Speaker::getInstance().playFile(AudioFile::SPLASH);
             break;
 
         default:
@@ -45,7 +43,7 @@ void MessageProcessor::handleSoundCommand(SoundType soundType) {
 }
 
 void MessageProcessor::handleSpeakerMute(SpeakerStatus status) {
-    // speaker.setMuted(status == SpeakerStatus::MUTED);
+    Speaker::getInstance().setMuted(status == SpeakerStatus::MUTED);
 }
 
 void MessageProcessor::updateMotorSpeeds(int16_t leftSpeed, int16_t rightSpeed) {

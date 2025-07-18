@@ -33,6 +33,7 @@ void setup() {
     TaskManager::createNetworkManagementTask();    // External function
     // TaskManager::createStackMonitorTask();   // Enable in debug builds
     TaskManager::createBatteryMonitorTask();
+    TaskManager::createSpeakerTask();
 }
 
 // Main loop runs on Core 1

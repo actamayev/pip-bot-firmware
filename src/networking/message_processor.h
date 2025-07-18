@@ -4,7 +4,7 @@
 #include "utils/config.h"
 #include "utils/structs.h"
 #include "utils/singleton.h"
-// #include "actuators/speaker.h"
+#include "actuators/speaker.h"
 #include "demos/demo_manager.h"
 #include "networking/protocol.h"
 #include "utils/timeout_manager.h"

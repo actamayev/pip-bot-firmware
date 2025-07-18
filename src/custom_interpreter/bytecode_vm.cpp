@@ -711,7 +711,7 @@ void BytecodeVM::stopProgram() {
 
     stoppedDueToUsbSafety = false; // Reset safety flag when manually stopping
 
-    // speaker.setMuted(true);
+    Speaker::getInstance().setMuted(true);
     rgbLed.turn_led_off();
     motorDriver.brake_if_moving();
     return;
@@ -786,7 +786,7 @@ void BytecodeVM::pauseProgram() {
     resetStateVariables();
     MessageProcessor::getInstance().resetCommandState();
 
-    // speaker.setMuted(true);
+    Speaker::getInstance().setMuted(true);
     rgbLed.turn_led_off();     
     motorDriver.brake_if_moving();
     

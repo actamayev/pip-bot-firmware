@@ -13,6 +13,7 @@ TaskHandle_t TaskManager::networkManagementTaskHandle = NULL;
 TaskHandle_t TaskManager::networkCommunicationTaskHandle = NULL;
 TaskHandle_t TaskManager::serialQueueTaskHandle = NULL;
 TaskHandle_t TaskManager::batteryMonitorTaskHandle = NULL;
+TaskHandle_t TaskManager::speakerTaskHandle = NULL;
 
 void TaskManager::buttonTask(void* parameter) {
     for(;;) {
@@ -224,6 +225,15 @@ void TaskManager::batteryMonitorTask(void* parameter) {
     }
 }
 
+void TaskManager::speakerTask(void* parameter) {
+    SerialQueueManager::getInstance().queueMessage("Speaker task started");
+    
+    for(;;) {
+        Speaker::getInstance().update();
+        vTaskDelay(pdMS_TO_TICKS(10)); // Update every 10ms for smooth audio
+    }
+}
+
 bool TaskManager::createButtonTask() {
     return createTask("Buttons", buttonTask, BUTTON_STACK_SIZE, 
                      Priority::CRITICAL, Core::CORE_0, &buttonTaskHandle);
@@ -291,6 +301,11 @@ bool TaskManager::createBatteryMonitorTask() {
                      Priority::BACKGROUND, Core::CORE_1, &batteryMonitorTaskHandle);
 }
 
+bool TaskManager::createSpeakerTask() {
+    return createTask("Speaker", speakerTask, SPEAKER_STACK_SIZE,
+                     Priority::BACKGROUND, Core::CORE_1, &speakerTaskHandle);
+}
+
 bool TaskManager::createTask(
     const char* name,
     TaskFunction_t taskFunction, 
@@ -353,6 +368,7 @@ void TaskManager::printStackUsage() {
         {networkCommunicationTaskHandle, "NetworkComm", NETWORK_COMMUNICATION_STACK_SIZE},
         {serialQueueTaskHandle, "SerialQueue", SERIAL_QUEUE_STACK_SIZE}, // ADD THIS LINE
         {batteryMonitorTaskHandle, "BatteryMonitor", BATTERY_MONITOR_STACK_SIZE},
+        {speakerTaskHandle, "Speaker", SPEAKER_STACK_SIZE},
     };
     
     for (const auto& task : tasks) {
