@@ -232,26 +232,104 @@ void SerialManager::sendScanStartedMessage() {
 void SerialManager::sendBatteryMonitorData(const BatteryState& batteryState) {
     if (!isConnected) return;
     
-    StaticJsonDocument<512> doc;
-    doc["route"] = routeToString(RouteType::BATTERY_MONITOR_DATA);
-    JsonObject payload = doc.createNestedObject("payload");
+    SerialQueueManager::getInstance().queueMessage("Sending battery data as individual items...");
     
-    payload["stateOfCharge"] = batteryState.stateOfCharge;
-    payload["voltage"] = batteryState.voltage;
-    payload["current"] = batteryState.current;
-    payload["power"] = batteryState.power;
-    payload["remainingCapacity"] = batteryState.remainingCapacity;
-    payload["fullCapacity"] = batteryState.fullCapacity;
-    payload["health"] = batteryState.health;
-    payload["isCharging"] = batteryState.isCharging;
-    payload["isDischarging"] = batteryState.isDischarging;
-    payload["isLowBattery"] = batteryState.isLowBattery;
-    payload["isCriticalBattery"] = batteryState.isCriticalBattery;
-    payload["estimatedTimeToEmpty"] = batteryState.estimatedTimeToEmpty;
-    payload["estimatedTimeToFull"] = batteryState.estimatedTimeToFull;
-    payload["isInitialized"] = batteryState.isInitialized;
+    // Send each battery data field as individual message
+    sendBatteryDataItem("stateOfCharge", batteryState.stateOfCharge);
+    sendBatteryDataItem("voltage", batteryState.voltage);
+    sendBatteryDataItem("current", batteryState.current);
+    sendBatteryDataItem("power", batteryState.power);
+    sendBatteryDataItem("remainingCapacity", batteryState.remainingCapacity);
+    sendBatteryDataItem("fullCapacity", batteryState.fullCapacity);
+    sendBatteryDataItem("health", batteryState.health);
+    sendBatteryDataItem("isCharging", batteryState.isCharging);
+    sendBatteryDataItem("isDischarging", batteryState.isDischarging);
+    sendBatteryDataItem("isLowBattery", batteryState.isLowBattery);
+    sendBatteryDataItem("isCriticalBattery", batteryState.isCriticalBattery);
+    sendBatteryDataItem("estimatedTimeToEmpty", batteryState.estimatedTimeToEmpty);
+    sendBatteryDataItem("estimatedTimeToFull", batteryState.estimatedTimeToFull);
+    
+    // Send completion message
+    StaticJsonDocument<128> completeDoc;
+    completeDoc["route"] = routeToString(RouteType::BATTERY_MONITOR_DATA_COMPLETE);
+    JsonObject completePayload = completeDoc.createNestedObject("payload");
+    completePayload["totalItems"] = 13; // Number of battery data fields sent
+    
+    String completeJsonString;
+    serializeJson(completeDoc, completeJsonString);
+    
+    SerialQueueManager::getInstance().queueMessage(completeJsonString, SerialPriority::CRITICAL);
+    SerialQueueManager::getInstance().queueMessage("Battery data transmission complete");
+}
+
+void SerialManager::sendBatteryDataItem(const String& key, int value) {
+    if (!isConnected) return;
+    
+    StaticJsonDocument<256> doc;
+    doc["route"] = routeToString(RouteType::BATTERY_MONITOR_DATA_ITEM);
+    JsonObject payload = doc.createNestedObject("payload");
+    payload["key"] = key;
+    payload["value"] = value;
     
     String jsonString;
     serializeJson(doc, jsonString);
+    
     SerialQueueManager::getInstance().queueMessage(jsonString, SerialPriority::CRITICAL);
+    
+    // Small delay between messages to prevent overwhelming the queue
+    vTaskDelay(pdMS_TO_TICKS(5));
+}
+
+void SerialManager::sendBatteryDataItem(const String& key, unsigned int value) {
+    if (!isConnected) return;
+    
+    StaticJsonDocument<256> doc;
+    doc["route"] = routeToString(RouteType::BATTERY_MONITOR_DATA_ITEM);
+    JsonObject payload = doc.createNestedObject("payload");
+    payload["key"] = key;
+    payload["value"] = value;
+    
+    String jsonString;
+    serializeJson(doc, jsonString);
+    
+    SerialQueueManager::getInstance().queueMessage(jsonString, SerialPriority::CRITICAL);
+    
+    // Small delay between messages to prevent overwhelming the queue
+    vTaskDelay(pdMS_TO_TICKS(5));
+}
+
+void SerialManager::sendBatteryDataItem(const String& key, float value) {
+    if (!isConnected) return;
+    
+    StaticJsonDocument<256> doc;
+    doc["route"] = routeToString(RouteType::BATTERY_MONITOR_DATA_ITEM);
+    JsonObject payload = doc.createNestedObject("payload");
+    payload["key"] = key;
+    payload["value"] = value;
+    
+    String jsonString;
+    serializeJson(doc, jsonString);
+    
+    SerialQueueManager::getInstance().queueMessage(jsonString, SerialPriority::CRITICAL);
+    
+    // Small delay between messages to prevent overwhelming the queue
+    vTaskDelay(pdMS_TO_TICKS(5));
+}
+
+void SerialManager::sendBatteryDataItem(const String& key, bool value) {
+    if (!isConnected) return;
+    
+    StaticJsonDocument<256> doc;
+    doc["route"] = routeToString(RouteType::BATTERY_MONITOR_DATA_ITEM);
+    JsonObject payload = doc.createNestedObject("payload");
+    payload["key"] = key;
+    payload["value"] = value;
+    
+    String jsonString;
+    serializeJson(doc, jsonString);
+    
+    SerialQueueManager::getInstance().queueMessage(jsonString, SerialPriority::CRITICAL);
+    
+    // Small delay between messages to prevent overwhelming the queue
+    vTaskDelay(pdMS_TO_TICKS(5));
 }
