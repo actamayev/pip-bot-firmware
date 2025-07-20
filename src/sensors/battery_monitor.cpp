@@ -20,6 +20,14 @@ bool BatteryMonitor::initialize() {
         updateBatteryState();
         
         SerialQueueManager::getInstance().queueMessage("✓ Battery monitor initialized - SOC: " + String(batteryState.stateOfCharge) + "%");
+        
+        // Send battery data immediately if connected to serial
+        if (SerialManager::getInstance().isConnected) {
+            SerialQueueManager::getInstance().queueMessage("Sending battery data on initialization...");
+            SerialManager::getInstance().sendBatteryMonitorData(batteryState);
+            lastBatteryLogTime = millis();
+        }
+        
         return true;
     } else {
         SerialQueueManager::getInstance().queueMessage("✗ Failed to connect to BQ27441 - check wiring and I2C address");
