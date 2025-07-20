@@ -1,4 +1,5 @@
 #include "serial_manager.h"
+#include <ArduinoJson.h>
 
 void SerialManager::pollSerial() {
     if (Serial.available() <= 0) {
@@ -225,5 +226,32 @@ void SerialManager::sendScanStartedMessage() {
     serializeJson(doc, jsonString);
     
     // Use CRITICAL priority for browser responses
+    SerialQueueManager::getInstance().queueMessage(jsonString, SerialPriority::CRITICAL);
+}
+
+void SerialManager::sendBatteryMonitorData(const BatteryState& batteryState) {
+    if (!isConnected) return;
+    
+    StaticJsonDocument<512> doc;
+    doc["route"] = routeToString(RouteType::BATTERY_MONITOR_DATA);
+    JsonObject payload = doc.createNestedObject("payload");
+    
+    payload["stateOfCharge"] = batteryState.stateOfCharge;
+    payload["voltage"] = batteryState.voltage;
+    payload["current"] = batteryState.current;
+    payload["power"] = batteryState.power;
+    payload["remainingCapacity"] = batteryState.remainingCapacity;
+    payload["fullCapacity"] = batteryState.fullCapacity;
+    payload["health"] = batteryState.health;
+    payload["isCharging"] = batteryState.isCharging;
+    payload["isDischarging"] = batteryState.isDischarging;
+    payload["isLowBattery"] = batteryState.isLowBattery;
+    payload["isCriticalBattery"] = batteryState.isCriticalBattery;
+    payload["estimatedTimeToEmpty"] = batteryState.estimatedTimeToEmpty;
+    payload["estimatedTimeToFull"] = batteryState.estimatedTimeToFull;
+    payload["isInitialized"] = batteryState.isInitialized;
+    
+    String jsonString;
+    serializeJson(doc, jsonString);
     SerialQueueManager::getInstance().queueMessage(jsonString, SerialPriority::CRITICAL);
 }

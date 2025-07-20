@@ -2,25 +2,10 @@
 
 #include <Wire.h>
 #include <SparkFunBQ27441.h>
-#include "utils/singleton.h"
 #include "utils/config.h"
-
-struct BatteryState {
-    unsigned int stateOfCharge = 0;      // Battery percentage (0-100%)
-    unsigned int voltage = 0;            // Battery voltage (mV)
-    int current = 0;                     // Current draw/charge (mA, + = discharging, - = charging)
-    int power = 0;                       // Power consumption (mW)
-    unsigned int remainingCapacity = 0;  // Remaining capacity (mAh)
-    unsigned int fullCapacity = 0;       // Full capacity (mAh)
-    int health = 0;                      // Battery health (0-100%)
-    bool isCharging = false;             // True if battery is charging
-    bool isDischarging = false;          // True if battery is discharging
-    bool isLowBattery = false;           // True if battery is below threshold
-    bool isCriticalBattery = false;      // True if battery is critically low
-    float estimatedTimeToEmpty = 0.0;    // Hours until empty (0 if charging/standby)
-    float estimatedTimeToFull = 0.0;     // Hours until full (0 if discharging/standby)
-    bool isInitialized = false;          // True if BQ27441 is successfully initialized
-};
+#include "utils/singleton.h"
+#include "networking/serial_manager.h"
+#include "utils/structs.h"
 
 class BatteryMonitor : public Singleton<BatteryMonitor> {
     friend class Singleton<BatteryMonitor>;
@@ -78,14 +63,17 @@ class BatteryMonitor : public Singleton<BatteryMonitor> {
         unsigned long lastUpdateTime = 0;
         unsigned long lastLowBatteryWarning = 0;
         unsigned long lastInitAttempt = 0;
+        unsigned long lastBatteryLogTime = 0;
         static constexpr unsigned long UPDATE_INTERVAL_MS = 1000; // Update every second
         static constexpr unsigned long LOW_BATTERY_WARNING_INTERVAL_MS = 30000; // Warn every 30 seconds
         static constexpr unsigned long INIT_RETRY_INTERVAL_MS = 10000; // Retry init every 10 seconds
+        static constexpr unsigned long BATTERY_LOG_INTERVAL_MS = 30000; // Log every 30 seconds
         
         // Helper methods
         void calculateTimeEstimates();
         void updateStatusFlags();
         void handleWarnings();
+        void handleBatteryLogging();
         void retryInitializationIfNeeded();
         String formatTime(float hours) const;
 };

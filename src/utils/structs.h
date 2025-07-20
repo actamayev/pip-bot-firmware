@@ -106,6 +106,23 @@ struct LedState {
     bool wasAnimationActive;
 };
 
+struct BatteryState {
+    unsigned int stateOfCharge = 0;      // Battery percentage (0-100%)
+    unsigned int voltage = 0;            // Battery voltage (mV)
+    int current = 0;                     // Current draw/charge (mA, + = discharging, - = charging)
+    int power = 0;                       // Power consumption (mW)
+    unsigned int remainingCapacity = 0;  // Remaining capacity (mAh)
+    unsigned int fullCapacity = 0;       // Full capacity (mAh)
+    int health = 0;                      // Battery health (0-100%)
+    bool isCharging = false;             // True if battery is charging
+    bool isDischarging = false;          // True if battery is discharging
+    bool isLowBattery = false;           // True if battery is below threshold
+    bool isCriticalBattery = false;      // True if battery is critically low
+    float estimatedTimeToEmpty = 0.0;    // Hours until empty (0 if charging/standby)
+    float estimatedTimeToFull = 0.0;     // Hours until full (0 if discharging/standby)
+    bool isInitialized = false;          // True if BQ27441 is successfully initialized
+};
+
 enum class RouteType {
     REGISTER,
     SENSOR_DATA,
@@ -117,5 +134,6 @@ enum class RouteType {
     SCAN_COMPLETE,
     SCAN_STARTED,
     MOTORS_DISABLED_USB,
-    PROGRAM_PAUSED_USB
+    PROGRAM_PAUSED_USB,
+    BATTERY_MONITOR_DATA
 };

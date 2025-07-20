@@ -106,6 +106,7 @@ const char* routeToString(RouteType route) {
         case RouteType::SCAN_STARTED: return "/scan-started";
         case RouteType::MOTORS_DISABLED_USB: return "/motors-disabled-usb";
         case RouteType::PROGRAM_PAUSED_USB: return "/program-paused-usb";
+        case RouteType::BATTERY_MONITOR_DATA: return "/battery-monitor-data";
         default: return "";
     }
 }

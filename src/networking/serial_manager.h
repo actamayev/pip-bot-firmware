@@ -1,11 +1,13 @@
 #pragma once
 #include <freertos/FreeRTOS.h>  // Must be first!
+#include <ArduinoJson.h>
 #include "message_processor.h"
 #include "utils/config.h"
 #include "utils/structs.h"
 #include "utils/singleton.h"
 #include "actuators/led/rgb_led.h"
 #include "serial_queue_manager.h"
+#include "sensors/battery_monitor.h"
 
 class SerialManager : public Singleton<SerialManager> {
     friend class Singleton<SerialManager>;
@@ -20,6 +22,7 @@ class SerialManager : public Singleton<SerialManager> {
         void sendSavedNetworksResponse(const std::vector<WiFiCredentials>& networks);
         void sendScanResultsResponse(const std::vector<WiFiNetworkInfo>& networks);
         void sendScanStartedMessage();
+        void sendBatteryMonitorData(const BatteryState& batteryState);
 
     private:
         SerialManager() = default;  // Make constructor private and implement it

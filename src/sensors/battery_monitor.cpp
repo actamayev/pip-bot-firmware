@@ -156,6 +156,9 @@ void BatteryMonitor::update() {
     
     // Handle warnings and alerts
     handleWarnings();
+    
+    // Handle periodic battery logging when connected to serial
+    handleBatteryLogging();
 }
 
 void BatteryMonitor::handleWarnings() {
@@ -178,6 +181,20 @@ void BatteryMonitor::handleWarnings() {
             lastLowBatteryWarning = currentTime;
         }
     }
+}
+
+void BatteryMonitor::handleBatteryLogging() {
+    if (!batteryState.isInitialized) return;
+    
+    // Only log if connected to serial
+    if (!SerialManager::getInstance().isConnected) return;
+    
+    unsigned long currentTime = millis();
+    if (currentTime - lastBatteryLogTime < BATTERY_LOG_INTERVAL_MS) return;
+    // Log battery data every 30 seconds
+    SerialManager::getInstance().sendBatteryMonitorData(batteryState);
+    SerialQueueManager::getInstance().queueMessage("Battery data logged", SerialPriority::HIGH_PRIO);
+    lastBatteryLogTime = currentTime;
 }
 
 void BatteryMonitor::retryInitializationIfNeeded() {
