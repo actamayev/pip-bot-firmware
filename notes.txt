@@ -5,6 +5,19 @@ We'd like to have:
 # app0: 2.5MB - Primary application partition
 # app1: 2.5MB - Secondary application partition (OTA)
 # coredump: 64KB - Core dump storage
-# spiffs: 8MB - File system storage
+# spiffs: 10MB - File system storage
+# phy_init: 4K - Improved WiFi performance
 
-Don't currently have this
+# Name,   Type, SubType, Offset,  Size, Flags
+nvs,      data, nvs,     36K,     20K,
+otadata,  data, ota,     56K,     8K,
+app0,     app,  ota_0,   64K,     2560K,
+app1,     app,  ota_1,   ,        2560K,
+coredump, data, coredump,,        64K,
+spiffs,   data, spiffs,  ,        10688K,
+phy_init, data, phy,     ,        4K,
+
+When changing partitions.csv:
+	1. pio run --target clean (takes care of local, staging, and prod)
+	2. pio run --target erase (takes care of local, staging, and prod)
+	3. Upload and monitor
