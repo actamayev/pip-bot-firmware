@@ -226,8 +226,9 @@ void TaskManager::batteryMonitorTask(void* parameter) {
 }
 
 void TaskManager::speakerTask(void* parameter) {
+    Speaker::getInstance().initialize();
     SerialQueueManager::getInstance().queueMessage("Speaker task started");
-    
+
     for(;;) {
         Speaker::getInstance().update();
         vTaskDelay(pdMS_TO_TICKS(10)); // Update every 10ms for smooth audio

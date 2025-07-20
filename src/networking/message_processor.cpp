@@ -11,11 +11,6 @@ void MessageProcessor::handleMotorControl(const uint8_t* data) {
 void MessageProcessor::handleSoundCommand(SoundType soundType) {
     // Play the requested tune
     switch(soundType) {
-        case SoundType::BREEZE:
-            SerialQueueManager::getInstance().queueMessage("Playing BREEZE sound");
-            Speaker::getInstance().playFile(AudioFile::BREEZE);
-            break;
-
         case SoundType::CHIME:
             SerialQueueManager::getInstance().queueMessage("Playing CHIME sound");
             Speaker::getInstance().playFile(AudioFile::CHIME);
@@ -31,9 +26,14 @@ void MessageProcessor::handleSoundCommand(SoundType soundType) {
             Speaker::getInstance().playFile(AudioFile::POP);
             break;
         
-        case SoundType::SPLASH:
-            SerialQueueManager::getInstance().queueMessage("Playing SPLASH sound");
-            Speaker::getInstance().playFile(AudioFile::SPLASH);
+        case SoundType::DROP:
+            SerialQueueManager::getInstance().queueMessage("Playing DROP sound");
+            Speaker::getInstance().playFile(AudioFile::DROP);
+            break;
+
+        case SoundType::FART:
+            SerialQueueManager::getInstance().queueMessage("Playing FART sound");
+            Speaker::getInstance().playFile(AudioFile::FART);
             break;
 
         default:
@@ -429,7 +429,6 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             SensorPollingManager::getInstance().startPolling();
             break;
         }
-        // Add this new case in processBinaryMessage()
         case DataMessageType::WIFI_CREDENTIALS: {
             if (length < 3) { // At least 1 byte for each length field + message type
                 SerialQueueManager::getInstance().queueMessage("Invalid WiFi credentials message length");
@@ -484,6 +483,31 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
                 SerialQueueManager::getInstance().queueMessage("Invalid scan wifi networks message length");
             } else {
                 handleScanWiFiNetworks();
+            }
+            break;
+        }
+        case DataMessageType::UPDATE_HORN_SOUND: {
+            if (length != 2) {
+                SerialQueueManager::getInstance().queueMessage("Invalid update horn message length");
+            } else {
+                HornSoundStatus status = static_cast<HornSoundStatus>(data[1]);
+                if (status == HornSoundStatus::ON) {
+                    // TODO: Fix this
+                    rgbLed.set_headlights_on();
+                } else {
+                    rgbLed.reset_headlights_to_default();
+                }
+            }
+            break;
+        }
+        case DataMessageType::SPEAKER_VOLUME: {
+            if (length != 5) { // 1 byte for message type + 4 bytes for float32
+                SerialQueueManager::getInstance().queueMessage("Invalid speaker volume message length");
+            } else {
+                // Extract the 4-byte float32 value (little-endian)
+                float volume;
+                memcpy(&volume, &data[1], sizeof(float));
+                Speaker::getInstance().setVolume(volume);
             }
             break;
         }

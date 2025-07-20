@@ -20,16 +20,25 @@ enum class DataMessageType : uint8_t {
     WIFI_CREDENTIALS = 16,
     WIFI_CONNECTION_RESULT = 17,
     GET_SAVED_WIFI_NETWORKS = 19,
-    SCAN_WIFI_NETWORKS = 20
+    SCAN_WIFI_NETWORKS = 20,
+    UPDATE_HORN_SOUND = 21,
+    SPEAKER_VOLUME = 22
 };
 
 // Sound types
 enum class SoundType : uint8_t {
-    BREEZE = 0,
     CHIME = 1,
     CHIRP = 2,
     POP = 3,
-    SPLASH = 4,
+    DROP = 4,
+    FART = 5,
+    MONKEY = 6,
+    ELEPHANT = 7,
+    PARTY = 8,
+    UFO = 9,
+    COUNTDOWN = 10,
+    ENGINE = 11,
+    ROBOT = 12
 };
 
 // Speaker status
@@ -39,6 +48,11 @@ enum class SpeakerStatus : uint8_t {
 };
 
 enum class HeadlightStatus {
+    OFF = 0,
+    ON = 1
+};
+
+enum class HornSoundStatus {
     OFF = 0,
     ON = 1
 };
