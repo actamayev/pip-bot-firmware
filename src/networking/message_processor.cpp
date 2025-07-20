@@ -36,6 +36,41 @@ void MessageProcessor::handleSoundCommand(SoundType soundType) {
             Speaker::getInstance().playFile(AudioFile::FART);
             break;
 
+        case SoundType::MONKEY:
+            SerialQueueManager::getInstance().queueMessage("Playing MONKEY sound");
+            Speaker::getInstance().playFile(AudioFile::MONKEY);
+            break;
+
+        case SoundType::ELEPHANT:
+            SerialQueueManager::getInstance().queueMessage("Playing ELEPHANT sound");   
+            Speaker::getInstance().playFile(AudioFile::ELEPHANT);
+            break;
+
+        case SoundType::PARTY:
+            SerialQueueManager::getInstance().queueMessage("Playing PARTY sound");
+            Speaker::getInstance().playFile(AudioFile::PARTY);
+            break;
+
+        case SoundType::UFO:
+            SerialQueueManager::getInstance().queueMessage("Playing UFO sound");
+            Speaker::getInstance().playFile(AudioFile::UFO);
+            break;
+
+        case SoundType::COUNTDOWN:
+            SerialQueueManager::getInstance().queueMessage("Playing COUNTDOWN sound");
+            Speaker::getInstance().playFile(AudioFile::COUNTDOWN);
+            break;
+
+        case SoundType::ENGINE:
+            SerialQueueManager::getInstance().queueMessage("Playing ENGINE sound");
+            Speaker::getInstance().playFile(AudioFile::ENGINE);
+            break;
+
+        case SoundType::ROBOT:
+            SerialQueueManager::getInstance().queueMessage("Playing ROBOT sound");
+            Speaker::getInstance().playFile(AudioFile::ROBOT);
+            break;
+
         default:
             // SerialQueueManager::getInstance().queueMessage("Unknown tune type: %d\n", static_cast<int>(soundType));
             break;

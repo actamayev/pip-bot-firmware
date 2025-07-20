@@ -58,7 +58,7 @@ class TaskManager {
         static constexpr uint32_t NETWORK_COMMUNICATION_STACK_SIZE = 8192; // Lightweight WebSocket polling
         static constexpr uint32_t SERIAL_QUEUE_STACK_SIZE = MAX_PROGRAM_SIZE;
         static constexpr uint32_t BATTERY_MONITOR_STACK_SIZE = 4096;
-        static constexpr uint32_t SPEAKER_STACK_SIZE = 4096;
+        static constexpr uint32_t SPEAKER_STACK_SIZE = 12288;
 
         // Task priorities (higher number = higher priority)
         enum class Priority : uint8_t {

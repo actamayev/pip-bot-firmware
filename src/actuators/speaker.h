@@ -56,20 +56,28 @@ class Speaker : public Singleton<Speaker> {
         AudioGeneratorMP3* audioMP3 = nullptr;
         AudioOutputI2S* audioOutput = nullptr;
         
-        // Queue system for handling rapid requests
+        // Enhanced queue system for handling rapid requests
         std::queue<AudioFile> audioQueue;
         bool isCurrentlyPlaying = false;
         bool isStoppingPlayback = false;
         unsigned long stopRequestTime = 0;
-        static const unsigned long STOP_DELAY_MS = 50; // Delay between stop and start
+        unsigned long lastPlaybackTime = 0;  // NEW: Track last playback time
+        static const unsigned long STOP_DELAY_MS = 200; // Increased delay for ESP32-S3
+        static const unsigned long MIN_PLAYBACK_INTERVAL_MS = 150; // NEW: Minimum interval between plays
         
         String currentFilename = "";
+        
+        // Enhanced state management
+        bool audioObjectsValid = false;  // NEW: Track audio object validity
+        bool forceRecreateObjects = false;  // NEW: Force recreation flag
         
         bool initializeSPIFFS();
         bool initializeAudio();
         void cleanup();
         bool safeStopPlayback();
         bool safeStartPlayback(AudioFile file);
+        bool recreateAudioObjects();  // NEW: Recreate audio objects safely
+        bool validateAudioObjects();  // NEW: Validate audio objects
 
         const char* getFilePath(AudioFile audioFile) const;
 };

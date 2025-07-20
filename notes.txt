@@ -22,11 +22,3 @@ When changing partitions.csv:
 	2. pio run --target erase (takes care of local, staging, and prod)
 	3. Upload and monitor
 
-To upload new data files:
-	1. Upload and filesystem image (this is separate from code uploads)
-
-Sound files:
-1. Chirp: https://pixabay.com/sound-effects/search/chirp/ (birds chirps) (yuliana-yurukova)
-2. Fart: https://pixabay.com/sound-effects/search/fart/ (proud fart) (BeanFrog)
-3. Pop: https://pixabay.com/sound-effects/search/pop/ (pop) (freesound_community)
-4. Drop: https://pixabay.com/sound-effects/search/drop/ (water drop) (freesound_community)
