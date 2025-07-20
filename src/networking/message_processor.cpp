@@ -435,6 +435,14 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             SerialManager::getInstance().lastActivityTime = millis();
             SerialManager::getInstance().sendHandshakeConfirmation();
             SensorPollingManager::getInstance().startPolling();
+
+            // Send initial battery data on handshake
+            const BatteryState& batteryState = BatteryMonitor::getInstance().getBatteryState();
+            if (batteryState.isInitialized) {
+                SerialQueueManager::getInstance().queueMessage("Sending initial battery data on handshake...");
+                SerialManager::getInstance().sendBatteryMonitorData(batteryState);
+                BatteryMonitor::getInstance().lastBatteryLogTime = millis();
+            }
             break;
         }
         case DataMessageType::SERIAL_KEEPALIVE: {

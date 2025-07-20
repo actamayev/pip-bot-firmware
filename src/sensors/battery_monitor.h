@@ -47,6 +47,7 @@ class BatteryMonitor : public Singleton<BatteryMonitor> {
         // Battery status as string
         String getBatteryStatusString() const;
         String getChargingStatusString() const;
+        unsigned long lastBatteryLogTime = 0;
 
     private:
         BatteryMonitor() = default;
@@ -63,7 +64,6 @@ class BatteryMonitor : public Singleton<BatteryMonitor> {
         unsigned long lastUpdateTime = 0;
         unsigned long lastLowBatteryWarning = 0;
         unsigned long lastInitAttempt = 0;
-        unsigned long lastBatteryLogTime = 0;
         static constexpr unsigned long UPDATE_INTERVAL_MS = 1000; // Update every second
         static constexpr unsigned long LOW_BATTERY_WARNING_INTERVAL_MS = 30000; // Warn every 30 seconds
         static constexpr unsigned long INIT_RETRY_INTERVAL_MS = 10000; // Retry init every 10 seconds
