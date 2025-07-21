@@ -232,7 +232,7 @@ void SerialManager::sendBatteryMonitorData() {
     const BatteryState& batteryState = BatteryMonitor::getInstance().getBatteryState();
     
     SerialQueueManager::getInstance().queueMessage("Sending battery data as individual items...");
-    
+
     // Send each battery data field as individual message
     sendBatteryDataItem("stateOfCharge", batteryState.stateOfCharge);
     sendBatteryDataItem("voltage", batteryState.voltage);

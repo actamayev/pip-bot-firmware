@@ -5,7 +5,11 @@ bool BatteryMonitor::initialize() {
     SerialQueueManager::getInstance().queueMessage("Initializing BQ27441 battery monitor...");
 
     // Initialize the fuel gauge
-    if (lipo.begin()) {
+    if (!lipo.begin()) {
+        SerialQueueManager::getInstance().queueMessage("✗ Failed to connect to BQ27441 - check wiring and I2C address");
+        batteryState.isInitialized = false;
+        return false;
+    } else {
         SerialQueueManager::getInstance().queueMessage("✓ BQ27441 connected successfully");
         
         // Set the battery capacity if it hasn't been set already
@@ -36,21 +40,11 @@ bool BatteryMonitor::initialize() {
         }
         
         return true;
-    } else {
-        SerialQueueManager::getInstance().queueMessage("✗ Failed to connect to BQ27441 - check wiring and I2C address");
-        batteryState.isInitialized = false;
-        return false;
     }
 }
 
 void BatteryMonitor::updateBatteryState() {
     if (!batteryState.isInitialized) return;
-    
-    unsigned long currentTime = millis();
-    if (currentTime - lastUpdateTime < UPDATE_INTERVAL_MS) {
-        return; // Don't update too frequently
-    }
-    lastUpdateTime = currentTime;
     
     // Read battery parameters from BQ27441
     batteryState.stateOfCharge = lipo.soc();
@@ -66,18 +60,16 @@ void BatteryMonitor::updateBatteryState() {
     
     // Calculate time estimates
     calculateTimeEstimates();
+    lastUpdateTime = millis();
 }
 
 void BatteryMonitor::updateStatusFlags() {
     // Charging/discharging status
-    if (batteryState.current < CHARGING_CURRENT_THRESHOLD) {
-        batteryState.isCharging = true;
-        batteryState.isDischarging = false;
-    } else if (batteryState.current > DISCHARGING_CURRENT_THRESHOLD) {
+    if (batteryState.current < 0) {
         batteryState.isCharging = false;
         batteryState.isDischarging = true;
     } else {
-        batteryState.isCharging = false;
+        batteryState.isCharging = true;
         batteryState.isDischarging = false;
     }
     
@@ -100,62 +92,6 @@ void BatteryMonitor::calculateTimeEstimates() {
         if (chargingCurrent > 0 && remainingToFull > 0) {
             batteryState.estimatedTimeToFull = (float)remainingToFull / chargingCurrent;
         }
-    }
-}
-
-String BatteryMonitor::getBatteryStatusString() const {
-    if (!batteryState.isInitialized) return "Not initialized";
-
-    String status = String(batteryState.stateOfCharge) + "% ";
-    
-    if (batteryState.stateOfCharge > 80) {
-        status += "(Excellent)";
-    } else if (batteryState.stateOfCharge > 60) {
-        status += "(Good)";
-    } else if (batteryState.stateOfCharge > 40) {
-        status += "(Fair)";
-    } else if (batteryState.stateOfCharge > 20) {
-        status += "(Low)";
-    } else if (batteryState.stateOfCharge > 10) {
-        status += "(Very Low)";
-    } else {
-        status += "(Critical)";
-    }
-    
-    return status;
-}
-
-String BatteryMonitor::getChargingStatusString() const {
-    if (!batteryState.isInitialized) return "Unknown";
-    
-    if (batteryState.isCharging) {
-        String status = "Charging";
-        if (batteryState.estimatedTimeToFull > 0) {
-            status += " (" + formatTime(batteryState.estimatedTimeToFull) + " to full)";
-        }
-        return status;
-    } else if (batteryState.isDischarging) {
-        String status = "Discharging";
-        if (batteryState.estimatedTimeToEmpty > 0) {
-            status += " (" + formatTime(batteryState.estimatedTimeToEmpty) + " remaining)";
-        }
-        return status;
-    } else {
-        return "Standby";
-    }
-}
-
-String BatteryMonitor::formatTime(float hours) const {
-    if (hours < 0) return "Unknown";
-    
-    int totalMinutes = (int)(hours * 60);
-    int displayHours = totalMinutes / 60;
-    int displayMinutes = totalMinutes % 60;
-    
-    if (displayHours > 0) {
-        return String(displayHours) + "h " + String(displayMinutes) + "m";
-    } else {
-        return String(displayMinutes) + "m";
     }
 }
 

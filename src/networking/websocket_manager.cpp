@@ -119,8 +119,8 @@ void WebSocketManager::sendBatteryMonitorData() {
     payload["batteryData"]["remainingCapacity"] = batteryState.remainingCapacity;
     payload["batteryData"]["fullCapacity"] = batteryState.fullCapacity;
     payload["batteryData"]["health"] = batteryState.health;
-    payload["batteryData"]["isCharging"] = !batteryState.isCharging;
-    payload["batteryData"]["isDischarging"] = !batteryState.isDischarging;
+    payload["batteryData"]["isCharging"] = batteryState.isCharging;
+    payload["batteryData"]["isDischarging"] = batteryState.isDischarging;
     payload["batteryData"]["isLowBattery"] = batteryState.isLowBattery;
     payload["batteryData"]["isCriticalBattery"] = batteryState.isCriticalBattery;
     payload["batteryData"]["estimatedTimeToEmpty"] = batteryState.estimatedTimeToEmpty;
