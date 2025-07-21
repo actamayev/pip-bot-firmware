@@ -489,6 +489,17 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             }
             break;
         }
+        case DataMessageType::STOP_SOUND: {
+            // 7/21/25 TODO: Implement this
+            break;
+        }
+        case DataMessageType::REQUEST_BATTERY_MONITOR_DATA: { // This comes from the server when the user reloads the page (user requests battery data for each pip)
+            if (length != 1) {
+                SerialQueueManager::getInstance().queueMessage("Invalid request battery monitor data message length");
+            } else {
+                BatteryMonitor::getInstance().sendBatteryMonitorDataOverWebSocket();
+            }
+        }
         default:
             // SerialQueueManager::getInstance().queueMessage("Unknown message type: %d\n", static_cast<int>(messageType));
             break;

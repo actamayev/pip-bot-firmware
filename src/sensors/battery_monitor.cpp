@@ -146,14 +146,9 @@ void BatteryMonitor::handleBatteryLogging() {
     unsigned long currentTime = millis();
     if (currentTime - lastBatteryLogTime < BATTERY_LOG_INTERVAL_MS) return;
     // Log battery data every 30 seconds
-    if (SerialManager::getInstance().isSerialConnected()) {
-        SerialManager::getInstance().sendBatteryMonitorData();
-        SerialQueueManager::getInstance().queueMessage("Battery data sent to serial", SerialPriority::HIGH_PRIO);
-    }
-    if (WebSocketManager::getInstance().isConnected()) {
-        WebSocketManager::getInstance().sendBatteryMonitorData();
-        SerialQueueManager::getInstance().queueMessage("Battery data sent to websocket", SerialPriority::HIGH_PRIO);
-    }
+
+    sendBatteryMonitorDataOverSerial();
+    sendBatteryMonitorDataOverWebSocket();
     lastBatteryLogTime = currentTime;
 }
 
@@ -164,4 +159,16 @@ void BatteryMonitor::retryInitializationIfNeeded() {
         initialize();
         lastInitAttempt = currentTime;
     }
+}
+
+void BatteryMonitor::sendBatteryMonitorDataOverSerial() {
+    if (!SerialManager::getInstance().isSerialConnected()) return;
+    SerialManager::getInstance().sendBatteryMonitorData();
+    SerialQueueManager::getInstance().queueMessage("Battery data sent to serial", SerialPriority::HIGH_PRIO);
+}
+
+void BatteryMonitor::sendBatteryMonitorDataOverWebSocket() {
+    if (!WebSocketManager::getInstance().isConnected()) return;
+    WebSocketManager::getInstance().sendBatteryMonitorData();
+    SerialQueueManager::getInstance().queueMessage("Battery data sent to websocket", SerialPriority::HIGH_PRIO);
 }
