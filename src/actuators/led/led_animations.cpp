@@ -1,7 +1,7 @@
 #include "led_animations.h"
 
-LedAnimations::LedAnimations(Adafruit_NeoPixel& strip1, Adafruit_NeoPixel& strip2)
-    : strip1(strip1), strip2(strip2) {
+LedAnimations::LedAnimations(Adafruit_NeoPixel& strip)
+    : strip(strip) {
 }
 
 void LedAnimations::startBreathing(int speed, float startingBrightness) {
@@ -31,7 +31,7 @@ void LedAnimations::startBreathing(int speed, float startingBrightness) {
 }
 
 void LedAnimations::updateBreathingColor() {
-    // Use top-left LED's default color for breathing
+    // Use back_right LED's default color for breathing
     if (!rgbLed.defaultColorsSet[0]) {
         breathMin[0] = 0.1 * MAX_LED_BRIGHTNESS;
         breathMin[1] = 0.1 * MAX_LED_BRIGHTNESS;
@@ -68,7 +68,7 @@ void LedAnimations::startStrobing(int speed) {
 }
 
 void LedAnimations::updateStrobeColor() {
-    // Use top-left LED's default color for strobing
+    // Use back_right LED's default color for strobing
     if (!rgbLed.defaultColorsSet[0]) {
         strobeColor[0] = MAX_LED_BRIGHTNESS;
         strobeColor[1] = MAX_LED_BRIGHTNESS;
@@ -224,33 +224,32 @@ void LedAnimations::updateRainbow() {
             224   // Violet
         };
         
-        // Map the color to each LED in the logical order from your set functions
-        // back_left_led (LED 1) - strip1.pixel 1
-        strip1.setPixelColor(0, colorHSV((baseHues[1] + rainbowHue) % 256));
+        // Map colors to each LED based on new physical order:
+        // Index 0: back_right
+        strip.setPixelColor(0, colorHSV((baseHues[1] + rainbowHue) % 256));
         
-        // back_right_led (LED 0) - strip1.pixel 0
-        strip1.setPixelColor(1, colorHSV((baseHues[0] + rainbowHue) % 256));
+        // Index 1: middle_right
+        strip.setPixelColor(1, colorHSV((baseHues[2] + rainbowHue) % 256));
         
-        // middle_right_led (LED 2) - strip2.pixel 0
-        strip2.setPixelColor(0, colorHSV((baseHues[2] + rainbowHue) % 256));
+        // Index 2: top_right
+        strip.setPixelColor(2, colorHSV((baseHues[3] + rainbowHue) % 256));
         
-        // top_right_led (LED 3) - strip2.pixel 1
-        strip2.setPixelColor(1, colorHSV((baseHues[3] + rainbowHue) % 256));
+        // Index 3: right_headlight
+        strip.setPixelColor(3, colorHSV((baseHues[4] + rainbowHue) % 256));
         
-        // right_headlight (LED 4) - strip2.pixel 2
-        strip2.setPixelColor(2, colorHSV((baseHues[4] + rainbowHue) % 256));
+        // Index 4: left_headlight
+        strip.setPixelColor(4, colorHSV((baseHues[5] + rainbowHue) % 256));
         
-        // left_headlight (LED 5) - strip2.pixel 3
-        strip2.setPixelColor(3, colorHSV((baseHues[5] + rainbowHue) % 256));
+        // Index 5: top_left
+        strip.setPixelColor(5, colorHSV((baseHues[6] + rainbowHue) % 256));
         
-        // top_left_led (LED 6) - strip2.pixel 4
-        strip2.setPixelColor(4, colorHSV((baseHues[6] + rainbowHue) % 256));
+        // Index 6: middle_left
+        strip.setPixelColor(6, colorHSV((baseHues[7] + rainbowHue) % 256));
         
-        // middle_left_led (LED 7) - strip2.pixel 5
-        strip2.setPixelColor(5, colorHSV((baseHues[7] + rainbowHue) % 256));
+        // Index 7: back_left
+        strip.setPixelColor(7, colorHSV((baseHues[0] + rainbowHue) % 256));
         
-        strip1.show();
-        strip2.show();
+        strip.show();
     }
 }
 
@@ -294,7 +293,7 @@ uint32_t LedAnimations::colorHSV(uint8_t h, uint8_t s, uint8_t v) {
             break;
     }
     
-    return strip1.Color(r, g, b);
+    return strip.Color(r, g, b);
 }
 
 void LedAnimations::turnOff() {
@@ -304,12 +303,8 @@ void LedAnimations::turnOff() {
 
 void LedAnimations::setAllLeds(uint8_t red, uint8_t green, uint8_t blue) {
     // Set all LEDs to the same color
-    for(int i = 0; i < strip1.numPixels(); i++) {
-        strip1.setPixelColor(i, strip1.Color(red, green, blue));
+    for(int i = 0; i < strip.numPixels(); i++) {
+        strip.setPixelColor(i, strip.Color(red, green, blue));
     }
-    for(int i = 0; i < strip2.numPixels(); i++) {
-        strip2.setPixelColor(i, strip2.Color(red, green, blue));
-    }
-    strip1.show();
-    strip2.show();
+    strip.show();
 }

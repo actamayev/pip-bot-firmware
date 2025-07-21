@@ -32,6 +32,8 @@ void setup() {
     TaskManager::createSensorInitTask();  // Only create init task at startup
     TaskManager::createNetworkManagementTask();    // External function
     // TaskManager::createStackMonitorTask();   // Enable in debug builds
+    TaskManager::createBatteryMonitorTask();
+    TaskManager::createSpeakerTask();
 }
 
 // Main loop runs on Core 1

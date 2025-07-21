@@ -10,6 +10,7 @@
 #include "custom_interpreter/bytecode_vm.h"
 #include "sensors/sensor_polling_manager.h"
 #include "utils/preferences_manager.h"
+#include "sensors/battery_monitor.h"
 
 using namespace websockets;
 
@@ -23,6 +24,7 @@ class WebSocketManager : public Singleton<WebSocketManager> {
         websockets::WebsocketsClient wsClient;
 
         bool isConnected() const { return wsConnected; }
+        void sendBatteryMonitorData();
 
     private:
         // Make constructor private for singleton

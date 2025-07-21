@@ -150,7 +150,7 @@ void Buttons::setupDeepSleep() {
 void Buttons::enterDeepSleep() {
     // Configure Button 1 (GPIO 12) as wake-up source
     rgbLed.turn_led_off();
-    speaker.setMuted(true);
+    Speaker::getInstance().setMuted(true);
     BytecodeVM::getInstance().stopProgram();
 
     esp_sleep_enable_ext0_wakeup((gpio_num_t)BUTTON_PIN_1, LOW); // LOW = button press (since using INPUT_PULLUP)

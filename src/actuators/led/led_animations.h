@@ -8,7 +8,7 @@
 
 class LedAnimations {
     public:
-        LedAnimations(Adafruit_NeoPixel& strip1, Adafruit_NeoPixel& strip2);
+        LedAnimations(Adafruit_NeoPixel& strip);
 
         // Set the current animation
         void startBreathing(int speed = 2000, float startingBrightness = 0.5f);
@@ -28,8 +28,7 @@ class LedAnimations {
         void updateBreathingColor();
         void updateStrobeColor();
     private:
-        Adafruit_NeoPixel& strip1;
-        Adafruit_NeoPixel& strip2;
+        Adafruit_NeoPixel& strip;
         
         // Current animation state
         LedTypes::AnimationType currentAnimation = LedTypes::NONE;

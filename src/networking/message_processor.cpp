@@ -11,31 +11,64 @@ void MessageProcessor::handleMotorControl(const uint8_t* data) {
 void MessageProcessor::handleSoundCommand(SoundType soundType) {
     // Play the requested tune
     switch(soundType) {
-        case SoundType::BREEZE:
-            SerialQueueManager::getInstance().queueMessage("Playing BREEZE sound");
-            // Call your alert sound function
-            // speaker.alert();
-            break;
-
         case SoundType::CHIME:
             SerialQueueManager::getInstance().queueMessage("Playing CHIME sound");
-            // Call your beep sound function
-            // speaker.beep();
+            Speaker::getInstance().playFile(AudioFile::CHIME);
             break;
 
         case SoundType::CHIRP:
             SerialQueueManager::getInstance().queueMessage("Playing CHIRP sound");
-            speaker.chime();
+            Speaker::getInstance().playFile(AudioFile::CHIRP);
             break;
         
         case SoundType::POP:
             SerialQueueManager::getInstance().queueMessage("Playing POP sound");
-            speaker.chime();
+            Speaker::getInstance().playFile(AudioFile::POP);
             break;
         
-        case SoundType::SPLASH:
-            SerialQueueManager::getInstance().queueMessage("Playing SPLASH sound");
-            speaker.chime();
+        case SoundType::DROP:
+            SerialQueueManager::getInstance().queueMessage("Playing DROP sound");
+            Speaker::getInstance().playFile(AudioFile::DROP);
+            break;
+
+        case SoundType::FART:
+            SerialQueueManager::getInstance().queueMessage("Playing FART sound");
+            Speaker::getInstance().playFile(AudioFile::FART);
+            break;
+
+        case SoundType::MONKEY:
+            SerialQueueManager::getInstance().queueMessage("Playing MONKEY sound");
+            Speaker::getInstance().playFile(AudioFile::MONKEY);
+            break;
+
+        case SoundType::ELEPHANT:
+            SerialQueueManager::getInstance().queueMessage("Playing ELEPHANT sound");   
+            Speaker::getInstance().playFile(AudioFile::ELEPHANT);
+            break;
+
+        case SoundType::PARTY:
+            SerialQueueManager::getInstance().queueMessage("Playing PARTY sound");
+            Speaker::getInstance().playFile(AudioFile::PARTY);
+            break;
+
+        case SoundType::UFO:
+            SerialQueueManager::getInstance().queueMessage("Playing UFO sound");
+            Speaker::getInstance().playFile(AudioFile::UFO);
+            break;
+
+        case SoundType::COUNTDOWN:
+            SerialQueueManager::getInstance().queueMessage("Playing COUNTDOWN sound");
+            Speaker::getInstance().playFile(AudioFile::COUNTDOWN);
+            break;
+
+        case SoundType::ENGINE:
+            SerialQueueManager::getInstance().queueMessage("Playing ENGINE sound");
+            Speaker::getInstance().playFile(AudioFile::ENGINE);
+            break;
+
+        case SoundType::ROBOT:
+            SerialQueueManager::getInstance().queueMessage("Playing ROBOT sound");
+            Speaker::getInstance().playFile(AudioFile::ROBOT);
             break;
 
         default:
@@ -45,7 +78,7 @@ void MessageProcessor::handleSoundCommand(SoundType soundType) {
 }
 
 void MessageProcessor::handleSpeakerMute(SpeakerStatus status) {
-    speaker.setMuted(status == SpeakerStatus::MUTED);
+    Speaker::getInstance().setMuted(status == SpeakerStatus::MUTED);
 }
 
 void MessageProcessor::updateMotorSpeeds(int16_t leftSpeed, int16_t rightSpeed) {
@@ -402,6 +435,14 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             SerialManager::getInstance().lastActivityTime = millis();
             SerialManager::getInstance().sendHandshakeConfirmation();
             SensorPollingManager::getInstance().startPolling();
+
+            // Send initial battery data on handshake
+            const BatteryState& batteryState = BatteryMonitor::getInstance().getBatteryState();
+            if (batteryState.isInitialized) {
+                SerialQueueManager::getInstance().queueMessage("Sending initial battery data on handshake...");
+                SerialManager::getInstance().sendBatteryMonitorData();
+                BatteryMonitor::getInstance().lastBatteryLogTime = millis();
+            }
             break;
         }
         case DataMessageType::SERIAL_KEEPALIVE: {
@@ -431,7 +472,6 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             SensorPollingManager::getInstance().startPolling();
             break;
         }
-        // Add this new case in processBinaryMessage()
         case DataMessageType::WIFI_CREDENTIALS: {
             if (length < 3) { // At least 1 byte for each length field + message type
                 SerialQueueManager::getInstance().queueMessage("Invalid WiFi credentials message length");
@@ -486,6 +526,31 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
                 SerialQueueManager::getInstance().queueMessage("Invalid scan wifi networks message length");
             } else {
                 handleScanWiFiNetworks();
+            }
+            break;
+        }
+        case DataMessageType::UPDATE_HORN_SOUND: {
+            if (length != 2) {
+                SerialQueueManager::getInstance().queueMessage("Invalid update horn message length");
+            } else {
+                HornSoundStatus status = static_cast<HornSoundStatus>(data[1]);
+                if (status == HornSoundStatus::ON) {
+                    // TODO: Fix this
+                    rgbLed.set_headlights_on();
+                } else {
+                    rgbLed.reset_headlights_to_default();
+                }
+            }
+            break;
+        }
+        case DataMessageType::SPEAKER_VOLUME: {
+            if (length != 5) { // 1 byte for message type + 4 bytes for float32
+                SerialQueueManager::getInstance().queueMessage("Invalid speaker volume message length");
+            } else {
+                // Extract the 4-byte float32 value (little-endian)
+                float volume;
+                memcpy(&volume, &data[1], sizeof(float));
+                Speaker::getInstance().setVolume(volume);
             }
             break;
         }

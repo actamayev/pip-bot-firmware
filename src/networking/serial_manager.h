@@ -1,25 +1,33 @@
 #pragma once
 #include <freertos/FreeRTOS.h>  // Must be first!
+#include <ArduinoJson.h>
 #include "message_processor.h"
 #include "utils/config.h"
 #include "utils/structs.h"
 #include "utils/singleton.h"
 #include "actuators/led/rgb_led.h"
 #include "serial_queue_manager.h"
+#include "sensors/battery_monitor.h"
 
 class SerialManager : public Singleton<SerialManager> {
     friend class Singleton<SerialManager>;
+    friend class MessageProcessor;
 
     public:
         void pollSerial();
         void sendHandshakeConfirmation();
-        bool isConnected = false;
+        bool isSerialConnected() const { return isConnected; }
         unsigned long lastActivityTime = 0;
         void sendJsonMessage(RouteType route, const String& status);
         void sendPipIdMessage();
         void sendSavedNetworksResponse(const std::vector<WiFiCredentials>& networks);
         void sendScanResultsResponse(const std::vector<WiFiNetworkInfo>& networks);
         void sendScanStartedMessage();
+        void sendBatteryMonitorData();
+        void sendBatteryDataItem(const String& key, int value);
+        void sendBatteryDataItem(const String& key, unsigned int value);
+        void sendBatteryDataItem(const String& key, float value);
+        void sendBatteryDataItem(const String& key, bool value);
 
     private:
         SerialManager() = default;  // Make constructor private and implement it
@@ -39,4 +47,5 @@ class SerialManager : public Singleton<SerialManager> {
         bool useLongFormat = false;
 
         const unsigned long SERIAL_CONNECTION_TIMEOUT = 400;
+        bool isConnected = false;
 };
