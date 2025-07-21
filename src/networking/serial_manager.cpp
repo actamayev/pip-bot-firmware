@@ -196,9 +196,6 @@ void SerialManager::sendScanResultsResponse(const std::vector<WiFiNetworkInfo>& 
         serializeJson(doc, jsonString);
         
         SerialQueueManager::getInstance().queueMessage(jsonString, SerialPriority::CRITICAL);
-        
-        // Small delay between messages to prevent overwhelming the queue
-        vTaskDelay(pdMS_TO_TICKS(10));
     }
     
     // Send completion message
@@ -279,7 +276,7 @@ void SerialManager::sendBatteryDataItem(const String& key, int value) {
     SerialQueueManager::getInstance().queueMessage(jsonString, SerialPriority::CRITICAL);
     
     // Small delay between messages to prevent overwhelming the queue
-    vTaskDelay(pdMS_TO_TICKS(5));
+    // vTaskDelay(pdMS_TO_TICKS(5));
 }
 
 void SerialManager::sendBatteryDataItem(const String& key, unsigned int value) {
@@ -297,7 +294,7 @@ void SerialManager::sendBatteryDataItem(const String& key, unsigned int value) {
     SerialQueueManager::getInstance().queueMessage(jsonString, SerialPriority::CRITICAL);
     
     // Small delay between messages to prevent overwhelming the queue
-    vTaskDelay(pdMS_TO_TICKS(5));
+    // vTaskDelay(pdMS_TO_TICKS(5));
 }
 
 void SerialManager::sendBatteryDataItem(const String& key, float value) {
@@ -315,7 +312,7 @@ void SerialManager::sendBatteryDataItem(const String& key, float value) {
     SerialQueueManager::getInstance().queueMessage(jsonString, SerialPriority::CRITICAL);
     
     // Small delay between messages to prevent overwhelming the queue
-    vTaskDelay(pdMS_TO_TICKS(5));
+    // vTaskDelay(pdMS_TO_TICKS(5));
 }
 
 void SerialManager::sendBatteryDataItem(const String& key, bool value) {
@@ -333,5 +330,5 @@ void SerialManager::sendBatteryDataItem(const String& key, bool value) {
     SerialQueueManager::getInstance().queueMessage(jsonString, SerialPriority::CRITICAL);
     
     // Small delay between messages to prevent overwhelming the queue
-    vTaskDelay(pdMS_TO_TICKS(5));
+    // vTaskDelay(pdMS_TO_TICKS(5));
 }
