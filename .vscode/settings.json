@@ -1,5 +1,6 @@
 {
 	"files.associations": {
+		"**/Dockerfile*": "dockerfile",
 		"array": "cpp",
 		"atomic": "cpp",
 		"*.tcc": "cpp",
@@ -48,6 +49,7 @@
 		"stdexcept": "cpp",
 		"streambuf": "cpp",
 		"cinttypes": "cpp",
-		"typeinfo": "cpp"
+		"typeinfo": "cpp",
+		"queue": "cpp"
 	}
 }

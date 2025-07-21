@@ -40,14 +40,14 @@ bool Speaker::initializeAudio() {
     // Create audio objects with error checking
     audioFile = new (std::nothrow) AudioFileSourceSPIFFS();
     if (!audioFile) {
-        SerialQueueManager::getInstance().queueMessage("✗ Failed to create AudioFileSourceSPIFFS");
+        SerialQueueManager::getInstance().queueMessage("✗ Failed to create SoundTypeSourceSPIFFS");
         cleanup();
         return false;
     }
     
     audioID3 = new (std::nothrow) AudioFileSourceID3(audioFile);
     if (!audioID3) {
-        SerialQueueManager::getInstance().queueMessage("✗ Failed to create AudioFileSourceID3");
+        SerialQueueManager::getInstance().queueMessage("✗ Failed to create SoundTypeSourceID3");
         cleanup();
         return false;
     }
@@ -148,25 +148,25 @@ void Speaker::cleanup() {
     delay(50);
 }
 
-const char* Speaker::getFilePath(AudioFile audioFile) const {
+const char* Speaker::getFilePath(SoundType audioFile) const {
     switch (audioFile) {
-        case AudioFile::CHIME:          return "/chime.mp3";
-        case AudioFile::CHIRP:          return "/chirp.mp3";
-        case AudioFile::POP:            return "/pop.mp3";
-        case AudioFile::DROP:           return "/drop.mp3";
-        case AudioFile::FART:           return "/fart.mp3";
-        case AudioFile::MONKEY:         return "/monkey.mp3";
-        case AudioFile::ELEPHANT:       return "/elephant.mp3";
-        case AudioFile::PARTY:          return "/party.mp3";
-        case AudioFile::UFO:            return "/alien.mp3";
-        case AudioFile::COUNTDOWN:      return "/arcade.mp3";
-        case AudioFile::ENGINE:         return "/engine_rev.mp3";
-        case AudioFile::ROBOT:          return "/robot.mp3";
+        case SoundType::CHIME:          return "/chime.mp3";
+        case SoundType::CHIRP:          return "/chirp.mp3";
+        case SoundType::POP:            return "/pop.mp3";
+        case SoundType::DROP:           return "/drop.mp3";
+        case SoundType::FART:           return "/fart.mp3";
+        case SoundType::MONKEY:         return "/monkey.mp3";
+        case SoundType::ELEPHANT:       return "/elephant.mp3";
+        case SoundType::PARTY:          return "/party.mp3";
+        case SoundType::UFO:            return "/alien.mp3";
+        case SoundType::COUNTDOWN:      return "/arcade.mp3";
+        case SoundType::ENGINE:         return "/engine_rev.mp3";
+        case SoundType::ROBOT:          return "/robot.mp3";
         default:                        return nullptr;
     }
 }
 
-void Speaker::playFile(AudioFile file) {
+void Speaker::playFile(SoundType file) {
     if (!initialized || muted) {
         SerialQueueManager::getInstance().queueMessage("Speaker not ready or muted");
         return;
@@ -236,7 +236,7 @@ bool Speaker::safeStopPlayback() {
     return true;
 }
 
-bool Speaker::safeStartPlayback(AudioFile file) {
+bool Speaker::safeStartPlayback(SoundType file) {
     const char* filename = getFilePath(file);
     if (!filename) {
         SerialQueueManager::getInstance().queueMessage("✗ Invalid audio file");
@@ -317,7 +317,7 @@ void Speaker::update() {
             
             // Process any queued audio
             if (!audioQueue.empty()) {
-                AudioFile nextFile = audioQueue.front();
+                SoundType nextFile = audioQueue.front();
                 audioQueue.pop();
                 safeStartPlayback(nextFile);
             }
@@ -336,7 +336,7 @@ void Speaker::update() {
                 
                 // Process any queued audio after a delay
                 if (!audioQueue.empty()) {
-                    AudioFile nextFile = audioQueue.front();
+                    SoundType nextFile = audioQueue.front();
                     audioQueue.pop();
                     // Add delay before starting next audio
                     stopRequestTime = millis();
@@ -354,7 +354,7 @@ void Speaker::update() {
             
             // Process any queued audio
             if (!audioQueue.empty()) {
-                AudioFile nextFile = audioQueue.front();
+                SoundType nextFile = audioQueue.front();
                 audioQueue.pop();
                 safeStartPlayback(nextFile);
             }

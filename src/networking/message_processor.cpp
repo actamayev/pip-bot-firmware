@@ -9,72 +9,7 @@ void MessageProcessor::handleMotorControl(const uint8_t* data) {
 }
 
 void MessageProcessor::handleSoundCommand(SoundType soundType) {
-    // Play the requested tune
-    switch(soundType) {
-        case SoundType::CHIME:
-            SerialQueueManager::getInstance().queueMessage("Playing CHIME sound");
-            Speaker::getInstance().playFile(AudioFile::CHIME);
-            break;
-
-        case SoundType::CHIRP:
-            SerialQueueManager::getInstance().queueMessage("Playing CHIRP sound");
-            Speaker::getInstance().playFile(AudioFile::CHIRP);
-            break;
-        
-        case SoundType::POP:
-            SerialQueueManager::getInstance().queueMessage("Playing POP sound");
-            Speaker::getInstance().playFile(AudioFile::POP);
-            break;
-        
-        case SoundType::DROP:
-            SerialQueueManager::getInstance().queueMessage("Playing DROP sound");
-            Speaker::getInstance().playFile(AudioFile::DROP);
-            break;
-
-        case SoundType::FART:
-            SerialQueueManager::getInstance().queueMessage("Playing FART sound");
-            Speaker::getInstance().playFile(AudioFile::FART);
-            break;
-
-        case SoundType::MONKEY:
-            SerialQueueManager::getInstance().queueMessage("Playing MONKEY sound");
-            Speaker::getInstance().playFile(AudioFile::MONKEY);
-            break;
-
-        case SoundType::ELEPHANT:
-            SerialQueueManager::getInstance().queueMessage("Playing ELEPHANT sound");   
-            Speaker::getInstance().playFile(AudioFile::ELEPHANT);
-            break;
-
-        case SoundType::PARTY:
-            SerialQueueManager::getInstance().queueMessage("Playing PARTY sound");
-            Speaker::getInstance().playFile(AudioFile::PARTY);
-            break;
-
-        case SoundType::UFO:
-            SerialQueueManager::getInstance().queueMessage("Playing UFO sound");
-            Speaker::getInstance().playFile(AudioFile::UFO);
-            break;
-
-        case SoundType::COUNTDOWN:
-            SerialQueueManager::getInstance().queueMessage("Playing COUNTDOWN sound");
-            Speaker::getInstance().playFile(AudioFile::COUNTDOWN);
-            break;
-
-        case SoundType::ENGINE:
-            SerialQueueManager::getInstance().queueMessage("Playing ENGINE sound");
-            Speaker::getInstance().playFile(AudioFile::ENGINE);
-            break;
-
-        case SoundType::ROBOT:
-            SerialQueueManager::getInstance().queueMessage("Playing ROBOT sound");
-            Speaker::getInstance().playFile(AudioFile::ROBOT);
-            break;
-
-        default:
-            // SerialQueueManager::getInstance().queueMessage("Unknown tune type: %d\n", static_cast<int>(soundType));
-            break;
-    }
+    Speaker::getInstance().playFile(static_cast<SoundType>(soundType));
 }
 
 void MessageProcessor::handleSpeakerMute(SpeakerStatus status) {
