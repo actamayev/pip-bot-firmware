@@ -6,7 +6,8 @@ WiFiManager::WiFiManager() {
     // storeWiFiCredentials("NETGEAR08", "breezyshoe123", 1);
     // storeWiFiCredentials("iPhone", "12345678", 0);
 
-	connectToStoredWiFi();
+    WiFi.setTxPower(WIFI_POWER_19_5dBm);
+    connectToStoredWiFi();
 }
 
 WiFiCredentials WiFiManager::getStoredWiFiCredentials() {

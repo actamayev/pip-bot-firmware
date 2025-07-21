@@ -22,6 +22,14 @@ void Buttons::update() {
     // Must be called regularly to process button events
     button1.loop();
     button2.loop();
+    // Handle sleep confirmation timeout
+    if (waitingForSleepConfirmation && sleepConfirmationStartTime > 0) {
+        if (millis() - sleepConfirmationStartTime > SLEEP_CONFIRMATION_TIMEOUT) {
+            waitingForSleepConfirmation = false;
+            sleepConfirmationStartTime = 0;
+            SerialQueueManager::getInstance().queueMessage("Sleep confirmation timed out, returning to normal state");
+        }
+    }
 }
 
 void Buttons::setButton1ClickHandler(std::function<void(Button2&)> callback) {
@@ -69,6 +77,7 @@ void Buttons::setButton1ClickHandler(std::function<void(Button2&)> callback) {
         if (!(this->waitingForSleepConfirmation)) return;
         SerialQueueManager::getInstance().queueMessage("Sleep confirmed with Button 1! Entering deep sleep...");
         this->waitingForSleepConfirmation = false;
+        this->sleepConfirmationStartTime = 0;
         vTaskDelay(pdMS_TO_TICKS(10)); // Small delay to allow serial message to be sent
         enterDeepSleep();
         return; // Don't call the original callback in this case
@@ -89,7 +98,7 @@ void Buttons::setButton2ClickHandler(std::function<void(Button2&)> callback) {
         if (this->waitingForSleepConfirmation) {
             SerialQueueManager::getInstance().queueMessage("Sleep canceled with Button 2!");
             this->waitingForSleepConfirmation = false;
-            rgbLed.restoreCapturedState();
+            this->sleepConfirmationStartTime = 0;
             return; // Don't call the original callback in this case
         }
         
@@ -127,7 +136,6 @@ void Buttons::setupDeepSleep() {
         
         SerialQueueManager::getInstance().queueMessage("Long press detected on Button 1! Release to enter confirmation stage...");
         BytecodeVM::getInstance().stopProgram();
-        rgbLed.captureCurrentState();
         rgbLed.set_led_yellow();
         this->longPressFlagForSleep = true;
     });
@@ -142,6 +150,7 @@ void Buttons::setupDeepSleep() {
         SerialQueueManager::getInstance().queueMessage("Press Button 1 to confirm sleep or Button 2 to cancel");
         this->longPressFlagForSleep = false;
         this->waitingForSleepConfirmation = true; // Enter confirmation stage instead of sleeping directly
+        this->sleepConfirmationStartTime = millis(); // Start confirmation timer
     });
 
     // Note: Wakeup detection is now handled in checkHoldToWakeCondition()

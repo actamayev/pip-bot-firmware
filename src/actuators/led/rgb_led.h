@@ -46,8 +46,6 @@ class RgbLed {
         };
         bool defaultColorsSet[8] = {false, false, false, false, false, false, false, false};
 
-        void captureCurrentState();
-        void restoreCapturedState();
         void set_headlights_on();
         void reset_headlights_to_default();
 
@@ -59,6 +57,7 @@ class RgbLed {
         uint8_t currentGreen = 0;
         uint8_t currentBlue = 0;
 
+        // TODO: Bring this back later, along with the captureCurrentState and restoreCapturedState functions
         LedState capturedState;
 };
 
