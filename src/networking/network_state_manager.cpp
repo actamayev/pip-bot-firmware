@@ -3,7 +3,7 @@
 NetworkMode NetworkStateManager::getCurrentMode() {
     if (_isInAddPipMode) {
         return NetworkMode::ADD_PIP_MODE;     // NEW: Return ADD_PIP_MODE when enabled
-    } else if (SerialManager::getInstance().isConnected) {
+    } else if (SerialManager::getInstance().isSerialConnected()) {
         return NetworkMode::SERIAL_MODE;
     } else if (WiFi.status() == WL_CONNECTED) {
         return NetworkMode::WIFI_MODE;
@@ -13,7 +13,7 @@ NetworkMode NetworkStateManager::getCurrentMode() {
 
 bool NetworkStateManager::shouldStopWiFiOperations() {
     // Don't stop WiFi operations in ADD_PIP_MODE
-    return SerialManager::getInstance().isConnected && !_isInAddPipMode;  // MODIFIED
+    return SerialManager::getInstance().isSerialConnected() && !_isInAddPipMode;  // MODIFIED
 }
 
 void NetworkStateManager::setAddPipMode(bool enabled) {

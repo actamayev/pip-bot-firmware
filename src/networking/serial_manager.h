@@ -11,18 +11,19 @@
 
 class SerialManager : public Singleton<SerialManager> {
     friend class Singleton<SerialManager>;
+    friend class MessageProcessor;
 
     public:
         void pollSerial();
         void sendHandshakeConfirmation();
-        bool isConnected = false;
+        bool isSerialConnected() const { return isConnected; }
         unsigned long lastActivityTime = 0;
         void sendJsonMessage(RouteType route, const String& status);
         void sendPipIdMessage();
         void sendSavedNetworksResponse(const std::vector<WiFiCredentials>& networks);
         void sendScanResultsResponse(const std::vector<WiFiNetworkInfo>& networks);
         void sendScanStartedMessage();
-        void sendBatteryMonitorData(const BatteryState& batteryState);
+        void sendBatteryMonitorData();
         void sendBatteryDataItem(const String& key, int value);
         void sendBatteryDataItem(const String& key, unsigned int value);
         void sendBatteryDataItem(const String& key, float value);
@@ -46,4 +47,5 @@ class SerialManager : public Singleton<SerialManager> {
         bool useLongFormat = false;
 
         const unsigned long SERIAL_CONNECTION_TIMEOUT = 400;
+        bool isConnected = false;
 };

@@ -108,6 +108,7 @@ const char* routeToString(RouteType route) {
         case RouteType::PROGRAM_PAUSED_USB: return "/program-paused-usb";
         case RouteType::BATTERY_MONITOR_DATA_ITEM: return "/battery-monitor-data-item";
         case RouteType::BATTERY_MONITOR_DATA_COMPLETE: return "/battery-monitor-data-complete";
+        case RouteType::BATTERY_MONITOR_DATA_FULL: return "/battery-monitor-data-full";
         default: return "";
     }
 }

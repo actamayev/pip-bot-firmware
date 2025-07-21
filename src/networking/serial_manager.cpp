@@ -229,8 +229,10 @@ void SerialManager::sendScanStartedMessage() {
     SerialQueueManager::getInstance().queueMessage(jsonString, SerialPriority::CRITICAL);
 }
 
-void SerialManager::sendBatteryMonitorData(const BatteryState& batteryState) {
+void SerialManager::sendBatteryMonitorData() {
     if (!isConnected) return;
+
+    const BatteryState& batteryState = BatteryMonitor::getInstance().getBatteryState();
     
     SerialQueueManager::getInstance().queueMessage("Sending battery data as individual items...");
     
