@@ -34,7 +34,7 @@ class Buttons: public Singleton<Buttons> {
         bool waitingForSleepConfirmation = false; // New flag for confirmation stage
         static const uint32_t DEEP_SLEEP_TIMEOUT = 1000; // 1 second in milliseconds
         // Add for sleep confirmation timeout
-        static const uint32_t SLEEP_CONFIRMATION_TIMEOUT = 3000; // 3 seconds in milliseconds
+        static const uint32_t SLEEP_CONFIRMATION_TIMEOUT = 5000; // 5 seconds in milliseconds
         unsigned long sleepConfirmationStartTime = 0;
 
         void begin();
