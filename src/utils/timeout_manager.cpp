@@ -46,7 +46,8 @@ void TimeoutManager::cancelConfirmation() {
 
     SerialQueueManager::getInstance().queueMessage("Timeout canceled! Restoring normal operation...");
     inConfirmationState = false;
-    
+    rgbLed.turn_led_off();
+
     // Reset activity timer
     lastActivityTime = millis();
 }

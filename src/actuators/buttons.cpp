@@ -27,6 +27,7 @@ void Buttons::update() {
         if (millis() - sleepConfirmationStartTime > SLEEP_CONFIRMATION_TIMEOUT) {
             waitingForSleepConfirmation = false;
             sleepConfirmationStartTime = 0;
+            rgbLed.turn_led_off();
             SerialQueueManager::getInstance().queueMessage("Sleep confirmation timed out, returning to normal state");
         }
     }
@@ -97,6 +98,7 @@ void Buttons::setButton2ClickHandler(std::function<void(Button2&)> callback) {
         // If we're waiting for confirmation, this click cancels deep sleep
         if (this->waitingForSleepConfirmation) {
             SerialQueueManager::getInstance().queueMessage("Sleep canceled with Button 2!");
+            rgbLed.turn_led_off();
             this->waitingForSleepConfirmation = false;
             this->sleepConfirmationStartTime = 0;
             return; // Don't call the original callback in this case
