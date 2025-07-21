@@ -261,30 +261,30 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
                     case SENSOR_MAG_FIELD_Z:
                         value = ImuSensor::getInstance().getMagneticFieldZ();
                         break;
-                    case SENSOR_SIDE_LEFT_PROXIMITY: {
-                        uint16_t counts = SideTofManager::getInstance().leftSideTofSensor.getCounts();
-                        registers[regId].asBool = (counts > LEFT_PROXIMITY_THRESHOLD);
-                        registerTypes[regId] = VAR_BOOL;
-                        registerInitialized[regId] = true;
-                        skipDefaultAssignment = true;  // Set flag to skip default assignment
-                        break;
-                    }
-                    case SENSOR_SIDE_RIGHT_PROXIMITY: {
-                        uint16_t counts = SideTofManager::getInstance().rightSideTofSensor.getCounts();
-                        registers[regId].asBool = (counts > RIGHT_PROXIMITY_THRESHOLD);
-                        registerTypes[regId] = VAR_BOOL;
-                        registerInitialized[regId] = true;
-                        skipDefaultAssignment = true;  // Set flag to skip default assignment
-                        break;
-                    }
-                    case SENSOR_FRONT_PROXIMITY: {
-                        float isObjectDetected = MultizoneTofSensor::getInstance().isObjectDetected();
-                        registers[regId].asBool = isObjectDetected;
-                        registerTypes[regId] = VAR_BOOL;
-                        registerInitialized[regId] = true;
-                        skipDefaultAssignment = true;  // Set flag
-                        break;
-                    }
+                    // case SENSOR_SIDE_LEFT_PROXIMITY: {
+                    //     uint16_t counts = SideTofManager::getInstance().leftSideTofSensor.getCounts();
+                    //     registers[regId].asBool = (counts > LEFT_PROXIMITY_THRESHOLD);
+                    //     registerTypes[regId] = VAR_BOOL;
+                    //     registerInitialized[regId] = true;
+                    //     skipDefaultAssignment = true;  // Set flag to skip default assignment
+                    //     break;
+                    // }
+                    // case SENSOR_SIDE_RIGHT_PROXIMITY: {
+                    //     uint16_t counts = SideTofManager::getInstance().rightSideTofSensor.getCounts();
+                    //     registers[regId].asBool = (counts > RIGHT_PROXIMITY_THRESHOLD);
+                    //     registerTypes[regId] = VAR_BOOL;
+                    //     registerInitialized[regId] = true;
+                    //     skipDefaultAssignment = true;  // Set flag to skip default assignment
+                    //     break;
+                    // }
+                    // case SENSOR_FRONT_PROXIMITY: {
+                    //     float isObjectDetected = MultizoneTofSensor::getInstance().isObjectDetected();
+                    //     registers[regId].asBool = isObjectDetected;
+                    //     registerTypes[regId] = VAR_BOOL;
+                    //     registerInitialized[regId] = true;
+                    //     skipDefaultAssignment = true;  // Set flag
+                    //     break;
+                    // }
                     default: {
                         char logMessage[32];
                         snprintf(logMessage, sizeof(logMessage), "Unknown sensor type: %u", sensorType);
@@ -711,7 +711,7 @@ void BytecodeVM::stopProgram() {
 
     stoppedDueToUsbSafety = false; // Reset safety flag when manually stopping
 
-    speaker.setMuted(true);
+    Speaker::getInstance().setMuted(true);
     rgbLed.turn_led_off();
     motorDriver.brake_if_moving();
     return;
@@ -786,7 +786,7 @@ void BytecodeVM::pauseProgram() {
     resetStateVariables();
     MessageProcessor::getInstance().resetCommandState();
 
-    speaker.setMuted(true);
+    Speaker::getInstance().setMuted(true);
     rgbLed.turn_led_off();     
     motorDriver.brake_if_moving();
     
@@ -845,7 +845,7 @@ void BytecodeVM::scanProgramForMotors() {
 }
 
 void BytecodeVM::checkUsbSafetyConditions() {
-    bool currentUsbState = SerialManager::getInstance().isConnected;
+    bool currentUsbState = SerialManager::getInstance().isSerialConnected();
     
     // Detect USB connection change (disconnected -> connected)
     if (!lastUsbState && currentUsbState) {
@@ -866,7 +866,7 @@ void BytecodeVM::handleUsbConnect() {
 
 bool BytecodeVM::canStartProgram() {
     // Block start if program contains motors and USB is connected
-    if (programContainsMotors && SerialManager::getInstance().isConnected) {
+    if (programContainsMotors && SerialManager::getInstance().isSerialConnected()) {
         SerialQueueManager::getInstance().queueMessage("Cannot start motor program while USB connected - disconnect USB first");
         SerialManager::getInstance().sendJsonMessage(RouteType::MOTORS_DISABLED_USB, "Cannot start motor program while USB connected - disconnect USB first");
         return false;

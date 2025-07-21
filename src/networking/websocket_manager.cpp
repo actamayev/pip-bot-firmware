@@ -105,6 +105,31 @@ void WebSocketManager::sendInitialData() {
     wsClient.send(jsonString);
 }
 
+void WebSocketManager::sendBatteryMonitorData() {
+    const BatteryState& batteryState = BatteryMonitor::getInstance().getBatteryState();
+    if (!batteryState.isInitialized) return;
+
+    StaticJsonDocument<256> batteryDoc;
+    batteryDoc["route"] = routeToString(RouteType::BATTERY_MONITOR_DATA_FULL);
+    JsonObject payload = batteryDoc.createNestedObject("payload");
+    payload["batteryData"]["stateOfCharge"] = batteryState.stateOfCharge;
+    payload["batteryData"]["voltage"] = batteryState.voltage;
+    payload["batteryData"]["current"] = batteryState.current;
+    payload["batteryData"]["power"] = batteryState.power;
+    payload["batteryData"]["remainingCapacity"] = batteryState.remainingCapacity;
+    payload["batteryData"]["fullCapacity"] = batteryState.fullCapacity;
+    payload["batteryData"]["health"] = batteryState.health;
+    payload["batteryData"]["isCharging"] = !batteryState.isCharging;
+    payload["batteryData"]["isDischarging"] = !batteryState.isDischarging;
+    payload["batteryData"]["isLowBattery"] = batteryState.isLowBattery;
+    payload["batteryData"]["isCriticalBattery"] = batteryState.isCriticalBattery;
+    payload["batteryData"]["estimatedTimeToEmpty"] = batteryState.estimatedTimeToEmpty;
+    payload["batteryData"]["estimatedTimeToFull"] = batteryState.estimatedTimeToFull;
+    String jsonString;
+    serializeJson(batteryDoc, jsonString);
+    wsClient.send(jsonString);
+}
+
 void WebSocketManager::pollWebSocket() {
     unsigned long currentTime = millis();
     if (currentTime - lastPollTime < POLL_INTERVAL) return;
@@ -132,6 +157,7 @@ void WebSocketManager::pollWebSocket() {
             SerialQueueManager::getInstance().queueMessage("WebSocket connected successfully");
             wsConnected = true;
             sendInitialData();
+            sendBatteryMonitorData();
         } else {
             SerialQueueManager::getInstance().queueMessage("WebSocket connection failed. Will try again in 3 seconds");
         }

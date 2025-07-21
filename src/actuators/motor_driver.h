@@ -1,8 +1,8 @@
 #pragma once
 #include <Arduino.h>
 #include "utils/config.h"
-#include "demos/straight_line_drive.h"
 #include "sensors/encoder_manager.h"
+#include "demos/straight_line_drive.h"
 
 class MotorDriver {
     public:
@@ -24,7 +24,6 @@ class MotorDriver {
         int16_t _targetRightSpeed = 0;
         int16_t _currentLeftSpeed = 0;
         int16_t _currentRightSpeed = 0;
-        unsigned long _lastSpeedUpdateTime = 0;
         static constexpr int16_t SPEED_RAMP_STEP = 50;
 
         void left_motor_forward(uint8_t speed = 255);

@@ -8,8 +8,8 @@
 #include "sensors/side_tof_manager.h"
 #include "networking/serial_queue_manager.h"
 
-void multizoneTofLogger();
+// void multizoneTofLogger();
 void imuLogger();
-void sideTofsLogger();
+// void sideTofsLogger();
 void setupButtonLoggers();
 void log_motor_rpm();

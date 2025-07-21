@@ -12,6 +12,8 @@ TaskHandle_t TaskManager::sensorPollingTaskHandle = NULL;
 TaskHandle_t TaskManager::networkManagementTaskHandle = NULL;
 TaskHandle_t TaskManager::networkCommunicationTaskHandle = NULL;
 TaskHandle_t TaskManager::serialQueueTaskHandle = NULL;
+TaskHandle_t TaskManager::batteryMonitorTaskHandle = NULL;
+TaskHandle_t TaskManager::speakerTaskHandle = NULL;
 
 void TaskManager::buttonTask(void* parameter) {
     for(;;) {
@@ -90,20 +92,20 @@ void TaskManager::sensorInitTask(void* parameter) {
             initializer.tryInitializeIMU();
         }
         
-        if (!initializer.isSensorInitialized(SensorInitializer::MULTIZONE_TOF)) {
-            SerialQueueManager::getInstance().queueMessage("Trying to init Multizone TOF...");
-            initializer.tryInitializeMultizoneTof();
-        }
+        // if (!initializer.isSensorInitialized(SensorInitializer::MULTIZONE_TOF)) {
+        //     SerialQueueManager::getInstance().queueMessage("Trying to init Multizone TOF...");
+        //     initializer.tryInitializeMultizoneTof();
+        // }
         
-        if (!initializer.isSensorInitialized(SensorInitializer::LEFT_SIDE_TOF)) {
-            SerialQueueManager::getInstance().queueMessage("Trying to init Left TOF...");
-            initializer.tryInitializeLeftSideTof();
-        }
+        // if (!initializer.isSensorInitialized(SensorInitializer::LEFT_SIDE_TOF)) {
+        //     SerialQueueManager::getInstance().queueMessage("Trying to init Left TOF...");
+        //     initializer.tryInitializeLeftSideTof();
+        // }
         
-        if (!initializer.isSensorInitialized(SensorInitializer::RIGHT_SIDE_TOF)) {
-            SerialQueueManager::getInstance().queueMessage("Trying to init Right TOF...");
-            initializer.tryInitializeRightSideTof();
-        }
+        // if (!initializer.isSensorInitialized(SensorInitializer::RIGHT_SIDE_TOF)) {
+        //     SerialQueueManager::getInstance().queueMessage("Trying to init Right TOF...");
+        //     initializer.tryInitializeRightSideTof();
+        // }
         
         // Small delay between retry cycles
         vTaskDelay(pdMS_TO_TICKS(100));
@@ -117,8 +119,8 @@ void TaskManager::sensorInitTask(void* parameter) {
     // bool displayTaskCreated = createDisplayTask();
 
     if (pollingTaskCreated) {
-        SerialQueueManager::getInstance().queueMessage("All tasks created - initialization complete");
         SensorPollingManager::getInstance().startPolling();
+        SerialQueueManager::getInstance().queueMessage("All tasks created - initialization complete");
     } else {
         SerialQueueManager::getInstance().queueMessage("ERROR: Failed to create required tasks!");
     }
@@ -200,7 +202,7 @@ void TaskManager::networkCommunicationTask(void* parameter) {
         if (mode == NetworkMode::WIFI_MODE) {
             // Lightweight, frequent operations
             WebSocketManager::getInstance().pollWebSocket();
-            SendDataToServer::getInstance().sendSensorDataToServer();
+            // SendDataToServer::getInstance().sendSensorDataToServer();
         }
 
         // Fast update rate for real-time communication
@@ -212,6 +214,25 @@ void TaskManager::serialQueueTask(void* parameter) {
     // Cast back to SerialQueueManager and call its task method
     SerialQueueManager* instance = static_cast<SerialQueueManager*>(parameter);
     instance->serialOutputTask();
+}
+
+void TaskManager::batteryMonitorTask(void* parameter) {
+    BatteryMonitor::getInstance().initialize();
+    
+    for(;;) {
+        BatteryMonitor::getInstance().update();
+        vTaskDelay(pdMS_TO_TICKS(2000));
+    }
+}
+
+void TaskManager::speakerTask(void* parameter) {
+    Speaker::getInstance().initialize();
+    SerialQueueManager::getInstance().queueMessage("Speaker task started");
+
+    for(;;) {
+        Speaker::getInstance().update();
+        vTaskDelay(pdMS_TO_TICKS(10)); // Update every 10ms for smooth audio
+    }
 }
 
 bool TaskManager::createButtonTask() {
@@ -276,6 +297,16 @@ bool TaskManager::createSerialQueueTask() {
                      Priority::CRITICAL, Core::CORE_1, &serialQueueTaskHandle, instance);
 }
 
+bool TaskManager::createBatteryMonitorTask() {
+    return createTask("BatteryMonitor", batteryMonitorTask, BATTERY_MONITOR_STACK_SIZE,
+                     Priority::BACKGROUND, Core::CORE_1, &batteryMonitorTaskHandle);
+}
+
+bool TaskManager::createSpeakerTask() {
+    return createTask("Speaker", speakerTask, SPEAKER_STACK_SIZE,
+                     Priority::BACKGROUND, Core::CORE_1, &speakerTaskHandle);
+}
+
 bool TaskManager::createTask(
     const char* name,
     TaskFunction_t taskFunction, 
@@ -337,6 +368,8 @@ void TaskManager::printStackUsage() {
         {networkManagementTaskHandle, "NetworkMgmt", NETWORK_MANAGEMENT_STACK_SIZE},
         {networkCommunicationTaskHandle, "NetworkComm", NETWORK_COMMUNICATION_STACK_SIZE},
         {serialQueueTaskHandle, "SerialQueue", SERIAL_QUEUE_STACK_SIZE}, // ADD THIS LINE
+        {batteryMonitorTaskHandle, "BatteryMonitor", BATTERY_MONITOR_STACK_SIZE},
+        {speakerTaskHandle, "Speaker", SPEAKER_STACK_SIZE},
     };
     
     for (const auto& task : tasks) {
