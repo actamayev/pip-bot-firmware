@@ -161,13 +161,14 @@ void Buttons::setupDeepSleep() {
 void Buttons::enterDeepSleep() {
     // Configure Button 1 (GPIO 12) as wake-up source
     rgbLed.turn_all_leds_off();
+    WebSocketManager::getInstance().sendPipTurningOff();
     Speaker::getInstance().setMuted(true);
     BytecodeVM::getInstance().stopProgram();
 
     esp_sleep_enable_ext0_wakeup((gpio_num_t)BUTTON_PIN_1, LOW); // LOW = button press (since using INPUT_PULLUP)
     // Pin 48 isn't RTC, can't be used to take out of Deep sleep
     // esp_sleep_enable_ext0_wakeup((gpio_num_t)BUTTON_PIN_2, LOW); // LOW = button press (since using INPUT_PULLUP)
-    
+
     SerialQueueManager::getInstance().queueMessage("Going to deep sleep now");
     Serial.flush();
     

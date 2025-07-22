@@ -25,6 +25,7 @@ class WebSocketManager : public Singleton<WebSocketManager> {
 
         bool isConnected() const { return wsConnected; }
         void sendBatteryMonitorData();
+        void sendPipTurningOff();
 
     private:
         // Make constructor private for singleton

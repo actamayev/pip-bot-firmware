@@ -185,3 +185,14 @@ void WebSocketManager::killWiFiProcesses() {
     ledAnimations.startBreathing();
     hasKilledWiFiProcesses = true;
 }
+
+void WebSocketManager::sendPipTurningOff() {
+    if (!wsConnected) return;
+    StaticJsonDocument<256> pipTurningOffDoc;
+    pipTurningOffDoc["route"] = routeToString(RouteType::PIP_TURNING_OFF);
+    JsonObject payload = pipTurningOffDoc.createNestedObject("payload");
+    payload["reason"] = "PIP is turning off";
+    String jsonString;
+    serializeJson(pipTurningOffDoc, jsonString);
+    wsClient.send(jsonString);
+}
