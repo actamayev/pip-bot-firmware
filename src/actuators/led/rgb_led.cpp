@@ -40,6 +40,10 @@ void RgbLed::set_led_yellow() {
     set_main_board_leds_to_color(MAX_LED_BRIGHTNESS, MAX_LED_BRIGHTNESS, 0);
 }
 
+void RgbLed::turn_main_board_leds_off() {
+    set_main_board_leds_to_color(0, 0, 0);
+}
+
 void RgbLed::setDefaultColors(uint8_t red, uint8_t green, uint8_t blue) {
     // Set default color for all LEDs without showing them
     for (int i = 0; i < 8; i++) {

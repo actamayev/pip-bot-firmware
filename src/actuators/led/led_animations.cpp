@@ -279,7 +279,7 @@ uint32_t LedAnimations::colorHSV(uint8_t h, uint8_t s, uint8_t v) {
 
 void LedAnimations::turnOff() {
     currentAnimation = LedTypes::NONE;
-    rgbLed.turn_all_leds_off();
+    rgbLed.turn_main_board_leds_off();
 }
 
 void LedAnimations::setAllLeds(uint8_t red, uint8_t green, uint8_t blue) {

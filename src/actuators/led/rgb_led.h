@@ -48,6 +48,7 @@ class RgbLed {
 
         void turn_headlights_on();
         void turn_headlights_off();
+        void turn_main_board_leds_off();
     private:
         bool processLedUpdate(int ledIndex, uint8_t red, uint8_t green, uint8_t blue);
         
