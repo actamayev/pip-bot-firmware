@@ -396,9 +396,9 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             } else {
                 HeadlightStatus status = static_cast<HeadlightStatus>(data[1]);
                 if (status == HeadlightStatus::ON) {
-                    rgbLed.set_headlights_on();
+                    rgbLed.turn_headlights_on();
                 } else {
-                    rgbLed.reset_headlights_to_default();
+                    rgbLed.turn_headlights_off();
                 }
             }
             break;
@@ -471,9 +471,9 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
                 HornSoundStatus status = static_cast<HornSoundStatus>(data[1]);
                 if (status == HornSoundStatus::ON) {
                     // TODO: Fix this
-                    rgbLed.set_headlights_on();
+                    rgbLed.turn_headlights_on();
                 } else {
-                    rgbLed.reset_headlights_to_default();
+                    rgbLed.turn_headlights_off();
                 }
             }
             break;

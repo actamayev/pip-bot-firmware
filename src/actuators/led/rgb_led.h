@@ -46,9 +46,8 @@ class RgbLed {
         };
         bool defaultColorsSet[8] = {false, false, false, false, false, false, false, false};
 
-        void set_headlights_on();
-        void reset_headlights_to_default();
-
+        void turn_headlights_on();
+        void turn_headlights_off();
     private:
         bool processLedUpdate(int ledIndex, uint8_t red, uint8_t green, uint8_t blue);
         

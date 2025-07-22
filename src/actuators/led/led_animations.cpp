@@ -206,51 +206,32 @@ void LedAnimations::updateStrobing() {
 void LedAnimations::updateRainbow() {
     unsigned long currentTime = millis();
     
-    if (currentTime - lastRainbowUpdate >= rainbowStepTime) {
-        lastRainbowUpdate = currentTime;
-        
-        // Slowly rotate the entire rainbow pattern
-        rainbowHue = (rainbowHue + 1) % 256;
-        
-        // Define base hues for an 8-LED rainbow
-        uint8_t baseHues[8] = {
-            0,    // Red
-            32,   // Orange
-            64,   // Yellow
-            96,   // Green
-            128,  // Aqua
-            160,  // Blue
-            192,  // Purple
-            224   // Violet
-        };
-        
-        // Map colors to each LED based on REVERSED physical order:
-        // Index 0: middle_right
-        strip.setPixelColor(0, colorHSV((baseHues[0] + rainbowHue) % 256));
-        
-        // Index 1: top_right
-        strip.setPixelColor(1, colorHSV((baseHues[7] + rainbowHue) % 256));
-        
-        // Index 2: right_headlight
-        strip.setPixelColor(2, colorHSV((baseHues[6] + rainbowHue) % 256));
-        
-        // Index 3: left_headlight
-        strip.setPixelColor(3, colorHSV((baseHues[5] + rainbowHue) % 256));
-        
-        // Index 4: top_left
-        strip.setPixelColor(4, colorHSV((baseHues[4] + rainbowHue) % 256));
-        
-        // Index 5: middle_left
-        strip.setPixelColor(5, colorHSV((baseHues[3] + rainbowHue) % 256));
-        
-        // Index 6: back_left
-        strip.setPixelColor(6, colorHSV((baseHues[2] + rainbowHue) % 256));
-        
-        // Index 7: back_right
-        strip.setPixelColor(7, colorHSV((baseHues[1] + rainbowHue) % 256));
-        
-        strip.show();
-    }
+    if (currentTime - lastRainbowUpdate < rainbowStepTime) return;
+    lastRainbowUpdate = currentTime;
+    
+    // Slowly rotate the entire rainbow pattern
+    rainbowHue = (rainbowHue + 1) % 256;
+    
+    // Define base hues for a 6-LED rainbow (excluding headlights)
+    uint8_t baseHues[6] = {
+        0,    // Red
+        51,   // Orange  
+        102,  // Yellow
+        153,  // Green
+        204,  // Blue
+        255   // Violet
+    };
+    
+    // Map colors to each LED EXCLUDING headlights (indices 2,3):
+    strip.setPixelColor(0, colorHSV((baseHues[0] + rainbowHue) % 256)); // middle_right
+    strip.setPixelColor(1, colorHSV((baseHues[5] + rainbowHue) % 256)); // top_right
+    // Skip indices 2 and 3 (headlights)
+    strip.setPixelColor(4, colorHSV((baseHues[4] + rainbowHue) % 256)); // top_left
+    strip.setPixelColor(5, colorHSV((baseHues[3] + rainbowHue) % 256)); // middle_left
+    strip.setPixelColor(6, colorHSV((baseHues[2] + rainbowHue) % 256)); // back_left
+    strip.setPixelColor(7, colorHSV((baseHues[1] + rainbowHue) % 256)); // back_right
+    
+    strip.show();
 }
 
 uint32_t LedAnimations::colorHSV(uint8_t h, uint8_t s, uint8_t v) {
@@ -302,9 +283,11 @@ void LedAnimations::turnOff() {
 }
 
 void LedAnimations::setAllLeds(uint8_t red, uint8_t green, uint8_t blue) {
-    // Set all LEDs to the same color
+    // Set all LEDs except headlights (indices 2 and 3) to the same color
     for(int i = 0; i < strip.numPixels(); i++) {
-        strip.setPixelColor(i, strip.Color(red, green, blue));
+        if (i != 2 && i != 3) {  // Skip headlight indices
+            strip.setPixelColor(i, strip.Color(red, green, blue));
+        }
     }
     strip.show();
 }

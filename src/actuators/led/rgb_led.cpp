@@ -43,12 +43,14 @@ void RgbLed::set_led_yellow() {
 void RgbLed::setDefaultColors(uint8_t red, uint8_t green, uint8_t blue) {
     // Set default color for all LEDs without showing them
     for (int i = 0; i < 8; i++) {
-        defaultColors[i][0] = red;
-        defaultColors[i][1] = green;
-        defaultColors[i][2] = blue;
-        defaultColorsSet[i] = true;
+        if (i != 2 && i != 3) {
+            defaultColors[i][0] = red;
+            defaultColors[i][1] = green;
+            defaultColors[i][2] = blue;
+            defaultColorsSet[i] = true;
+        }
     }
-    
+
     // Update current color tracking (for getCurrentRed/Green/Blue)
     currentRed = red;
     currentGreen = green;
@@ -167,14 +169,15 @@ void RgbLed::set_back_right_led(uint8_t red, uint8_t green, uint8_t blue) {
     strip.show();
 }
 
-void RgbLed::set_headlights_on() {
+void RgbLed::turn_headlights_on() {
     // Set headlights to white (swapped indices due to reversal)
     strip.setPixelColor(3, strip.Color(255, 255, 255)); // left_headlight
     strip.setPixelColor(2, strip.Color(255, 255, 255)); // right_headlight
     strip.show();
 }
 
-void RgbLed::reset_headlights_to_default() {
-    set_left_headlight(defaultColors[3][0], defaultColors[3][1], defaultColors[3][2]);
-    set_right_headlight(defaultColors[2][0], defaultColors[2][1], defaultColors[2][2]);
+void RgbLed::turn_headlights_off() {
+    strip.setPixelColor(3, strip.Color(0, 0, 0)); // left_headlight
+    strip.setPixelColor(2, strip.Color(0, 0, 0)); // right_headlight
+    strip.show();
 }
