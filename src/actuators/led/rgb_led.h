@@ -33,16 +33,16 @@ class RgbLed {
         uint8_t getCurrentGreen() const { return currentGreen; }
         uint8_t getCurrentBlue() const { return currentBlue; }
         
-        // Default colors for each LED
+        // Default colors for each LED (REVERSED ORDER)
         uint8_t defaultColors[8][3] = {
-            {0, 0, 0}, // back_right    - R,G,B
-            {0, 0, 0}, // middle_right  - R,G,B
-            {0, 0, 0}, // top_right     - R,G,B
+            {0, 0, 0}, // back_left      - R,G,B
+            {0, 0, 0}, // middle_left    - R,G,B
+            {0, 0, 0}, // top_left       - R,G,B
+            {0, 0, 0}, // left_headlight - R,G,B
             {0, 0, 0}, // right_headlight - R,G,B
-            {0, 0, 0}, // left_headlight  - R,G,B
-            {0, 0, 0}, // top_left      - R,G,B
-            {0, 0, 0}, // middle_left   - R,G,B
-            {0, 0, 0}  // back_left     - R,G,B
+            {0, 0, 0}, // top_right      - R,G,B
+            {0, 0, 0}, // middle_right   - R,G,B
+            {0, 0, 0}  // back_right     - R,G,B
         };
         bool defaultColorsSet[8] = {false, false, false, false, false, false, false, false};
 

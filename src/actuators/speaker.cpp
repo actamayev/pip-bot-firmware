@@ -171,6 +171,11 @@ void Speaker::playFile(SoundType file) {
         SerialQueueManager::getInstance().queueMessage("Speaker not ready or muted");
         return;
     }
+
+    if (isCurrentlyPlaying) {
+        SerialQueueManager::getInstance().queueMessage("Speaker currently playing");
+        return;
+    }
     
     // NEW: Prevent rapid successive calls
     unsigned long currentTime = millis();

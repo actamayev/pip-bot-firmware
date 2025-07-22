@@ -54,9 +54,9 @@ constexpr uint8_t PIN_MUX_OUT = 7;  // Multiplexer output
 constexpr uint8_t PIN_IR_EN = 6;    // IR sensor enable pin
 
 //Speaker
+constexpr uint8_t I2S_DOUT = 9;
 constexpr uint8_t I2S_BCLK = 10;
 constexpr uint8_t I2S_LRC = 11;
-constexpr uint8_t I2S_DOUT = 9;
 
 // Buttons
 constexpr uint8_t BUTTON_PIN_1 = 21; // Left

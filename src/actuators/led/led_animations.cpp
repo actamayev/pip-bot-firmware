@@ -31,7 +31,7 @@ void LedAnimations::startBreathing(int speed, float startingBrightness) {
 }
 
 void LedAnimations::updateBreathingColor() {
-    // Use back_right LED's default color for breathing
+    // Use back_left LED's default color for breathing (now index 0)
     if (!rgbLed.defaultColorsSet[0]) {
         breathMin[0] = 0.1 * MAX_LED_BRIGHTNESS;
         breathMin[1] = 0.1 * MAX_LED_BRIGHTNESS;
@@ -68,7 +68,7 @@ void LedAnimations::startStrobing(int speed) {
 }
 
 void LedAnimations::updateStrobeColor() {
-    // Use back_right LED's default color for strobing
+    // Use back_left LED's default color for strobing (now index 0)
     if (!rgbLed.defaultColorsSet[0]) {
         strobeColor[0] = MAX_LED_BRIGHTNESS;
         strobeColor[1] = MAX_LED_BRIGHTNESS;
@@ -224,30 +224,30 @@ void LedAnimations::updateRainbow() {
             224   // Violet
         };
         
-        // Map colors to each LED based on new physical order:
-        // Index 0: back_right
-        strip.setPixelColor(0, colorHSV((baseHues[1] + rainbowHue) % 256));
+        // Map colors to each LED based on REVERSED physical order:
+        // Index 0: back_left
+        strip.setPixelColor(0, colorHSV((baseHues[0] + rainbowHue) % 256));
         
-        // Index 1: middle_right
-        strip.setPixelColor(1, colorHSV((baseHues[2] + rainbowHue) % 256));
+        // Index 1: middle_left
+        strip.setPixelColor(1, colorHSV((baseHues[7] + rainbowHue) % 256));
         
-        // Index 2: top_right
-        strip.setPixelColor(2, colorHSV((baseHues[3] + rainbowHue) % 256));
+        // Index 2: top_left
+        strip.setPixelColor(2, colorHSV((baseHues[6] + rainbowHue) % 256));
         
-        // Index 3: right_headlight
-        strip.setPixelColor(3, colorHSV((baseHues[4] + rainbowHue) % 256));
+        // Index 3: left_headlight
+        strip.setPixelColor(3, colorHSV((baseHues[5] + rainbowHue) % 256));
         
-        // Index 4: left_headlight
-        strip.setPixelColor(4, colorHSV((baseHues[5] + rainbowHue) % 256));
+        // Index 4: right_headlight
+        strip.setPixelColor(4, colorHSV((baseHues[4] + rainbowHue) % 256));
         
-        // Index 5: top_left
-        strip.setPixelColor(5, colorHSV((baseHues[6] + rainbowHue) % 256));
+        // Index 5: top_right
+        strip.setPixelColor(5, colorHSV((baseHues[3] + rainbowHue) % 256));
         
-        // Index 6: middle_left
-        strip.setPixelColor(6, colorHSV((baseHues[7] + rainbowHue) % 256));
+        // Index 6: middle_right
+        strip.setPixelColor(6, colorHSV((baseHues[2] + rainbowHue) % 256));
         
-        // Index 7: back_left
-        strip.setPixelColor(7, colorHSV((baseHues[0] + rainbowHue) % 256));
+        // Index 7: back_right
+        strip.setPixelColor(7, colorHSV((baseHues[1] + rainbowHue) % 256));
         
         strip.show();
     }

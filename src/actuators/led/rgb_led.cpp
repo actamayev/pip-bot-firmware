@@ -90,69 +90,68 @@ bool RgbLed::processLedUpdate(int ledIndex, uint8_t red, uint8_t green, uint8_t 
     // If we're in breathing or strobing mode, update the animation colors
     if (currentAnim == LedTypes::BREATHING) {
         ledAnimations.updateBreathingColor();
-        return (ledIndex == 0); // Only return true for back_right LED, which controls breathing color
+        return (ledIndex == 0); // Only return true for back_left LED (now index 0), which controls breathing color
     } 
     else if (currentAnim == LedTypes::STROBING) {
         ledAnimations.updateStrobeColor();
-        return (ledIndex == 0); // Only return true for back_right LED, which controls strobe color
-    }
-    else {
+        return (ledIndex == 0); // Only return true for back_left LED (now index 0), which controls strobe color
+    } else {
         // For other cases (including NONE), stop animations
         ledAnimations.stopAnimation();
         return true;
     }
 }
 
-void RgbLed::set_back_right_led(uint8_t red, uint8_t green, uint8_t blue) {
+void RgbLed::set_back_left_led(uint8_t red, uint8_t green, uint8_t blue) {
     if (!processLedUpdate(0, red, green, blue)) return;
     
     strip.setPixelColor(0, strip.Color(red, green, blue));
     strip.show();
 }
 
-void RgbLed::set_middle_right_led(uint8_t red, uint8_t green, uint8_t blue) {
+void RgbLed::set_middle_left_led(uint8_t red, uint8_t green, uint8_t blue) {
     if (!processLedUpdate(1, red, green, blue)) return;
     
     strip.setPixelColor(1, strip.Color(red, green, blue));
     strip.show();
 }
 
-void RgbLed::set_top_right_led(uint8_t red, uint8_t green, uint8_t blue) {
+void RgbLed::set_top_left_led(uint8_t red, uint8_t green, uint8_t blue) {
     if (!processLedUpdate(2, red, green, blue)) return;
     
     strip.setPixelColor(2, strip.Color(red, green, blue));
     strip.show();
 }
 
-void RgbLed::set_right_headlight(uint8_t red, uint8_t green, uint8_t blue) {
+void RgbLed::set_left_headlight(uint8_t red, uint8_t green, uint8_t blue) {
     if (!processLedUpdate(3, red, green, blue)) return;
     
     strip.setPixelColor(3, strip.Color(red, green, blue));
     strip.show();
 }
 
-void RgbLed::set_left_headlight(uint8_t red, uint8_t green, uint8_t blue) {
+void RgbLed::set_right_headlight(uint8_t red, uint8_t green, uint8_t blue) {
     if (!processLedUpdate(4, red, green, blue)) return;
     
     strip.setPixelColor(4, strip.Color(red, green, blue));
     strip.show();
 }
 
-void RgbLed::set_top_left_led(uint8_t red, uint8_t green, uint8_t blue) {
+void RgbLed::set_top_right_led(uint8_t red, uint8_t green, uint8_t blue) {
     if (!processLedUpdate(5, red, green, blue)) return;
     
     strip.setPixelColor(5, strip.Color(red, green, blue));
     strip.show();
 }
 
-void RgbLed::set_middle_left_led(uint8_t red, uint8_t green, uint8_t blue) {
+void RgbLed::set_middle_right_led(uint8_t red, uint8_t green, uint8_t blue) {
     if (!processLedUpdate(6, red, green, blue)) return;
     
     strip.setPixelColor(6, strip.Color(red, green, blue));
     strip.show();
 }
 
-void RgbLed::set_back_left_led(uint8_t red, uint8_t green, uint8_t blue) {
+void RgbLed::set_back_right_led(uint8_t red, uint8_t green, uint8_t blue) {
     if (!processLedUpdate(7, red, green, blue)) return;
     
     strip.setPixelColor(7, strip.Color(red, green, blue));
@@ -160,13 +159,13 @@ void RgbLed::set_back_left_led(uint8_t red, uint8_t green, uint8_t blue) {
 }
 
 void RgbLed::set_headlights_on() {
-    // Set headlights to white
-    strip.setPixelColor(3, strip.Color(255, 255, 255)); // right_headlight
-    strip.setPixelColor(4, strip.Color(255, 255, 255)); // left_headlight
+    // Set headlights to white (swapped indices due to reversal)
+    strip.setPixelColor(3, strip.Color(255, 255, 255)); // left_headlight
+    strip.setPixelColor(4, strip.Color(255, 255, 255)); // right_headlight
     strip.show();
 }
 
 void RgbLed::reset_headlights_to_default() {
-    set_right_headlight(defaultColors[3][0], defaultColors[3][1], defaultColors[3][2]);
-    set_left_headlight(defaultColors[4][0], defaultColors[4][1], defaultColors[4][2]);
+    set_left_headlight(defaultColors[3][0], defaultColors[3][1], defaultColors[3][2]);
+    set_right_headlight(defaultColors[4][0], defaultColors[4][1], defaultColors[4][2]);
 }
