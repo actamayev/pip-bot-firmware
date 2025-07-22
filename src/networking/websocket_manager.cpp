@@ -119,8 +119,8 @@ void WebSocketManager::sendBatteryMonitorData() {
     payload["batteryData"]["remainingCapacity"] = batteryState.remainingCapacity;
     payload["batteryData"]["fullCapacity"] = batteryState.fullCapacity;
     payload["batteryData"]["health"] = batteryState.health;
-    payload["batteryData"]["isCharging"] = !batteryState.isCharging;
-    payload["batteryData"]["isDischarging"] = !batteryState.isDischarging;
+    payload["batteryData"]["isCharging"] = batteryState.isCharging;
+    payload["batteryData"]["isDischarging"] = batteryState.isDischarging;
     payload["batteryData"]["isLowBattery"] = batteryState.isLowBattery;
     payload["batteryData"]["isCriticalBattery"] = batteryState.isCriticalBattery;
     payload["batteryData"]["estimatedTimeToEmpty"] = batteryState.estimatedTimeToEmpty;
@@ -184,4 +184,15 @@ void WebSocketManager::killWiFiProcesses() {
     rgbLed.set_led_red();
     ledAnimations.startBreathing();
     hasKilledWiFiProcesses = true;
+}
+
+void WebSocketManager::sendPipTurningOff() {
+    if (!wsConnected) return;
+    StaticJsonDocument<256> pipTurningOffDoc;
+    pipTurningOffDoc["route"] = routeToString(RouteType::PIP_TURNING_OFF);
+    JsonObject payload = pipTurningOffDoc.createNestedObject("payload");
+    payload["reason"] = "PIP is turning off";
+    String jsonString;
+    serializeJson(pipTurningOffDoc, jsonString);
+    wsClient.send(jsonString);
 }

@@ -35,7 +35,6 @@ void TimeoutManager::enterConfirmationState() {
     
     // Stop bytecode and prepare for sleep (same as long press logic)
     BytecodeVM::getInstance().stopProgram();
-    rgbLed.captureCurrentState();
     rgbLed.set_led_yellow();
     
     inConfirmationState = true;
@@ -46,9 +45,9 @@ void TimeoutManager::cancelConfirmation() {
     if (!inConfirmationState) return;
 
     SerialQueueManager::getInstance().queueMessage("Timeout canceled! Restoring normal operation...");
-    rgbLed.restoreCapturedState();
     inConfirmationState = false;
-    
+    rgbLed.turn_all_leds_off();
+
     // Reset activity timer
     lastActivityTime = millis();
 }

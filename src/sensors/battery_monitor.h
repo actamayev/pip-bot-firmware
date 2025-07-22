@@ -43,37 +43,28 @@ class BatteryMonitor : public Singleton<BatteryMonitor> {
         // Time estimates
         float getEstimatedTimeToEmpty() const { return batteryState.estimatedTimeToEmpty; }
         float getEstimatedTimeToFull() const { return batteryState.estimatedTimeToFull; }
-        
-        // Battery status as string
-        String getBatteryStatusString() const;
-        String getChargingStatusString() const;
+
         unsigned long lastBatteryLogTime = 0;
+        void sendBatteryMonitorDataOverWebSocket();
 
     private:
         BatteryMonitor() = default;
         ~BatteryMonitor() = default;
-        
+
         // Configuration constants
         static constexpr unsigned int DEFAULT_BATTERY_CAPACITY = 1800; // mAh
         static constexpr unsigned int LOW_BATTERY_THRESHOLD = 20;      // %
         static constexpr unsigned int CRITICAL_BATTERY_THRESHOLD = 10;  // %
-        static constexpr int CHARGING_CURRENT_THRESHOLD = -50;         // mA (negative = charging)
-        static constexpr int DISCHARGING_CURRENT_THRESHOLD = 50;       // mA (positive = discharging)
         
         BatteryState batteryState;
-        unsigned long lastUpdateTime = 0;
-        unsigned long lastLowBatteryWarning = 0;
         unsigned long lastInitAttempt = 0;
-        static constexpr unsigned long UPDATE_INTERVAL_MS = 1000; // Update every second
-        static constexpr unsigned long LOW_BATTERY_WARNING_INTERVAL_MS = 30000; // Warn every 30 seconds
         static constexpr unsigned long INIT_RETRY_INTERVAL_MS = 10000; // Retry init every 10 seconds
-        static constexpr unsigned long BATTERY_LOG_INTERVAL_MS = 30000; // Log every 30 seconds
+        static constexpr unsigned long BATTERY_LOG_INTERVAL_MS = 10000; // Log every 10 seconds
         
         // Helper methods
         void calculateTimeEstimates();
         void updateStatusFlags();
-        void handleWarnings();
         void handleBatteryLogging();
         void retryInitializationIfNeeded();
-        String formatTime(float hours) const;
+        void sendBatteryMonitorDataOverSerial();
 };

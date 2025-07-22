@@ -20,5 +20,4 @@ phy_init, data, phy,     ,        4K,
 When changing partitions.csv:
 	1. pio run --target clean (takes care of local, staging, and prod)
 	2. pio run --target erase (takes care of local, staging, and prod)
-	3. Upload and monitor
-
+	3. Upload and monitor (will need to re-upload filesystem and code)
