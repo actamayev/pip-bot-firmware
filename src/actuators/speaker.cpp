@@ -26,11 +26,9 @@ bool Speaker::initialize() {
 }
 
 bool Speaker::initializeSPIFFS() {
-    if (SPIFFS.begin(true)) {
-        SerialQueueManager::getInstance().queueMessage("✓ SPIFFS mounted");
-        return true;
-    }
-    return false;
+    if (!SPIFFS.begin(true)) return false;
+    SerialQueueManager::getInstance().queueMessage("✓ SPIFFS mounted");
+    return true;
 }
 
 bool Speaker::initializeAudio() {
@@ -40,14 +38,14 @@ bool Speaker::initializeAudio() {
     // Create audio objects with error checking
     audioFile = new (std::nothrow) AudioFileSourceSPIFFS();
     if (!audioFile) {
-        SerialQueueManager::getInstance().queueMessage("✗ Failed to create SoundTypeSourceSPIFFS");
+        SerialQueueManager::getInstance().queueMessage("✗ Failed to create AudioFileSourceSPIFFS");
         cleanup();
         return false;
     }
     
     audioID3 = new (std::nothrow) AudioFileSourceID3(audioFile);
     if (!audioID3) {
-        SerialQueueManager::getInstance().queueMessage("✗ Failed to create SoundTypeSourceID3");
+        SerialQueueManager::getInstance().queueMessage("✗ Failed to create AudioFileSourceID3");
         cleanup();
         return false;
     }

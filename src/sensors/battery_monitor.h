@@ -46,6 +46,7 @@ class BatteryMonitor : public Singleton<BatteryMonitor> {
 
         unsigned long lastBatteryLogTime = 0;
         void sendBatteryMonitorDataOverWebSocket();
+
     private:
         BatteryMonitor() = default;
         ~BatteryMonitor() = default;
@@ -57,16 +58,13 @@ class BatteryMonitor : public Singleton<BatteryMonitor> {
         
         BatteryState batteryState;
         unsigned long lastUpdateTime = 0;
-        unsigned long lastLowBatteryWarning = 0;
         unsigned long lastInitAttempt = 0;
-        static constexpr unsigned long LOW_BATTERY_WARNING_INTERVAL_MS = 30000; // Warn every 30 seconds
         static constexpr unsigned long INIT_RETRY_INTERVAL_MS = 10000; // Retry init every 10 seconds
         static constexpr unsigned long BATTERY_LOG_INTERVAL_MS = 10000; // Log every 30 seconds
         
         // Helper methods
         void calculateTimeEstimates();
         void updateStatusFlags();
-        void handleWarnings();
         void handleBatteryLogging();
         void retryInitializationIfNeeded();
         void sendBatteryMonitorDataOverSerial();

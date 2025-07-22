@@ -31,7 +31,7 @@ void LedAnimations::startBreathing(int speed, float startingBrightness) {
 }
 
 void LedAnimations::updateBreathingColor() {
-    // Use back_left LED's default color for breathing (now index 0)
+    // Use middle_right LED's default color for breathing (now index 0)
     if (!rgbLed.defaultColorsSet[0]) {
         breathMin[0] = 0.1 * MAX_LED_BRIGHTNESS;
         breathMin[1] = 0.1 * MAX_LED_BRIGHTNESS;
@@ -68,7 +68,7 @@ void LedAnimations::startStrobing(int speed) {
 }
 
 void LedAnimations::updateStrobeColor() {
-    // Use back_left LED's default color for strobing (now index 0)
+    // Use middle_right LED's default color for strobing (now index 0)
     if (!rgbLed.defaultColorsSet[0]) {
         strobeColor[0] = MAX_LED_BRIGHTNESS;
         strobeColor[1] = MAX_LED_BRIGHTNESS;

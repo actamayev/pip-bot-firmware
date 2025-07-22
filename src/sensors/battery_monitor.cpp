@@ -9,38 +9,37 @@ bool BatteryMonitor::initialize() {
         SerialQueueManager::getInstance().queueMessage("✗ Failed to connect to BQ27441 - check wiring and I2C address");
         batteryState.isInitialized = false;
         return false;
-    } else {
-        SerialQueueManager::getInstance().queueMessage("✓ BQ27441 connected successfully");
-        
-        // Set the battery capacity if it hasn't been set already
-        if (lipo.capacity(FULL) != DEFAULT_BATTERY_CAPACITY) {
-            SerialQueueManager::getInstance().queueMessage("Setting battery capacity to " + String(DEFAULT_BATTERY_CAPACITY) + "mAh");
-            lipo.setCapacity(DEFAULT_BATTERY_CAPACITY);
-        }
-        
-        batteryState.isInitialized = true;
-        
-        // Initial battery state update
-        updateBatteryState();
-        
-        SerialQueueManager::getInstance().queueMessage("✓ Battery monitor initialized - SOC: " + String(batteryState.stateOfCharge) + "%");
-        
-        // Send battery data immediately if connected to serial
-        if (SerialManager::getInstance().isSerialConnected()) {
-            SerialQueueManager::getInstance().queueMessage("Sending battery data on initialization...");
-            SerialManager::getInstance().sendBatteryMonitorData();
-            lastBatteryLogTime = millis();
-        }
-
-        // Send battery data immediately if connected to websocket
-        if (WebSocketManager::getInstance().isConnected()) {
-            SerialQueueManager::getInstance().queueMessage("Sending battery data on initialization...");
-            WebSocketManager::getInstance().sendBatteryMonitorData();
-            lastBatteryLogTime = millis();
-        }
-        
-        return true;
     }
+    SerialQueueManager::getInstance().queueMessage("✓ BQ27441 connected successfully");
+    
+    // Set the battery capacity if it hasn't been set already
+    if (lipo.capacity(FULL) != DEFAULT_BATTERY_CAPACITY) {
+        SerialQueueManager::getInstance().queueMessage("Setting battery capacity to " + String(DEFAULT_BATTERY_CAPACITY) + "mAh");
+        lipo.setCapacity(DEFAULT_BATTERY_CAPACITY);
+    }
+    
+    batteryState.isInitialized = true;
+    
+    // Initial battery state update
+    updateBatteryState();
+    
+    SerialQueueManager::getInstance().queueMessage("✓ Battery monitor initialized - SOC: " + String(batteryState.stateOfCharge) + "%");
+    
+    // Send battery data immediately if connected to serial
+    if (SerialManager::getInstance().isSerialConnected()) {
+        SerialQueueManager::getInstance().queueMessage("Sending battery data on initialization...");
+        SerialManager::getInstance().sendBatteryMonitorData();
+        lastBatteryLogTime = millis();
+    }
+
+    // Send battery data immediately if connected to websocket
+    if (WebSocketManager::getInstance().isConnected()) {
+        SerialQueueManager::getInstance().queueMessage("Sending battery data on initialization...");
+        WebSocketManager::getInstance().sendBatteryMonitorData();
+        lastBatteryLogTime = millis();
+    }
+    
+    return true;
 }
 
 void BatteryMonitor::updateBatteryState() {
@@ -105,33 +104,8 @@ void BatteryMonitor::update() {
     // Update battery state
     updateBatteryState();
     
-    // Handle warnings and alerts
-    handleWarnings();
-    
     // Handle periodic battery logging when connected to serial
     handleBatteryLogging();
-}
-
-void BatteryMonitor::handleWarnings() {
-    if (!batteryState.isInitialized) return;
-    
-    unsigned long currentTime = millis();
-    
-    if (batteryState.isCriticalBattery) {
-        SerialQueueManager::getInstance().queueMessage(
-            "🚨 CRITICAL: Battery at " + String(batteryState.stateOfCharge) + "%!", 
-            SerialPriority::CRITICAL
-        );
-    } else if (batteryState.isLowBattery) {
-        // Log low battery warning less frequently
-        if (currentTime - lastLowBatteryWarning > LOW_BATTERY_WARNING_INTERVAL_MS) {
-            SerialQueueManager::getInstance().queueMessage(
-                "⚠️  WARNING: Battery low at " + String(batteryState.stateOfCharge) + "%", 
-                SerialPriority::HIGH_PRIO
-            );
-            lastLowBatteryWarning = currentTime;
-        }
-    }
 }
 
 void BatteryMonitor::handleBatteryLogging() {

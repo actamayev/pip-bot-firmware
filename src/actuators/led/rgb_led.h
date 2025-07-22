@@ -57,7 +57,7 @@ class RgbLed {
         uint8_t currentGreen = 0;
         uint8_t currentBlue = 0;
 
-        // TODO: Bring this back later, along with the captureCurrentState and restoreCapturedState functions
+        // TODO: Bring this back later, along with the captureCurrentState and restoreCapturedState functions (see 7/22/25 PR)
         LedState capturedState;
 };
 

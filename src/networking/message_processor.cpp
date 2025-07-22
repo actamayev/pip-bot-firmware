@@ -8,14 +8,6 @@ void MessageProcessor::handleMotorControl(const uint8_t* data) {
     updateMotorSpeeds(leftSpeed, rightSpeed);
 }
 
-void MessageProcessor::handleSoundCommand(SoundType soundType) {
-    Speaker::getInstance().playFile(static_cast<SoundType>(soundType));
-}
-
-void MessageProcessor::handleSpeakerMute(SpeakerStatus status) {
-    Speaker::getInstance().setMuted(status == SpeakerStatus::MUTED);
-}
-
 void MessageProcessor::updateMotorSpeeds(int16_t leftSpeed, int16_t rightSpeed) {
     // Constrain speeds
     leftSpeed = constrain(leftSpeed, -255, 255);
@@ -261,7 +253,7 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
                 SerialQueueManager::getInstance().queueMessage("Invalid sound command message length");
             } else {
                 SoundType soundType = static_cast<SoundType>(data[1]);
-                handleSoundCommand(soundType);
+                Speaker::getInstance().playFile(soundType);
             }
             break;
         }
@@ -270,7 +262,7 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
                 SerialQueueManager::getInstance().queueMessage("Invalid speaker mute message length");
             } else {
                 SpeakerStatus status = static_cast<SpeakerStatus>(data[1]);
-                handleSpeakerMute(status);
+                Speaker::getInstance().setMuted(status == SpeakerStatus::MUTED);
             }
             break;
         }
