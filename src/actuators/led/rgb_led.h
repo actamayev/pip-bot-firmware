@@ -8,7 +8,7 @@
 class RgbLed {
     public:
         // Basic color controls
-        void turn_led_off();
+        void turn_all_leds_off();
         void set_led_red();
         void set_led_green();
         void set_led_blue();
@@ -24,7 +24,7 @@ class RgbLed {
         void set_middle_right_led(uint8_t red, uint8_t green, uint8_t blue);
         void set_back_left_led(uint8_t red, uint8_t green, uint8_t blue);
         void set_back_right_led(uint8_t red, uint8_t green, uint8_t blue);
-        void set_all_leds_to_color(uint8_t red, uint8_t green, uint8_t blue);  
+        void set_main_board_leds_to_color(uint8_t red, uint8_t green, uint8_t blue);  
         void set_right_headlight(uint8_t red, uint8_t green, uint8_t blue);
         void set_left_headlight(uint8_t red, uint8_t green, uint8_t blue);
     

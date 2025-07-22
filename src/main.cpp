@@ -14,7 +14,7 @@ void setup() {
     SerialQueueManager::getInstance().initialize();
     TaskManager::createSerialQueueTask();
 
-    rgbLed.turn_led_off(); // Start with LEDs off
+    rgbLed.turn_all_leds_off(); // Start with LEDs off
     TaskManager::createLedTask(); // Start LED task so updates work
 
     // Check hold-to-wake condition BEFORE any other initialization

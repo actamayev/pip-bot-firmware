@@ -385,7 +385,7 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             break;
         }
         case DataMessageType::SERIAL_END: {
-            rgbLed.turn_led_off();
+            rgbLed.turn_all_leds_off();
             SerialManager::getInstance().isConnected = false;
             // Don't stop polling here. Users will frequently connect and disconnect
             break;

@@ -308,7 +308,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             uint8_t b = static_cast<uint8_t>(instr.operand3);        
 
             // operand4 is unused for this operation
-            rgbLed.set_all_leds_to_color(r, g, b);
+            rgbLed.set_main_board_leds_to_color(r, g, b);
             break;
         }
 
@@ -712,7 +712,7 @@ void BytecodeVM::stopProgram() {
     stoppedDueToUsbSafety = false; // Reset safety flag when manually stopping
 
     Speaker::getInstance().setMuted(true);
-    rgbLed.turn_led_off();
+    rgbLed.turn_all_leds_off();
     motorDriver.brake_if_moving();
     return;
 }
@@ -787,7 +787,7 @@ void BytecodeVM::pauseProgram() {
     MessageProcessor::getInstance().resetCommandState();
 
     Speaker::getInstance().setMuted(true);
-    rgbLed.turn_led_off();     
+    rgbLed.turn_all_leds_off();     
     motorDriver.brake_if_moving();
     
     isPaused = PAUSED;

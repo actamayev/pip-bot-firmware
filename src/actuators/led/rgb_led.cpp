@@ -6,32 +6,38 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_LEDS, ESP_LED_PIN, NEO_GRB + NEO
 
 LedAnimations ledAnimations(strip);
 
-void RgbLed::turn_led_off() {
-    set_all_leds_to_color(0, 0, 0);
+void RgbLed::turn_all_leds_off() {
+    // Stop any running animations
+    ledAnimations.stopAnimation();
+    // Set all LEDs to off
+    for(int i = 0; i < strip.numPixels(); i++) {
+        strip.setPixelColor(i, strip.Color(0, 0, 0));
+    }
+    strip.show();
 }
 
 void RgbLed::set_led_red() {
-    set_all_leds_to_color(MAX_LED_BRIGHTNESS, 0, 0);
+    set_main_board_leds_to_color(MAX_LED_BRIGHTNESS, 0, 0);
 }
 
 void RgbLed::set_led_green() {
-    set_all_leds_to_color(0, MAX_LED_BRIGHTNESS, 0);
+    set_main_board_leds_to_color(0, MAX_LED_BRIGHTNESS, 0);
 }
 
 void RgbLed::set_led_blue() {
-    set_all_leds_to_color(0, 0, MAX_LED_BRIGHTNESS);
+    set_main_board_leds_to_color(0, 0, MAX_LED_BRIGHTNESS);
 }
 
 void RgbLed::set_led_white() {
-    set_all_leds_to_color(MAX_LED_BRIGHTNESS, MAX_LED_BRIGHTNESS, MAX_LED_BRIGHTNESS);
+    set_main_board_leds_to_color(MAX_LED_BRIGHTNESS, MAX_LED_BRIGHTNESS, MAX_LED_BRIGHTNESS);
 }
 
 void RgbLed::set_led_purple() {
-    set_all_leds_to_color(MAX_LED_BRIGHTNESS, 0, MAX_LED_BRIGHTNESS);
+    set_main_board_leds_to_color(MAX_LED_BRIGHTNESS, 0, MAX_LED_BRIGHTNESS);
 }
 
 void RgbLed::set_led_yellow() {
-    set_all_leds_to_color(MAX_LED_BRIGHTNESS, MAX_LED_BRIGHTNESS, 0);
+    set_main_board_leds_to_color(MAX_LED_BRIGHTNESS, MAX_LED_BRIGHTNESS, 0);
 }
 
 void RgbLed::setDefaultColors(uint8_t red, uint8_t green, uint8_t blue) {
@@ -49,7 +55,7 @@ void RgbLed::setDefaultColors(uint8_t red, uint8_t green, uint8_t blue) {
     currentBlue = blue;
 }
 
-void RgbLed::set_all_leds_to_color(uint8_t red, uint8_t green, uint8_t blue) {
+void RgbLed::set_main_board_leds_to_color(uint8_t red, uint8_t green, uint8_t blue) {
     currentRed = red;
     currentGreen = green;
     currentBlue = blue;
@@ -57,16 +63,19 @@ void RgbLed::set_all_leds_to_color(uint8_t red, uint8_t green, uint8_t blue) {
     // Stop any running animations
     ledAnimations.stopAnimation();
 
-    // Set default color for all LEDs
-    for (int i = 0; i < 8; i++) {
+    // Set default color for selected LEDs (0, 1, 4-7)
+    int indices[] = {0, 1, 4, 5, 6, 7};
+    for (int idx = 0; idx < 6; idx++) {
+        int i = indices[idx];
         defaultColors[i][0] = red;
         defaultColors[i][1] = green;
         defaultColors[i][2] = blue;
         defaultColorsSet[i] = true;
     }
 
-    // Set all LEDs to the same color
-    for(int i = 0; i < strip.numPixels(); i++) {
+    // Set only LEDs 0, 1, 4-7 to the same color (skip 2 and 3)
+    for (int idx = 0; idx < 6; idx++) {
+        int i = indices[idx];
         strip.setPixelColor(i, strip.Color(red, green, blue));
     }
     strip.show();
