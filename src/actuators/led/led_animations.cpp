@@ -225,25 +225,25 @@ void LedAnimations::updateRainbow() {
         };
         
         // Map colors to each LED based on REVERSED physical order:
-        // Index 0: back_left
+        // Index 0: middle_right
         strip.setPixelColor(0, colorHSV((baseHues[0] + rainbowHue) % 256));
         
-        // Index 1: middle_left
+        // Index 1: top_right
         strip.setPixelColor(1, colorHSV((baseHues[7] + rainbowHue) % 256));
         
-        // Index 2: top_left
+        // Index 2: right_headlight
         strip.setPixelColor(2, colorHSV((baseHues[6] + rainbowHue) % 256));
         
         // Index 3: left_headlight
         strip.setPixelColor(3, colorHSV((baseHues[5] + rainbowHue) % 256));
         
-        // Index 4: right_headlight
+        // Index 4: top_left
         strip.setPixelColor(4, colorHSV((baseHues[4] + rainbowHue) % 256));
         
-        // Index 5: top_right
+        // Index 5: middle_left
         strip.setPixelColor(5, colorHSV((baseHues[3] + rainbowHue) % 256));
         
-        // Index 6: middle_right
+        // Index 6: back_left
         strip.setPixelColor(6, colorHSV((baseHues[2] + rainbowHue) % 256));
         
         // Index 7: back_right
