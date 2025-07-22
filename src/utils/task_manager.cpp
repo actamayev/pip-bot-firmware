@@ -92,10 +92,10 @@ void TaskManager::sensorInitTask(void* parameter) {
             initializer.tryInitializeIMU();
         }
         
-        // if (!initializer.isSensorInitialized(SensorInitializer::MULTIZONE_TOF)) {
-        //     SerialQueueManager::getInstance().queueMessage("Trying to init Multizone TOF...");
-        //     initializer.tryInitializeMultizoneTof();
-        // }
+        if (!initializer.isSensorInitialized(SensorInitializer::MULTIZONE_TOF)) {
+            SerialQueueManager::getInstance().queueMessage("Trying to init Multizone TOF...");
+            initializer.tryInitializeMultizoneTof();
+        }
         
         // if (!initializer.isSensorInitialized(SensorInitializer::LEFT_SIDE_TOF)) {
         //     SerialQueueManager::getInstance().queueMessage("Trying to init Left TOF...");

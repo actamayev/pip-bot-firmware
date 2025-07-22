@@ -6,7 +6,7 @@ SensorInitializer::SensorInitializer() {
     for (int i = 0; i < SENSOR_COUNT; i++) {
         sensorInitialized[i] = false;
     }
-    // initializeMultizoneTof();
+    initializeMultizoneTof();
     initializeIMU();
     // initializeSideTimeOfFlights();
 }
@@ -28,16 +28,16 @@ bool SensorInitializer::areAllSensorsInitialized() const {
     return true;
 }
 
-// void SensorInitializer::initializeMultizoneTof() {
-//     SerialQueueManager::getInstance().queueMessage("Initializing Multizone sensor...");
+void SensorInitializer::initializeMultizoneTof() {
+    SerialQueueManager::getInstance().queueMessage("Initializing Multizone sensor...");
 
-//     if (!MultizoneTofSensor::getInstance().initialize()) {
-//         SerialQueueManager::getInstance().queueMessage("Multizone sensor initialization failed");
-//         return;
-//     }
-//     SerialQueueManager::getInstance().queueMessage("Multizone sensor setup complete");
-//     sensorInitialized[MULTIZONE_TOF] = true;
-// }
+    if (!MultizoneTofSensor::getInstance().initialize()) {
+        SerialQueueManager::getInstance().queueMessage("Multizone sensor initialization failed");
+        return;
+    }
+    SerialQueueManager::getInstance().queueMessage("Multizone sensor setup complete");
+    sensorInitialized[MULTIZONE_TOF] = true;
+}
 
 void SensorInitializer::initializeIMU() {
     SerialQueueManager::getInstance().queueMessage("Initializing IMU...");
@@ -85,33 +85,33 @@ void SensorInitializer::initializeIRSensors() {
     // sensorInitialized[IR_SENSORS] = true;
 }
 
-// bool SensorInitializer::tryInitializeMultizoneTof() {
-//     MultizoneTofSensor& mZoneSensor = MultizoneTofSensor::getInstance();
-//     if (!mZoneSensor.needsInitialization()) {
-//         sensorInitialized[MULTIZONE_TOF] = true;
-//         return true; // Already initialized
-//     }
+bool SensorInitializer::tryInitializeMultizoneTof() {
+    MultizoneTofSensor& mZoneSensor = MultizoneTofSensor::getInstance();
+    if (!mZoneSensor.needsInitialization()) {
+        sensorInitialized[MULTIZONE_TOF] = true;
+        return true; // Already initialized
+    }
     
-//     if (!mZoneSensor.canRetryInitialization()) {
-//         // Check if we've reached max retries and should restart
-//         if (mZoneSensor.getInitRetryCount() >= mZoneSensor.getMaxInitRetries()) {
-//             SerialQueueManager::getInstance().queueMessage("TOF sensor initialization failed after maximum retries. Restarting ESP...");
-//             vTaskDelay(pdMS_TO_TICKS(1000)); // Give serial time to send
-//             ESP.restart(); // Restart the ESP
-//         }
-//         return false; // Can't retry yet
-//     }
+    if (!mZoneSensor.canRetryInitialization()) {
+        // Check if we've reached max retries and should restart
+        if (mZoneSensor.getInitRetryCount() >= mZoneSensor.getMaxInitRetries()) {
+            SerialQueueManager::getInstance().queueMessage("TOF sensor initialization failed after maximum retries. Restarting ESP...");
+            vTaskDelay(pdMS_TO_TICKS(1000)); // Give serial time to send
+            ESP.restart(); // Restart the ESP
+        }
+        return false; // Can't retry yet
+    }
     
-//     SerialQueueManager::getInstance().queueMessage("Retrying TOF sensor initialization...");
-//     bool success = mZoneSensor.initialize();
+    SerialQueueManager::getInstance().queueMessage("Retrying TOF sensor initialization...");
+    bool success = mZoneSensor.initialize();
     
-//     if (success) {
-//         sensorInitialized[MULTIZONE_TOF] = true;
-//         SerialQueueManager::getInstance().queueMessage("TOF sensor retry initialization successful!");
-//     }
+    if (success) {
+        sensorInitialized[MULTIZONE_TOF] = true;
+        SerialQueueManager::getInstance().queueMessage("TOF sensor retry initialization successful!");
+    }
     
-//     return success;
-// }
+    return success;
+}
 
 bool SensorInitializer::tryInitializeIMU() {
     ImuSensor& imu = ImuSensor::getInstance();
