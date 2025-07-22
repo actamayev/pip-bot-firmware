@@ -22,7 +22,9 @@ enum class DataMessageType : uint8_t {
     GET_SAVED_WIFI_NETWORKS = 19,
     SCAN_WIFI_NETWORKS = 20,
     UPDATE_HORN_SOUND = 21,
-    SPEAKER_VOLUME = 22
+    SPEAKER_VOLUME = 22,
+    STOP_SOUND = 23, // For stopping ongoing sounds (e.g. horn sound)
+    REQUEST_BATTERY_MONITOR_DATA = 24
 };
 
 // Sound types

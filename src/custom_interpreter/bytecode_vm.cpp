@@ -277,14 +277,14 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
                     //     skipDefaultAssignment = true;  // Set flag to skip default assignment
                     //     break;
                     // }
-                    // case SENSOR_FRONT_PROXIMITY: {
-                    //     float isObjectDetected = MultizoneTofSensor::getInstance().isObjectDetected();
-                    //     registers[regId].asBool = isObjectDetected;
-                    //     registerTypes[regId] = VAR_BOOL;
-                    //     registerInitialized[regId] = true;
-                    //     skipDefaultAssignment = true;  // Set flag
-                    //     break;
-                    // }
+                    case SENSOR_FRONT_PROXIMITY: {
+                        float isObjectDetected = MultizoneTofSensor::getInstance().isObjectDetected();
+                        registers[regId].asBool = isObjectDetected;
+                        registerTypes[regId] = VAR_BOOL;
+                        registerInitialized[regId] = true;
+                        skipDefaultAssignment = true;  // Set flag
+                        break;
+                    }
                     default: {
                         char logMessage[32];
                         snprintf(logMessage, sizeof(logMessage), "Unknown sensor type: %u", sensorType);
@@ -308,7 +308,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             uint8_t b = static_cast<uint8_t>(instr.operand3);        
 
             // operand4 is unused for this operation
-            rgbLed.set_all_leds_to_color(r, g, b);
+            rgbLed.set_main_board_leds_to_color(r, g, b);
             break;
         }
 
@@ -712,7 +712,7 @@ void BytecodeVM::stopProgram() {
     stoppedDueToUsbSafety = false; // Reset safety flag when manually stopping
 
     Speaker::getInstance().setMuted(true);
-    rgbLed.turn_led_off();
+    rgbLed.turn_all_leds_off();
     motorDriver.brake_if_moving();
     return;
 }
@@ -787,7 +787,7 @@ void BytecodeVM::pauseProgram() {
     MessageProcessor::getInstance().resetCommandState();
 
     Speaker::getInstance().setMuted(true);
-    rgbLed.turn_led_off();     
+    rgbLed.turn_all_leds_off();     
     motorDriver.brake_if_moving();
     
     isPaused = PAUSED;
@@ -866,11 +866,9 @@ void BytecodeVM::handleUsbConnect() {
 
 bool BytecodeVM::canStartProgram() {
     // Block start if program contains motors and USB is connected
-    if (programContainsMotors && SerialManager::getInstance().isSerialConnected()) {
-        SerialQueueManager::getInstance().queueMessage("Cannot start motor program while USB connected - disconnect USB first");
-        SerialManager::getInstance().sendJsonMessage(RouteType::MOTORS_DISABLED_USB, "Cannot start motor program while USB connected - disconnect USB first");
-        return false;
-    }
-    
-    return true;
+    if (!programContainsMotors || !SerialManager::getInstance().isSerialConnected()) return true;
+
+    SerialQueueManager::getInstance().queueMessage("Cannot start motor program while USB connected - disconnect USB first");
+    SerialManager::getInstance().sendJsonMessage(RouteType::MOTORS_DISABLED_USB, "Cannot start motor program while USB connected - disconnect USB first");
+    return false;
 }

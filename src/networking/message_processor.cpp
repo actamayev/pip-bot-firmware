@@ -8,79 +8,6 @@ void MessageProcessor::handleMotorControl(const uint8_t* data) {
     updateMotorSpeeds(leftSpeed, rightSpeed);
 }
 
-void MessageProcessor::handleSoundCommand(SoundType soundType) {
-    // Play the requested tune
-    switch(soundType) {
-        case SoundType::CHIME:
-            SerialQueueManager::getInstance().queueMessage("Playing CHIME sound");
-            Speaker::getInstance().playFile(AudioFile::CHIME);
-            break;
-
-        case SoundType::CHIRP:
-            SerialQueueManager::getInstance().queueMessage("Playing CHIRP sound");
-            Speaker::getInstance().playFile(AudioFile::CHIRP);
-            break;
-        
-        case SoundType::POP:
-            SerialQueueManager::getInstance().queueMessage("Playing POP sound");
-            Speaker::getInstance().playFile(AudioFile::POP);
-            break;
-        
-        case SoundType::DROP:
-            SerialQueueManager::getInstance().queueMessage("Playing DROP sound");
-            Speaker::getInstance().playFile(AudioFile::DROP);
-            break;
-
-        case SoundType::FART:
-            SerialQueueManager::getInstance().queueMessage("Playing FART sound");
-            Speaker::getInstance().playFile(AudioFile::FART);
-            break;
-
-        case SoundType::MONKEY:
-            SerialQueueManager::getInstance().queueMessage("Playing MONKEY sound");
-            Speaker::getInstance().playFile(AudioFile::MONKEY);
-            break;
-
-        case SoundType::ELEPHANT:
-            SerialQueueManager::getInstance().queueMessage("Playing ELEPHANT sound");   
-            Speaker::getInstance().playFile(AudioFile::ELEPHANT);
-            break;
-
-        case SoundType::PARTY:
-            SerialQueueManager::getInstance().queueMessage("Playing PARTY sound");
-            Speaker::getInstance().playFile(AudioFile::PARTY);
-            break;
-
-        case SoundType::UFO:
-            SerialQueueManager::getInstance().queueMessage("Playing UFO sound");
-            Speaker::getInstance().playFile(AudioFile::UFO);
-            break;
-
-        case SoundType::COUNTDOWN:
-            SerialQueueManager::getInstance().queueMessage("Playing COUNTDOWN sound");
-            Speaker::getInstance().playFile(AudioFile::COUNTDOWN);
-            break;
-
-        case SoundType::ENGINE:
-            SerialQueueManager::getInstance().queueMessage("Playing ENGINE sound");
-            Speaker::getInstance().playFile(AudioFile::ENGINE);
-            break;
-
-        case SoundType::ROBOT:
-            SerialQueueManager::getInstance().queueMessage("Playing ROBOT sound");
-            Speaker::getInstance().playFile(AudioFile::ROBOT);
-            break;
-
-        default:
-            // SerialQueueManager::getInstance().queueMessage("Unknown tune type: %d\n", static_cast<int>(soundType));
-            break;
-    }
-}
-
-void MessageProcessor::handleSpeakerMute(SpeakerStatus status) {
-    Speaker::getInstance().setMuted(status == SpeakerStatus::MUTED);
-}
-
 void MessageProcessor::updateMotorSpeeds(int16_t leftSpeed, int16_t rightSpeed) {
     // Constrain speeds
     leftSpeed = constrain(leftSpeed, -255, 255);
@@ -256,14 +183,6 @@ void MessageProcessor::handleNewLightColors(NewLightColors newLightColors) {
     uint8_t backRightR = (uint8_t)newLightColors.backRightRed;
     uint8_t backRightG = (uint8_t)newLightColors.backRightGreen;
     uint8_t backRightB = (uint8_t)newLightColors.backRightBlue;
-
-    uint8_t rightHeadlightRed = (uint8_t)newLightColors.rightHeadlightRed;
-    uint8_t rightHeadlightGreen = (uint8_t)newLightColors.rightHeadlightGreen;
-    uint8_t rightHeadlightBlue = (uint8_t)newLightColors.rightHeadlightBlue;
-
-    uint8_t leftHeadlightRed = (uint8_t)newLightColors.leftHeadlightRed;
-    uint8_t leftHeadlightGreen = (uint8_t)newLightColors.leftHeadlightGreen;
-    uint8_t leftHeadlightBlue = (uint8_t)newLightColors.leftHeadlightBlue;
     
     // Set each LED to its corresponding color
     rgbLed.set_top_left_led(topLeftR, topLeftG, topLeftB);
@@ -272,8 +191,6 @@ void MessageProcessor::handleNewLightColors(NewLightColors newLightColors) {
     rgbLed.set_middle_right_led(middleRightR, middleRightG, middleRightB);
     rgbLed.set_back_left_led(backLeftR, backLeftG, backLeftB);
     rgbLed.set_back_right_led(backRightR, backRightG, backRightB);
-    rgbLed.set_left_headlight(leftHeadlightRed, leftHeadlightGreen, leftHeadlightBlue);
-    rgbLed.set_right_headlight(rightHeadlightRed, rightHeadlightGreen, rightHeadlightBlue);
 }
 
 void MessageProcessor::handleGetSavedWiFiNetworks() {
@@ -336,7 +253,7 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
                 SerialQueueManager::getInstance().queueMessage("Invalid sound command message length");
             } else {
                 SoundType soundType = static_cast<SoundType>(data[1]);
-                handleSoundCommand(soundType);
+                Speaker::getInstance().playFile(soundType);
             }
             break;
         }
@@ -345,7 +262,7 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
                 SerialQueueManager::getInstance().queueMessage("Invalid speaker mute message length");
             } else {
                 SpeakerStatus status = static_cast<SpeakerStatus>(data[1]);
-                handleSpeakerMute(status);
+                Speaker::getInstance().setMuted(status == SpeakerStatus::MUTED);
             }
             break;
         }
@@ -372,7 +289,7 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             break;
         }
         case DataMessageType::UPDATE_LED_COLORS: {
-            if (length != 25) {
+            if (length != 19) {
                 // SerialQueueManager::getInstance().queueMessage("Invalid update led colors message length%d", length);
             } else {
                 NewLightColors newLightColors;
@@ -450,7 +367,7 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             break;
         }
         case DataMessageType::SERIAL_END: {
-            rgbLed.turn_led_off();
+            rgbLed.turn_all_leds_off();
             SerialManager::getInstance().isConnected = false;
             // Don't stop polling here. Users will frequently connect and disconnect
             break;
@@ -461,9 +378,9 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             } else {
                 HeadlightStatus status = static_cast<HeadlightStatus>(data[1]);
                 if (status == HeadlightStatus::ON) {
-                    rgbLed.set_headlights_on();
+                    rgbLed.turn_headlights_on();
                 } else {
-                    rgbLed.reset_headlights_to_default();
+                    rgbLed.turn_headlights_off();
                 }
             }
             break;
@@ -536,9 +453,9 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
                 HornSoundStatus status = static_cast<HornSoundStatus>(data[1]);
                 if (status == HornSoundStatus::ON) {
                     // TODO: Fix this
-                    rgbLed.set_headlights_on();
+                    rgbLed.turn_headlights_on();
                 } else {
-                    rgbLed.reset_headlights_to_default();
+                    rgbLed.turn_headlights_off();
                 }
             }
             break;
@@ -553,6 +470,17 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
                 Speaker::getInstance().setVolume(volume);
             }
             break;
+        }
+        case DataMessageType::STOP_SOUND: {
+            // 7/21/25 TODO: Implement this
+            break;
+        }
+        case DataMessageType::REQUEST_BATTERY_MONITOR_DATA: { // This comes from the server when the user reloads the page (user requests battery data for each pip)
+            if (length != 1) {
+                SerialQueueManager::getInstance().queueMessage("Invalid request battery monitor data message length");
+            } else {
+                BatteryMonitor::getInstance().sendBatteryMonitorDataOverWebSocket();
+            }
         }
         default:
             // SerialQueueManager::getInstance().queueMessage("Unknown message type: %d\n", static_cast<int>(messageType));

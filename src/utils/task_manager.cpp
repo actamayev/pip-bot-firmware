@@ -92,10 +92,10 @@ void TaskManager::sensorInitTask(void* parameter) {
             initializer.tryInitializeIMU();
         }
         
-        // if (!initializer.isSensorInitialized(SensorInitializer::MULTIZONE_TOF)) {
-        //     SerialQueueManager::getInstance().queueMessage("Trying to init Multizone TOF...");
-        //     initializer.tryInitializeMultizoneTof();
-        // }
+        if (!initializer.isSensorInitialized(SensorInitializer::MULTIZONE_TOF)) {
+            SerialQueueManager::getInstance().queueMessage("Trying to init Multizone TOF...");
+            initializer.tryInitializeMultizoneTof();
+        }
         
         // if (!initializer.isSensorInitialized(SensorInitializer::LEFT_SIDE_TOF)) {
         //     SerialQueueManager::getInstance().queueMessage("Trying to init Left TOF...");
@@ -221,7 +221,7 @@ void TaskManager::batteryMonitorTask(void* parameter) {
     
     for(;;) {
         BatteryMonitor::getInstance().update();
-        vTaskDelay(pdMS_TO_TICKS(2000));
+        vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }
 
