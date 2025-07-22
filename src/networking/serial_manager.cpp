@@ -274,9 +274,6 @@ void SerialManager::sendBatteryDataItem(const String& key, int value) {
     serializeJson(doc, jsonString);
     
     SerialQueueManager::getInstance().queueMessage(jsonString, SerialPriority::CRITICAL);
-    
-    // Small delay between messages to prevent overwhelming the queue
-    // vTaskDelay(pdMS_TO_TICKS(5));
 }
 
 void SerialManager::sendBatteryDataItem(const String& key, unsigned int value) {
@@ -292,9 +289,6 @@ void SerialManager::sendBatteryDataItem(const String& key, unsigned int value) {
     serializeJson(doc, jsonString);
     
     SerialQueueManager::getInstance().queueMessage(jsonString, SerialPriority::CRITICAL);
-    
-    // Small delay between messages to prevent overwhelming the queue
-    // vTaskDelay(pdMS_TO_TICKS(5));
 }
 
 void SerialManager::sendBatteryDataItem(const String& key, float value) {
@@ -310,9 +304,6 @@ void SerialManager::sendBatteryDataItem(const String& key, float value) {
     serializeJson(doc, jsonString);
     
     SerialQueueManager::getInstance().queueMessage(jsonString, SerialPriority::CRITICAL);
-    
-    // Small delay between messages to prevent overwhelming the queue
-    // vTaskDelay(pdMS_TO_TICKS(5));
 }
 
 void SerialManager::sendBatteryDataItem(const String& key, bool value) {
@@ -328,7 +319,4 @@ void SerialManager::sendBatteryDataItem(const String& key, bool value) {
     serializeJson(doc, jsonString);
     
     SerialQueueManager::getInstance().queueMessage(jsonString, SerialPriority::CRITICAL);
-    
-    // Small delay between messages to prevent overwhelming the queue
-    // vTaskDelay(pdMS_TO_TICKS(5));
 }
