@@ -57,10 +57,9 @@ class BatteryMonitor : public Singleton<BatteryMonitor> {
         static constexpr unsigned int CRITICAL_BATTERY_THRESHOLD = 10;  // %
         
         BatteryState batteryState;
-        unsigned long lastUpdateTime = 0;
         unsigned long lastInitAttempt = 0;
         static constexpr unsigned long INIT_RETRY_INTERVAL_MS = 10000; // Retry init every 10 seconds
-        static constexpr unsigned long BATTERY_LOG_INTERVAL_MS = 10000; // Log every 30 seconds
+        static constexpr unsigned long BATTERY_LOG_INTERVAL_MS = 10000; // Log every 10 seconds
         
         // Helper methods
         void calculateTimeEstimates();

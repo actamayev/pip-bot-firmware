@@ -49,7 +49,6 @@ void BatteryMonitor::updateBatteryState() {
     
     // Calculate time estimates
     calculateTimeEstimates();
-    lastUpdateTime = millis();
 }
 
 void BatteryMonitor::updateStatusFlags() {
