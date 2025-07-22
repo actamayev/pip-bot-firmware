@@ -221,7 +221,7 @@ void TaskManager::batteryMonitorTask(void* parameter) {
     
     for(;;) {
         BatteryMonitor::getInstance().update();
-        vTaskDelay(pdMS_TO_TICKS(2000));
+        vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }
 
