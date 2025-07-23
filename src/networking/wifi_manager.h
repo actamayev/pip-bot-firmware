@@ -73,4 +73,5 @@ class WiFiManager : public Singleton<WiFiManager> {
 		static constexpr unsigned long ASYNC_SCAN_TIMEOUT_MS = 10000; // 10 seconds
 		static constexpr unsigned long ASYNC_SCAN_MIN_CHECK_DELAY = 500; // Don't check status for first 500ms
 		unsigned long _lastScanCompleteTime = 0;
+		static constexpr unsigned long STALE_SCAN_TIMEOUT_MS = 1800000; // 30 minutes
 };

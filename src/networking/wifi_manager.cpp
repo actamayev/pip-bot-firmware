@@ -443,9 +443,10 @@ void WiFiManager::checkAsyncScanProgress() {
 
 void WiFiManager::clearNetworksIfStale() {
     unsigned long now = millis();
-    // 30 minutes = 1,800,000 ms
-    if (!_availableNetworks.empty() && (now - _lastScanCompleteTime > 1800000)) {
-        _availableNetworks.clear();
-        SerialQueueManager::getInstance().queueMessage("WiFi scan results cleared (stale > 30 min)");
-    }
+    if (
+        _availableNetworks.empty() ||
+        (now - _lastScanCompleteTime <= STALE_SCAN_TIMEOUT_MS)
+    ) return;
+    _availableNetworks.clear();
+    SerialQueueManager::getInstance().queueMessage("WiFi scan results cleared (stale > 30 min)");
 }
