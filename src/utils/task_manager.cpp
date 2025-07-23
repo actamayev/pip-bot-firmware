@@ -16,6 +16,8 @@ TaskHandle_t TaskManager::batteryMonitorTaskHandle = NULL;
 TaskHandle_t TaskManager::speakerTaskHandle = NULL;
 
 void TaskManager::buttonTask(void* parameter) {
+    setupButtonLoggers();
+
     for(;;) {
         Buttons::getInstance().update();
         vTaskDelay(pdMS_TO_TICKS(1));
@@ -71,9 +73,6 @@ void TaskManager::sensorInitTask(void* parameter) {
     vTaskDelay(pdMS_TO_TICKS(10));
     
     SerialQueueManager::getInstance().queueMessage("Starting sensor initialization on Core 0...");
-    
-    // Setup button loggers (from original sensor task)
-    setupButtonLoggers();
     
 //    if (!DisplayScreen::getInstance().init()) {
 //         SerialQueueManager::getInstance().queueMessage("Display initialization failed");
