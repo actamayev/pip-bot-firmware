@@ -14,8 +14,10 @@ void WiFiManager::connectToStoredWiFi() {
     // Try to connect directly to any saved network without scanning
     bool connectionStatus = attemptDirectConnectionToSavedNetworks();
 
-    if (connectionStatus) {
-        return WebSocketManager::getInstance().connectToWebSocket();
+    if (!connectionStatus) {
+        startAsyncScan();
+    } else {
+        WebSocketManager::getInstance().connectToWebSocket();
     }
 
     // 4/29/25 NOTE: When serial was implemented, this was commented out because the code got stuck in wifi scan mode when the serial code was brought in in main.cpp
