@@ -398,7 +398,7 @@ void WiFiManager::checkAsyncScanProgress() {
         // Clean up any scan results
         WiFi.scanDelete();
         
-        // Send empty scan complete message to browser
+        // Send empty scan complete message to browser to indicate timeout
         std::vector<WiFiNetworkInfo> emptyNetworks;
         SerialManager::getInstance().sendScanResultsResponse(emptyNetworks);
         return;
@@ -407,38 +407,36 @@ void WiFiManager::checkAsyncScanProgress() {
     // Check scan status
     int16_t scanResult = WiFi.scanComplete();
     
-    // Only handle completion (positive numbers) - ignore WIFI_SCAN_FAILED and WIFI_SCAN_RUNNING
-    if (scanResult >= 0) {
-        // Scan completed successfully
-        SerialQueueManager::getInstance().queueMessage("Async WiFi scan completed in " + String(scanDuration) + "ms. Found " + String(scanResult) + " networks");
-        _asyncScanInProgress = false;
-        rgbLed.turn_main_board_leds_off();
-        
-        // Process scan results
-        std::vector<WiFiNetworkInfo> networks;
-        
-        for (int i = 0; i < scanResult; i++) {
-            WiFiNetworkInfo network;
-            network.ssid = WiFi.SSID(i);
-            network.rssi = WiFi.RSSI(i);
-            network.encryptionType = WiFi.encryptionType(i);
-            networks.push_back(network);
-        }
-        
-        // Sort networks by signal strength
-        sortNetworksBySignalStrength(networks);
-        
-        // Update class members
-        _availableNetworks = networks;
-        _selectedNetworkIndex = 0;
-        
-        // Clean up scan results to free memory
-        WiFi.scanDelete();
-        
-        // Send results to browser
-        SerialManager::getInstance().sendScanResultsResponse(networks);
-    }
-    
     // For WIFI_SCAN_RUNNING (-1) and WIFI_SCAN_FAILED (-2), just keep waiting until timeout
     // The ESP32 WiFi library seems to return WIFI_SCAN_FAILED sometimes even when scan is progressing
+    if (scanResult < 0) return;
+    // Only handle completion (positive numbers) - ignore WIFI_SCAN_FAILED and WIFI_SCAN_RUNNING
+    // Scan completed successfully
+    SerialQueueManager::getInstance().queueMessage("Async WiFi scan completed in " + String(scanDuration) + "ms. Found " + String(scanResult) + " networks");
+    _asyncScanInProgress = false;
+    rgbLed.turn_main_board_leds_off();
+    
+    // Process scan results
+    std::vector<WiFiNetworkInfo> networks;
+    
+    for (int i = 0; i < scanResult; i++) {
+        WiFiNetworkInfo network;
+        network.ssid = WiFi.SSID(i);
+        network.rssi = WiFi.RSSI(i);
+        network.encryptionType = WiFi.encryptionType(i);
+        networks.push_back(network);
+    }
+    
+    // Sort networks by signal strength
+    sortNetworksBySignalStrength(networks);
+    
+    // Update class members
+    _availableNetworks = networks;
+    _selectedNetworkIndex = 0;
+    
+    // Clean up scan results to free memory
+    WiFi.scanDelete();
+    
+    // Send results to browser
+    SerialManager::getInstance().sendScanResultsResponse(networks);
 }
