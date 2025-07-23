@@ -26,7 +26,6 @@ class MessageProcessor : public Singleton<MessageProcessor> {
         // Method declarations
         void handleMotorControl(const uint8_t* data);
         void handleBalanceCommand(BalanceStatus enableBalancing);
-        void handleChangePidsCommand(NewBalancePids newBalancePids);
         void handleLightCommand(LightAnimationStatus lightAnimationStatus);
         void handleNewLightColors(NewLightColors newLightColors);
         void handleObstacleAvoidanceCommand(ObstacleAvoidanceStatus status);

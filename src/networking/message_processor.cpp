@@ -154,10 +154,6 @@ void MessageProcessor::handleLightCommand(LightAnimationStatus lightAnimationSta
     }
 }
 
-void MessageProcessor::handleChangePidsCommand(NewBalancePids newBalancePids) {
-    BalanceController::getInstance().updateBalancePids(newBalancePids);
-}
-
 void MessageProcessor::handleNewLightColors(NewLightColors newLightColors) {
     // Cast from float to uint8_t, assuming values are already in 0-255 range
     uint8_t topLeftR = (uint8_t)newLightColors.topLeftRed;
@@ -319,7 +315,7 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             } else {
                 NewBalancePids newBalancePids;
                 memcpy(&newBalancePids, &data[1], sizeof(NewBalancePids));
-                handleChangePidsCommand(newBalancePids);
+                BalanceController::getInstance().updateBalancePids(newBalancePids);
             }
             break;
         }
