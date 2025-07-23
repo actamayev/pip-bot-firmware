@@ -19,8 +19,9 @@ enum class DataMessageType : uint8_t {
     START_SENSOR_POLLING = 15,
     WIFI_CREDENTIALS = 16,
     WIFI_CONNECTION_RESULT = 17,
-    GET_SAVED_WIFI_NETWORKS = 19,
-    SCAN_WIFI_NETWORKS = 20,
+    GET_SAVED_WIFI_NETWORKS = 18,
+    SOFT_SCAN_WIFI_NETWORKS = 19,
+    HARD_SCAN_WIFI_NETWORKS = 20, // This overrides the cache (will force a scan, even if there are available networks)
     UPDATE_HORN_SOUND = 21,
     SPEAKER_VOLUME = 22,
     STOP_SOUND = 23, // For stopping ongoing sounds (e.g. horn sound)

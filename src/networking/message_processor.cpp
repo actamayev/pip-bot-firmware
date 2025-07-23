@@ -204,14 +204,32 @@ void MessageProcessor::handleGetSavedWiFiNetworks() {
 }
 
 void MessageProcessor::handleScanWiFiNetworks() {
+    // Check if we have recent scan results (within 1 minute)
+    WiFiManager& wifiManager = WiFiManager::getInstance();
+    if (wifiManager.hasAvailableNetworks()) {
+        SerialQueueManager::getInstance().queueMessage("Returning cached WiFi scan results (scan < 1 min old)");
+        SerialManager::getInstance().sendScanResultsResponse(wifiManager.getAvailableNetworks());
+        return;
+    }
+    unsigned long now = millis();
+    if (now - wifiManager.getLastScanCompleteTime() < 60000) return;
     SerialQueueManager::getInstance().queueMessage("Starting async WiFi network scan...");
-    
     // Start async scan instead of blocking scan
-    bool success = WiFiManager::getInstance().startAsyncScan();
+    bool success = wifiManager.startAsyncScan();
     
     if (success) return; // Note: Results will be sent asynchronously when scan completes
     SerialQueueManager::getInstance().queueMessage("Failed to start WiFi scan");
     // Send empty scan results to indicate failure
+    std::vector<WiFiNetworkInfo> emptyNetworks;
+    SerialManager::getInstance().sendScanResultsResponse(emptyNetworks);
+}
+
+void MessageProcessor::handleHardScanWiFiNetworks() {
+    WiFiManager::getInstance().clearAvailableNetworks();
+    SerialQueueManager::getInstance().queueMessage("Starting hard WiFi network scan (cache cleared)...");
+    bool success = WiFiManager::getInstance().startAsyncScan();
+    if (success) return;
+    SerialQueueManager::getInstance().queueMessage("Failed to start hard WiFi scan");
     std::vector<WiFiNetworkInfo> emptyNetworks;
     SerialManager::getInstance().sendScanResultsResponse(emptyNetworks);
 }
@@ -436,11 +454,19 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             break;
         }
 
-        case DataMessageType::SCAN_WIFI_NETWORKS: {
+        case DataMessageType::SOFT_SCAN_WIFI_NETWORKS: {
             if (length != 1) {
-                SerialQueueManager::getInstance().queueMessage("Invalid scan wifi networks message length");
+                SerialQueueManager::getInstance().queueMessage("Invalid soft scan wifi networks message length");
             } else {
                 handleScanWiFiNetworks();
+            }
+            break;
+        }
+        case DataMessageType::HARD_SCAN_WIFI_NETWORKS: {
+            if (length != 1) {
+                SerialQueueManager::getInstance().queueMessage("Invalid hard scan wifi networks message length");
+            } else {
+                handleHardScanWiFiNetworks();
             }
             break;
         }

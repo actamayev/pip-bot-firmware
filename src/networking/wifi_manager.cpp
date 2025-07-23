@@ -415,7 +415,7 @@ void WiFiManager::checkAsyncScanProgress() {
     SerialQueueManager::getInstance().queueMessage("Async WiFi scan completed in " + String(scanDuration) + "ms. Found " + String(scanResult) + " networks");
     _asyncScanInProgress = false;
     rgbLed.turn_main_board_leds_off();
-    
+    _lastScanCompleteTime = millis();
     // Process scan results
     std::vector<WiFiNetworkInfo> networks;
     
@@ -439,4 +439,13 @@ void WiFiManager::checkAsyncScanProgress() {
     
     // Send results to browser
     SerialManager::getInstance().sendScanResultsResponse(networks);
+}
+
+void WiFiManager::clearNetworksIfStale() {
+    unsigned long now = millis();
+    // 30 minutes = 1,800,000 ms
+    if (!_availableNetworks.empty() && (now - _lastScanCompleteTime > 1800000)) {
+        _availableNetworks.clear();
+        SerialQueueManager::getInstance().queueMessage("WiFi scan results cleared (stale > 30 min)");
+    }
 }
