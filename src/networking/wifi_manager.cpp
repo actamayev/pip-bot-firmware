@@ -10,13 +10,6 @@ WiFiManager::WiFiManager() {
     connectToStoredWiFi();
 }
 
-WiFiCredentials WiFiManager::getStoredWiFiCredentials() {
-	WiFiCredentials credentials;
-    credentials.ssid = PreferencesManager::getInstance().getWiFiSSID();
-    credentials.password = PreferencesManager::getInstance().getWiFiPassword();
-	return credentials;
-}
-
 void WiFiManager::connectToStoredWiFi() {
     // Try to connect directly to any saved network without scanning
     bool connectionStatus = attemptDirectConnectionToSavedNetworks();
@@ -219,45 +212,6 @@ void WiFiManager::checkAndReconnectWiFi() {
     }
 }
 
-WiFiManager::WiFiTestResult WiFiManager::testWiFiCredentials(const String& ssid, const String& password) {
-    WiFiTestResult result = {false, false};
-    
-    SerialQueueManager::getInstance().queueMessage("Testing WiFi credentials...");
-    
-    // Test WiFi connection without storing credentials
-    if (testConnectionOnly(ssid, password)) {
-        result.wifiConnected = true;
-        SerialQueueManager::getInstance().queueMessage("WiFi connection successful");
-        
-        // Test WebSocket connection
-        WebSocketManager::getInstance().connectToWebSocket();
-        
-        // Wait for WebSocket connection with timeout
-        unsigned long startTime = millis();
-        const unsigned long WEBSOCKET_TIMEOUT = 10000; // 10 seconds
-        
-        while (millis() - startTime < WEBSOCKET_TIMEOUT) {
-            WebSocketManager::getInstance().pollWebSocket();
-            if (WebSocketManager::getInstance().isConnected()) {
-                result.websocketConnected = true;
-                SerialQueueManager::getInstance().queueMessage("WebSocket connection successful");
-                
-                // Only store credentials after both WiFi and WebSocket success
-                storeWiFiCredentials(ssid, password, 0);
-                break;
-            }
-            vTaskDelay(pdMS_TO_TICKS(100));
-        }
-        
-        if (!result.websocketConnected) {
-            SerialQueueManager::getInstance().queueMessage("WebSocket connection failed - likely captive portal");
-            WiFi.disconnect();
-        }
-    }
-    
-    return result;
-}
-
 void WiFiManager::startAddPipWiFiTest(const String& ssid, const String& password) {
     _addPipSSID = ssid;
     _addPipPassword = password;
@@ -382,20 +336,6 @@ std::vector<WiFiCredentials> WiFiManager::getSavedNetworksForResponse() {
     SerialQueueManager::getInstance().queueMessage("Found " + String(savedNetworks.size()) + " saved networks");
     
     return savedNetworks;
-}
-
-std::vector<WiFiNetworkInfo> WiFiManager::scanAndReturnNetworks() {
-    SerialQueueManager::getInstance().queueMessage("Legacy sync scan called - using async scan instead");
-    
-    // Start async scan
-    if (startAsyncScan()) {
-        // Return empty vector - results will be sent asynchronously
-        SerialQueueManager::getInstance().queueMessage("Async scan started, results will be sent when ready");
-    } else {
-        SerialQueueManager::getInstance().queueMessage("Failed to start async scan");
-    }
-    
-    return std::vector<WiFiNetworkInfo>(); // Return empty vector
 }
 
 bool WiFiManager::startAsyncScan() {

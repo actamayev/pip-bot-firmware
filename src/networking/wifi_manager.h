@@ -30,11 +30,9 @@ class WiFiManager : public Singleton<WiFiManager> {
 			bool websocketConnected;
 		};
 		
-		WiFiTestResult testWiFiCredentials(const String& ssid, const String& password);
 		void startAddPipWiFiTest(const String& ssid, const String& password);
 		void processAddPipMode();
 		std::vector<WiFiCredentials> getSavedNetworksForResponse();
-		std::vector<WiFiNetworkInfo> scanAndReturnNetworks();
 		bool startAsyncScan();
 		void checkAsyncScanProgress();
 		bool isAsyncScanInProgress() const { return _asyncScanInProgress; }
@@ -43,7 +41,6 @@ class WiFiManager : public Singleton<WiFiManager> {
 		WiFiManager();
 
 		void connectToStoredWiFi();
-		WiFiCredentials getStoredWiFiCredentials();
 		bool attemptNewWifiConnection(WiFiCredentials wifiCredentials);
 
 		// std::vector<WiFiNetworkInfo> scanWiFiNetworkInfos();
