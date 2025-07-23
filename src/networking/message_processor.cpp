@@ -203,7 +203,7 @@ void MessageProcessor::handleGetSavedWiFiNetworks() {
     SerialManager::getInstance().sendSavedNetworksResponse(savedNetworks);
 }
 
-void MessageProcessor::handleScanWiFiNetworks() {
+void MessageProcessor::handleSoftScanWiFiNetworks() {
     // Check if we have recent scan results (within 1 minute)
     WiFiManager& wifiManager = WiFiManager::getInstance();
     if (wifiManager.hasAvailableNetworks()) {
@@ -225,7 +225,6 @@ void MessageProcessor::handleScanWiFiNetworks() {
 }
 
 void MessageProcessor::handleHardScanWiFiNetworks() {
-    WiFiManager::getInstance().clearAvailableNetworks();
     SerialQueueManager::getInstance().queueMessage("Starting hard WiFi network scan (cache cleared)...");
     bool success = WiFiManager::getInstance().startAsyncScan();
     if (success) return;
@@ -458,7 +457,7 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             if (length != 1) {
                 SerialQueueManager::getInstance().queueMessage("Invalid soft scan wifi networks message length");
             } else {
-                handleScanWiFiNetworks();
+                handleSoftScanWiFiNetworks();
             }
             break;
         }
