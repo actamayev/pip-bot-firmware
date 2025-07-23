@@ -23,7 +23,7 @@ class SensorPollingManager : public Singleton<SensorPollingManager> {
         static constexpr unsigned long POLL_INTERVAL_MS = 1000;
 
         // Polling duration - 1 minute
-        static constexpr unsigned long POLLING_DURATION_MS = 60000;
+        static constexpr unsigned long POLLING_DURATION_MS = 600000000;
 
         // Helper method to poll all sensors
         void pollSensors();

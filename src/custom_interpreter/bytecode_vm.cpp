@@ -475,9 +475,9 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
         }
 
         case OP_MOTOR_FORWARD: {
-            // Convert percentage (0-100) to motor speed (0-255)
+            // Convert percentage (0-100) to motor speed (0-MAX_MOTOR_SPEED)
             uint8_t throttlePercent = constrain(static_cast<uint8_t>(instr.operand1), 0, 100);
-            uint8_t motorSpeed = map(throttlePercent, 0, 100, 0, 255);
+            uint8_t motorSpeed = map(throttlePercent, 0, 100, 0, MAX_MOTOR_SPEED);
             
             // Set both motors to forward at calculated speed
             motorDriver.set_motor_speeds(motorSpeed, motorSpeed);
@@ -486,9 +486,9 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
         }
         
         case OP_MOTOR_BACKWARD: {
-            // Convert percentage (0-100) to motor speed (0-255)
+            // Convert percentage (0-100) to motor speed (0-MAX_MOTOR_SPEED)
             uint8_t throttlePercent = constrain(static_cast<uint8_t>(instr.operand1), 0, 100);
-            uint8_t motorSpeed = map(throttlePercent, 0, 100, 0, 255);
+            uint8_t motorSpeed = map(throttlePercent, 0, 100, 0, MAX_MOTOR_SPEED);
             
             // Set both motors to backward (negative speed)
             motorDriver.set_motor_speeds(-motorSpeed, -motorSpeed);
@@ -541,7 +541,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             }
             
             // Convert percentage to motor speed
-            uint8_t motorSpeed = map(throttlePercent, 0, 100, 0, 255);
+            uint8_t motorSpeed = map(throttlePercent, 0, 100, 0, MAX_MOTOR_SPEED);
             
             // Set motors to forward motion
             motorDriver.set_motor_speeds(motorSpeed, motorSpeed);
@@ -569,7 +569,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             }
             
             // Convert percentage to motor speed
-            uint8_t motorSpeed = map(throttlePercent, 0, 100, 0, 255);
+            uint8_t motorSpeed = map(throttlePercent, 0, 100, 0, MAX_MOTOR_SPEED);
             
             // Set motors to backward motion
             motorDriver.set_motor_speeds(-motorSpeed, -motorSpeed);
@@ -593,7 +593,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             }
             
             // Convert percentage to motor speed
-            uint8_t motorSpeed = map(throttlePercent, 0, 100, 0, 255);
+            uint8_t motorSpeed = map(throttlePercent, 0, 100, 0, MAX_MOTOR_SPEED);
             
             // Reset distance tracking in encoder manager
             encoderManager.resetDistanceTracking();
@@ -624,7 +624,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             }
             
             // Convert percentage to motor speed
-            uint8_t motorSpeed = map(throttlePercent, 0, 100, 0, 255);
+            uint8_t motorSpeed = map(throttlePercent, 0, 100, 0, MAX_MOTOR_SPEED);
             
             // Reset distance tracking in encoder manager
             encoderManager.resetDistanceTracking();

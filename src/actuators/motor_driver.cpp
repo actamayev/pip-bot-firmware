@@ -102,8 +102,9 @@ void MotorDriver::brake_if_moving() {
 
 void MotorDriver::set_motor_speeds(int16_t leftTarget, int16_t rightTarget) {
     // Store target speeds but don't change actual speeds immediately
-    _targetLeftSpeed = constrain(leftTarget, -255, 255);
-    _targetRightSpeed = constrain(rightTarget, -255, 255);
+    // The speeds aren't clamped at 255 because they crash at 255
+    _targetLeftSpeed = constrain(leftTarget, -MAX_MOTOR_SPEED, MAX_MOTOR_SPEED);
+    _targetRightSpeed = constrain(rightTarget, -MAX_MOTOR_SPEED, MAX_MOTOR_SPEED);
 }
 
 void MotorDriver::update_motor_speeds(bool should_ramp_up) {

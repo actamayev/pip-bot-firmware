@@ -115,9 +115,9 @@ void BalanceController::update() {
 
     int adjustedPWM = motorPower;
     if (motorPower > 0) {
-        adjustedPWM = constrain(motorPower, MIN_EFFECTIVE_PWM, 255);
+        adjustedPWM = constrain(motorPower, MIN_EFFECTIVE_PWM, MAX_MOTOR_SPEED);
     } else if (motorPower < 0) {
-        adjustedPWM = constrain(motorPower, -255, -MIN_EFFECTIVE_PWM);
+        adjustedPWM = constrain(motorPower, -MAX_MOTOR_SPEED, -MIN_EFFECTIVE_PWM);
     }
 
     // Apply motor power

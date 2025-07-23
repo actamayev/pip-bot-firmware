@@ -10,8 +10,8 @@ void MessageProcessor::handleMotorControl(const uint8_t* data) {
 
 void MessageProcessor::updateMotorSpeeds(int16_t leftSpeed, int16_t rightSpeed) {
     // Constrain speeds
-    leftSpeed = constrain(leftSpeed, -255, 255);
-    rightSpeed = constrain(rightSpeed, -255, 255);
+    leftSpeed = constrain(leftSpeed, -MAX_MOTOR_SPEED, MAX_MOTOR_SPEED);
+    rightSpeed = constrain(rightSpeed, -MAX_MOTOR_SPEED, MAX_MOTOR_SPEED);
     
     // If we're not executing a command, start this one immediately
     if (!isExecutingCommand) {
