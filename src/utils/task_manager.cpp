@@ -96,15 +96,15 @@ void TaskManager::sensorInitTask(void* parameter) {
             initializer.tryInitializeMultizoneTof();
         }
         
-        // if (!initializer.isSensorInitialized(SensorInitializer::LEFT_SIDE_TOF)) {
-        //     SerialQueueManager::getInstance().queueMessage("Trying to init Left TOF...");
-        //     initializer.tryInitializeLeftSideTof();
-        // }
+        if (!initializer.isSensorInitialized(SensorInitializer::LEFT_SIDE_TOF)) {
+            SerialQueueManager::getInstance().queueMessage("Trying to init Left TOF...");
+            initializer.tryInitializeLeftSideTof();
+        }
         
-        // if (!initializer.isSensorInitialized(SensorInitializer::RIGHT_SIDE_TOF)) {
-        //     SerialQueueManager::getInstance().queueMessage("Trying to init Right TOF...");
-        //     initializer.tryInitializeRightSideTof();
-        // }
+        if (!initializer.isSensorInitialized(SensorInitializer::RIGHT_SIDE_TOF)) {
+            SerialQueueManager::getInstance().queueMessage("Trying to init Right TOF...");
+            initializer.tryInitializeRightSideTof();
+        }
         
         // Small delay between retry cycles
         vTaskDelay(pdMS_TO_TICKS(100));

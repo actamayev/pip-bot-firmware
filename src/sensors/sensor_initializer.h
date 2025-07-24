@@ -16,8 +16,8 @@ class SensorInitializer : public Singleton<SensorInitializer> {
         enum SensorType {
             MULTIZONE_TOF,
             IMU,
-            // LEFT_SIDE_TOF,
-            // RIGHT_SIDE_TOF,
+            LEFT_SIDE_TOF,
+            RIGHT_SIDE_TOF,
             // IR_SENSORS,
             // COLOR_SENSOR,
             // Add more sensors as needed
@@ -26,8 +26,8 @@ class SensorInitializer : public Singleton<SensorInitializer> {
 
         bool tryInitializeMultizoneTof();
         bool tryInitializeIMU();
-        // bool tryInitializeLeftSideTof();
-        // bool tryInitializeRightSideTof();
+        bool tryInitializeLeftSideTof();
+        bool tryInitializeRightSideTof();
         
         bool isSensorInitialized(SensorType sensor) const;
         bool areAllSensorsInitialized() const;
@@ -37,7 +37,7 @@ class SensorInitializer : public Singleton<SensorInitializer> {
         void initializeMultizoneTof();
         void initializeIMU();
         void initializeColorSensor();
-        // void initializeSideTimeOfFlights();
+        void initializeSideTimeOfFlights();
         void initializeIRSensors();
         
         bool sensorInitialized[SENSOR_COUNT];

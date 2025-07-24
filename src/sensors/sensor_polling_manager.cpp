@@ -63,13 +63,13 @@ void SensorPollingManager::initializeAllSensors() {
         MultizoneTofSensor::getInstance().initialize();
     }
     
-    // if (SideTofManager::getInstance().leftSideTofSensor.needsInitialization()) {
-    //     SideTofManager::getInstance().leftSideTofSensor.initialize(LEFT_TOF_ADDRESS);
-    // }
+    if (SideTofManager::getInstance().leftSideTofSensor.needsInitialization()) {
+        SideTofManager::getInstance().leftSideTofSensor.initialize(LEFT_TOF_ADDRESS);
+    }
     
-    // if (SideTofManager::getInstance().rightSideTofSensor.needsInitialization()) {
-    //     SideTofManager::getInstance().rightSideTofSensor.initialize(RIGHT_TOF_ADDRESS);
-    // }
+    if (SideTofManager::getInstance().rightSideTofSensor.needsInitialization()) {
+        SideTofManager::getInstance().rightSideTofSensor.initialize(RIGHT_TOF_ADDRESS);
+    }
     
     // Now we're done initializing
     isFinishedInitializingPolling = true;
@@ -95,15 +95,15 @@ void SensorPollingManager::pollSensors() {
     }
     
     // // Poll Side TOF sensors
-    // if (!SideTofManager::getInstance().leftSideTofSensor.needsInitialization()) {
-    //     SideTofManager::getInstance().leftSideTofSensor.getCounts();
-    // } else if (SideTofManager::getInstance().leftSideTofSensor.canRetryInitialization()) {
-    //     SideTofManager::getInstance().leftSideTofSensor.initialize(LEFT_TOF_ADDRESS);
-    // }
+    if (!SideTofManager::getInstance().leftSideTofSensor.needsInitialization()) {
+        SideTofManager::getInstance().leftSideTofSensor.getCounts();
+    } else if (SideTofManager::getInstance().leftSideTofSensor.canRetryInitialization()) {
+        SideTofManager::getInstance().leftSideTofSensor.initialize(LEFT_TOF_ADDRESS);
+    }
     
-    // if (!SideTofManager::getInstance().rightSideTofSensor.needsInitialization()) {
-    //     SideTofManager::getInstance().rightSideTofSensor.getCounts();
-    // } else if (SideTofManager::getInstance().rightSideTofSensor.canRetryInitialization()) {
-    //     SideTofManager::getInstance().rightSideTofSensor.initialize(RIGHT_TOF_ADDRESS);
-    // }
+    if (!SideTofManager::getInstance().rightSideTofSensor.needsInitialization()) {
+        SideTofManager::getInstance().rightSideTofSensor.getCounts();
+    } else if (SideTofManager::getInstance().rightSideTofSensor.canRetryInitialization()) {
+        SideTofManager::getInstance().rightSideTofSensor.initialize(RIGHT_TOF_ADDRESS);
+    }
 }

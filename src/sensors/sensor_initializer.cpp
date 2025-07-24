@@ -8,7 +8,7 @@ SensorInitializer::SensorInitializer() {
     }
     initializeMultizoneTof();
     initializeIMU();
-    // initializeSideTimeOfFlights();
+    initializeSideTimeOfFlights();
 }
 
 bool SensorInitializer::isSensorInitialized(SensorType sensor) const {
@@ -61,23 +61,23 @@ void SensorInitializer::initializeColorSensor() {
     // sensorInitialized[COLOR_SENSOR] = true;
 }
 
-// void SensorInitializer::initializeSideTimeOfFlights() {
-//     SerialQueueManager::getInstance().queueMessage("Initializing left side TOF...");
-//     if (!SideTofManager::getInstance().leftSideTofSensor.initialize(LEFT_TOF_ADDRESS)) {
-//         SerialQueueManager::getInstance().queueMessage("Left TOF initialization failed");
-//         return;
-//     }
-//     sensorInitialized[LEFT_SIDE_TOF] = true;
+void SensorInitializer::initializeSideTimeOfFlights() {
+    SerialQueueManager::getInstance().queueMessage("Initializing left side TOF...");
+    if (!SideTofManager::getInstance().leftSideTofSensor.initialize(LEFT_TOF_ADDRESS)) {
+        SerialQueueManager::getInstance().queueMessage("Left TOF initialization failed");
+        return;
+    }
+    sensorInitialized[LEFT_SIDE_TOF] = true;
     
-//     SerialQueueManager::getInstance().queueMessage("Initializing right side TOF...");
-//     if (!SideTofManager::getInstance().rightSideTofSensor.initialize(RIGHT_TOF_ADDRESS)) {
-//         SerialQueueManager::getInstance().queueMessage("Right TOF initialization failed");
-//         return;
-//     }
-//     sensorInitialized[RIGHT_SIDE_TOF] = true;
+    SerialQueueManager::getInstance().queueMessage("Initializing right side TOF...");
+    if (!SideTofManager::getInstance().rightSideTofSensor.initialize(RIGHT_TOF_ADDRESS)) {
+        SerialQueueManager::getInstance().queueMessage("Right TOF initialization failed");
+        return;
+    }
+    sensorInitialized[RIGHT_SIDE_TOF] = true;
     
-//     SerialQueueManager::getInstance().queueMessage("Side TOF setup complete");
-// }
+    SerialQueueManager::getInstance().queueMessage("Side TOF setup complete");
+}
 
 void SensorInitializer::initializeIRSensors() {
     SerialQueueManager::getInstance().queueMessage("Initializing IR sensors...");
@@ -142,60 +142,60 @@ bool SensorInitializer::tryInitializeIMU() {
     return success;
 }
 
-// bool SensorInitializer::tryInitializeLeftSideTof() {
-//     SideTimeOfFlightSensor& leftTof = SideTofManager::getInstance().leftSideTofSensor;
+bool SensorInitializer::tryInitializeLeftSideTof() {
+    SideTimeOfFlightSensor& leftTof = SideTofManager::getInstance().leftSideTofSensor;
 
-//     if (!leftTof.needsInitialization()) {
-//         sensorInitialized[LEFT_SIDE_TOF] = true;
-//         return true; // Already initialized
-//     }
+    if (!leftTof.needsInitialization()) {
+        sensorInitialized[LEFT_SIDE_TOF] = true;
+        return true; // Already initialized
+    }
     
-//     if (!leftTof.canRetryInitialization()) {
-//         // Check if we've reached max retries
-//         if (leftTof.getInitRetryCount() >= leftTof.getMaxInitRetries()) {
-//             SerialQueueManager::getInstance().queueMessage("Left side TOF initialization failed after maximum retries. Restarting ESP...");
-//             vTaskDelay(pdMS_TO_TICKS(1000));
-//             ESP.restart();
-//         }
-//         return false; // Can't retry yet
-//     }
+    if (!leftTof.canRetryInitialization()) {
+        // Check if we've reached max retries
+        if (leftTof.getInitRetryCount() >= leftTof.getMaxInitRetries()) {
+            SerialQueueManager::getInstance().queueMessage("Left side TOF initialization failed after maximum retries. Restarting ESP...");
+            vTaskDelay(pdMS_TO_TICKS(1000));
+            ESP.restart();
+        }
+        return false; // Can't retry yet
+    }
     
-//     SerialQueueManager::getInstance().queueMessage("Retrying left side TOF initialization...");
-//     bool success = leftTof.initialize(LEFT_TOF_ADDRESS);
+    SerialQueueManager::getInstance().queueMessage("Retrying left side TOF initialization...");
+    bool success = leftTof.initialize(LEFT_TOF_ADDRESS);
     
-//     if (success) {
-//         sensorInitialized[LEFT_SIDE_TOF] = true;
-//         SerialQueueManager::getInstance().queueMessage("Left side TOF retry initialization successful!");
-//     }
+    if (success) {
+        sensorInitialized[LEFT_SIDE_TOF] = true;
+        SerialQueueManager::getInstance().queueMessage("Left side TOF retry initialization successful!");
+    }
     
-//     return success;
-// }
+    return success;
+}
 
-// bool SensorInitializer::tryInitializeRightSideTof() {
-//     SideTimeOfFlightSensor& rightTof = SideTofManager::getInstance().rightSideTofSensor;
+bool SensorInitializer::tryInitializeRightSideTof() {
+    SideTimeOfFlightSensor& rightTof = SideTofManager::getInstance().rightSideTofSensor;
 
-//     if (!rightTof.needsInitialization()) {
-//         sensorInitialized[RIGHT_SIDE_TOF] = true;
-//         return true; // Already initialized
-//     }
+    if (!rightTof.needsInitialization()) {
+        sensorInitialized[RIGHT_SIDE_TOF] = true;
+        return true; // Already initialized
+    }
     
-//     if (!rightTof.canRetryInitialization()) {
-//         // Check if we've reached max retries
-//         if (rightTof.getInitRetryCount() >= rightTof.getMaxInitRetries()) {
-//             SerialQueueManager::getInstance().queueMessage("Right side TOF initialization failed after maximum retries. Restarting ESP...");
-//             vTaskDelay(pdMS_TO_TICKS(1000));
-//             ESP.restart();
-//         }
-//         return false; // Can't retry yet
-//     }
+    if (!rightTof.canRetryInitialization()) {
+        // Check if we've reached max retries
+        if (rightTof.getInitRetryCount() >= rightTof.getMaxInitRetries()) {
+            SerialQueueManager::getInstance().queueMessage("Right side TOF initialization failed after maximum retries. Restarting ESP...");
+            vTaskDelay(pdMS_TO_TICKS(1000));
+            ESP.restart();
+        }
+        return false; // Can't retry yet
+    }
     
-//     SerialQueueManager::getInstance().queueMessage("Retrying right side TOF initialization...");
-//     bool success = rightTof.initialize(RIGHT_TOF_ADDRESS);
+    SerialQueueManager::getInstance().queueMessage("Retrying right side TOF initialization...");
+    bool success = rightTof.initialize(RIGHT_TOF_ADDRESS);
     
-//     if (success) {
-//         sensorInitialized[RIGHT_SIDE_TOF] = true;
-//         SerialQueueManager::getInstance().queueMessage("Right side TOF retry initialization successful!");
-//     }
+    if (success) {
+        sensorInitialized[RIGHT_SIDE_TOF] = true;
+        SerialQueueManager::getInstance().queueMessage("Right side TOF retry initialization successful!");
+    }
     
-//     return success;
-// }
+    return success;
+}
