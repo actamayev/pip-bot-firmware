@@ -10,6 +10,7 @@
 #include "utils/timeout_manager.h"
 #include "actuators/motor_driver.h"
 #include "sensors/encoder_manager.h"
+#include "actuators/display_screen.h"
 #include "networking/serial_manager.h"
 #include "utils/preferences_manager.h"
 #include "actuators/led/led_animations.h"

@@ -501,6 +501,14 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
                 BatteryMonitor::getInstance().sendBatteryMonitorDataOverWebSocket();
             }
         }
+        case DataMessageType::UPDATE_DISPLAY: {
+            if (length != 1025) { // 1 byte for type + 1024 bytes for buffer
+                SerialQueueManager::getInstance().queueMessage("Invalid display buffer message length");
+            } else {
+                DisplayScreen::getInstance().showCustomBuffer(&data[1]);
+            }
+            break;
+        }
         default:
             // SerialQueueManager::getInstance().queueMessage("Unknown message type: %d\n", static_cast<int>(messageType));
             break;
