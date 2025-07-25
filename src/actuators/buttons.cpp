@@ -40,23 +40,6 @@ void Buttons::setButton1ClickHandler(std::function<void(Button2&)> callback) {
     button1.setPressedHandler([this, originalCallback](Button2& btn) {
         // Reset timeout on any button activity
         TimeoutManager::getInstance().resetActivity();
-        
-        // Check if timeout manager is in confirmation state
-        if (TimeoutManager::getInstance().isInConfirmationState()) return;
-
-        // If we're waiting for confirmation, don't process other logic
-        if (this->waitingForSleepConfirmation) return;
-
-        BytecodeVM& vm = BytecodeVM::getInstance();
-
-        // Handle pause/resume for running programs only (not program start)
-        if (vm.isPaused != BytecodeVM::PROGRAM_NOT_STARTED && !vm.waitingForButtonPressToStart) {
-            if (vm.isPaused == BytecodeVM::PAUSED && !vm.canStartProgram()) {
-                return; // canStartProgram() already logs the reason
-            }
-            vm.togglePause();
-            return; // Skip original callback when handling VM pause/resume
-        }
     });
 
     // Move program start logic to release handler
@@ -82,13 +65,23 @@ void Buttons::setButton1ClickHandler(std::function<void(Button2&)> callback) {
 
         BytecodeVM& vm = BytecodeVM::getInstance();
 
-        // Handle program start on button release (NEW LOGIC)
+        // Handle program start on button release
         if (vm.waitingForButtonPressToStart) {
             if (!vm.canStartProgram()) return; // canStartProgram() already logs the reason
             vm.isPaused = BytecodeVM::RUNNING;
             vm.waitingForButtonPressToStart = false;
             vm.incrementPC();
             SerialQueueManager::getInstance().queueMessage("Program started on button release!");
+            return;
+        }
+
+        // Handle pause/resume for running programs (MOVED FROM PRESS TO RELEASE)
+        if (vm.isPaused != BytecodeVM::PROGRAM_NOT_STARTED && !vm.waitingForButtonPressToStart) {
+            if (vm.isPaused == BytecodeVM::PAUSED && !vm.canStartProgram()) {
+                return; // canStartProgram() already logs the reason
+            }
+            vm.togglePause();
+            SerialQueueManager::getInstance().queueMessage("Program paused/resumed on button release!");
             return;
         }
 
@@ -170,19 +163,6 @@ void Buttons::setupDeepSleep() {
         BytecodeVM::getInstance().pauseProgram();
         rgbLed.set_led_yellow();
         this->longPressFlagForSleep = true;
-    });
-    
-    // Then, detect when button is released after long press
-    button1.setReleasedHandler([this](Button2& btn) {
-        // Reset timeout on any button activity
-        TimeoutManager::getInstance().resetActivity();
-        
-        if (!(this->longPressFlagForSleep)) return;
-        SerialQueueManager::getInstance().queueMessage("Button released after long press, entering deep sleep confirmation...");
-        SerialQueueManager::getInstance().queueMessage("Press Button 1 to confirm sleep or Button 2 to cancel");
-        this->longPressFlagForSleep = false;
-        this->waitingForSleepConfirmation = true; // Enter confirmation stage instead of sleeping directly
-        this->sleepConfirmationStartTime = millis(); // Start confirmation timer
     });
 
     // Note: Wakeup detection is now handled in checkHoldToWakeCondition()
