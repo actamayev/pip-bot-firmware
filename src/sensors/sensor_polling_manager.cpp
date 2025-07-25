@@ -25,7 +25,7 @@ void SensorPollingManager::stopPolling() {
     // Turn off all sensors to save power
     ImuSensor::getInstance().turnOff();
     // SideTofManager::getInstance().turnOffSideTofs();
-    MultizoneTofSensor::getInstance().turnOffSensor();
+    // MultizoneTofSensor::getInstance().turnOffSensor();
 }
 
 void SensorPollingManager::update() {
@@ -59,17 +59,17 @@ void SensorPollingManager::initializeAllSensors() {
         ImuSensor::getInstance().initialize();
     }
     
-    if (MultizoneTofSensor::getInstance().needsInitialization()) {
-        MultizoneTofSensor::getInstance().initialize();
-    }
+    // if (MultizoneTofSensor::getInstance().needsInitialization()) {
+    //     MultizoneTofSensor::getInstance().initialize();
+    // }
     
-    if (SideTofManager::getInstance().leftSideTofSensor.needsInitialization()) {
-        SideTofManager::getInstance().leftSideTofSensor.initialize(LEFT_TOF_ADDRESS);
-    }
+    // if (SideTofManager::getInstance().leftSideTofSensor.needsInitialization()) {
+    //     SideTofManager::getInstance().leftSideTofSensor.initialize(LEFT_TOF_ADDRESS);
+    // }
     
-    if (SideTofManager::getInstance().rightSideTofSensor.needsInitialization()) {
-        SideTofManager::getInstance().rightSideTofSensor.initialize(RIGHT_TOF_ADDRESS);
-    }
+    // if (SideTofManager::getInstance().rightSideTofSensor.needsInitialization()) {
+    //     SideTofManager::getInstance().rightSideTofSensor.initialize(RIGHT_TOF_ADDRESS);
+    // }
     
     // Now we're done initializing
     isFinishedInitializingPolling = true;
@@ -88,22 +88,22 @@ void SensorPollingManager::pollSensors() {
     }
     
     // Poll Multizone TOF sensor
-    if (!MultizoneTofSensor::getInstance().needsInitialization()) {
-        MultizoneTofSensor::getInstance().getTofData();
-    } else if (MultizoneTofSensor::getInstance().canRetryInitialization()) {
-        MultizoneTofSensor::getInstance().initialize();
-    }
+    // if (!MultizoneTofSensor::getInstance().needsInitialization()) {
+    //     MultizoneTofSensor::getInstance().getTofData();
+    // } else if (MultizoneTofSensor::getInstance().canRetryInitialization()) {
+    //     MultizoneTofSensor::getInstance().initialize();
+    // }
     
-    // // Poll Side TOF sensors
-    if (!SideTofManager::getInstance().leftSideTofSensor.needsInitialization()) {
-        SideTofManager::getInstance().leftSideTofSensor.getCounts();
-    } else if (SideTofManager::getInstance().leftSideTofSensor.canRetryInitialization()) {
-        SideTofManager::getInstance().leftSideTofSensor.initialize(LEFT_TOF_ADDRESS);
-    }
+    // // // Poll Side TOF sensors
+    // if (!SideTofManager::getInstance().leftSideTofSensor.needsInitialization()) {
+    //     SideTofManager::getInstance().leftSideTofSensor.getCounts();
+    // } else if (SideTofManager::getInstance().leftSideTofSensor.canRetryInitialization()) {
+    //     SideTofManager::getInstance().leftSideTofSensor.initialize(LEFT_TOF_ADDRESS);
+    // }
     
-    if (!SideTofManager::getInstance().rightSideTofSensor.needsInitialization()) {
-        SideTofManager::getInstance().rightSideTofSensor.getCounts();
-    } else if (SideTofManager::getInstance().rightSideTofSensor.canRetryInitialization()) {
-        SideTofManager::getInstance().rightSideTofSensor.initialize(RIGHT_TOF_ADDRESS);
-    }
+    // if (!SideTofManager::getInstance().rightSideTofSensor.needsInitialization()) {
+    //     SideTofManager::getInstance().rightSideTofSensor.getCounts();
+    // } else if (SideTofManager::getInstance().rightSideTofSensor.canRetryInitialization()) {
+    //     SideTofManager::getInstance().rightSideTofSensor.initialize(RIGHT_TOF_ADDRESS);
+    // }
 }

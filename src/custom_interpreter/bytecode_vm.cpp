@@ -261,30 +261,30 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
                     case SENSOR_MAG_FIELD_Z:
                         value = ImuSensor::getInstance().getMagneticFieldZ();
                         break;
-                    case SENSOR_SIDE_LEFT_PROXIMITY: {
-                        uint16_t counts = SideTofManager::getInstance().leftSideTofSensor.getCounts();
-                        registers[regId].asBool = (counts > LEFT_PROXIMITY_THRESHOLD);
-                        registerTypes[regId] = VAR_BOOL;
-                        registerInitialized[regId] = true;
-                        skipDefaultAssignment = true;  // Set flag to skip default assignment
-                        break;
-                    }
-                    case SENSOR_SIDE_RIGHT_PROXIMITY: {
-                        uint16_t counts = SideTofManager::getInstance().rightSideTofSensor.getCounts();
-                        registers[regId].asBool = (counts > RIGHT_PROXIMITY_THRESHOLD);
-                        registerTypes[regId] = VAR_BOOL;
-                        registerInitialized[regId] = true;
-                        skipDefaultAssignment = true;  // Set flag to skip default assignment
-                        break;
-                    }
-                    case SENSOR_FRONT_PROXIMITY: {
-                        float isObjectDetected = MultizoneTofSensor::getInstance().isObjectDetected();
-                        registers[regId].asBool = isObjectDetected;
-                        registerTypes[regId] = VAR_BOOL;
-                        registerInitialized[regId] = true;
-                        skipDefaultAssignment = true;  // Set flag
-                        break;
-                    }
+                    // case SENSOR_SIDE_LEFT_PROXIMITY: {
+                    //     uint16_t counts = SideTofManager::getInstance().leftSideTofSensor.getCounts();
+                    //     registers[regId].asBool = (counts > LEFT_PROXIMITY_THRESHOLD);
+                    //     registerTypes[regId] = VAR_BOOL;
+                    //     registerInitialized[regId] = true;
+                    //     skipDefaultAssignment = true;  // Set flag to skip default assignment
+                    //     break;
+                    // }
+                    // case SENSOR_SIDE_RIGHT_PROXIMITY: {
+                    //     uint16_t counts = SideTofManager::getInstance().rightSideTofSensor.getCounts();
+                    //     registers[regId].asBool = (counts > RIGHT_PROXIMITY_THRESHOLD);
+                    //     registerTypes[regId] = VAR_BOOL;
+                    //     registerInitialized[regId] = true;
+                    //     skipDefaultAssignment = true;  // Set flag to skip default assignment
+                    //     break;
+                    // }
+                    // case SENSOR_FRONT_PROXIMITY: {
+                    //     float isObjectDetected = MultizoneTofSensor::getInstance().isObjectDetected();
+                    //     registers[regId].asBool = isObjectDetected;
+                    //     registerTypes[regId] = VAR_BOOL;
+                    //     registerInitialized[regId] = true;
+                    //     skipDefaultAssignment = true;  // Set flag
+                    //     break;
+                    // }
                     default: {
                         char logMessage[32];
                         snprintf(logMessage, sizeof(logMessage), "Unknown sensor type: %u", sensorType);

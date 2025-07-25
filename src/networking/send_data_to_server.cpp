@@ -69,7 +69,7 @@ void SendDataToServer::sendSensorDataToServer() {
 
     // Attach different types of sensor data
     attachRPMData(payload);
-    attachIRData(payload);
+    // attachIRData(payload);
     attachColorSensorData(payload);
     attachImuData(payload);
 

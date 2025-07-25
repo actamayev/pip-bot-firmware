@@ -269,6 +269,7 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             break;
         }
         case DataMessageType::SPEAKER_MUTE: {
+            SerialQueueManager::getInstance().queueMessage("Received speaker message");
             if (length != 2) {
                 SerialQueueManager::getInstance().queueMessage("Invalid speaker mute message length");
             } else {

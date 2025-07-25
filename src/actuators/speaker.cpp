@@ -132,11 +132,7 @@ void Speaker::cleanup() {
         audioOutput = nullptr;
     }
     
-    // Clear queue and reset state
-    while (!audioQueue.empty()) {
-        audioQueue.pop();
-    }
-    
+    // Reset state
     isCurrentlyPlaying = false;
     isStoppingPlayback = false;
     audioObjectsValid = false;
@@ -170,12 +166,13 @@ void Speaker::playFile(SoundType file) {
         return;
     }
 
+    // Simple check: if currently playing, ignore the request completely
     if (isCurrentlyPlaying) {
-        SerialQueueManager::getInstance().queueMessage("Speaker currently playing");
+        SerialQueueManager::getInstance().queueMessage("Speaker currently playing - ignoring request");
         return;
     }
     
-    // NEW: Prevent rapid successive calls
+    // Prevent rapid successive calls
     unsigned long currentTime = millis();
     if (currentTime - lastPlaybackTime < MIN_PLAYBACK_INTERVAL_MS) {
         SerialQueueManager::getInstance().queueMessage("Playback too rapid, ignoring request");
@@ -186,7 +183,7 @@ void Speaker::playFile(SoundType file) {
     // Log the volume
     SerialQueueManager::getInstance().queueMessage("Speaker volume: " + String(currentVolume));
     
-    // NEW: Check if we need to recreate audio objects
+    // Check if we need to recreate audio objects
     if (forceRecreateObjects || !validateAudioObjects()) {
         if (!recreateAudioObjects()) {
             SerialQueueManager::getInstance().queueMessage("✗ Failed to recreate audio objects");
@@ -194,22 +191,13 @@ void Speaker::playFile(SoundType file) {
         }
     }
     
-    // If currently playing or stopping, queue the request
-    if (isCurrentlyPlaying || isStoppingPlayback) {
-        // Clear any existing queue and add this new request
-        while (!audioQueue.empty()) {
-            audioQueue.pop();
-        }
-        audioQueue.push(file);
-        
-        // If not already stopping, initiate stop
-        if (!isStoppingPlayback) {
-            safeStopPlayback();
-        }
+    // If stopping, ignore the request
+    if (isStoppingPlayback) {
+        SerialQueueManager::getInstance().queueMessage("Speaker stopping - ignoring request");
         return;
     }
     
-    // Direct playback if nothing is playing
+    // Direct playback
     safeStartPlayback(file);
 }
 
@@ -313,17 +301,10 @@ void Speaker::setVolume(float volume) {
 void Speaker::update() {
     if (!initialized) return;
     
-    // Handle delayed start after stop
+    // Handle delayed clearing of stopping state
     if (isStoppingPlayback) {
         if (millis() - stopRequestTime >= STOP_DELAY_MS) {
             isStoppingPlayback = false;
-            
-            // Process any queued audio
-            if (!audioQueue.empty()) {
-                SoundType nextFile = audioQueue.front();
-                audioQueue.pop();
-                safeStartPlayback(nextFile);
-            }
         }
         return;
     }
@@ -336,15 +317,6 @@ void Speaker::update() {
                 SerialQueueManager::getInstance().queueMessage("Audio playback completed");
                 isCurrentlyPlaying = false;
                 currentFilename = "";
-                
-                // Process any queued audio after a delay
-                if (!audioQueue.empty()) {
-                    SoundType nextFile = audioQueue.front();
-                    audioQueue.pop();
-                    // Add delay before starting next audio
-                    stopRequestTime = millis();
-                    isStoppingPlayback = true;
-                }
             }
         } else {
             // Audio finished unexpectedly
@@ -354,28 +326,6 @@ void Speaker::update() {
             
             // Mark for recreation since something went wrong
             forceRecreateObjects = true;
-            
-            // Process any queued audio
-            if (!audioQueue.empty()) {
-                SoundType nextFile = audioQueue.front();
-                audioQueue.pop();
-                safeStartPlayback(nextFile);
-            }
         }
     }
-}
-
-void Speaker::stopPlayback() {
-    safeStopPlayback();
-    clearQueue();
-}
-
-void Speaker::clearQueue() {
-    while (!audioQueue.empty()) {
-        audioQueue.pop();
-    }
-}
-
-bool Speaker::isPlaying() const {
-    return isCurrentlyPlaying && audioMP3 && audioMP3->isRunning();
 }

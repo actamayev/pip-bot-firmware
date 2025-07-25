@@ -1,267 +1,267 @@
-#include "multizone_tof_sensor.h"
+// #include "multizone_tof_sensor.h"
 
-bool MultizoneTofSensor::canRetryInitialization() const {
-    if (isInitialized) return false;
+// bool MultizoneTofSensor::canRetryInitialization() const {
+//     if (isInitialized) return false;
 
-    unsigned long currentTime = millis();
-    if (currentTime - lastInitAttempt < INIT_RETRY_INTERVAL) {
-        return false; // Too soon to retry
-    }
+//     unsigned long currentTime = millis();
+//     if (currentTime - lastInitAttempt < INIT_RETRY_INTERVAL) {
+//         return false; // Too soon to retry
+//     }
 
-    if (initRetryCount >= MAX_INIT_RETRIES) {
-        return false; // Too many retries
-    }
+//     if (initRetryCount >= MAX_INIT_RETRIES) {
+//         return false; // Too many retries
+//     }
 
-    return true;
-}
+//     return true;
+// }
 
-bool MultizoneTofSensor::initialize() {
-    lastInitAttempt = millis();
-    initRetryCount++;
+// bool MultizoneTofSensor::initialize() {
+//     lastInitAttempt = millis();
+//     initRetryCount++;
     
-    // SerialQueueManager::getInstance().queueMessage("Initializing MZ-TOF sensor (attempt %d of %d)...\n", 
-    //              initRetryCount, MAX_INIT_RETRIES);
+//     // SerialQueueManager::getInstance().queueMessage("Initializing MZ-TOF sensor (attempt %d of %d)...\n", 
+//     //              initRetryCount, MAX_INIT_RETRIES);
     
-    // Add a delay before trying to initialize
-    vTaskDelay(pdMS_TO_TICKS(50));
+//     // Add a delay before trying to initialize
+//     vTaskDelay(pdMS_TO_TICKS(50));
     
-    // Try a few times with short delays in between
-    for (int attempt = 0; attempt < 3; attempt++) {
-        if (sensor.begin() == 0) {
-            // If begin successful, continue with initialization
-            if (!sensor.init_sensor()) {
-                // Configure the sensor
-                if (configureSensor()) {
-                    // Start ranging
-                    startRanging();
+//     // Try a few times with short delays in between
+//     for (int attempt = 0; attempt < 3; attempt++) {
+//         if (sensor.begin() == 0) {
+//             // If begin successful, continue with initialization
+//             if (!sensor.init_sensor()) {
+//                 // Configure the sensor
+//                 if (configureSensor()) {
+//                     // Start ranging
+//                     startRanging();
                     
-                    // Set sensor as active
-                    sensorActive = true;
+//                     // Set sensor as active
+//                     sensorActive = true;
                     
-                    // Initialize watchdog timer
-                    lastValidDataTime = millis();
+//                     // Initialize watchdog timer
+//                     lastValidDataTime = millis();
                     
-                    // Initialize point histories
-                    initializePointHistories();
+//                     // Initialize point histories
+//                     initializePointHistories();
                     
-                    SerialQueueManager::getInstance().queueMessage("TOF sensor initialization complete");
-                    isInitialized = true;
-                    return true;
-                }
-            }
-        }
-        vTaskDelay(pdMS_TO_TICKS(50));  // Longer delay between attempts
-    }
+//                     SerialQueueManager::getInstance().queueMessage("TOF sensor initialization complete");
+//                     isInitialized = true;
+//                     return true;
+//                 }
+//             }
+//         }
+//         vTaskDelay(pdMS_TO_TICKS(50));  // Longer delay between attempts
+//     }
     
-    // SerialQueueManager::getInstance().queueMessage("TOF sensor initialization failed (retry %d of %d)\n", 
-    //              initRetryCount, MAX_INIT_RETRIES);
-    scanI2C();  // Scan I2C bus to help debug
-    return false;
-}
+//     // SerialQueueManager::getInstance().queueMessage("TOF sensor initialization failed (retry %d of %d)\n", 
+//     //              initRetryCount, MAX_INIT_RETRIES);
+//     scanI2C();  // Scan I2C bus to help debug
+//     return false;
+// }
 
-// Initialize the point histories
-void MultizoneTofSensor::initializePointHistories() {
-    for (int r = 0; r < ROI_ROWS; r++) {
-        for (int c = 0; c < ROI_COLS; c++) {
-            pointHistories[r][c].index = 0;
-            pointHistories[r][c].validReadings = 0;
+// // Initialize the point histories
+// void MultizoneTofSensor::initializePointHistories() {
+//     for (int r = 0; r < ROI_ROWS; r++) {
+//         for (int c = 0; c < ROI_COLS; c++) {
+//             pointHistories[r][c].index = 0;
+//             pointHistories[r][c].validReadings = 0;
             
-            // Initialize all distance values to 0
-            for (int i = 0; i < HISTORY_SIZE; i++) {
-                pointHistories[r][c].distances[i] = 0;
-            }
-        }
-    }
-    SerialQueueManager::getInstance().queueMessage("Point histories initialized");
-}
+//             // Initialize all distance values to 0
+//             for (int i = 0; i < HISTORY_SIZE; i++) {
+//                 pointHistories[r][c].distances[i] = 0;
+//             }
+//         }
+//     }
+//     SerialQueueManager::getInstance().queueMessage("Point histories initialized");
+// }
 
-// Update the history for a specific point
-void MultizoneTofSensor::updatePointHistory(int rowIdx, int colIdx, float distance) {
-    // Update the history for this point
-    pointHistories[rowIdx][colIdx].distances[pointHistories[rowIdx][colIdx].index] = distance;
-    pointHistories[rowIdx][colIdx].index = (pointHistories[rowIdx][colIdx].index + 1) % HISTORY_SIZE;
+// // Update the history for a specific point
+// void MultizoneTofSensor::updatePointHistory(int rowIdx, int colIdx, float distance) {
+//     // Update the history for this point
+//     pointHistories[rowIdx][colIdx].distances[pointHistories[rowIdx][colIdx].index] = distance;
+//     pointHistories[rowIdx][colIdx].index = (pointHistories[rowIdx][colIdx].index + 1) % HISTORY_SIZE;
     
-    // Increment valid readings counter (up to HISTORY_SIZE)
-    if (pointHistories[rowIdx][colIdx].validReadings < HISTORY_SIZE) {
-        pointHistories[rowIdx][colIdx].validReadings++;
-    }
-}
+//     // Increment valid readings counter (up to HISTORY_SIZE)
+//     if (pointHistories[rowIdx][colIdx].validReadings < HISTORY_SIZE) {
+//         pointHistories[rowIdx][colIdx].validReadings++;
+//     }
+// }
 
-// Check if a point has consistently detected an obstacle
-bool MultizoneTofSensor::isPointObstacleConsistent(int rowIdx, int colIdx) {
-    // If we don't have enough readings yet, return false
-    if (pointHistories[rowIdx][colIdx].validReadings < HISTORY_SIZE) {
-        return false;
-    }
+// // Check if a point has consistently detected an obstacle
+// bool MultizoneTofSensor::isPointObstacleConsistent(int rowIdx, int colIdx) {
+//     // If we don't have enough readings yet, return false
+//     if (pointHistories[rowIdx][colIdx].validReadings < HISTORY_SIZE) {
+//         return false;
+//     }
     
-    // Check if all readings in the history are below the threshold
-    for (int i = 0; i < HISTORY_SIZE; i++) {
-        if (pointHistories[rowIdx][colIdx].distances[i] >= obstacleDistanceThreshold || 
-            pointHistories[rowIdx][colIdx].distances[i] <= 0) { // Skip invalid readings
-            return false;
-        }
-    }
+//     // Check if all readings in the history are below the threshold
+//     for (int i = 0; i < HISTORY_SIZE; i++) {
+//         if (pointHistories[rowIdx][colIdx].distances[i] >= obstacleDistanceThreshold || 
+//             pointHistories[rowIdx][colIdx].distances[i] <= 0) { // Skip invalid readings
+//             return false;
+//         }
+//     }
     
-    // All readings are valid and below threshold
-    return true;
-}
+//     // All readings are valid and below threshold
+//     return true;
+// }
 
-bool MultizoneTofSensor::configureSensor() {
-    // Configure sensor settings from configuration constants
-    sensor.vl53l7cx_set_resolution(tofResolution); // Use 8x8 resolution
+// bool MultizoneTofSensor::configureSensor() {
+//     // Configure sensor settings from configuration constants
+//     sensor.vl53l7cx_set_resolution(tofResolution); // Use 8x8 resolution
     
-    sensor.vl53l7cx_set_ranging_frequency_hz(rangingFrequency);
-    // Set target order to closest (better for obstacle avoidance)
-    sensor.vl53l7cx_set_target_order(VL53L7CX_TARGET_ORDER_CLOSEST);
+//     sensor.vl53l7cx_set_ranging_frequency_hz(rangingFrequency);
+//     // Set target order to closest (better for obstacle avoidance)
+//     sensor.vl53l7cx_set_target_order(VL53L7CX_TARGET_ORDER_CLOSEST);
     
-    // Apply the optimized filtering parameters
-    sensor.vl53l7cx_set_xtalk_margin(xtalkMargin);
-    sensor.vl53l7cx_set_sharpener_percent(sharpenerPercent);
-    sensor.vl53l7cx_set_integration_time_ms(integrationTimeMs);
-    sensor.vl53l7cx_set_ranging_mode(VL53L7CX_RANGING_MODE_CONTINUOUS);
+//     // Apply the optimized filtering parameters
+//     sensor.vl53l7cx_set_xtalk_margin(xtalkMargin);
+//     sensor.vl53l7cx_set_sharpener_percent(sharpenerPercent);
+//     sensor.vl53l7cx_set_integration_time_ms(integrationTimeMs);
+//     sensor.vl53l7cx_set_ranging_mode(VL53L7CX_RANGING_MODE_CONTINUOUS);
 
-    SerialQueueManager::getInstance().queueMessage("Sensor configured with optimized parameters");
-    return true;
-}
+//     SerialQueueManager::getInstance().queueMessage("Sensor configured with optimized parameters");
+//     return true;
+// }
 
-bool MultizoneTofSensor::resetSensor() {
-    SerialQueueManager::getInstance().queueMessage("MZ SENSOR RESET: Data stopped - performing recovery...");
+// bool MultizoneTofSensor::resetSensor() {
+//     SerialQueueManager::getInstance().queueMessage("MZ SENSOR RESET: Data stopped - performing recovery...");
     
-    // Set sensor as inactive during reset
-    sensorActive = false;
+//     // Set sensor as inactive during reset
+//     sensorActive = false;
     
-    // Stop ranging
-    stopRanging();
-    vTaskDelay(pdMS_TO_TICKS(100));
+//     // Stop ranging
+//     stopRanging();
+//     vTaskDelay(pdMS_TO_TICKS(100));
     
-    // Reset just the sensor without touching I2C bus initialization
-    sensor.begin();
+//     // Reset just the sensor without touching I2C bus initialization
+//     sensor.begin();
     
-    if (sensor.init_sensor()) {
-        SerialQueueManager::getInstance().queueMessage("Failed to reinitialize sensor!");
-        return false;
-    }
+//     if (sensor.init_sensor()) {
+//         SerialQueueManager::getInstance().queueMessage("Failed to reinitialize sensor!");
+//         return false;
+//     }
     
-    // Reconfigure sensor
-    configureSensor();
+//     // Reconfigure sensor
+//     configureSensor();
     
-    // Reset history
-    initializePointHistories();
+//     // Reset history
+//     initializePointHistories();
     
-    // Start ranging again
-    startRanging();
+//     // Start ranging again
+//     startRanging();
     
-    // Reset watchdog timer
-    lastValidDataTime = millis();
+//     // Reset watchdog timer
+//     lastValidDataTime = millis();
     
-    // Set sensor as active again
-    sensorActive = true;
+//     // Set sensor as active again
+//     sensorActive = true;
     
-    SerialQueueManager::getInstance().queueMessage("Sensor reset complete");
-    return true;
-}
+//     SerialQueueManager::getInstance().queueMessage("Sensor reset complete");
+//     return true;
+// }
 
-void MultizoneTofSensor::measureDistance() {
-    uint8_t isDataReady = 0;
+// void MultizoneTofSensor::measureDistance() {
+//     uint8_t isDataReady = 0;
     
-    // Check if watchdog has timed out first, if so reset the sensor
-    if (!checkWatchdog() && sensorActive) {
-        resetSensor();
-    }
+//     // Check if watchdog has timed out first, if so reset the sensor
+//     if (!checkWatchdog() && sensorActive) {
+//         resetSensor();
+//     }
     
-    // Check if new data is ready (passing the required parameter)
-    if (sensor.vl53l7cx_check_data_ready(&isDataReady) != 0 || isDataReady == 0) {
-        return;
-    }
+//     // Check if new data is ready (passing the required parameter)
+//     if (sensor.vl53l7cx_check_data_ready(&isDataReady) != 0 || isDataReady == 0) {
+//         return;
+//     }
     
-    // Get the ranging data
-    sensor.vl53l7cx_get_ranging_data(&sensorData);
+//     // Get the ranging data
+//     sensor.vl53l7cx_get_ranging_data(&sensorData);
     
-    // Update watchdog timer on successful data reception
-    lastValidDataTime = millis();
-}
+//     // Update watchdog timer on successful data reception
+//     lastValidDataTime = millis();
+// }
 
-VL53L7CX_ResultsData MultizoneTofSensor::getTofData() {
-    measureDistance();
-    return sensorData;
-}
+// VL53L7CX_ResultsData MultizoneTofSensor::getTofData() {
+//     measureDistance();
+//     return sensorData;
+// }
 
-// Modified isObjectDetected function to use point histories
-bool MultizoneTofSensor::isObjectDetected() {
-    measureDistance();
-    // Get the latest sensor data
-    VL53L7CX_ResultsData *Result = &sensorData;
+// // Modified isObjectDetected function to use point histories
+// bool MultizoneTofSensor::isObjectDetected() {
+//     measureDistance();
+//     // Get the latest sensor data
+//     VL53L7CX_ResultsData *Result = &sensorData;
     
-    // First update all point histories with current readings
-    for (int rowIdx = 0; rowIdx < ROI_ROWS; rowIdx++) {
-        int row = rowIdx + 3;  // Convert to physical row (3-4)
+//     // First update all point histories with current readings
+//     for (int rowIdx = 0; rowIdx < ROI_ROWS; rowIdx++) {
+//         int row = rowIdx + 3;  // Convert to physical row (3-4)
         
-        for (int colIdx = 0; colIdx < ROI_COLS; colIdx++) {
-            int col = colIdx + 1;  // Convert to physical column (1-6)
+//         for (int colIdx = 0; colIdx < ROI_COLS; colIdx++) {
+//             int col = colIdx + 1;  // Convert to physical column (1-6)
             
-            // Calculate the actual index in the sensor data array
-            int index = row * 8 + col;
+//             // Calculate the actual index in the sensor data array
+//             int index = row * 8 + col;
             
-            // Check if we have valid data for this point
-            if (Result->nb_target_detected[index] > 0) {
-                uint16_t distance = Result->distance_mm[index];
-                uint8_t status = Result->target_status[index];
+//             // Check if we have valid data for this point
+//             if (Result->nb_target_detected[index] > 0) {
+//                 uint16_t distance = Result->distance_mm[index];
+//                 uint8_t status = Result->target_status[index];
                 
-                // Apply filtering parameters
-                if (distance <= maxDistance && 
-                    distance >= minDistance && 
-                    status >= signalThreshold) {
+//                 // Apply filtering parameters
+//                 if (distance <= maxDistance && 
+//                     distance >= minDistance && 
+//                     status >= signalThreshold) {
                     
-                    // Update the history for this valid point
-                    updatePointHistory(rowIdx, colIdx, (float)distance);
-                } else {
-                    // For invalid readings, update with -1 (not usable)
-                    updatePointHistory(rowIdx, colIdx, -1.0f);
-                }
-            } else {
-                // No reading for this point, update with -1 (not usable)
-                updatePointHistory(rowIdx, colIdx, -1.0f);
-            }
-        }
-    }
+//                     // Update the history for this valid point
+//                     updatePointHistory(rowIdx, colIdx, (float)distance);
+//                 } else {
+//                     // For invalid readings, update with -1 (not usable)
+//                     updatePointHistory(rowIdx, colIdx, -1.0f);
+//                 }
+//             } else {
+//                 // No reading for this point, update with -1 (not usable)
+//                 updatePointHistory(rowIdx, colIdx, -1.0f);
+//             }
+//         }
+//     }
     
-    // Now check each point to see if any has consistently detected an obstacle
-    for (int rowIdx = 0; rowIdx < ROI_ROWS; rowIdx++) {
-        for (int colIdx = 0; colIdx < ROI_COLS; colIdx++) {
-            if (isPointObstacleConsistent(rowIdx, colIdx)) {
-                return true;  // Found a point with consistent obstacle detection
-            }
-        }
-    }
+//     // Now check each point to see if any has consistently detected an obstacle
+//     for (int rowIdx = 0; rowIdx < ROI_ROWS; rowIdx++) {
+//         for (int colIdx = 0; colIdx < ROI_COLS; colIdx++) {
+//             if (isPointObstacleConsistent(rowIdx, colIdx)) {
+//                 return true;  // Found a point with consistent obstacle detection
+//             }
+//         }
+//     }
     
-    return false; // No object detected
-}
+//     return false; // No object detected
+// }
 
-bool MultizoneTofSensor::checkWatchdog() {
-    if (millis() - lastValidDataTime > watchdogTimeout) {
-        return false; // Watchdog timeout
-    }
-    return true; // Watchdog OK
-}
+// bool MultizoneTofSensor::checkWatchdog() {
+//     if (millis() - lastValidDataTime > watchdogTimeout) {
+//         return false; // Watchdog timeout
+//     }
+//     return true; // Watchdog OK
+// }
 
-void MultizoneTofSensor::startRanging() {
-    SerialQueueManager::getInstance().queueMessage("Starting to range");
-    sensor.vl53l7cx_start_ranging();
-}
+// void MultizoneTofSensor::startRanging() {
+//     SerialQueueManager::getInstance().queueMessage("Starting to range");
+//     sensor.vl53l7cx_start_ranging();
+// }
 
-void MultizoneTofSensor::stopRanging() {
-    sensor.vl53l7cx_stop_ranging();
-}
+// void MultizoneTofSensor::stopRanging() {
+//     sensor.vl53l7cx_stop_ranging();
+// }
 
-void MultizoneTofSensor::turnOffSensor() {
-    stopRanging();
-    sensor.vl53l7cx_set_power_mode(VL53L7CX_POWER_MODE_SLEEP);
-    sensorActive = false;
-    isInitialized = false;
-    initRetryCount = 0;
-    lastInitAttempt = 0;
+// void MultizoneTofSensor::turnOffSensor() {
+//     stopRanging();
+//     sensor.vl53l7cx_set_power_mode(VL53L7CX_POWER_MODE_SLEEP);
+//     sensorActive = false;
+//     isInitialized = false;
+//     initRetryCount = 0;
+//     lastInitAttempt = 0;
     
-    initializePointHistories();
+//     initializePointHistories();
     
-    SerialQueueManager::getInstance().queueMessage("MZ sensor turned off");
-}
+//     SerialQueueManager::getInstance().queueMessage("MZ sensor turned off");
+// }
