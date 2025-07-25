@@ -9,8 +9,8 @@ class MotorDriver {
         MotorDriver();  // Constructor to initialize pins
         void stop_both_motors();
         void left_motor_stop();
-        void right_motor_forward(uint8_t speed = 255);
-        void right_motor_backward(uint8_t speed = 255);
+        void right_motor_forward(uint8_t speed = MAX_MOTOR_SPEED);
+        void right_motor_backward(uint8_t speed = MAX_MOTOR_SPEED);
         void right_motor_stop();
 
         void set_motor_speeds(int16_t leftTarget, int16_t rightTarget);
@@ -26,8 +26,8 @@ class MotorDriver {
         int16_t _currentRightSpeed = 0;
         static constexpr int16_t SPEED_RAMP_STEP = 50;
 
-        void left_motor_forward(uint8_t speed = 255);
-        void left_motor_backward(uint8_t speed = 255);
+        void left_motor_forward(uint8_t speed = MAX_MOTOR_SPEED);
+        void left_motor_backward(uint8_t speed = MAX_MOTOR_SPEED);
 
         void release_left_brake();
         void release_right_brake();

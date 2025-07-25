@@ -21,6 +21,10 @@ class WiFiManager : public Singleton<WiFiManager> {
 		int getSelectedNetworkIndex() const { return _selectedNetworkIndex; }
 		void setSelectedNetworkIndex(int index);
 		const std::vector<WiFiNetworkInfo>& getAvailableNetworks() const { return _availableNetworks; }
+		bool hasAvailableNetworks() const { return !_availableNetworks.empty(); }
+		unsigned long getLastScanCompleteTime() const { return _lastScanCompleteTime; }
+		void clearAvailableNetworks() { _availableNetworks.clear(); }
+		void clearNetworksIfStale();
 
 		void storeWiFiCredentials(const String& ssid, const String& password, int index);
 		void checkAndReconnectWiFi();
@@ -30,11 +34,9 @@ class WiFiManager : public Singleton<WiFiManager> {
 			bool websocketConnected;
 		};
 		
-		WiFiTestResult testWiFiCredentials(const String& ssid, const String& password);
 		void startAddPipWiFiTest(const String& ssid, const String& password);
 		void processAddPipMode();
 		std::vector<WiFiCredentials> getSavedNetworksForResponse();
-		std::vector<WiFiNetworkInfo> scanAndReturnNetworks();
 		bool startAsyncScan();
 		void checkAsyncScanProgress();
 		bool isAsyncScanInProgress() const { return _asyncScanInProgress; }
@@ -43,7 +45,6 @@ class WiFiManager : public Singleton<WiFiManager> {
 		WiFiManager();
 
 		void connectToStoredWiFi();
-		WiFiCredentials getStoredWiFiCredentials();
 		bool attemptNewWifiConnection(WiFiCredentials wifiCredentials);
 
 		// std::vector<WiFiNetworkInfo> scanWiFiNetworkInfos();
@@ -71,4 +72,6 @@ class WiFiManager : public Singleton<WiFiManager> {
 		unsigned long _asyncScanStartTime = 0;
 		static constexpr unsigned long ASYNC_SCAN_TIMEOUT_MS = 10000; // 10 seconds
 		static constexpr unsigned long ASYNC_SCAN_MIN_CHECK_DELAY = 500; // Don't check status for first 500ms
+		unsigned long _lastScanCompleteTime = 0;
+		static constexpr unsigned long STALE_SCAN_TIMEOUT_MS = 1800000; // 30 minutes
 };

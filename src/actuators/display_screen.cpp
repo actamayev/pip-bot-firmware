@@ -171,3 +171,29 @@ void DisplayScreen::drawCenteredText(const String& text, uint16_t y, uint16_t si
     
     display.println(text);
 }
+
+// Add this method to your DisplayScreen class
+void DisplayScreen::showCustomBuffer(const uint8_t* buffer) {
+    if (!initialized) return;
+    
+    // Override any current display state
+    customScreenActive = true;
+    isShowingStartScreen = false;
+    
+    // Clear display
+    clear();
+    
+    // Copy the buffer directly to the display
+    // The buffer is already in SSD1306 format from React
+    display.getBuffer(); // Get the internal buffer pointer if needed
+    
+    // Or use drawBitmap if available:
+    // display.drawBitmap(0, 0, buffer, SCREEN_WIDTH, SCREEN_HEIGHT, SSD1306_WHITE);
+    
+    // Alternative: Write directly to display buffer
+    memcpy(display.getBuffer(), buffer, 1024);
+    
+    renderDisplay();
+    
+    SerialQueueManager::getInstance().queueMessage("Custom display buffer applied");
+}

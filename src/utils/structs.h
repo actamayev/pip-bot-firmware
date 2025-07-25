@@ -53,9 +53,9 @@ struct WheelRPMs {
 
 struct MuxChannel {
     const char* name;
-    bool A;
-    bool B;
-    bool C;
+    bool A0;
+    bool A1;
+    bool A2;
 };
 
 // 2/27/25 TODO: Calibrate against black/white surfaces. See color_sensor_calibration project. Black/white values are used in the matrix method

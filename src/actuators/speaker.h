@@ -1,5 +1,4 @@
 #pragma once
-#include <queue>
 #include <SPIFFS.h>
 #include "Arduino.h"
 #include "utils/config.h"
@@ -24,9 +23,6 @@ class Speaker : public Singleton<Speaker> {
         void setVolume(float volume); // 0.0 to 4.0
 
         void update(); // Call this periodically to keep audio playing
-        bool isPlaying() const;
-        void stopPlayback();
-        void clearQueue(); // Clear any queued audio
 
     private:
         Speaker() = default;
@@ -42,28 +38,27 @@ class Speaker : public Singleton<Speaker> {
         AudioGeneratorMP3* audioMP3 = nullptr;
         AudioOutputI2S* audioOutput = nullptr;
         
-        // Enhanced queue system for handling rapid requests
-        std::queue<SoundType> audioQueue;
+        // Simplified state management
         bool isCurrentlyPlaying = false;
         bool isStoppingPlayback = false;
         unsigned long stopRequestTime = 0;
-        unsigned long lastPlaybackTime = 0;  // NEW: Track last playback time
+        unsigned long lastPlaybackTime = 0;
         static const unsigned long STOP_DELAY_MS = 200; // Increased delay for ESP32-S3
-        static const unsigned long MIN_PLAYBACK_INTERVAL_MS = 150; // NEW: Minimum interval between plays
+        static const unsigned long MIN_PLAYBACK_INTERVAL_MS = 150; // Minimum interval between plays
         
         String currentFilename = "";
         
         // Enhanced state management
-        bool audioObjectsValid = false;  // NEW: Track audio object validity
-        bool forceRecreateObjects = false;  // NEW: Force recreation flag
+        bool audioObjectsValid = false;
+        bool forceRecreateObjects = false;
         
         bool initializeSPIFFS();
         bool initializeAudio();
         void cleanup();
         bool safeStopPlayback();
         bool safeStartPlayback(SoundType file);
-        bool recreateAudioObjects();  // NEW: Recreate audio objects safely
-        bool validateAudioObjects();  // NEW: Validate audio objects
+        bool recreateAudioObjects();
+        bool validateAudioObjects();
 
         const char* getFilePath(SoundType audioFile) const;
 };

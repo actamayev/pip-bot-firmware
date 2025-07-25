@@ -10,19 +10,19 @@ void HapticFeedbackManager::startFeedback(int8_t direction, uint8_t strength, ui
     
     // Simplified sequence with more distinct feel
     // Calculate strengths as percentage of the input strength
-    _resistanceStrength = min(255, (int)(strength * 1.2));  // Initial resistance
-    _reversePulseStrength = min(255, (int)(strength * 0.9)); // Strong reverse pulse
-    _centeringStrength = min(255, (int)(strength * 0.5));   // Gentle centering
-    _finalBumpStrength = min(255, (int)(strength * 0.7));   // Definitive final "click"
+    _resistanceStrength = min((uint8_t)MAX_MOTOR_SPEED, (uint8_t)(strength * 1.2));  // Initial resistance
+    _reversePulseStrength = min((uint8_t)MAX_MOTOR_SPEED, (uint8_t)(strength * 0.9)); // Strong reverse pulse
+    _centeringStrength = min((uint8_t)MAX_MOTOR_SPEED, (uint8_t)(strength * 0.5));   // Gentle centering
+    _finalBumpStrength = min((uint8_t)MAX_MOTOR_SPEED, (uint8_t)(strength * 0.7));   // Definitive final "click"
     
     // Set durations for distinct feeling stages
     // Total duration will be longer than input duration to make effect more noticeable
-    _resistanceDuration = min(255, (int)(duration_ms * 0.6)); // Initial resistance
-    _reversePulseDuration = min(255, (int)(duration_ms * 0.3)); // Quick reverse pulse
-    _centeringDuration = min(255, (int)(duration_ms * 0.8));  // Longer centering phase
-    _finalBumpDuration = min(255, (int)(duration_ms * 0.4));  // Brief final bump
+    _resistanceDuration = (uint8_t)(duration_ms * 0.6); // Initial resistance
+    _reversePulseDuration = (uint8_t)(duration_ms * 0.3); // Quick reverse pulse
+    _centeringDuration = (uint8_t)(duration_ms * 0.8);  // Longer centering phase
+    _finalBumpDuration = (uint8_t)(duration_ms * 0.4);  // Brief final bump
     _recoveryDuration = 50;  // Fixed recovery time before accepting new input
-    
+
     // Start first stage - resistance against movement
     _hapticState = HAPTIC_RESISTANCE;
     _hapticStartTime = millis();

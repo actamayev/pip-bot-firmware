@@ -37,6 +37,8 @@ constexpr uint8_t RIGHT_MOTOR_PIN_IN_2 = 41;
 constexpr uint8_t RIGHT_MOTOR_ENCODER_A = 1;
 constexpr uint8_t RIGHT_MOTOR_ENCODER_B = 2;
 
+constexpr uint8_t MAX_MOTOR_SPEED = 230;
+
 // Display Screen
 constexpr uint8_t SCREEN_WIDTH = 128;
 constexpr uint8_t SCREEN_HEIGHT = 64;
@@ -47,9 +49,9 @@ constexpr uint8_t SCREEN_ADDRESS = 0x3C;
 constexpr uint8_t COLOR_SENSOR_LED_PIN = 5;
 
 // IR sensor
-constexpr uint8_t PIN_MUX_C = 15;    // Multiplexer C input
-constexpr uint8_t PIN_MUX_B = 16;    // Multiplexer B input
-constexpr uint8_t PIN_MUX_A = 17;    // Multiplexer A input
+constexpr uint8_t PIN_MUX_A0 = 17;    // Multiplexer C input
+constexpr uint8_t PIN_MUX_A1 = 16;    // Multiplexer B input
+constexpr uint8_t PIN_MUX_A2 = 15;    // Multiplexer A input
 constexpr uint8_t PIN_MUX_OUT = 7;  // Multiplexer output
 constexpr uint8_t PIN_IR_EN = 6;    // IR sensor enable pin
 
@@ -102,7 +104,7 @@ inline const char* getEnvironment() {
 inline const char* getServerFirmwareEndpoint() {
     std::string env = getEnvironment();
     if (env == "local") {
-        return "http://10.232.146.40:8080/pip/firmware-update";
+        return "http://10.212.116.40:8080/pip/firmware-update";
     } else if (env == "staging") {
         return "https://staging-api.bluedotrobots.com/pip/firmware-update";
     }
@@ -112,7 +114,7 @@ inline const char* getServerFirmwareEndpoint() {
 inline const char* getWsServerUrl() {
     std::string env = getEnvironment();
     if (env == "local") {
-        return "ws://10.232.146.40:8080/esp32";
+        return "ws://10.212.116.40:8080/esp32";
     } else if (env == "staging") {
         return "wss://staging-api.bluedotrobots.com/esp32";
     }

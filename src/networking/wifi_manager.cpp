@@ -10,19 +10,14 @@ WiFiManager::WiFiManager() {
     connectToStoredWiFi();
 }
 
-WiFiCredentials WiFiManager::getStoredWiFiCredentials() {
-	WiFiCredentials credentials;
-    credentials.ssid = PreferencesManager::getInstance().getWiFiSSID();
-    credentials.password = PreferencesManager::getInstance().getWiFiPassword();
-	return credentials;
-}
-
 void WiFiManager::connectToStoredWiFi() {
     // Try to connect directly to any saved network without scanning
     bool connectionStatus = attemptDirectConnectionToSavedNetworks();
 
-    if (connectionStatus) {
-        return WebSocketManager::getInstance().connectToWebSocket();
+    if (!connectionStatus) {
+        startAsyncScan();
+    } else {
+        WebSocketManager::getInstance().connectToWebSocket();
     }
 
     // 4/29/25 NOTE: When serial was implemented, this was commented out because the code got stuck in wifi scan mode when the serial code was brought in in main.cpp
@@ -219,45 +214,6 @@ void WiFiManager::checkAndReconnectWiFi() {
     }
 }
 
-WiFiManager::WiFiTestResult WiFiManager::testWiFiCredentials(const String& ssid, const String& password) {
-    WiFiTestResult result = {false, false};
-    
-    SerialQueueManager::getInstance().queueMessage("Testing WiFi credentials...");
-    
-    // Test WiFi connection without storing credentials
-    if (testConnectionOnly(ssid, password)) {
-        result.wifiConnected = true;
-        SerialQueueManager::getInstance().queueMessage("WiFi connection successful");
-        
-        // Test WebSocket connection
-        WebSocketManager::getInstance().connectToWebSocket();
-        
-        // Wait for WebSocket connection with timeout
-        unsigned long startTime = millis();
-        const unsigned long WEBSOCKET_TIMEOUT = 10000; // 10 seconds
-        
-        while (millis() - startTime < WEBSOCKET_TIMEOUT) {
-            WebSocketManager::getInstance().pollWebSocket();
-            if (WebSocketManager::getInstance().isConnected()) {
-                result.websocketConnected = true;
-                SerialQueueManager::getInstance().queueMessage("WebSocket connection successful");
-                
-                // Only store credentials after both WiFi and WebSocket success
-                storeWiFiCredentials(ssid, password, 0);
-                break;
-            }
-            vTaskDelay(pdMS_TO_TICKS(100));
-        }
-        
-        if (!result.websocketConnected) {
-            SerialQueueManager::getInstance().queueMessage("WebSocket connection failed - likely captive portal");
-            WiFi.disconnect();
-        }
-    }
-    
-    return result;
-}
-
 void WiFiManager::startAddPipWiFiTest(const String& ssid, const String& password) {
     _addPipSSID = ssid;
     _addPipPassword = password;
@@ -384,20 +340,6 @@ std::vector<WiFiCredentials> WiFiManager::getSavedNetworksForResponse() {
     return savedNetworks;
 }
 
-std::vector<WiFiNetworkInfo> WiFiManager::scanAndReturnNetworks() {
-    SerialQueueManager::getInstance().queueMessage("Legacy sync scan called - using async scan instead");
-    
-    // Start async scan
-    if (startAsyncScan()) {
-        // Return empty vector - results will be sent asynchronously
-        SerialQueueManager::getInstance().queueMessage("Async scan started, results will be sent when ready");
-    } else {
-        SerialQueueManager::getInstance().queueMessage("Failed to start async scan");
-    }
-    
-    return std::vector<WiFiNetworkInfo>(); // Return empty vector
-}
-
 bool WiFiManager::startAsyncScan() {
     // Ignore if scan already in progress
     if (_asyncScanInProgress) {
@@ -458,7 +400,7 @@ void WiFiManager::checkAsyncScanProgress() {
         // Clean up any scan results
         WiFi.scanDelete();
         
-        // Send empty scan complete message to browser
+        // Send empty scan complete message to browser to indicate timeout
         std::vector<WiFiNetworkInfo> emptyNetworks;
         SerialManager::getInstance().sendScanResultsResponse(emptyNetworks);
         return;
@@ -467,38 +409,46 @@ void WiFiManager::checkAsyncScanProgress() {
     // Check scan status
     int16_t scanResult = WiFi.scanComplete();
     
-    // Only handle completion (positive numbers) - ignore WIFI_SCAN_FAILED and WIFI_SCAN_RUNNING
-    if (scanResult >= 0) {
-        // Scan completed successfully
-        SerialQueueManager::getInstance().queueMessage("Async WiFi scan completed in " + String(scanDuration) + "ms. Found " + String(scanResult) + " networks");
-        _asyncScanInProgress = false;
-        rgbLed.turn_main_board_leds_off();
-        
-        // Process scan results
-        std::vector<WiFiNetworkInfo> networks;
-        
-        for (int i = 0; i < scanResult; i++) {
-            WiFiNetworkInfo network;
-            network.ssid = WiFi.SSID(i);
-            network.rssi = WiFi.RSSI(i);
-            network.encryptionType = WiFi.encryptionType(i);
-            networks.push_back(network);
-        }
-        
-        // Sort networks by signal strength
-        sortNetworksBySignalStrength(networks);
-        
-        // Update class members
-        _availableNetworks = networks;
-        _selectedNetworkIndex = 0;
-        
-        // Clean up scan results to free memory
-        WiFi.scanDelete();
-        
-        // Send results to browser
-        SerialManager::getInstance().sendScanResultsResponse(networks);
-    }
-    
     // For WIFI_SCAN_RUNNING (-1) and WIFI_SCAN_FAILED (-2), just keep waiting until timeout
     // The ESP32 WiFi library seems to return WIFI_SCAN_FAILED sometimes even when scan is progressing
+    if (scanResult < 0) return;
+    // Only handle completion (positive numbers) - ignore WIFI_SCAN_FAILED and WIFI_SCAN_RUNNING
+    // Scan completed successfully
+    SerialQueueManager::getInstance().queueMessage("Async WiFi scan completed in " + String(scanDuration) + "ms. Found " + String(scanResult) + " networks");
+    _asyncScanInProgress = false;
+    rgbLed.turn_main_board_leds_off();
+    _lastScanCompleteTime = millis();
+    // Process scan results
+    std::vector<WiFiNetworkInfo> networks;
+    
+    for (int i = 0; i < scanResult; i++) {
+        WiFiNetworkInfo network;
+        network.ssid = WiFi.SSID(i);
+        network.rssi = WiFi.RSSI(i);
+        network.encryptionType = WiFi.encryptionType(i);
+        networks.push_back(network);
+    }
+    
+    // Sort networks by signal strength
+    sortNetworksBySignalStrength(networks);
+    
+    // Update class members
+    _availableNetworks = networks;
+    _selectedNetworkIndex = 0;
+    
+    // Clean up scan results to free memory
+    WiFi.scanDelete();
+    
+    // Send results to browser
+    SerialManager::getInstance().sendScanResultsResponse(networks);
+}
+
+void WiFiManager::clearNetworksIfStale() {
+    unsigned long now = millis();
+    if (
+        _availableNetworks.empty() ||
+        (now - _lastScanCompleteTime <= STALE_SCAN_TIMEOUT_MS)
+    ) return;
+    _availableNetworks.clear();
+    SerialQueueManager::getInstance().queueMessage("WiFi scan results cleared (stale > 30 min)");
 }

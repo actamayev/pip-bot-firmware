@@ -102,8 +102,8 @@ void StraightLineDrive::update(int16_t& leftSpeed, int16_t& rightSpeed) {
     rightSpeed -= correction;
 
     // Constrain to valid range
-    leftSpeed = constrain(leftSpeed, -255, 255);
-    rightSpeed = constrain(rightSpeed, -255, 255);
+    leftSpeed = constrain(leftSpeed, -MAX_MOTOR_SPEED, MAX_MOTOR_SPEED);
+    rightSpeed = constrain(rightSpeed, -MAX_MOTOR_SPEED, MAX_MOTOR_SPEED);
 }
 
 float StraightLineDrive::normalizeAngle(float angle) {
