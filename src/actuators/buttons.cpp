@@ -40,6 +40,22 @@ void Buttons::setButton1ClickHandler(std::function<void(Button2&)> callback) {
     button1.setPressedHandler([this, originalCallback](Button2& btn) {
         // Reset timeout on any button activity
         TimeoutManager::getInstance().resetActivity();
+        
+        // Check if timeout manager is in confirmation state
+        if (TimeoutManager::getInstance().isInConfirmationState()) return;
+
+        // If we're waiting for confirmation, don't process other logic
+        if (this->waitingForSleepConfirmation) return;
+
+        BytecodeVM& vm = BytecodeVM::getInstance();
+
+        // Handle pause for running programs only
+        if (vm.isPaused == BytecodeVM::RUNNING) {
+            vm.pauseProgram();
+            this->justPausedOnPress = true;  // Set the flag
+            SerialQueueManager::getInstance().queueMessage("Program paused on button press!");
+            return;
+        }
     });
 
     // Move program start logic to release handler
@@ -54,7 +70,14 @@ void Buttons::setButton1ClickHandler(std::function<void(Button2&)> callback) {
             this->longPressFlagForSleep = false;
             this->waitingForSleepConfirmation = true;
             this->sleepConfirmationStartTime = millis();
-            return; // Don't process program start logic for long press
+            return;
+        }
+
+        // If we just paused on press, clear the flag and don't resume yet
+        if (this->justPausedOnPress) {
+            this->justPausedOnPress = false;
+            SerialQueueManager::getInstance().queueMessage("Button released after pause - press and release again to resume");
+            return;
         }
 
         // Check if timeout manager is in confirmation state
@@ -67,7 +90,7 @@ void Buttons::setButton1ClickHandler(std::function<void(Button2&)> callback) {
 
         // Handle program start on button release
         if (vm.waitingForButtonPressToStart) {
-            if (!vm.canStartProgram()) return; // canStartProgram() already logs the reason
+            if (!vm.canStartProgram()) return;
             vm.isPaused = BytecodeVM::RUNNING;
             vm.waitingForButtonPressToStart = false;
             vm.incrementPC();
@@ -75,13 +98,10 @@ void Buttons::setButton1ClickHandler(std::function<void(Button2&)> callback) {
             return;
         }
 
-        // Handle pause/resume for running programs (MOVED FROM PRESS TO RELEASE)
-        if (vm.isPaused != BytecodeVM::PROGRAM_NOT_STARTED && !vm.waitingForButtonPressToStart) {
-            if (vm.isPaused == BytecodeVM::PAUSED && !vm.canStartProgram()) {
-                return; // canStartProgram() already logs the reason
-            }
-            vm.togglePause();
-            SerialQueueManager::getInstance().queueMessage("Program paused/resumed on button release!");
+        // Handle resume for paused programs (only if we didn't just pause)
+        if (vm.isPaused == BytecodeVM::PAUSED) {
+            vm.resumeProgram();
+            SerialQueueManager::getInstance().queueMessage("Program resumed on button release!");
             return;
         }
 
