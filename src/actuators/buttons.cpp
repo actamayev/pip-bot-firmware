@@ -36,41 +36,72 @@ void Buttons::update() {
 void Buttons::setButton1ClickHandler(std::function<void(Button2&)> callback) {
     auto originalCallback = callback;
     
+    // Keep pressed handler for pause/resume functionality only
     button1.setPressedHandler([this, originalCallback](Button2& btn) {
         // Reset timeout on any button activity
         TimeoutManager::getInstance().resetActivity();
         
         // Check if timeout manager is in confirmation state
-        if (TimeoutManager::getInstance().isInConfirmationState()) return; // Don't process other button logic
+        if (TimeoutManager::getInstance().isInConfirmationState()) return;
 
-        // If we're waiting for confirmation, this click confirms deep sleep
+        // If we're waiting for confirmation, don't process other logic
         if (this->waitingForSleepConfirmation) return;
 
         BytecodeVM& vm = BytecodeVM::getInstance();
 
-        if (vm.waitingForButtonPressToStart) {
-            if (!vm.canStartProgram()) return; // canStartProgram() already logs the reason
-            vm.isPaused = BytecodeVM::RUNNING;
-            vm.waitingForButtonPressToStart = false;
-            vm.incrementPC();
-            return;
-        };
-        // Only toggle pause if program is actively running (pc > 10)
-        if (vm.isPaused != BytecodeVM::PROGRAM_NOT_STARTED) {
+        // Handle pause/resume for running programs only (not program start)
+        if (vm.isPaused != BytecodeVM::PROGRAM_NOT_STARTED && !vm.waitingForButtonPressToStart) {
             if (vm.isPaused == BytecodeVM::PAUSED && !vm.canStartProgram()) {
                 return; // canStartProgram() already logs the reason
             }
             vm.togglePause();
             return; // Skip original callback when handling VM pause/resume
         }
+    });
 
-        // Otherwise, proceed with normal click handling to start the program
-        SerialQueueManager::getInstance().queueMessage("Program not running - executing normal callback");
-        if (originalCallback) {
-            originalCallback(btn);
+    // Move program start logic to release handler
+    button1.setReleasedHandler([this, originalCallback](Button2& btn) {
+        // Reset timeout on any button activity
+        TimeoutManager::getInstance().resetActivity();
+        
+        // Handle deep sleep logic first (existing functionality)
+        if (this->longPressFlagForSleep) {
+            SerialQueueManager::getInstance().queueMessage("Button released after long press, entering deep sleep confirmation...");
+            SerialQueueManager::getInstance().queueMessage("Press Button 1 to confirm sleep or Button 2 to cancel");
+            this->longPressFlagForSleep = false;
+            this->waitingForSleepConfirmation = true;
+            this->sleepConfirmationStartTime = millis();
+            return; // Don't process program start logic for long press
+        }
+
+        // Check if timeout manager is in confirmation state
+        if (TimeoutManager::getInstance().isInConfirmationState()) return;
+
+        // If we're waiting for sleep confirmation, don't process program start
+        if (this->waitingForSleepConfirmation) return;
+
+        BytecodeVM& vm = BytecodeVM::getInstance();
+
+        // Handle program start on button release (NEW LOGIC)
+        if (vm.waitingForButtonPressToStart) {
+            if (!vm.canStartProgram()) return; // canStartProgram() already logs the reason
+            vm.isPaused = BytecodeVM::RUNNING;
+            vm.waitingForButtonPressToStart = false;
+            vm.incrementPC();
+            SerialQueueManager::getInstance().queueMessage("Program started on button release!");
+            return;
+        }
+
+        // If no program is running and we're not waiting to start, use original callback
+        if (vm.isPaused == BytecodeVM::PROGRAM_NOT_STARTED) {
+            SerialQueueManager::getInstance().queueMessage("Program not running - executing normal callback on release");
+            if (originalCallback) {
+                originalCallback(btn);
+            }
         }
     });
 
+    // Keep click handler for sleep confirmation
     button1.setClickHandler([this, originalCallback](Button2& btn) {
         // Reset timeout on any button activity
         TimeoutManager::getInstance().resetActivity();
@@ -136,7 +167,7 @@ void Buttons::setupDeepSleep() {
         TimeoutManager::getInstance().resetActivity();
         
         SerialQueueManager::getInstance().queueMessage("Long press detected on Button 1! Release to enter confirmation stage...");
-        BytecodeVM::getInstance().stopProgram();
+        BytecodeVM::getInstance().pauseProgram();
         rgbLed.set_led_yellow();
         this->longPressFlagForSleep = true;
     });
