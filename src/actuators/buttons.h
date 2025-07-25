@@ -31,6 +31,7 @@ class Buttons: public Singleton<Buttons> {
         Button2 button1;
         Button2 button2;
 		bool longPressFlagForSleep = false;
+        bool justPausedOnPress = false;
         bool waitingForSleepConfirmation = false; // New flag for confirmation stage
         static const uint32_t DEEP_SLEEP_TIMEOUT = 1000; // 1 second in milliseconds
         // Add for sleep confirmation timeout

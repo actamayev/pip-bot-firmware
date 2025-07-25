@@ -8,7 +8,7 @@ TaskHandle_t TaskManager::bytecodeVMTaskHandle = NULL;
 TaskHandle_t TaskManager::stackMonitorTaskHandle = NULL;
 TaskHandle_t TaskManager::sensorInitTaskHandle = NULL;
 TaskHandle_t TaskManager::sensorPollingTaskHandle = NULL;
-// TaskHandle_t TaskManager::displayTaskHandle = NULL;
+TaskHandle_t TaskManager::displayTaskHandle = NULL;
 TaskHandle_t TaskManager::networkManagementTaskHandle = NULL;
 TaskHandle_t TaskManager::networkCommunicationTaskHandle = NULL;
 TaskHandle_t TaskManager::serialQueueTaskHandle = NULL;
@@ -16,6 +16,8 @@ TaskHandle_t TaskManager::batteryMonitorTaskHandle = NULL;
 TaskHandle_t TaskManager::speakerTaskHandle = NULL;
 
 void TaskManager::buttonTask(void* parameter) {
+    setupButtonLoggers();
+
     for(;;) {
         Buttons::getInstance().update();
         vTaskDelay(pdMS_TO_TICKS(1));
@@ -57,14 +59,14 @@ void TaskManager::stackMonitorTask(void* parameter) {
     }
 }
 
-// void TaskManager::displayTask(void* parameter) {
-//     SerialQueueManager::getInstance().queueMessage("Display task started");
+void TaskManager::displayTask(void* parameter) {
+    SerialQueueManager::getInstance().queueMessage("Display task started");
     
-//     for(;;) {
-//         DisplayScreen::getInstance().update();
-//         vTaskDelay(pdMS_TO_TICKS(20));  // 50Hz update rate, smooth for animations
-//     }
-// }
+    for(;;) {
+        DisplayScreen::getInstance().update();
+        vTaskDelay(pdMS_TO_TICKS(20));  // 50Hz update rate, smooth for animations
+    }
+}
 
 void TaskManager::sensorInitTask(void* parameter) {
     disableCore0WDT();
@@ -72,14 +74,11 @@ void TaskManager::sensorInitTask(void* parameter) {
     
     SerialQueueManager::getInstance().queueMessage("Starting sensor initialization on Core 0...");
     
-    // Setup button loggers (from original sensor task)
-    setupButtonLoggers();
-    
-//    if (!DisplayScreen::getInstance().init()) {
-//         SerialQueueManager::getInstance().queueMessage("Display initialization failed");
-//     } else {
-//         SerialQueueManager::getInstance().queueMessage("Display initialized successfully");
-//     }
+   if (!DisplayScreen::getInstance().init()) {
+        SerialQueueManager::getInstance().queueMessage("Display initialization failed");
+    } else {
+        SerialQueueManager::getInstance().queueMessage("Display initialized successfully");
+    }
     // Get the sensor initializer
     SensorInitializer& initializer = SensorInitializer::getInstance();
 
@@ -92,10 +91,10 @@ void TaskManager::sensorInitTask(void* parameter) {
             initializer.tryInitializeIMU();
         }
         
-        if (!initializer.isSensorInitialized(SensorInitializer::MULTIZONE_TOF)) {
-            SerialQueueManager::getInstance().queueMessage("Trying to init Multizone TOF...");
-            initializer.tryInitializeMultizoneTof();
-        }
+        // if (!initializer.isSensorInitialized(SensorInitializer::MULTIZONE_TOF)) {
+        //     SerialQueueManager::getInstance().queueMessage("Trying to init Multizone TOF...");
+        //     initializer.tryInitializeMultizoneTof();
+        // }
         
         // if (!initializer.isSensorInitialized(SensorInitializer::LEFT_SIDE_TOF)) {
         //     SerialQueueManager::getInstance().queueMessage("Trying to init Left TOF...");
@@ -116,9 +115,9 @@ void TaskManager::sensorInitTask(void* parameter) {
     
     // Create the sensor polling task now that init is complete
     bool pollingTaskCreated = createSensorPollingTask();
-    // bool displayTaskCreated = createDisplayTask();
+    bool displayTaskCreated = createDisplayTask();
 
-    if (pollingTaskCreated) {
+    if (pollingTaskCreated && displayTaskCreated) {
         SensorPollingManager::getInstance().startPolling();
         SerialQueueManager::getInstance().queueMessage("All tasks created - initialization complete");
     } else {
@@ -265,10 +264,10 @@ bool TaskManager::createStackMonitorTask() {
                      Priority::BACKGROUND, Core::CORE_1, &stackMonitorTaskHandle);
 }
 
-// bool TaskManager::createDisplayTask() {
-//     return createTask("Display", displayTask, DISPLAY_STACK_SIZE,
-//                      Priority::BACKGROUND, Core::CORE_1, &displayTaskHandle);
-// }
+bool TaskManager::createDisplayTask() {
+    return createTask("Display", displayTask, DISPLAY_STACK_SIZE,
+                     Priority::BACKGROUND, Core::CORE_1, &displayTaskHandle);
+}
 
 bool TaskManager::createSensorInitTask() {
     return createTask("SensorInit", sensorInitTask, SENSOR_INIT_STACK_SIZE,
@@ -364,7 +363,7 @@ void TaskManager::printStackUsage() {
         {bytecodeVMTaskHandle, "BytecodeVM", BYTECODE_VM_STACK_SIZE},
         {sensorInitTaskHandle, "SensorInit", SENSOR_INIT_STACK_SIZE},        // May be NULL after self-delete
         {sensorPollingTaskHandle, "SensorPolling", SENSOR_POLLING_STACK_SIZE}, // May be NULL initially
-        // {displayTaskHandle, "Display", DISPLAY_STACK_SIZE},  // Add this line
+        {displayTaskHandle, "Display", DISPLAY_STACK_SIZE},  // Add this line
         {networkManagementTaskHandle, "NetworkMgmt", NETWORK_MANAGEMENT_STACK_SIZE},
         {networkCommunicationTaskHandle, "NetworkComm", NETWORK_COMMUNICATION_STACK_SIZE},
         {serialQueueTaskHandle, "SerialQueue", SERIAL_QUEUE_STACK_SIZE}, // ADD THIS LINE

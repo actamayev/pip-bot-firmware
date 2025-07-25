@@ -136,10 +136,6 @@ void SerialManager::sendPipIdMessage() {
     // Use CRITICAL priority for browser communication
     SerialQueueManager::getInstance().queueMessage(jsonString, SerialPriority::CRITICAL);
     SerialQueueManager::getInstance().queueMessage("Sent PipID: " + pipId, SerialPriority::HIGH_PRIO);
-    
-    // Auto-start WiFi scan for user convenience
-    SerialQueueManager::getInstance().queueMessage("Auto-starting WiFi scan...");
-    WiFiManager::getInstance().startAsyncScan();
 }
 
 void SerialManager::sendJsonMessage(RouteType route, const String& status) {

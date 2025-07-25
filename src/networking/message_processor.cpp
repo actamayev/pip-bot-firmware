@@ -10,8 +10,8 @@ void MessageProcessor::handleMotorControl(const uint8_t* data) {
 
 void MessageProcessor::updateMotorSpeeds(int16_t leftSpeed, int16_t rightSpeed) {
     // Constrain speeds
-    leftSpeed = constrain(leftSpeed, -255, 255);
-    rightSpeed = constrain(rightSpeed, -255, 255);
+    leftSpeed = constrain(leftSpeed, -MAX_MOTOR_SPEED, MAX_MOTOR_SPEED);
+    rightSpeed = constrain(rightSpeed, -MAX_MOTOR_SPEED, MAX_MOTOR_SPEED);
     
     // If we're not executing a command, start this one immediately
     if (!isExecutingCommand) {
@@ -154,10 +154,6 @@ void MessageProcessor::handleLightCommand(LightAnimationStatus lightAnimationSta
     }
 }
 
-void MessageProcessor::handleChangePidsCommand(NewBalancePids newBalancePids) {
-    BalanceController::getInstance().updateBalancePids(newBalancePids);
-}
-
 void MessageProcessor::handleNewLightColors(NewLightColors newLightColors) {
     // Cast from float to uint8_t, assuming values are already in 0-255 range
     uint8_t topLeftR = (uint8_t)newLightColors.topLeftRed;
@@ -203,19 +199,34 @@ void MessageProcessor::handleGetSavedWiFiNetworks() {
     SerialManager::getInstance().sendSavedNetworksResponse(savedNetworks);
 }
 
-void MessageProcessor::handleScanWiFiNetworks() {
-    SerialQueueManager::getInstance().queueMessage("Starting async WiFi network scan...");
-    
-    // Start async scan instead of blocking scan
-    bool success = WiFiManager::getInstance().startAsyncScan();
-    
-    if (!success) {
-        SerialQueueManager::getInstance().queueMessage("Failed to start WiFi scan");
-        // Send empty scan results to indicate failure
-        std::vector<WiFiNetworkInfo> emptyNetworks;
-        SerialManager::getInstance().sendScanResultsResponse(emptyNetworks);
+void MessageProcessor::handleSoftScanWiFiNetworks() {
+    // Check if we have recent scan results (within 1 minute)
+    WiFiManager& wifiManager = WiFiManager::getInstance();
+    if (wifiManager.hasAvailableNetworks()) {
+        SerialQueueManager::getInstance().queueMessage("Returning cached WiFi scan results (scan < 1 min old)");
+        SerialManager::getInstance().sendScanResultsResponse(wifiManager.getAvailableNetworks());
+        return;
     }
-    // Note: Results will be sent asynchronously when scan completes
+    unsigned long now = millis();
+    if (now - wifiManager.getLastScanCompleteTime() < 60000) return;
+    SerialQueueManager::getInstance().queueMessage("Starting async WiFi network scan...");
+    // Start async scan instead of blocking scan
+    bool success = wifiManager.startAsyncScan();
+    
+    if (success) return; // Note: Results will be sent asynchronously when scan completes
+    SerialQueueManager::getInstance().queueMessage("Failed to start WiFi scan");
+    // Send empty scan results to indicate failure
+    std::vector<WiFiNetworkInfo> emptyNetworks;
+    SerialManager::getInstance().sendScanResultsResponse(emptyNetworks);
+}
+
+void MessageProcessor::handleHardScanWiFiNetworks() {
+    SerialQueueManager::getInstance().queueMessage("Starting hard WiFi network scan (cache cleared)...");
+    bool success = WiFiManager::getInstance().startAsyncScan();
+    if (success) return;
+    SerialQueueManager::getInstance().queueMessage("Failed to start hard WiFi scan");
+    std::vector<WiFiNetworkInfo> emptyNetworks;
+    SerialManager::getInstance().sendScanResultsResponse(emptyNetworks);
 }
 
 void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length) {
@@ -258,6 +269,7 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             break;
         }
         case DataMessageType::SPEAKER_MUTE: {
+            SerialQueueManager::getInstance().queueMessage("Received speaker message");
             if (length != 2) {
                 SerialQueueManager::getInstance().queueMessage("Invalid speaker mute message length");
             } else {
@@ -304,7 +316,7 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             } else {
                 NewBalancePids newBalancePids;
                 memcpy(&newBalancePids, &data[1], sizeof(NewBalancePids));
-                handleChangePidsCommand(newBalancePids);
+                BalanceController::getInstance().updateBalancePids(newBalancePids);
             }
             break;
         }
@@ -438,11 +450,19 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             break;
         }
 
-        case DataMessageType::SCAN_WIFI_NETWORKS: {
+        case DataMessageType::SOFT_SCAN_WIFI_NETWORKS: {
             if (length != 1) {
-                SerialQueueManager::getInstance().queueMessage("Invalid scan wifi networks message length");
+                SerialQueueManager::getInstance().queueMessage("Invalid soft scan wifi networks message length");
             } else {
-                handleScanWiFiNetworks();
+                handleSoftScanWiFiNetworks();
+            }
+            break;
+        }
+        case DataMessageType::HARD_SCAN_WIFI_NETWORKS: {
+            if (length != 1) {
+                SerialQueueManager::getInstance().queueMessage("Invalid hard scan wifi networks message length");
+            } else {
+                handleHardScanWiFiNetworks();
             }
             break;
         }
@@ -481,6 +501,14 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             } else {
                 BatteryMonitor::getInstance().sendBatteryMonitorDataOverWebSocket();
             }
+        }
+        case DataMessageType::UPDATE_DISPLAY: {
+            if (length != 1025) { // 1 byte for type + 1024 bytes for buffer
+                SerialQueueManager::getInstance().queueMessage("Invalid display buffer message length");
+            } else {
+                DisplayScreen::getInstance().showCustomBuffer(&data[1]);
+            }
+            break;
         }
         default:
             // SerialQueueManager::getInstance().queueMessage("Unknown message type: %d\n", static_cast<int>(messageType));

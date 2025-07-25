@@ -40,7 +40,7 @@ class BalanceController : public Singleton<BalanceController> {
 
         // Limits and safety parameters
         float MAX_SAFE_ANGLE_DEVIATION = 30.0f;
-        static constexpr int16_t MAX_BALANCE_POWER = 255;
+        static constexpr int16_t MAX_BALANCE_POWER = MAX_MOTOR_SPEED;
         unsigned long UPDATE_INTERVAL = 3; // 3ms (333Hz)
 
         // Filtering buffers
@@ -57,5 +57,5 @@ class BalanceController : public Singleton<BalanceController> {
         float DEADBAND_ANGLE = 1.0f;
         float MAX_STABLE_ROTATION = 0.1f; // degrees/second
 
-        float MIN_EFFECTIVE_PWM = 44; 
+        float MIN_EFFECTIVE_PWM = 44;  // TODO 7/23/25: Can be changed with new 6V motors
 };
