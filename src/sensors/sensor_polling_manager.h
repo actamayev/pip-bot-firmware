@@ -1,6 +1,7 @@
 #pragma once
 #include "sensors/imu.h"
 #include "utils/singleton.h"
+#include "utils/timeout_manager.h"
 #include "sensors/side_tof_manager.h"
 #include "sensors/multizone_tof_sensor.h"
 

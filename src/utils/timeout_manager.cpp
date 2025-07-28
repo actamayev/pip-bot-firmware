@@ -8,9 +8,8 @@ void TimeoutManager::resetActivity() {
     lastActivityTime = millis();
     
     // If we were in confirmation state, cancel it
-    if (inConfirmationState) {
-        cancelConfirmation();
-    }
+    if (!inConfirmationState) return;
+    cancelConfirmation();
 }
 
 void TimeoutManager::update() {

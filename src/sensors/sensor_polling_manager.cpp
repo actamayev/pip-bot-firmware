@@ -13,6 +13,7 @@ void SensorPollingManager::startPolling() {
     isFinishedInitializingPolling = false;
     SerialQueueManager::getInstance().queueMessage("Sensor polling requested for 1 minute");
     lastPollTime = currentTime;
+    TimeoutManager::getInstance().resetActivity();
 }
 
 void SensorPollingManager::stopPolling() {
@@ -106,4 +107,5 @@ void SensorPollingManager::pollSensors() {
     // } else if (SideTofManager::getInstance().rightSideTofSensor.canRetryInitialization()) {
     //     SideTofManager::getInstance().rightSideTofSensor.initialize(RIGHT_TOF_ADDRESS);
     // }
+    TimeoutManager::getInstance().resetActivity();
 }
