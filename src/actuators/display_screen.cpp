@@ -197,3 +197,10 @@ void DisplayScreen::showCustomBuffer(const uint8_t* buffer) {
     
     SerialQueueManager::getInstance().queueMessage("Custom display buffer applied");
 }
+
+void DisplayScreen::turnScreenOff() {
+    if (!initialized) return;
+    SerialQueueManager::getInstance().queueMessage("Turning screen off");
+    display.clearDisplay();
+    display.display();
+}

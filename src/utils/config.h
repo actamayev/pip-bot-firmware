@@ -37,7 +37,7 @@ constexpr uint8_t RIGHT_MOTOR_PIN_IN_2 = 41;
 constexpr uint8_t RIGHT_MOTOR_ENCODER_A = 1;
 constexpr uint8_t RIGHT_MOTOR_ENCODER_B = 2;
 
-constexpr uint8_t MAX_MOTOR_SPEED = 230;
+constexpr uint8_t MAX_MOTOR_SPEED = 255;
 
 // Display Screen
 constexpr uint8_t SCREEN_WIDTH = 128;

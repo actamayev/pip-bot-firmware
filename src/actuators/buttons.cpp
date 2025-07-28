@@ -194,6 +194,8 @@ void Buttons::enterDeepSleep() {
     WebSocketManager::getInstance().sendPipTurningOff();
     Speaker::getInstance().setMuted(true);
     BytecodeVM::getInstance().stopProgram();
+    DisplayScreen::getInstance().turnScreenOff();
+    vTaskDelay(pdMS_TO_TICKS(20));
 
     esp_sleep_enable_ext0_wakeup((gpio_num_t)BUTTON_PIN_1, LOW); // LOW = button press (since using INPUT_PULLUP)
     // Pin 48 isn't RTC, can't be used to take out of Deep sleep
