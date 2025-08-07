@@ -3,7 +3,8 @@
 #include <cstdint>
 #include <Wire.h>
 
-#define DEV_I2C Wire
+#define DEV_I2C_1 Wire   // I2C peripheral 0
+#define DEV_I2C_2 Wire1  // I2C peripheral 1
 
 // LED Configuration
 constexpr uint8_t ESP_LED_PIN = 4;
@@ -11,8 +12,10 @@ constexpr uint8_t NUM_LEDS = 8;
 constexpr uint8_t MAX_LED_BRIGHTNESS = 75;
 
 // I2C Configuration
-constexpr uint8_t I2C_SDA = 18;
-constexpr uint8_t I2C_SCL = 8;
+constexpr uint8_t I2C_SDA_1 = 18;
+constexpr uint8_t I2C_SCL_1 = 8;
+constexpr uint8_t I2C_SDA_2 = 9;
+constexpr uint8_t I2C_SCL_2 = 10;
 constexpr uint32_t I2C_CLOCK_SPEED = 100 * 1000; // 400 kHz
 
 // Side TOFs
@@ -27,15 +30,15 @@ constexpr uint16_t IMU_UPDATE_FREQ_MICROSECS = 5000;  // 5ms, 200Hz
 constexpr uint8_t IMU_DEFAULT_ADDRESS = 0x4A;
 
 // Motors + Encoders
-constexpr uint8_t LEFT_MOTOR_PIN_IN_1 = 48;
-constexpr uint8_t LEFT_MOTOR_PIN_IN_2 = 47;
-constexpr uint8_t LEFT_MOTOR_ENCODER_A = 12;
-constexpr uint8_t LEFT_MOTOR_ENCODER_B = 13;
+constexpr uint8_t LEFT_MOTOR_PIN_IN_1 = 39;
+constexpr uint8_t LEFT_MOTOR_PIN_IN_2 = 40;
+constexpr uint8_t LEFT_MOTOR_ENCODER_A = 47;
+constexpr uint8_t LEFT_MOTOR_ENCODER_B = 49;
 
-constexpr uint8_t RIGHT_MOTOR_PIN_IN_1 = 40;
-constexpr uint8_t RIGHT_MOTOR_PIN_IN_2 = 41;
-constexpr uint8_t RIGHT_MOTOR_ENCODER_A = 1;
-constexpr uint8_t RIGHT_MOTOR_ENCODER_B = 2;
+constexpr uint8_t RIGHT_MOTOR_PIN_IN_1 = 41;
+constexpr uint8_t RIGHT_MOTOR_PIN_IN_2 = 42;
+constexpr uint8_t RIGHT_MOTOR_ENCODER_A = 2;
+constexpr uint8_t RIGHT_MOTOR_ENCODER_B = 1;
 
 constexpr uint8_t MAX_MOTOR_SPEED = 255;
 
@@ -56,13 +59,13 @@ constexpr uint8_t PIN_MUX_OUT = 7;  // Multiplexer output
 constexpr uint8_t PIN_IR_EN = 6;    // IR sensor enable pin
 
 //Speaker
-constexpr uint8_t I2S_DOUT = 9;
-constexpr uint8_t I2S_BCLK = 10;
-constexpr uint8_t I2S_LRC = 11;
+constexpr uint8_t I2S_DOUT = 13;
+constexpr uint8_t I2S_BCLK = 14;
+constexpr uint8_t I2S_LRC = 21;
 
 // Buttons
-constexpr uint8_t BUTTON_PIN_1 = 21; // Left
-constexpr uint8_t BUTTON_PIN_2 = 14; // Right
+constexpr uint8_t BUTTON_PIN_1 = 11; // Left
+constexpr uint8_t BUTTON_PIN_2 = 12; // Right
 
 // Assign Stack sizes for the two cores
 constexpr uint16_t MAX_PROGRAM_SIZE = 8192;

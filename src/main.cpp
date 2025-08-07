@@ -8,8 +8,11 @@ void setup() {
     Serial.setTxBufferSize(MAX_PROGRAM_SIZE); // This is here to make the serial buffer larger to accommodate for large serial messages (ie. when uploading bytecode programs over serial)
     Serial.begin(115200);
     // I2C setup
-    Wire.setPins(I2C_SDA, I2C_SCL);
-    Wire.begin(I2C_SDA, I2C_SCL, I2C_CLOCK_SPEED);
+    DEV_I2C_1.setPins(I2C_SDA_1, I2C_SCL_1);
+    DEV_I2C_1.begin(I2C_SDA_1, I2C_SCL_1, I2C_CLOCK_SPEED);
+
+    DEV_I2C_2.setPins(I2C_SDA_2, I2C_SCL_2);
+    DEV_I2C_2.begin(I2C_SDA_2, I2C_SCL_2, I2C_CLOCK_SPEED);
 
     SerialQueueManager::getInstance().initialize();
     TaskManager::createSerialQueueTask();

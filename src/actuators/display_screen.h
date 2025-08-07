@@ -42,7 +42,7 @@ class DisplayScreen: public Singleton<DisplayScreen> {
         void showStartScreen(bool resetTimer = true);
 
         // Display object
-        Adafruit_SSD1306 display = Adafruit_SSD1306(SCREEN_WIDTH, SCREEN_HEIGHT, nullptr, OLED_RESET);
+        Adafruit_SSD1306 display = Adafruit_SSD1306(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire1, OLED_RESET);
         
         // State flags
         bool initialized;

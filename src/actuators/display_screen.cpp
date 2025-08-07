@@ -5,7 +5,7 @@ bool DisplayScreen::init() {
     if (initialized) return true;  // Already initialized
     
     // Initialize the OLED display with the provided Wire instance
-    display = Adafruit_SSD1306(SCREEN_WIDTH, SCREEN_HEIGHT);
+    // display = Adafruit_SSD1306(SCREEN_WIDTH, SCREEN_HEIGHT, Wire1);
     // 5/10/25: TODO: Change to:
     // display = Adafruit_SSD1306(SCREEN_WIDTH, SCREEN_HEIGHT, &DEV_I2C);
 
