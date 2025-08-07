@@ -12,10 +12,10 @@ constexpr uint8_t NUM_LEDS = 8;
 constexpr uint8_t MAX_LED_BRIGHTNESS = 75;
 
 // I2C Configuration
-constexpr uint8_t I2C_SDA_1 = 18;
-constexpr uint8_t I2C_SCL_1 = 8;
-constexpr uint8_t I2C_SDA_2 = 9;
-constexpr uint8_t I2C_SCL_2 = 10;
+constexpr uint8_t I2C_SDA_1 = 9;
+constexpr uint8_t I2C_SCL_1 = 10;
+constexpr uint8_t I2C_SDA_2 = 18;
+constexpr uint8_t I2C_SCL_2 = 8;
 constexpr uint32_t I2C_CLOCK_SPEED = 100 * 1000; // 400 kHz
 
 // Side TOFs
