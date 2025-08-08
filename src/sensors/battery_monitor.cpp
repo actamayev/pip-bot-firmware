@@ -5,7 +5,7 @@ bool BatteryMonitor::initialize() {
     SerialQueueManager::getInstance().queueMessage("Initializing BQ27441 battery monitor...");
 
     // Initialize the fuel gauge
-    if (!lipo.begin()) {
+    if (!lipo.begin(Wire1)) {
         SerialQueueManager::getInstance().queueMessage("✗ Failed to connect to BQ27441 - check wiring and I2C address");
         batteryState.isInitialized = false;
         return false;

@@ -7,6 +7,8 @@ void setup() {
     Serial.setRxBufferSize(MAX_PROGRAM_SIZE); // This is here to make the serial buffer larger to accommodate for large serial messages (ie. when uploading bytecode programs over serial)
     Serial.setTxBufferSize(MAX_PROGRAM_SIZE); // This is here to make the serial buffer larger to accommodate for large serial messages (ie. when uploading bytecode programs over serial)
     Serial.begin(115200);
+    pinMode(PWR_EN, OUTPUT);
+    digitalWrite(PWR_EN, HIGH);
     // I2C setup
     DEV_I2C_1.setPins(I2C_SDA_1, I2C_SCL_1);
     DEV_I2C_1.begin(I2C_SDA_1, I2C_SCL_1, I2C_CLOCK_SPEED);

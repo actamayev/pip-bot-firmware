@@ -81,7 +81,7 @@ void MotorDriver::brake_if_moving() {
     // Get current wheel speeds from encoder manager
     WheelRPMs rpms = encoderManager.getBothWheelRPMs();
     
-    // Check if left motor is moving
+    // // Check if left motor is moving
     if (abs(rpms.leftWheelRPM) > MOTOR_STOPPED_THRESHOLD) {
         // Left motor is moving, apply brake
         brake_left_motor();
@@ -90,7 +90,7 @@ void MotorDriver::brake_if_moving() {
         release_left_brake();
     }
     
-    // Check if right motor is moving
+    // // Check if right motor is moving
     if (abs(rpms.rightWheelRPM) > MOTOR_STOPPED_THRESHOLD) {
         // Right motor is moving, apply brake
         brake_right_motor();

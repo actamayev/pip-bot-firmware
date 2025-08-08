@@ -7,9 +7,9 @@ Buttons::Buttons()
 }
 
 void Buttons::begin() {
-    // For ESP32/ESP8266, the Button2 library uses 
-    // constructor or begin() method to configure button behavior
-    // Default is INPUT_PULLUP with activeLow=true
+    // Configure buttons for pull-down, active HIGH configuration
+    button1.begin(BUTTON_PIN_1, INPUT_PULLDOWN, false);
+    button2.begin(BUTTON_PIN_2, INPUT_PULLDOWN, false);
     
     button1.setDebounceTime(0);
     button2.setDebounceTime(0);
@@ -189,19 +189,23 @@ void Buttons::setupDeepSleep() {
 }
 
 void Buttons::enterDeepSleep() {
-    // Configure Button 1 (GPIO 12) as wake-up source
+    // Configure both buttons as wake-up sources
     rgbLed.turn_all_leds_off();
     WebSocketManager::getInstance().sendPipTurningOff();
     Speaker::getInstance().setMuted(true);
     BytecodeVM::getInstance().stopProgram();
     DisplayScreen::getInstance().turnScreenOff();
+    digitalWrite(PWR_EN, LOW);
     vTaskDelay(pdMS_TO_TICKS(20));
 
-    esp_sleep_enable_ext0_wakeup((gpio_num_t)BUTTON_PIN_1, LOW); // LOW = button press (since using INPUT_PULLUP)
-    // Pin 48 isn't RTC, can't be used to take out of Deep sleep
-    // esp_sleep_enable_ext0_wakeup((gpio_num_t)BUTTON_PIN_2, LOW); // LOW = button press (since using INPUT_PULLUP)
+    // Create bitmask for both button pins
+    // Bit positions correspond to GPIO numbers
+    uint64_t wakeup_pin_mask = (1ULL << BUTTON_PIN_1) | (1ULL << BUTTON_PIN_2);
+    
+    // Wake up when ANY of the pins goes HIGH (button pressed with pull-down)
+    esp_sleep_enable_ext1_wakeup(wakeup_pin_mask, ESP_EXT1_WAKEUP_ANY_HIGH);
 
-    SerialQueueManager::getInstance().queueMessage("Going to deep sleep now");
+    SerialQueueManager::getInstance().queueMessage("Going to deep sleep now (both buttons can wake)");
     Serial.flush();
     
     esp_deep_sleep_start();
