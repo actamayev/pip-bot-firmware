@@ -79,22 +79,24 @@ void MotorDriver::release_right_brake() {
 
 void MotorDriver::brake_if_moving() {
     // Get current wheel speeds from encoder manager
-    WheelRPMs rpms = encoderManager.getBothWheelRPMs();
+    // WheelRPMs rpms = encoderManager.getBothWheelRPMs();
     
     // // Check if left motor is moving
-    if (abs(rpms.leftWheelRPM) > MOTOR_STOPPED_THRESHOLD) {
-        // Left motor is moving, apply brake
-        brake_left_motor();
-    } else if (_leftMotorBraking) {
+    // if (abs(rpms.leftWheelRPM) > MOTOR_STOPPED_THRESHOLD) {
+    //     // Left motor is moving, apply brake
+    //     brake_left_motor();
+    // } else
+    if (_leftMotorBraking) {
         // Left motor already stopped but brake still applied, release it
         release_left_brake();
     }
     
     // // Check if right motor is moving
-    if (abs(rpms.rightWheelRPM) > MOTOR_STOPPED_THRESHOLD) {
-        // Right motor is moving, apply brake
-        brake_right_motor();
-    } else if (_rightMotorBraking) {
+    // if (abs(rpms.rightWheelRPM) > MOTOR_STOPPED_THRESHOLD) {
+    //     // Right motor is moving, apply brake
+    //     brake_right_motor();
+    // } else
+    if (_rightMotorBraking) {
         // Right motor already stopped but brake still applied, release it
         release_right_brake();
     }
@@ -149,15 +151,15 @@ void MotorDriver::update_motor_speeds(bool should_ramp_up) {
     }
 
     if (_leftMotorBraking || _rightMotorBraking) {
-        WheelRPMs rpms = encoderManager.getBothWheelRPMs();
+        // WheelRPMs rpms = encoderManager.getBothWheelRPMs();
         
         // If left motor is braking and has stopped, release the brake
-        if (_leftMotorBraking && abs(rpms.leftWheelRPM) < MOTOR_STOPPED_THRESHOLD) {
+        if (_leftMotorBraking) {
             release_left_brake();
         }
         
         // If right motor is braking and has stopped, release the brake
-        if (_rightMotorBraking && abs(rpms.rightWheelRPM) < MOTOR_STOPPED_THRESHOLD) {
+        if (_rightMotorBraking) {
             release_right_brake();
         }
     }

@@ -1,12 +1,12 @@
 #include "send_data_to_server.h"
 
 // Add RPM data to the provided JSON payload
-void SendDataToServer::attachRPMData(JsonObject& payload) {
-    // Get the RPM values
-    WheelRPMs wheelRpms = encoderManager.getBothWheelRPMs();
-    payload["leftWheelRPM"] = wheelRpms.leftWheelRPM;
-    payload["rightWheelRPM"] = wheelRpms.rightWheelRPM;
-}
+// void SendDataToServer::attachRPMData(JsonObject& payload) {
+//     // Get the RPM values
+//     WheelRPMs wheelRpms = encoderManager.getBothWheelRPMs();
+//     payload["leftWheelRPM"] = wheelRpms.leftWheelRPM;
+//     payload["rightWheelRPM"] = wheelRpms.rightWheelRPM;
+// }
 
 // Add IR sensor data to the provided JSON payload
 void SendDataToServer::attachIRData(JsonObject& payload) {

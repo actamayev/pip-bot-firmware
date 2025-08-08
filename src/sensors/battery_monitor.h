@@ -5,6 +5,7 @@
 #include "utils/config.h"
 #include "utils/singleton.h"
 #include "networking/serial_manager.h"
+#include "networking/websocket_manager.h"
 #include "utils/structs.h"
 
 class BatteryMonitor : public Singleton<BatteryMonitor> {

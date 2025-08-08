@@ -16,6 +16,8 @@
 #include "actuators/led/led_animations.h"
 #include "sensors/sensor_polling_manager.h"
 #include "networking/serial_queue_manager.h"
+#include "networking/wifi_manager.h"
+#include "networking/network_state_mangager.h"
 
 class MessageProcessor : public Singleton<MessageProcessor> {
     friend class Singleton<MessageProcessor>;

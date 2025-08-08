@@ -26,12 +26,12 @@ void MessageProcessor::updateMotorSpeeds(int16_t leftSpeed, int16_t rightSpeed) 
 
 void MessageProcessor::executeCommand(int16_t leftSpeed, int16_t rightSpeed) {
     // Save command details
-    currentLeftSpeed = leftSpeed;
-    currentRightSpeed = rightSpeed;
+    // currentLeftSpeed = leftSpeed;
+    // currentRightSpeed = rightSpeed;
 
     // Get initial encoder counts directly
-    startLeftCount = encoderManager._leftEncoder.getCount();
-    startRightCount = encoderManager._rightEncoder.getCount();
+    // startLeftCount = encoderManager._leftEncoder.getCount();
+    // startRightCount = encoderManager._rightEncoder.getCount();
 
     // Start the command timer
     commandStartTime = millis();
@@ -80,39 +80,39 @@ void MessageProcessor::processPendingCommands() {
     }
 
     // Get current encoder counts
-    int64_t currentLeftCount = encoderManager._leftEncoder.getCount();
-    int64_t currentRightCount = encoderManager._rightEncoder.getCount();
+    // int64_t currentLeftCount = encoderManager._leftEncoder.getCount();
+    // int64_t currentRightCount = encoderManager._rightEncoder.getCount();
     
     // Calculate absolute change in encoder counts
-    int64_t leftDelta = abs(currentLeftCount - startLeftCount);
-    int64_t rightDelta = abs(currentRightCount - startRightCount);
+    // int64_t leftDelta = abs(currentLeftCount - startLeftCount);
+    // int64_t rightDelta = abs(currentRightCount - startRightCount);
     
     // Optional debugging (only printed once every 500ms)
-    static unsigned long lastDebugTime = 0;
-    if (millis() - lastDebugTime > 500) {
-        // SerialQueueManager::getInstance().queueMessage("Encoder deltas - Left: %lld, Right: %lld (Target: %d)\n", 
-        //              leftDelta, rightDelta, MIN_ENCODER_PULSES);
-        lastDebugTime = millis();
-    }
+    // static unsigned long lastDebugTime = 0;
+    // if (millis() - lastDebugTime > 500) {
+    //     // SerialQueueManager::getInstance().queueMessage("Encoder deltas - Left: %lld, Right: %lld (Target: %d)\n", 
+    //     //              leftDelta, rightDelta, MIN_ENCODER_PULSES);
+    //     lastDebugTime = millis();
+    // }
     
     // Check for command completion conditions:
-    bool encoderThresholdMet = (leftDelta >= MIN_ENCODER_PULSES || rightDelta >= MIN_ENCODER_PULSES);
-    bool commandTimedOut = (millis() - commandStartTime) >= COMMAND_TIMEOUT_MS;
+    // bool encoderThresholdMet = (leftDelta >= MIN_ENCODER_PULSES || rightDelta >= MIN_ENCODER_PULSES);
+    // bool commandTimedOut = (millis() - commandStartTime) >= COMMAND_TIMEOUT_MS;
     
-    if (encoderThresholdMet || commandTimedOut) {
-        if (commandTimedOut) {
-            SerialQueueManager::getInstance().queueMessage("Command timed out after 1 second - possible motor stall");
-        } else {
-            // SerialQueueManager::getInstance().queueMessage("Command completed with pulses - Left: %lld, Right: %lld\n", 
-            //             leftDelta, rightDelta);
-        }
+    // if (encoderThresholdMet || commandTimedOut) {
+    //     if (commandTimedOut) {
+    //         SerialQueueManager::getInstance().queueMessage("Command timed out after 1 second - possible motor stall");
+    //     } else {
+    //         // SerialQueueManager::getInstance().queueMessage("Command completed with pulses - Left: %lld, Right: %lld\n", 
+    //         //             leftDelta, rightDelta);
+    //     }
         
-        isExecutingCommand = false;
+    //     isExecutingCommand = false;
         
-        if (hasNextCommand) {
-            executeCommand(nextLeftSpeed, nextRightSpeed);
-            hasNextCommand = false;
-        }
+    // }
+    if (hasNextCommand) {
+        executeCommand(nextLeftSpeed, nextRightSpeed);
+        hasNextCommand = false;
     }
 }
 
