@@ -30,7 +30,7 @@ class Speaker : public Singleton<Speaker> {
         
         bool muted = false;
         bool initialized = false;
-        float currentVolume = 1.0f;
+        float currentVolume = 3.9f;
         
         // Audio objects
         AudioFileSourceSPIFFS* audioFile = nullptr;

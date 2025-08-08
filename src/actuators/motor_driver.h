@@ -37,6 +37,13 @@ class MotorDriver {
         bool _leftMotorBraking = false;
         bool _rightMotorBraking = false;
         static constexpr float MOTOR_STOPPED_THRESHOLD = 0.5; // RPM threshold for considering motor stopped
+        
+        // Timer-based brake release
+        static constexpr unsigned long BRAKE_HOLD_TIME_MS = 1000; // 1 second
+        unsigned long _leftBrakeStartTime = 0;
+        unsigned long _rightBrakeStartTime = 0;
+        
+        void check_brake_timers(); // New method to handle timer logic
 };
 
 extern MotorDriver motorDriver;
