@@ -19,12 +19,12 @@ class SendDataToServer : public Singleton<SendDataToServer> {
         void sendBytecodeMessage(String message);
 
     private:
-        bool sendSensorData = false;
-        void attachRPMData(JsonObject& payload);
+        bool sendSensorData = true;
+        // void attachRPMData(JsonObject& payload);
         void attachIRData(JsonObject& payload);
         void attachColorSensorData(JsonObject& payload);
         void attachImuData(JsonObject& payload);
 
         unsigned long lastSendTime = 0;
-        const unsigned long SEND_INTERVAL = 10; // Poll every 50ms for more responsive data
+        const unsigned long SEND_INTERVAL = 1; // Poll every 50ms for more responsive data
 };

@@ -3,17 +3,14 @@
 bool DemoManager::startDemo(Demo::DemoType demoType) {
     // Don't start the same demo that's already running
     if (_currentDemo == demoType && demoType != Demo::DemoType::NONE) {
-        // SerialQueueManager::getInstance().queueMessage("Demo %s is already running\n", getDemoName(demoType));
         return true;
     }
-    
+
     // Stop current demo if running
     if (_currentDemo != Demo::DemoType::NONE) {
         // SerialQueueManager::getInstance().queueMessage("Stopping current demo: %s\n", getDemoName(_currentDemo));
         disableCurrentDemo();
     }
-    
-    // Start the new demo
     if (demoType == Demo::DemoType::NONE) {
         _currentDemo = Demo::DemoType::NONE;
         SerialQueueManager::getInstance().queueMessage("All demos stopped");

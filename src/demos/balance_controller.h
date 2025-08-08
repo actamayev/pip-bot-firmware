@@ -8,6 +8,7 @@
 #include "actuators/led/rgb_led.h"
 #include "actuators/motor_driver.h"
 #include "networking/serial_queue_manager.h"
+#include "demos/demo_manager.h"
 
 class BalanceController : public Singleton<BalanceController> {
     friend class Singleton<BalanceController>;

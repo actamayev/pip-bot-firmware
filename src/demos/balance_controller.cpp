@@ -37,6 +37,7 @@ void BalanceController::disable() {
     _balancingEnabled = BalanceStatus::UNBALANCED;
     motorDriver.brake_if_moving();
     rgbLed.turn_all_leds_off();
+    DemoManager::getInstance()._currentDemo = Demo::DemoType::NONE;
     SerialQueueManager::getInstance().queueMessage("Balance mode disabled");
 }
 
@@ -81,7 +82,7 @@ void BalanceController::update() {
 
     // Safety check
     if (abs(safetyAverage - TARGET_ANGLE) > MAX_SAFE_ANGLE_DEVIATION) {
-        // SerialQueueManager::getInstance().queueMessage("Safety cutoff triggered: Avg Angle %.2f exceeds limits\n", safetyAverage);
+        // SerialQueueManager::getInstance().queueMessage("Safety cutoff triggered: Avg Angle exceeds limits\n");
         disable();
         return;
     } 

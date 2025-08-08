@@ -201,7 +201,7 @@ void TaskManager::networkCommunicationTask(void* parameter) {
         if (mode == NetworkMode::WIFI_MODE) {
             // Lightweight, frequent operations
             WebSocketManager::getInstance().pollWebSocket();
-            // SendDataToServer::getInstance().sendSensorDataToServer();
+            SendDataToServer::getInstance().sendSensorDataToServer();
         }
 
         // Fast update rate for real-time communication
