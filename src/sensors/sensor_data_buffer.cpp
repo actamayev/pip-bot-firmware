@@ -37,10 +37,16 @@ void SensorDataBuffer::updateTofData(const TofData& tof) {
     markTofDataUpdated();
 }
 
-// NEW: Side TOF update method
+// Side TOF update method (existing)
 void SensorDataBuffer::updateSideTofData(const SideTofData& sideTof) {
     currentSideTofData = sideTof;
     markSideTofDataUpdated();
+}
+
+// NEW: Color sensor update method
+void SensorDataBuffer::updateColorData(const ColorData& color) {
+    currentColorData = color;
+    markColorDataUpdated();
 }
 
 // IMU Read methods - reset timeouts when called (existing)
@@ -85,7 +91,7 @@ bool SensorDataBuffer::isObjectDetectedTof() {
     return currentTofData.isObjectDetected && currentTofData.isValid;
 }
 
-// NEW: Side TOF Read methods - reset timeouts when called
+// Side TOF Read methods - reset timeouts when called (existing)
 SideTofData SensorDataBuffer::getLatestSideTofData() {
     timeouts.side_tof_last_request.store(millis());
     return currentSideTofData;
@@ -109,6 +115,32 @@ bool SensorDataBuffer::isLeftSideTofValid() {
 bool SensorDataBuffer::isRightSideTofValid() {
     timeouts.side_tof_last_request.store(millis());
     return currentSideTofData.rightValid;
+}
+
+// NEW: Color sensor Read methods - reset timeouts when called
+ColorData SensorDataBuffer::getLatestColorData() {
+    timeouts.color_last_request.store(millis());
+    return currentColorData;
+}
+
+uint8_t SensorDataBuffer::getLatestRedValue() {
+    timeouts.color_last_request.store(millis());
+    return currentColorData.redValue;
+}
+
+uint8_t SensorDataBuffer::getLatestGreenValue() {
+    timeouts.color_last_request.store(millis());
+    return currentColorData.greenValue;
+}
+
+uint8_t SensorDataBuffer::getLatestBlueValue() {
+    timeouts.color_last_request.store(millis());
+    return currentColorData.blueValue;
+}
+
+bool SensorDataBuffer::isColorDataValid() {
+    timeouts.color_last_request.store(millis());
+    return currentColorData.isValid;
 }
 
 // Convenience methods for individual values (existing)
@@ -183,7 +215,8 @@ void SensorDataBuffer::startPollingAllSensors() {
     timeouts.gyroscope_last_request.store(currentTime);
     timeouts.magnetometer_last_request.store(currentTime);
     timeouts.tof_last_request.store(currentTime);
-    timeouts.side_tof_last_request.store(currentTime);  // Include side TOF
+    timeouts.side_tof_last_request.store(currentTime);
+    timeouts.color_last_request.store(currentTime);  // Include color sensor
 }
 
 void SensorDataBuffer::stopPollingAllSensors() {
@@ -194,7 +227,8 @@ void SensorDataBuffer::stopPollingAllSensors() {
     timeouts.gyroscope_last_request.store(expiredTime);
     timeouts.magnetometer_last_request.store(expiredTime);
     timeouts.tof_last_request.store(expiredTime);
-    timeouts.side_tof_last_request.store(expiredTime);  // Include side TOF
+    timeouts.side_tof_last_request.store(expiredTime);
+    timeouts.color_last_request.store(expiredTime);  // Include color sensor
 }
 
 void SensorDataBuffer::markDataUpdated() {
@@ -207,4 +241,8 @@ void SensorDataBuffer::markTofDataUpdated() {
 
 void SensorDataBuffer::markSideTofDataUpdated() {
     lastSideTofUpdateTime.store(millis());
+}
+
+void SensorDataBuffer::markColorDataUpdated() {
+    lastColorUpdateTime.store(millis());
 }

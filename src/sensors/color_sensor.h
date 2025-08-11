@@ -2,6 +2,7 @@
 #include "veml3328/veml3328.h"
 #include "utils/structs.h"
 #include "utils/singleton.h"
+#include "sensor_data_buffer.h"
 #include "networking/serial_queue_manager.h"
 
 class ColorSensor : public Singleton<ColorSensor> {
@@ -11,12 +12,32 @@ class ColorSensor : public Singleton<ColorSensor> {
         ColorSensor() = default;
 
         bool initialize();
-        ColorSensorData getSensorData();
+        bool canRetryInitialization() const;
+        bool needsInitialization() const { return !isInitialized; }
+        unsigned int getInitRetryCount() const { return initRetryCount; }
+        unsigned int getMaxInitRetries() const { return MAX_INIT_RETRIES; }
+        
+        // New buffer-based methods following the established pattern
+        void updateSensorData();  // Single read, write to buffer
+        bool shouldBePolling() const;
+
         bool isSensorConnected() { return sensorConnected; }
 
     private:
         void read_color_sensor();
-        bool sensorConnected = false;  // Add this flag
+        void precompute_inverse_matrix();
+        void enableColorSensor();
+        void disableColorSensor();
+        
+        bool isInitialized = false;
+        bool sensorConnected = false;
+        bool sensorEnabled = false;  // Track if sensor is actively enabled
+        
+        // Initialization retry variables
+        unsigned long lastInitAttempt = 0;
+        unsigned int initRetryCount = 0;
+        static const unsigned int MAX_INIT_RETRIES = 5;
+        static const unsigned long INIT_RETRY_INTERVAL = 1000; // 1 second between retries
 
         bool isCalibrated = true;
         const float scaleFactor = 128.0;
@@ -32,10 +53,7 @@ class ColorSensor : public Singleton<ColorSensor> {
             26 * scaleFactor, 103 * scaleFactor, 511 * scaleFactor
         };
         ColorSensorData colorSensorData;
-
-        unsigned long lastUpdateTime;
-
-        void precompute_inverse_matrix();
-
         float invMatrix[3][3]; // Store pre-computed inverse matrix
+        unsigned long lastUpdateTime = 0;
+        static constexpr unsigned long DELAY_BETWEEN_READINGS = 50; // ms - rate limiting
 };

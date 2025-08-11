@@ -52,7 +52,7 @@ void SendDataToServer::attachImuData(JsonObject& payload) {
 }
 
 void SendDataToServer::attachColorSensorData(JsonObject& payload) {
-    ColorSensorData colorSensorData = ColorSensor::getInstance().getSensorData();
+    ColorData colorSensorData = SensorDataBuffer::getInstance().getLatestColorData();
 
     payload["redValue"] = colorSensorData.redValue;
     payload["greenValue"] = colorSensorData.greenValue;

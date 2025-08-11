@@ -40,6 +40,23 @@ struct SideTofData {
     }
 };
 
+// Color sensor data structure (using existing ColorSensorData from structs.h)
+struct ColorData {
+    uint8_t redValue;
+    uint8_t greenValue;
+    uint8_t blueValue;
+    bool isValid;
+    uint32_t timestamp;
+    
+    ColorData() {
+        redValue = 0;
+        greenValue = 0;
+        blueValue = 0;
+        isValid = false;
+        timestamp = 0;
+    }
+};
+
 // Combined sensor data structure
 struct ImuSample {
     EulerAngles eulerAngles;
@@ -85,7 +102,8 @@ struct ReportTimeouts {
     std::atomic<uint32_t> gyroscope_last_request{0};
     std::atomic<uint32_t> magnetometer_last_request{0};
     std::atomic<uint32_t> tof_last_request{0};
-    std::atomic<uint32_t> side_tof_last_request{0};  // Add side TOF timeout tracking
+    std::atomic<uint32_t> side_tof_last_request{0};
+    std::atomic<uint32_t> color_last_request{0};  // Add color sensor timeout tracking
     
     static constexpr uint32_t TIMEOUT_MS = 60000; // 1 minute
     
@@ -112,13 +130,18 @@ struct ReportTimeouts {
     bool shouldEnableSideTof() const {
         return (millis() - side_tof_last_request.load()) < TIMEOUT_MS;
     }
+    
+    bool shouldEnableColor() const {
+        return (millis() - color_last_request.load()) < TIMEOUT_MS;
+    }
 };
 
 class SensorDataBuffer : public Singleton<SensorDataBuffer> {
     friend class Singleton<SensorDataBuffer>;
     friend class ImuSensor;
     friend class MultizoneTofSensor;
-    friend class SideTofManager;  // Add side TOF manager as friend
+    friend class SideTofManager;
+    friend class ColorSensor;  // Add color sensor as friend
 
     public:        
         // IMU Read methods (called from any core, resets timeouts)
@@ -139,6 +162,13 @@ class SensorDataBuffer : public Singleton<SensorDataBuffer> {
         uint16_t getLatestRightSideTofCounts();
         bool isLeftSideTofValid();
         bool isRightSideTofValid();
+        
+        // Color sensor Read methods (called from any core, resets timeouts)
+        ColorData getLatestColorData();
+        uint8_t getLatestRedValue();
+        uint8_t getLatestGreenValue();
+        uint8_t getLatestBlueValue();
+        bool isColorDataValid();
         
         // Convenience methods for individual values
         float getLatestPitch();
@@ -174,15 +204,18 @@ class SensorDataBuffer : public Singleton<SensorDataBuffer> {
         void updateGyroscope(const GyroscopeData& gyro);
         void updateMagnetometer(const MagnetometerData& mag);
         void updateTofData(const TofData& tof);
-        void updateSideTofData(const SideTofData& sideTof);  // Add side TOF update method
+        void updateSideTofData(const SideTofData& sideTof);
+        void updateColorData(const ColorData& color);  // Add color sensor update method
         
         // Thread-safe data storage
         ImuSample currentSample;
         TofData currentTofData;
-        SideTofData currentSideTofData;  // Add side TOF data storage
+        SideTofData currentSideTofData;
+        ColorData currentColorData;  // Add color sensor data storage
         std::atomic<uint32_t> lastUpdateTime{0};
         std::atomic<uint32_t> lastTofUpdateTime{0};
-        std::atomic<uint32_t> lastSideTofUpdateTime{0};  // Separate timestamp for side TOF
+        std::atomic<uint32_t> lastSideTofUpdateTime{0};
+        std::atomic<uint32_t> lastColorUpdateTime{0};  // Separate timestamp for color sensor
         
         // Timeout tracking for each report type
         ReportTimeouts timeouts;
@@ -190,5 +223,6 @@ class SensorDataBuffer : public Singleton<SensorDataBuffer> {
         // Helper to update timestamp
         void markDataUpdated();
         void markTofDataUpdated();
-        void markSideTofDataUpdated();  // Separate method for side TOF timestamp
+        void markSideTofDataUpdated();
+        void markColorDataUpdated();  // Separate method for color sensor timestamp
 };

@@ -9,6 +9,7 @@ SensorInitializer::SensorInitializer() {
     initializeMultizoneTof();
     initializeIMU();
     initializeSideTofs();      // Added side TOF initialization
+    initializeColorSensor();  // Added color sensor initialization
 }
 
 bool SensorInitializer::isSensorInitialized(SensorType sensor) const {
@@ -50,16 +51,16 @@ void SensorInitializer::initializeIMU() {
     sensorInitialized[IMU] = true;
 }
 
-// void SensorInitializer::initializeColorSensor() {
-//     SerialQueueManager::getInstance().queueMessage("Initializing Color Sensor...");
+void SensorInitializer::initializeColorSensor() {
+    SerialQueueManager::getInstance().queueMessage("Initializing Color Sensor...");
 
-//     if (!ColorSensor::getInstance().initialize()) {
-//         SerialQueueManager::getInstance().queueMessage("Color Sensor initialization failed");
-//         return;
-//     }
-//     SerialQueueManager::getInstance().queueMessage("Color Sensor setup complete");
-//     // sensorInitialized[COLOR_SENSOR] = true;
-// }
+    if (!ColorSensor::getInstance().initialize()) {
+        SerialQueueManager::getInstance().queueMessage("Color Sensor initialization failed");
+        return;
+    }
+    SerialQueueManager::getInstance().queueMessage("Color Sensor setup complete");
+    // sensorInitialized[COLOR_SENSOR] = true;
+}
 
 void SensorInitializer::initializeSideTofs() {
     SerialQueueManager::getInstance().queueMessage("Initializing Side TOF sensors...");
@@ -153,6 +154,29 @@ bool SensorInitializer::tryInitializeSideTofs() {
     if (success) {
         SerialQueueManager::getInstance().queueMessage("Side TOF sensors retry initialization successful!");
         sensorInitialized[SIDE_TOFS] = true;
+    }
+    
+    return success;
+}
+
+bool SensorInitializer::tryInitializeColorSensor() {
+    ColorSensor& colorSensor = ColorSensor::getInstance();
+
+    if (!colorSensor.needsInitialization()) {
+        sensorInitialized[COLOR_SENSOR] = true;
+        return true; // Already initialized
+    }
+    
+    if (!colorSensor.canRetryInitialization()) {
+        return false; // Can't retry yet
+    }
+    
+    SerialQueueManager::getInstance().queueMessage("Retrying Color sensor initialization...");
+    bool success = colorSensor.initialize();
+    
+    if (success) {
+        SerialQueueManager::getInstance().queueMessage("Color sensor retry initialization successful!");
+        sensorInitialized[COLOR_SENSOR] = true;
     }
     
     return success;

@@ -111,14 +111,3 @@ void SideTofManager::turnOffSideTofs() {
     isInitialized = false;
     SerialQueueManager::getInstance().queueMessage("Side TOF sensors turned off");
 }
-
-SideTofCounts SideTofManager::getBothSideTofCounts() {
-    // This method provides direct access for legacy code
-    // It also triggers the timeout reset by accessing buffer data
-    SideTofData data = SensorDataBuffer::getInstance().getLatestSideTofData();
-    
-    return {
-        data.leftCounts,
-        data.rightCounts
-    };
-}

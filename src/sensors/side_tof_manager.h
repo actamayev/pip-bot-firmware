@@ -22,9 +22,6 @@ class SideTofManager : public Singleton<SideTofManager> {
         bool shouldBePolling() const;
         
         void turnOffSideTofs();
-        
-        // Legacy method for backward compatibility
-        SideTofCounts getBothSideTofCounts();
 
     private:
         SideTofManager() = default;

@@ -126,6 +126,12 @@ void TaskManager::sensorPollingTask(void* parameter) {
         if (MultizoneTofSensor::getInstance().shouldBePolling()) {
             MultizoneTofSensor::getInstance().updateSensorData();
         }
+        if (SideTofManager::getInstance().shouldBePolling()) {
+            SideTofManager::getInstance().updateSensorData();
+        }
+        if (ColorSensor::getInstance().shouldBePolling()) {
+            ColorSensor::getInstance().updateSensorData();
+        }
         vTaskDelay(pdMS_TO_TICKS(5));  // Same timing as before
     }
 }

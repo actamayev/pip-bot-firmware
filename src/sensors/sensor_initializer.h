@@ -18,7 +18,7 @@ class SensorInitializer : public Singleton<SensorInitializer> {
             IMU,
             SIDE_TOFS,        // Added side TOF support
             // IR_SENSORS,
-            // COLOR_SENSOR,
+            COLOR_SENSOR,
             // Add more sensors as needed
             SENSOR_COUNT
         };
@@ -26,7 +26,8 @@ class SensorInitializer : public Singleton<SensorInitializer> {
         bool tryInitializeMultizoneTof();
         bool tryInitializeIMU();
         bool tryInitializeSideTofs();      // Added side TOF method
-        
+        bool tryInitializeColorSensor();  // Added color sensor method
+
         bool isSensorInitialized(SensorType sensor) const;
         bool areAllSensorsInitialized() const;
     private:
@@ -34,8 +35,8 @@ class SensorInitializer : public Singleton<SensorInitializer> {
         
         void initializeMultizoneTof();
         void initializeIMU();
-        // void initializeColorSensor();
         void initializeSideTofs();         // Added side TOF initialization
+        void initializeColorSensor();
         void initializeIRSensors();
         
         bool sensorInitialized[SENSOR_COUNT];
