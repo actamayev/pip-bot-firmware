@@ -24,7 +24,7 @@ void SendDataToServer::attachIRData(JsonObject& payload) {
 void SendDataToServer::attachImuData(JsonObject& payload) {
     // Now using SensorDataBuffer directly for cleaner access
     SensorDataBuffer& buffer = SensorDataBuffer::getInstance();
-    
+
     // Get Euler angles (this will reset quaternion timeout)
     EulerAngles eulerAngles = buffer.getLatestEulerAngles();
     //ROLL AND PITCH ARE SWITCHED ON PURPOSE
