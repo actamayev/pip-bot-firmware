@@ -7,6 +7,7 @@
 
 class SideTofManager : public Singleton<SideTofManager> {
     friend class Singleton<SideTofManager>;
+    friend class TaskManager;
 
     public:
         SideTimeOfFlightSensor leftSideTofSensor;
@@ -16,10 +17,6 @@ class SideTofManager : public Singleton<SideTofManager> {
         bool initialize();
         bool canRetryInitialization() const;
         bool needsInitialization() const;
-        
-        // New buffer-based methods following IMU/TOF pattern
-        void updateSensorData();  // Single read, write to buffer
-        bool shouldBePolling() const;
         
         void turnOffSideTofs();
 
@@ -31,4 +28,8 @@ class SideTofManager : public Singleton<SideTofManager> {
         
         void enableSideTofSensors();
         void disableSideTofSensors();
+
+        // New buffer-based methods following IMU/TOF pattern
+        void updateSensorData();  // Single read, write to buffer
+        bool shouldBePolling() const;
 };

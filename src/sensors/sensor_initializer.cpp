@@ -10,6 +10,7 @@ SensorInitializer::SensorInitializer() {
     initializeIMU();
     initializeSideTofs();      // Added side TOF initialization
     initializeColorSensor();  // Added color sensor initialization
+    initializeIRSensors();  // Uncomment this line
 }
 
 bool SensorInitializer::isSensorInitialized(SensorType sensor) const {
@@ -75,8 +76,9 @@ void SensorInitializer::initializeSideTofs() {
 
 void SensorInitializer::initializeIRSensors() {
     SerialQueueManager::getInstance().queueMessage("Initializing IR sensors...");
-    IrSensor::getInstance();
-    // sensorInitialized[IR_SENSORS] = true;
+    IrSensor::getInstance();  // Simple initialization - just creates instance
+    SerialQueueManager::getInstance().queueMessage("IR sensors setup complete");
+    sensorInitialized[IR_SENSORS] = true;  // Uncomment this line
 }
 
 bool SensorInitializer::tryInitializeMultizoneTof() {
@@ -180,4 +182,12 @@ bool SensorInitializer::tryInitializeColorSensor() {
     }
     
     return success;
+}
+
+bool SensorInitializer::tryInitializeIrSensors() {
+    // IR sensors don't need complex retry logic - just check if they exist
+    if (!isSensorInitialized(IR_SENSORS)) {
+        initializeIRSensors();
+    }
+    return isSensorInitialized(IR_SENSORS);
 }

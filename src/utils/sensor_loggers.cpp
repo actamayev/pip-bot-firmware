@@ -77,20 +77,20 @@ void imuLogger() {
     lastImuPrintTime = millis();
 }
 
-// void sideTofsLogger() {
-//     static unsigned long lastPrintTime = 0;
-//     const unsigned long PRINT_INTERVAL = 50; // Print every 500ms
+void sideTofsLogger() {
+    static unsigned long lastPrintTime = 0;
+    const unsigned long PRINT_INTERVAL = 50; // Print every 500ms
     
-//     if (millis() - lastPrintTime < PRINT_INTERVAL) return;
-//     SideTofCounts tofCounts = SideTofManager::getInstance().getBothSideTofCounts();
-//     // DisplayScreen::getInstance().showDistanceSensors(tofCounts);
+    if (millis() - lastPrintTime < PRINT_INTERVAL) return;
+    SideTofData tofCounts = SensorDataBuffer::getInstance().getLatestSideTofData();
+    // DisplayScreen::getInstance().showDistanceSensors(tofCounts);
 
-//     char buffer[128];
-//     snprintf(buffer, sizeof(buffer), "Left TOF: %u counts              || Right TOF: %u counts", 
-//             tofCounts.leftCounts, tofCounts.rightCounts);
-//     SerialQueueManager::getInstance().queueMessage(buffer, SerialPriority::LOW_PRIO);
-//     lastPrintTime = millis();
-// }
+    char buffer[128];
+    snprintf(buffer, sizeof(buffer), "Left TOF: %u counts              || Right TOF: %u counts", 
+            tofCounts.leftCounts, tofCounts.rightCounts);
+    SerialQueueManager::getInstance().queueMessage(buffer, SerialPriority::LOW_PRIO);
+    lastPrintTime = millis();
+}
 
 void setupButtonLoggers() {
     Buttons::getInstance().setButton1ClickHandler([](Button2& btn) {

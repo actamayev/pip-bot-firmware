@@ -7,6 +7,7 @@
 
 class ColorSensor : public Singleton<ColorSensor> {
     friend class Singleton<ColorSensor>;
+    friend class TaskManager;
 
     public:
         ColorSensor() = default;
@@ -14,14 +15,6 @@ class ColorSensor : public Singleton<ColorSensor> {
         bool initialize();
         bool canRetryInitialization() const;
         bool needsInitialization() const { return !isInitialized; }
-        unsigned int getInitRetryCount() const { return initRetryCount; }
-        unsigned int getMaxInitRetries() const { return MAX_INIT_RETRIES; }
-        
-        // New buffer-based methods following the established pattern
-        void updateSensorData();  // Single read, write to buffer
-        bool shouldBePolling() const;
-
-        bool isSensorConnected() { return sensorConnected; }
 
     private:
         void read_color_sensor();
@@ -56,4 +49,8 @@ class ColorSensor : public Singleton<ColorSensor> {
         float invMatrix[3][3]; // Store pre-computed inverse matrix
         unsigned long lastUpdateTime = 0;
         static constexpr unsigned long DELAY_BETWEEN_READINGS = 50; // ms - rate limiting
+
+        // New buffer-based methods following the established pattern
+        void updateSensorData();  // Single read, write to buffer
+        bool shouldBePolling() const;
 };

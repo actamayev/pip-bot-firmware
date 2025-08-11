@@ -57,6 +57,21 @@ struct ColorData {
     }
 };
 
+// IR sensor data structure
+struct IrData {
+    float sensorReadings[5];  // S5, S6, S4, S8, S7
+    bool isValid;
+    uint32_t timestamp;
+    
+    IrData() {
+        for (int i = 0; i < 5; i++) {
+            sensorReadings[i] = 0.0f;
+        }
+        isValid = false;
+        timestamp = 0;
+    }
+};
+
 // Combined sensor data structure
 struct ImuSample {
     EulerAngles eulerAngles;
@@ -104,7 +119,8 @@ struct ReportTimeouts {
     std::atomic<uint32_t> tof_last_request{0};
     std::atomic<uint32_t> side_tof_last_request{0};
     std::atomic<uint32_t> color_last_request{0};  // Add color sensor timeout tracking
-    
+    std::atomic<uint32_t> ir_last_request{0};  // Add IR sensor timeout tracking
+
     static constexpr uint32_t TIMEOUT_MS = 60000; // 1 minute
     
     bool shouldEnableQuaternion() const {
@@ -134,6 +150,10 @@ struct ReportTimeouts {
     bool shouldEnableColor() const {
         return (millis() - color_last_request.load()) < TIMEOUT_MS;
     }
+
+    bool shouldEnableIr() const {
+        return (millis() - ir_last_request.load()) < TIMEOUT_MS;
+    }
 };
 
 class SensorDataBuffer : public Singleton<SensorDataBuffer> {
@@ -142,6 +162,7 @@ class SensorDataBuffer : public Singleton<SensorDataBuffer> {
     friend class MultizoneTofSensor;
     friend class SideTofManager;
     friend class ColorSensor;  // Add color sensor as friend
+    friend class IrSensor;  // Add IR sensor as friend
 
     public:        
         // IMU Read methods (called from any core, resets timeouts)
@@ -170,6 +191,12 @@ class SensorDataBuffer : public Singleton<SensorDataBuffer> {
         uint8_t getLatestBlueValue();
         bool isColorDataValid();
         
+        // IR sensor Read methods (called from any core, resets timeouts)
+        IrData getLatestIrData();
+        float getLatestIrSensorReading(uint8_t index);  // index 0-4
+        float* getLatestIrSensorReadings();  // Returns array of all 5
+        bool isIrDataValid();
+
         // Convenience methods for individual values
         float getLatestPitch();
         float getLatestYaw();
@@ -206,23 +233,28 @@ class SensorDataBuffer : public Singleton<SensorDataBuffer> {
         void updateTofData(const TofData& tof);
         void updateSideTofData(const SideTofData& sideTof);
         void updateColorData(const ColorData& color);  // Add color sensor update method
-        
+        void updateIrData(const IrData& ir);  // Add IR sensor update method
+
         // Thread-safe data storage
         ImuSample currentSample;
         TofData currentTofData;
         SideTofData currentSideTofData;
         ColorData currentColorData;  // Add color sensor data storage
+        IrData currentIrData;  // Add IR sensor data storage
+
         std::atomic<uint32_t> lastUpdateTime{0};
         std::atomic<uint32_t> lastTofUpdateTime{0};
         std::atomic<uint32_t> lastSideTofUpdateTime{0};
         std::atomic<uint32_t> lastColorUpdateTime{0};  // Separate timestamp for color sensor
-        
+        std::atomic<uint32_t> lastIrUpdateTime{0};  // Separate timestamp for IR
+
         // Timeout tracking for each report type
         ReportTimeouts timeouts;
-        
+
         // Helper to update timestamp
         void markDataUpdated();
         void markTofDataUpdated();
         void markSideTofDataUpdated();
         void markColorDataUpdated();  // Separate method for color sensor timestamp
+        void markIrDataUpdated();  // Separate method for IR timestamp
 };

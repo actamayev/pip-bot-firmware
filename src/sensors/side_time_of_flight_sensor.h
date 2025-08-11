@@ -9,21 +9,14 @@
 #include "sensor_data_buffer.h"
 
 class SideTimeOfFlightSensor {
+    friend class SideTofManager;
+
     public:
         SideTimeOfFlightSensor() = default;
 
         bool initialize(const uint8_t TOF_ADDRESS);
         bool canRetryInitialization() const;
         bool needsInitialization() const { return !isInitialized; }
-        unsigned int getInitRetryCount() const { return initRetryCount; }
-        unsigned int getMaxInitRetries() const { return MAX_INIT_RETRIES; }
-        
-        // New buffer-based methods following the established pattern
-        void updateSensorData();  // Read sensor and return data (don't store locally)
-        bool shouldBePolling() const { return isInitialized; }  // Simple - just check if initialized
-        
-        // For manager to get individual readings
-        uint16_t getCurrentCounts();
 
     private:
         uint8_t sensorAddress = 0; // Store the specific sensor address
@@ -51,4 +44,10 @@ class SideTimeOfFlightSensor {
         // For rate limiting reads
         unsigned long _lastUpdateTime = 0;
         static constexpr unsigned long DELAY_BETWEEN_READINGS = 10; //ms
+
+        // New buffer-based methods following the established pattern
+        void updateSensorData();  // Read sensor and return data (don't store locally)
+        
+        // For manager to get individual readings
+        uint16_t getCurrentCounts();
 };

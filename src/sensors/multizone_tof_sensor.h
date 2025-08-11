@@ -13,6 +13,7 @@
 
 class MultizoneTofSensor : public Singleton<MultizoneTofSensor> {
     friend class Singleton<MultizoneTofSensor>;
+    friend class TaskManager;
 
     public:
         // Constructor that takes TwoWire instance and optional pin parameters
@@ -21,10 +22,6 @@ class MultizoneTofSensor : public Singleton<MultizoneTofSensor> {
 
         bool initialize();
         bool canRetryInitialization() const;
-
-        // New buffer-based methods following IMU pattern
-        void updateSensorData();  // Single read, write to buffer
-        bool shouldBePolling() const;
 
         unsigned int getInitRetryCount() const { return initRetryCount; }
         unsigned int getMaxInitRetries() const { return MAX_INIT_RETRIES; }
@@ -81,4 +78,8 @@ class MultizoneTofSensor : public Singleton<MultizoneTofSensor> {
         uint32_t WATCHDOG_TIMEOUT = 2000;   // 2 seconds without data before reset
         unsigned long lastValidDataTime = millis();   // Track when we last got valid data
         bool sensorActive = false;        // Flag to track if sensor is actively ranging
+
+        // New buffer-based methods following IMU pattern
+        void updateSensorData();  // Single read, write to buffer
+        bool shouldBePolling() const;
 };

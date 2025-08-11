@@ -10,15 +10,20 @@
 
 // Add IR sensor data to the provided JSON payload
 void SendDataToServer::attachIRData(JsonObject& payload) {
-    float* irSensorData = IrSensor::getInstance().getSensorData();
+    SensorDataBuffer& buffer = SensorDataBuffer::getInstance();
+    
+    // Get IR sensor data (this will reset IR timeout)
+    IrData irData = buffer.getLatestIrData();
 
     // Create a JSON array for the sensor readings
     JsonArray irArray = payload.createNestedArray("irSensorData");
     
     // Add each sensor reading to the array
     for (uint8_t i = 0; i < 5; i++) {
-        irArray.add(irSensorData[i]);
+        irArray.add(irData.sensorReadings[i]);
     }
+    
+    payload["irValid"] = irData.isValid;
 }
 
 void SendDataToServer::attachImuData(JsonObject& payload) {

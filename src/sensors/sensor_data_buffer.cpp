@@ -49,6 +49,12 @@ void SensorDataBuffer::updateColorData(const ColorData& color) {
     markColorDataUpdated();
 }
 
+// NEW: IR sensor update method
+void SensorDataBuffer::updateIrData(const IrData& ir) {
+    currentIrData = ir;
+    markIrDataUpdated();
+}
+
 // IMU Read methods - reset timeouts when called (existing)
 EulerAngles SensorDataBuffer::getLatestEulerAngles() {
     timeouts.quaternion_last_request.store(millis());
@@ -143,6 +149,30 @@ bool SensorDataBuffer::isColorDataValid() {
     return currentColorData.isValid;
 }
 
+// NEW: IR sensor Read methods - reset timeouts when called
+IrData SensorDataBuffer::getLatestIrData() {
+    timeouts.ir_last_request.store(millis());
+    return currentIrData;
+}
+
+float SensorDataBuffer::getLatestIrSensorReading(uint8_t index) {
+    timeouts.ir_last_request.store(millis());
+    if (index < 5) {
+        return currentIrData.sensorReadings[index];
+    }
+    return 0.0f;
+}
+
+float* SensorDataBuffer::getLatestIrSensorReadings() {
+    timeouts.ir_last_request.store(millis());
+    return currentIrData.sensorReadings;
+}
+
+bool SensorDataBuffer::isIrDataValid() {
+    timeouts.ir_last_request.store(millis());
+    return currentIrData.isValid;
+}
+
 // Convenience methods for individual values (existing)
 float SensorDataBuffer::getLatestPitch() {
     return getLatestEulerAngles().roll;  // Note: roll maps to pitch in your system
@@ -217,6 +247,7 @@ void SensorDataBuffer::startPollingAllSensors() {
     timeouts.tof_last_request.store(currentTime);
     timeouts.side_tof_last_request.store(currentTime);
     timeouts.color_last_request.store(currentTime);  // Include color sensor
+    timeouts.ir_last_request.store(currentTime);  // Include IR sensor
 }
 
 void SensorDataBuffer::stopPollingAllSensors() {
@@ -229,6 +260,7 @@ void SensorDataBuffer::stopPollingAllSensors() {
     timeouts.tof_last_request.store(expiredTime);
     timeouts.side_tof_last_request.store(expiredTime);
     timeouts.color_last_request.store(expiredTime);  // Include color sensor
+    timeouts.ir_last_request.store(expiredTime);  // Include IR sensor
 }
 
 void SensorDataBuffer::markDataUpdated() {
@@ -245,4 +277,8 @@ void SensorDataBuffer::markSideTofDataUpdated() {
 
 void SensorDataBuffer::markColorDataUpdated() {
     lastColorUpdateTime.store(millis());
+}
+
+void SensorDataBuffer::markIrDataUpdated() {
+    lastIrUpdateTime.store(millis());
 }

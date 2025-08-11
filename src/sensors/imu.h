@@ -8,15 +8,12 @@
 
 class ImuSensor : public Singleton<ImuSensor> {
     friend class Singleton<ImuSensor>;
+    friend class TaskManager;
 
     public:
         ImuSensor() = default;
 
         bool initialize();
-
-        // Polling control
-        void updateSensorData();  // Single read, write to buffer
-        bool shouldBePolling() const;
 
         bool needsInitialization() const { return !isInitialized; }
         bool canRetryInitialization() const;
@@ -47,4 +44,8 @@ class ImuSensor : public Singleton<ImuSensor> {
         const uint8_t MAX_INIT_RETRIES = 3;
         unsigned long lastInitAttempt = 0;
         const unsigned long INIT_RETRY_INTERVAL = 1000; // 1 second between retry attempts
+
+        // Polling control
+        void updateSensorData();  // Single read, write to buffer
+        bool shouldBePolling() const;
 };

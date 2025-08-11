@@ -261,22 +261,22 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
                     case SENSOR_MAG_FIELD_Z:
                         value = SensorDataBuffer::getInstance().getLatestMagneticFieldZ();
                         break;
-                    // case SENSOR_SIDE_LEFT_PROXIMITY: {
-                    //     uint16_t counts = SideTofManager::getInstance().leftSideTofSensor.getCounts();
-                    //     registers[regId].asBool = (counts > LEFT_PROXIMITY_THRESHOLD);
-                    //     registerTypes[regId] = VAR_BOOL;
-                    //     registerInitialized[regId] = true;
-                    //     skipDefaultAssignment = true;  // Set flag to skip default assignment
-                    //     break;
-                    // }
-                    // case SENSOR_SIDE_RIGHT_PROXIMITY: {
-                    //     uint16_t counts = SideTofManager::getInstance().rightSideTofSensor.getCounts();
-                    //     registers[regId].asBool = (counts > RIGHT_PROXIMITY_THRESHOLD);
-                    //     registerTypes[regId] = VAR_BOOL;
-                    //     registerInitialized[regId] = true;
-                    //     skipDefaultAssignment = true;  // Set flag to skip default assignment
-                    //     break;
-                    // }
+                    case SENSOR_SIDE_LEFT_PROXIMITY: {
+                        uint16_t counts = SensorDataBuffer::getInstance().getLatestLeftSideTofCounts();
+                        registers[regId].asBool = (counts > LEFT_PROXIMITY_THRESHOLD);
+                        registerTypes[regId] = VAR_BOOL;
+                        registerInitialized[regId] = true;
+                        skipDefaultAssignment = true;  // Set flag to skip default assignment
+                        break;
+                    }
+                    case SENSOR_SIDE_RIGHT_PROXIMITY: {
+                        uint16_t counts = SensorDataBuffer::getInstance().getLatestRightSideTofCounts();
+                        registers[regId].asBool = (counts > RIGHT_PROXIMITY_THRESHOLD);
+                        registerTypes[regId] = VAR_BOOL;
+                        registerInitialized[regId] = true;
+                        skipDefaultAssignment = true;  // Set flag to skip default assignment
+                        break;
+                    }
                     case SENSOR_FRONT_PROXIMITY: {
                         float isObjectDetected = SensorDataBuffer::getInstance().isObjectDetectedTof();
                         registers[regId].asBool = isObjectDetected;

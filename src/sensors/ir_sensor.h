@@ -2,19 +2,20 @@
 #include "Arduino.h"
 #include "utils/structs.h"
 #include "utils/singleton.h"
+#include "sensors/sensor_data_buffer.h"
 
 class IrSensor : public Singleton<IrSensor> {
     friend class Singleton<IrSensor>;
+    friend class TaskManager;
 
     public:
         IrSensor();
-        float* getSensorData();
 
     private:
         void read_ir_sensor();
         void setMuxChannel(bool A0, bool A1, bool A2);
 
-        static constexpr MuxChannel channels[5] = {
+        const MuxChannel channels[5] = {
             {"S5", LOW, LOW, HIGH},
             {"S6", HIGH, LOW, HIGH},
             {"S4", LOW, HIGH, HIGH},
@@ -23,4 +24,14 @@ class IrSensor : public Singleton<IrSensor> {
         };
         const float cutoff = 1.75f;
         float sensorReadings[5];
+
+        bool sensorEnabled = false;  // Track if sensor is actively enabled
+        void enableIrSensor();
+        void disableIrSensor();
+        unsigned long lastUpdateTime = 0;
+        static constexpr unsigned long DELAY_BETWEEN_READINGS = 20; // ms - rate limiting
+
+        // Task Manager Methods:
+        void updateSensorData();  // Single read, write to buffer
+        bool shouldBePolling() const;
 };
