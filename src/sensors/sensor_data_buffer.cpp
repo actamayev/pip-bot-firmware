@@ -31,10 +31,16 @@ void SensorDataBuffer::updateMagnetometer(const MagnetometerData& mag) {
     markDataUpdated();
 }
 
-// NEW: TOF update method
+// TOF update method (existing)
 void SensorDataBuffer::updateTofData(const TofData& tof) {
     currentTofData = tof;
     markTofDataUpdated();
+}
+
+// NEW: Side TOF update method
+void SensorDataBuffer::updateSideTofData(const SideTofData& sideTof) {
+    currentSideTofData = sideTof;
+    markSideTofDataUpdated();
 }
 
 // IMU Read methods - reset timeouts when called (existing)
@@ -63,7 +69,7 @@ MagnetometerData SensorDataBuffer::getLatestMagnetometer() {
     return currentSample.magnetometer;
 }
 
-// NEW: TOF Read methods - reset timeouts when called
+// TOF Read methods - reset timeouts when called (existing)
 TofData SensorDataBuffer::getLatestTofData() {
     timeouts.tof_last_request.store(millis());
     return currentTofData;
@@ -77,6 +83,32 @@ VL53L7CX_ResultsData SensorDataBuffer::getLatestTofRawData() {
 bool SensorDataBuffer::isObjectDetectedTof() {
     timeouts.tof_last_request.store(millis());
     return currentTofData.isObjectDetected && currentTofData.isValid;
+}
+
+// NEW: Side TOF Read methods - reset timeouts when called
+SideTofData SensorDataBuffer::getLatestSideTofData() {
+    timeouts.side_tof_last_request.store(millis());
+    return currentSideTofData;
+}
+
+uint16_t SensorDataBuffer::getLatestLeftSideTofCounts() {
+    timeouts.side_tof_last_request.store(millis());
+    return currentSideTofData.leftCounts;
+}
+
+uint16_t SensorDataBuffer::getLatestRightSideTofCounts() {
+    timeouts.side_tof_last_request.store(millis());
+    return currentSideTofData.rightCounts;
+}
+
+bool SensorDataBuffer::isLeftSideTofValid() {
+    timeouts.side_tof_last_request.store(millis());
+    return currentSideTofData.leftValid;
+}
+
+bool SensorDataBuffer::isRightSideTofValid() {
+    timeouts.side_tof_last_request.store(millis());
+    return currentSideTofData.rightValid;
 }
 
 // Convenience methods for individual values (existing)
@@ -150,7 +182,8 @@ void SensorDataBuffer::startPollingAllSensors() {
     timeouts.accelerometer_last_request.store(currentTime);
     timeouts.gyroscope_last_request.store(currentTime);
     timeouts.magnetometer_last_request.store(currentTime);
-    timeouts.tof_last_request.store(currentTime);  // Include TOF
+    timeouts.tof_last_request.store(currentTime);
+    timeouts.side_tof_last_request.store(currentTime);  // Include side TOF
 }
 
 void SensorDataBuffer::stopPollingAllSensors() {
@@ -160,7 +193,8 @@ void SensorDataBuffer::stopPollingAllSensors() {
     timeouts.accelerometer_last_request.store(expiredTime);
     timeouts.gyroscope_last_request.store(expiredTime);
     timeouts.magnetometer_last_request.store(expiredTime);
-    timeouts.tof_last_request.store(expiredTime);  // Include TOF
+    timeouts.tof_last_request.store(expiredTime);
+    timeouts.side_tof_last_request.store(expiredTime);  // Include side TOF
 }
 
 void SensorDataBuffer::markDataUpdated() {
@@ -169,4 +203,8 @@ void SensorDataBuffer::markDataUpdated() {
 
 void SensorDataBuffer::markTofDataUpdated() {
     lastTofUpdateTime.store(millis());
+}
+
+void SensorDataBuffer::markSideTofDataUpdated() {
+    lastSideTofUpdateTime.store(millis());
 }

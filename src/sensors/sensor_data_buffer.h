@@ -23,6 +23,23 @@ struct TofData {
     }
 };
 
+// Side TOF sensor data structure
+struct SideTofData {
+    uint16_t leftCounts;
+    uint16_t rightCounts;
+    bool leftValid;
+    bool rightValid;
+    uint32_t timestamp;
+    
+    SideTofData() {
+        leftCounts = 0;
+        rightCounts = 0;
+        leftValid = false;
+        rightValid = false;
+        timestamp = 0;
+    }
+};
+
 // Combined sensor data structure
 struct ImuSample {
     EulerAngles eulerAngles;
@@ -67,7 +84,8 @@ struct ReportTimeouts {
     std::atomic<uint32_t> accelerometer_last_request{0};
     std::atomic<uint32_t> gyroscope_last_request{0};
     std::atomic<uint32_t> magnetometer_last_request{0};
-    std::atomic<uint32_t> tof_last_request{0};  // Add TOF timeout tracking
+    std::atomic<uint32_t> tof_last_request{0};
+    std::atomic<uint32_t> side_tof_last_request{0};  // Add side TOF timeout tracking
     
     static constexpr uint32_t TIMEOUT_MS = 60000; // 1 minute
     
@@ -90,12 +108,17 @@ struct ReportTimeouts {
     bool shouldEnableTof() const {
         return (millis() - tof_last_request.load()) < TIMEOUT_MS;
     }
+    
+    bool shouldEnableSideTof() const {
+        return (millis() - side_tof_last_request.load()) < TIMEOUT_MS;
+    }
 };
 
 class SensorDataBuffer : public Singleton<SensorDataBuffer> {
     friend class Singleton<SensorDataBuffer>;
     friend class ImuSensor;
-    friend class MultizoneTofSensor;  // Add TOF sensor as friend
+    friend class MultizoneTofSensor;
+    friend class SideTofManager;  // Add side TOF manager as friend
 
     public:        
         // IMU Read methods (called from any core, resets timeouts)
@@ -109,6 +132,13 @@ class SensorDataBuffer : public Singleton<SensorDataBuffer> {
         TofData getLatestTofData();
         VL53L7CX_ResultsData getLatestTofRawData();
         bool isObjectDetectedTof();
+        
+        // Side TOF Read methods (called from any core, resets timeouts)
+        SideTofData getLatestSideTofData();
+        uint16_t getLatestLeftSideTofCounts();
+        uint16_t getLatestRightSideTofCounts();
+        bool isLeftSideTofValid();
+        bool isRightSideTofValid();
         
         // Convenience methods for individual values
         float getLatestPitch();
@@ -143,18 +173,22 @@ class SensorDataBuffer : public Singleton<SensorDataBuffer> {
         void updateAccelerometer(const AccelerometerData& accel);
         void updateGyroscope(const GyroscopeData& gyro);
         void updateMagnetometer(const MagnetometerData& mag);
-        void updateTofData(const TofData& tof);  // Add TOF update method
+        void updateTofData(const TofData& tof);
+        void updateSideTofData(const SideTofData& sideTof);  // Add side TOF update method
         
         // Thread-safe data storage
         ImuSample currentSample;
-        TofData currentTofData;  // Add TOF data storage
+        TofData currentTofData;
+        SideTofData currentSideTofData;  // Add side TOF data storage
         std::atomic<uint32_t> lastUpdateTime{0};
-        std::atomic<uint32_t> lastTofUpdateTime{0};  // Separate timestamp for TOF
+        std::atomic<uint32_t> lastTofUpdateTime{0};
+        std::atomic<uint32_t> lastSideTofUpdateTime{0};  // Separate timestamp for side TOF
         
         // Timeout tracking for each report type
         ReportTimeouts timeouts;
         
         // Helper to update timestamp
         void markDataUpdated();
-        void markTofDataUpdated();  // Separate method for TOF timestamp
+        void markTofDataUpdated();
+        void markSideTofDataUpdated();  // Separate method for side TOF timestamp
 };
