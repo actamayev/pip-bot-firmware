@@ -363,7 +363,7 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             SerialManager::getInstance().isConnected = true;
             SerialManager::getInstance().lastActivityTime = millis();
             SerialManager::getInstance().sendHandshakeConfirmation();
-            SensorPollingManager::getInstance().startPolling();
+            SensorDataBuffer::getInstance().startPollingAllSensors();
 
             // Send initial battery data on handshake
             const BatteryState& batteryState = BatteryMonitor::getInstance().getBatteryState();
@@ -398,7 +398,7 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             break;
         }
         case DataMessageType::START_SENSOR_POLLING: {
-            SensorPollingManager::getInstance().startPolling();
+            SensorDataBuffer::getInstance().startPollingAllSensors();
             break;
         }
         case DataMessageType::WIFI_CREDENTIALS: {

@@ -22,23 +22,30 @@ void SendDataToServer::attachIRData(JsonObject& payload) {
 }
 
 void SendDataToServer::attachImuData(JsonObject& payload) {
-    const EulerAngles& eulerAngles = ImuSensor::getInstance().getEulerAngles();
+    // Now using SensorDataBuffer directly for cleaner access
+    SensorDataBuffer& buffer = SensorDataBuffer::getInstance();
+    
+    // Get Euler angles (this will reset quaternion timeout)
+    EulerAngles eulerAngles = buffer.getLatestEulerAngles();
     //ROLL AND PITCH ARE SWITCHED ON PURPOSE
     payload["pitch"] = eulerAngles.roll;
     payload["yaw"] = eulerAngles.yaw;
     payload["roll"] = eulerAngles.pitch;
 
-    const AccelerometerData& accelerometerData = ImuSensor::getInstance().getAccelerometerData();
+    // Get accelerometer data (this will reset accelerometer timeout)
+    AccelerometerData accelerometerData = buffer.getLatestAccelerometer();
     payload["aX"] = accelerometerData.aX;
     payload["aY"] = accelerometerData.aY;
     payload["aZ"] = accelerometerData.aZ;
 
-    const GyroscopeData& gyroscopeData = ImuSensor::getInstance().getGyroscopeData();
+    // Get gyroscope data (this will reset gyroscope timeout)
+    GyroscopeData gyroscopeData = buffer.getLatestGyroscope();
     payload["gX"] = gyroscopeData.gX;
     payload["gY"] = gyroscopeData.gY;
     payload["gZ"] = gyroscopeData.gZ;
 
-    const MagnetometerData& magnetometerData = ImuSensor::getInstance().getMagnetometerData();
+    // Get magnetometer data (this will reset magnetometer timeout)
+    MagnetometerData magnetometerData = buffer.getLatestMagnetometer();
     payload["mX"] = magnetometerData.mX;
     payload["mY"] = magnetometerData.mY;
     payload["mZ"] = magnetometerData.mZ;

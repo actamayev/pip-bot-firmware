@@ -10,13 +10,13 @@
 #include "utils/timeout_manager.h"
 #include "actuators/motor_driver.h"
 #include "sensors/encoder_manager.h"
+#include "networking/wifi_manager.h"
 #include "actuators/display_screen.h"
 #include "networking/serial_manager.h"
 #include "utils/preferences_manager.h"
+#include "sensors/sensor_data_buffer.h"
 #include "actuators/led/led_animations.h"
-#include "sensors/sensor_polling_manager.h"
 #include "networking/serial_queue_manager.h"
-#include "networking/wifi_manager.h"
 #include "networking/network_state_mangager.h"
 
 class MessageProcessor : public Singleton<MessageProcessor> {

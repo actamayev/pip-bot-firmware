@@ -56,6 +56,10 @@
 		"list": "cpp",
 		"future": "cpp",
 		"mutex": "cpp",
-		"thread": "cpp"
+		"thread": "cpp",
+		"chrono": "cpp",
+		"csignal": "cpp",
+		"ratio": "cpp",
+		"set": "cpp"
 	}
 }

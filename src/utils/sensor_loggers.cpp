@@ -63,7 +63,7 @@ void imuLogger() {
     const unsigned long IMU_PRINT_INTERVAL = 50; // Print every 500ms
     
     if (millis() - lastImuPrintTime < IMU_PRINT_INTERVAL) return;
-    EulerAngles eulerAngles = ImuSensor::getInstance().getEulerAngles();
+    EulerAngles eulerAngles = SensorDataBuffer::getInstance().getLatestEulerAngles();
     
     if (!eulerAngles.isValid) {
         SerialQueueManager::getInstance().queueMessage("Failed to get IMU data");

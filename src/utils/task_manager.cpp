@@ -74,7 +74,7 @@ void TaskManager::sensorInitTask(void* parameter) {
     
     SerialQueueManager::getInstance().queueMessage("Starting sensor initialization on Core 0...");
     
-   if (!DisplayScreen::getInstance().init()) {
+    if (!DisplayScreen::getInstance().init()) {
         SerialQueueManager::getInstance().queueMessage("Display initialization failed");
     } else {
         SerialQueueManager::getInstance().queueMessage("Display initialized successfully");
@@ -83,30 +83,12 @@ void TaskManager::sensorInitTask(void* parameter) {
     SensorInitializer& initializer = SensorInitializer::getInstance();
 
     // Keep trying until ALL sensors are initialized
-    // This preserves the existing behavior where we don't give up
     while (!initializer.areAllSensorsInitialized()) {
-        // Try each sensor type individually
         if (!initializer.isSensorInitialized(SensorInitializer::IMU)) {
             SerialQueueManager::getInstance().queueMessage("Trying to init IMU...");
             initializer.tryInitializeIMU();
         }
         
-        // if (!initializer.isSensorInitialized(SensorInitializer::MULTIZONE_TOF)) {
-        //     SerialQueueManager::getInstance().queueMessage("Trying to init Multizone TOF...");
-        //     initializer.tryInitializeMultizoneTof();
-        // }
-        
-        // if (!initializer.isSensorInitialized(SensorInitializer::LEFT_SIDE_TOF)) {
-        //     SerialQueueManager::getInstance().queueMessage("Trying to init Left TOF...");
-        //     initializer.tryInitializeLeftSideTof();
-        // }
-        
-        // if (!initializer.isSensorInitialized(SensorInitializer::RIGHT_SIDE_TOF)) {
-        //     SerialQueueManager::getInstance().queueMessage("Trying to init Right TOF...");
-        //     initializer.tryInitializeRightSideTof();
-        // }
-        
-        // Small delay between retry cycles
         vTaskDelay(pdMS_TO_TICKS(100));
     }
     
@@ -118,15 +100,14 @@ void TaskManager::sensorInitTask(void* parameter) {
     bool displayTaskCreated = createDisplayTask();
 
     if (pollingTaskCreated && displayTaskCreated) {
-        SensorPollingManager::getInstance().startPolling();
-        SerialQueueManager::getInstance().queueMessage("All tasks created - initialization complete");
+        SerialQueueManager::getInstance().queueMessage("All tasks created - sensor polling ready");
     } else {
         SerialQueueManager::getInstance().queueMessage("ERROR: Failed to create required tasks!");
     }
     
     // Self-delete - our job is done
     SerialQueueManager::getInstance().queueMessage("SensorInit task self-deleting");
-    sensorInitTaskHandle = NULL;  // Clear handle before deletion
+    sensorInitTaskHandle = NULL;
     vTaskDelete(NULL);
 }
 
@@ -134,9 +115,10 @@ void TaskManager::sensorInitTask(void* parameter) {
 void TaskManager::sensorPollingTask(void* parameter) {
     SerialQueueManager::getInstance().queueMessage("Sensor polling task started");
     
-    // Main polling loop - this preserves all existing SensorPollingManager behavior
     for(;;) {
-        SensorPollingManager::getInstance().update();
+        if (ImuSensor::getInstance().shouldBePolling()) {
+            ImuSensor::getInstance().updateSensorData();
+        }
         vTaskDelay(pdMS_TO_TICKS(5));  // Same timing as before
     }
 }

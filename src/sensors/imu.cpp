@@ -32,221 +32,188 @@ bool ImuSensor::initialize() {
         vTaskDelay(pdMS_TO_TICKS(20));
     }
     
-    // SerialQueueManager::getInstance().queueMessage("Failed to find BNO08x chip (retry %d of %d)\n", 
-    //              initRetryCount, MAX_INIT_RETRIES);
+    SerialQueueManager::getInstance().queueMessage("Failed to find BNO08x chip");
     scanI2C();
     return false;
 }
 
-bool ImuSensor::enableGameRotationVector() {
-    if (!isInitialized) return false;
+void ImuSensor::updateEnabledReports() {
+    if (!isInitialized) return;
+    
+    ReportTimeouts& timeouts = SensorDataBuffer::getInstance().getReportTimeouts();
+    
+    // Enable/disable quaternion reports based on timeout
+    bool shouldEnableQuat = timeouts.shouldEnableQuaternion();
+    if (shouldEnableQuat && !enabledReports.gameRotationVector) {
+        enableGameRotationVector();
+    } else if (!shouldEnableQuat && enabledReports.gameRotationVector) {
+        disableGameRotationVector();
+    }
+    
+    // Enable/disable accelerometer reports
+    bool shouldEnableAccel = timeouts.shouldEnableAccelerometer();
+    if (shouldEnableAccel && !enabledReports.accelerometer) {
+        enableAccelerometer();
+    } else if (!shouldEnableAccel && enabledReports.accelerometer) {
+        disableAccelerometer();
+    }
+    
+    // Enable/disable gyroscope reports
+    bool shouldEnableGyro = timeouts.shouldEnableGyroscope();
+    if (shouldEnableGyro && !enabledReports.gyroscope) {
+        enableGyroscope();
+    } else if (!shouldEnableGyro && enabledReports.gyroscope) {
+        disableGyroscope();
+    }
+    
+    // Enable/disable magnetometer reports
+    bool shouldEnableMag = timeouts.shouldEnableMagnetometer();
+    if (shouldEnableMag && !enabledReports.magneticField) {
+        enableMagneticField();
+    } else if (!shouldEnableMag && enabledReports.magneticField) {
+        disableMagneticField();
+    }
+}
 
-    if (enabledReports.gameRotationVector == true) return true;
+void ImuSensor::enableGameRotationVector() {
+    if (!isInitialized || enabledReports.gameRotationVector) return;
 
     if (!imu.enableReport(SH2_GAME_ROTATION_VECTOR, IMU_UPDATE_FREQ_MICROSECS)) {
         SerialQueueManager::getInstance().queueMessage("Could not enable game rotation vector");
-        return false;
+        return;
     }
     
     enabledReports.gameRotationVector = true;
-    return true;
 }
 
-bool ImuSensor::enableAccelerometer() {
-    if (!isInitialized) return false;
-    
-    if (enabledReports.accelerometer == true) return true;
+void ImuSensor::enableAccelerometer() {
+    if (!isInitialized || enabledReports.accelerometer) return;
 
     if (!imu.enableReport(SH2_ACCELEROMETER, IMU_UPDATE_FREQ_MICROSECS)) {
         SerialQueueManager::getInstance().queueMessage("Could not enable accelerometer");
-        return false;
+        return;
     }
     
     enabledReports.accelerometer = true;
-    return true;
+    return;
 }
 
-bool ImuSensor::enableGyroscope() {
-    if (!isInitialized) return false;
-    
-    if (enabledReports.gyroscope == true) return true;
+void ImuSensor::enableGyroscope() {
+    if (!isInitialized || enabledReports.gyroscope) return;
 
     if (!imu.enableReport(SH2_GYROSCOPE_CALIBRATED, IMU_UPDATE_FREQ_MICROSECS)) {
         SerialQueueManager::getInstance().queueMessage("Could not enable gyroscope");
-        return false;
+        return;
     }
     
     enabledReports.gyroscope = true;
-    return true;
+    return;
 }
 
-bool ImuSensor::enableMagneticField() {
-    if (!isInitialized) return false;
-    
-    if (enabledReports.magneticField == true) return true;
+void ImuSensor::enableMagneticField() {
+    if (!isInitialized || enabledReports.magneticField) return;
 
     if (!imu.enableReport(SH2_MAGNETIC_FIELD_CALIBRATED, IMU_UPDATE_FREQ_MICROSECS)) {
         SerialQueueManager::getInstance().queueMessage("Could not enable magnetic field");
-        return false;
+        return;
     }
     
     enabledReports.magneticField = true;
-    return true;
+    return;
 }
 
-bool ImuSensor::getImuData() {
+void ImuSensor::disableGameRotationVector() {
+    // Note: BNO08x doesn't have a clean disable method, so we just mark as disabled
+    enabledReports.gameRotationVector = false;
+}
+
+void ImuSensor::disableAccelerometer() {
+    enabledReports.accelerometer = false;
+}
+
+void ImuSensor::disableGyroscope() {
+    enabledReports.gyroscope = false;
+}
+
+void ImuSensor::disableMagneticField() {
+    enabledReports.magneticField = false;
+}
+
+bool ImuSensor::shouldBePolling() const {
     if (!isInitialized) return false;
-    return imu.getSensorEvent(&sensorValue);
-}
-
-const EulerAngles& ImuSensor::getEulerAngles() {
-    updateAllSensorData(); // Non-blocking update
-    return currentEulerAngles;
-}
-
-const AccelerometerData& ImuSensor::getAccelerometerData() {
-    updateAllSensorData(); // Non-blocking update
-    return currentAccelData;
-}
-
-const GyroscopeData& ImuSensor::getGyroscopeData() {
-    updateAllSensorData(); // Non-blocking update
-    return currentGyroData;
-}
-
-const MagnetometerData& ImuSensor::getMagnetometerData() {
-    updateAllSensorData(); // Non-blocking update
-    return currentMagnetometer;
-}
-
-float ImuSensor::getPitch() {
-    return getEulerAngles().roll;
-}
-
-float ImuSensor::getYaw() {
-    return getEulerAngles().yaw;
-}
-
-float ImuSensor::getRoll() {
-    return getEulerAngles().pitch;
-}
-
-float ImuSensor::getXAccel() {
-    return currentAccelData.aX;
-}
-
-float ImuSensor::getYAccel() {
-    return currentAccelData.aY;
-}
-
-float ImuSensor::getZAccel() {
-    return currentAccelData.aZ;
-}
-
-double ImuSensor::getAccelMagnitude() {
-    return sqrt(pow(getXAccel(), 2) + pow(getYAccel(), 2) + pow(getZAccel(), 2));
-}
-
-float ImuSensor::getXRotationRate() {
-    return currentGyroData.gX;
-}
-
-float ImuSensor::getYRotationRate() {
-    return currentGyroData.gY;
-}
-
-float ImuSensor::getZRotationRate() {
-    return currentGyroData.gZ;
-}
-
-float ImuSensor::getMagneticFieldX() {
-    return currentMagnetometer.mX;
-}
-
-float ImuSensor::getMagneticFieldY() {
-    return currentMagnetometer.mY;
-}
-
-float ImuSensor::getMagneticFieldZ() {
-    return currentMagnetometer.mZ;
-}
-
-// Add this implementation to imu.cpp:
-bool ImuSensor::updateAllSensorData() {
-    if (!isInitialized) return false;
-
-    // Enable all reports we need
-    enableGameRotationVector();
-    enableAccelerometer();
-    enableGyroscope();
-    enableMagneticField();
-
-    // Update each data type
-    bool updated = false;
     
-    // Increased attempts to ensure we get all data types in one call
-    // Since we're now skipping the internal rate limiting, this is more important
-    for (int i = 0; i < 8; i++) {
-        if (getImuData()) {
-            switch (sensorValue.sensorId) {
-                case SH2_GAME_ROTATION_VECTOR:
-                    currentQuaternion.qX = sensorValue.un.gameRotationVector.i;
-                    currentQuaternion.qY = sensorValue.un.gameRotationVector.j;
-                    currentQuaternion.qZ = sensorValue.un.gameRotationVector.k;
-                    currentQuaternion.qW = sensorValue.un.gameRotationVector.real;
-                    currentQuaternion.isValid = true;
-                    
-                    // Update Euler angles
-                    quaternionToEuler(
-                        currentQuaternion.qW, 
-                        currentQuaternion.qX, 
-                        currentQuaternion.qY, 
-                        currentQuaternion.qZ,
-                        currentEulerAngles.yaw, 
-                        currentEulerAngles.pitch, 
-                        currentEulerAngles.roll
-                    );
-                    currentEulerAngles.isValid = true;
-                    updated = true;
-                    break;
-                    
-                case SH2_ACCELEROMETER:
-                    currentAccelData.aX = sensorValue.un.accelerometer.x;
-                    currentAccelData.aY = sensorValue.un.accelerometer.y;
-                    currentAccelData.aZ = sensorValue.un.accelerometer.z;
-                    currentAccelData.isValid = true;
-                    updated = true;
-                    break;
-                    
-                case SH2_GYROSCOPE_CALIBRATED:
-                    currentGyroData.gX = sensorValue.un.gyroscope.x;
-                    currentGyroData.gY = sensorValue.un.gyroscope.y;
-                    currentGyroData.gZ = sensorValue.un.gyroscope.z;
-                    currentGyroData.isValid = true;
-                    updated = true;
-                    break;
-                    
-                case SH2_MAGNETIC_FIELD_CALIBRATED:
-                    currentMagnetometer.mX = sensorValue.un.magneticField.x;
-                    currentMagnetometer.mY = sensorValue.un.magneticField.y;
-                    currentMagnetometer.mZ = sensorValue.un.magneticField.z;
-                    currentMagnetometer.isValid = true;
-                    updated = true;
-                    break;
-            }
+    ReportTimeouts& timeouts = SensorDataBuffer::getInstance().getReportTimeouts();
+    
+    // Should poll if any report type is within timeout window
+    return timeouts.shouldEnableQuaternion() || 
+           timeouts.shouldEnableAccelerometer() || 
+           timeouts.shouldEnableGyroscope() || 
+           timeouts.shouldEnableMagnetometer();
+}
+
+// New simplified update method - replaces old updateAllSensorData
+void ImuSensor::updateSensorData() {
+    if (!isInitialized) return;
+
+    // Update enabled reports based on timeouts
+    updateEnabledReports();
+    
+    // Single read attempt - no more 8X loop!
+    if (!imu.getSensorEvent(&sensorValue)) return;
+    SensorDataBuffer& buffer = SensorDataBuffer::getInstance();
+    
+    switch (sensorValue.sensorId) {
+        case SH2_GAME_ROTATION_VECTOR: {
+            QuaternionData quaternion;
+            quaternion.qX = sensorValue.un.gameRotationVector.i;
+            quaternion.qY = sensorValue.un.gameRotationVector.j;
+            quaternion.qZ = sensorValue.un.gameRotationVector.k;
+            quaternion.qW = sensorValue.un.gameRotationVector.real;
+            quaternion.isValid = true;
+            
+            buffer.updateQuaternion(quaternion);
+            break;
+        }
+        
+        case SH2_ACCELEROMETER: {
+            AccelerometerData accel;
+            accel.aX = sensorValue.un.accelerometer.x;
+            accel.aY = sensorValue.un.accelerometer.y;
+            accel.aZ = sensorValue.un.accelerometer.z;
+            accel.isValid = true;
+            
+            buffer.updateAccelerometer(accel);
+            break;
+        }
+        
+        case SH2_GYROSCOPE_CALIBRATED: {
+            GyroscopeData gyro;
+            gyro.gX = sensorValue.un.gyroscope.x;
+            gyro.gY = sensorValue.un.gyroscope.y;
+            gyro.gZ = sensorValue.un.gyroscope.z;
+            gyro.isValid = true;
+            
+            buffer.updateGyroscope(gyro);
+            break;
+        }
+        
+        case SH2_MAGNETIC_FIELD_CALIBRATED: {
+            MagnetometerData mag;
+            mag.mX = sensorValue.un.magneticField.x;
+            mag.mY = sensorValue.un.magneticField.y;
+            mag.mZ = sensorValue.un.magneticField.z;
+            mag.isValid = true;
+            
+            buffer.updateMagnetometer(mag);
+            break;
         }
     }
-    
-    return updated;
 }
 
 void ImuSensor::turnOff() {
-    return;
-    // TODO: Not currently implemented because it causes the ESP to restart upon re-initialization
-    // initialize();
-    // // Disable all reports to save power
-    // enabledReports.accelerometer = false;
-    // enabledReports.gyroscope = false;
-    // enabledReports.magneticField = false;
-    // enabledReports.gameRotationVector = false;
+    // Disable all reports
+    enabledReports.accelerometer = false;
+    enabledReports.gyroscope = false;
+    enabledReports.magneticField = false;
+    enabledReports.gameRotationVector = false;
 }

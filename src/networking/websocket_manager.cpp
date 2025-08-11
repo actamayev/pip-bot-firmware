@@ -70,7 +70,7 @@ void WebSocketManager::connectToWebSocket() {
                 this->lastPingTime = millis(); // Initialize ping time
                 rgbLed.set_led_blue();
                 ledAnimations.stopAnimation();
-                SensorPollingManager::getInstance().startPolling();
+                SensorDataBuffer::getInstance().startPollingAllSensors();
                 break;
             case WebsocketsEvent::ConnectionClosed:
                 SerialQueueManager::getInstance().queueMessage("WebSocket disconnected");

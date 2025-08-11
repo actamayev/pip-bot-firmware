@@ -1,44 +1,22 @@
 #pragma once
 #include <Adafruit_BNO08x.h>
-#include "utils/config.h"
 #include "utils/utils.h"
+#include "utils/config.h"
 #include "utils/structs.h"
 #include "utils/singleton.h"
-#include "sensor_polling_manager.h"
+#include "sensor_data_buffer.h"
 
 class ImuSensor : public Singleton<ImuSensor> {
     friend class Singleton<ImuSensor>;
-    friend class SensorPollingManager;
 
     public:
         ImuSensor() = default;
 
         bool initialize();
 
-        // Quaternion:
-        const EulerAngles& getEulerAngles();
-        float getPitch();
-        float getYaw();
-        float getRoll();
-
-        // Accelerometer:
-        float getXAccel();
-        float getYAccel();
-        float getZAccel();
-        double getAccelMagnitude();
-        const AccelerometerData& getAccelerometerData();
-
-        // Gyroscope:
-        float getXRotationRate();
-        float getYRotationRate();
-        float getZRotationRate();
-        const GyroscopeData& getGyroscopeData();
-
-        // Magnetometer:
-        float getMagneticFieldX();
-        float getMagneticFieldY();
-        float getMagneticFieldZ();
-        const MagnetometerData& getMagnetometerData();
+        // Polling control
+        void updateSensorData();  // Single read, write to buffer
+        bool shouldBePolling() const;
 
         bool needsInitialization() const { return !isInitialized; }
         bool canRetryInitialization() const;
@@ -52,24 +30,19 @@ class ImuSensor : public Singleton<ImuSensor> {
         sh2_SensorValue_t sensorValue;
         bool isInitialized = false;
         
-        EulerAngles currentEulerAngles = {0, 0, 0, false};
-        bool enableGameRotationVector();
-        bool enableAccelerometer();
-        bool enableGyroscope();
-        bool enableMagneticField();
-
-        // Store enabled reports for status checking
+        // Report management based on timeout system
         EnabledReports enabledReports;
+        void updateEnabledReports();  // Check timeouts and enable/disable reports
 
-        bool getImuData();
+        void enableGameRotationVector();
+        void enableAccelerometer();
+        void enableGyroscope();
+        void enableMagneticField();
 
-        QuaternionData currentQuaternion;
-        AccelerometerData currentAccelData;
-        GyroscopeData currentGyroData;
-        MagnetometerData currentMagnetometer;
-
-        // New method to update all sensor data at once
-        bool updateAllSensorData();
+        void disableGameRotationVector();
+        void disableAccelerometer();
+        void disableGyroscope();
+        void disableMagneticField();
 
         uint8_t initRetryCount = 0;
         const uint8_t MAX_INIT_RETRIES = 3;

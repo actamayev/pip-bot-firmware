@@ -60,7 +60,7 @@ bool BytecodeVM::loadProgram(const uint8_t* byteCode, uint16_t size) {
 void BytecodeVM::update() {
     checkUsbSafetyConditions();
     if (program && pc < programSize && isPaused == RUNNING) {
-        SensorPollingManager::getInstance().startPolling();
+        SensorDataBuffer::getInstance().startPollingAllSensors();
     }
 
     if (!program || pc >= programSize || isPaused == PauseState::PAUSED) {
@@ -223,43 +223,43 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
                 // Read the appropriate sensor
                 switch (sensorType) {
                     case SENSOR_PITCH:
-                        value = ImuSensor::getInstance().getPitch();
+                        value = SensorDataBuffer::getInstance().getLatestPitch();
                         break;
                     case SENSOR_ROLL:
-                        value = ImuSensor::getInstance().getRoll();
+                        value = SensorDataBuffer::getInstance().getLatestRoll();
                         break;
                     case SENSOR_YAW:
-                        value = ImuSensor::getInstance().getYaw();
+                        value = SensorDataBuffer::getInstance().getLatestYaw();
                         break;
                     case SENSOR_ACCEL_X:
-                        value = ImuSensor::getInstance().getXAccel();
+                        value = SensorDataBuffer::getInstance().getLatestXAccel();
                         break;
                     case SENSOR_ACCEL_Y:
-                        value = ImuSensor::getInstance().getYAccel();
+                        value = SensorDataBuffer::getInstance().getLatestYAccel();
                         break;
                     case SENSOR_ACCEL_Z:
-                        value = ImuSensor::getInstance().getZAccel();
+                        value = SensorDataBuffer::getInstance().getLatestZAccel();
                         break;
                     case SENSOR_ACCEL_MAG:
-                        value = ImuSensor::getInstance().getAccelMagnitude();
+                        value = SensorDataBuffer::getInstance().getLatestAccelMagnitude();
                         break;
                     case SENSOR_ROT_RATE_X:
-                        value = ImuSensor::getInstance().getXRotationRate();
+                        value = SensorDataBuffer::getInstance().getLatestXRotationRate();
                         break;
                     case SENSOR_ROT_RATE_Y:
-                        value = ImuSensor::getInstance().getYRotationRate();
+                        value = SensorDataBuffer::getInstance().getLatestYRotationRate();
                         break;
                     case SENSOR_ROT_RATE_Z:
-                        value = ImuSensor::getInstance().getZRotationRate();
+                        value = SensorDataBuffer::getInstance().getLatestZRotationRate();
                         break;
                     case SENSOR_MAG_FIELD_X:
-                        value = ImuSensor::getInstance().getMagneticFieldX();
+                        value = SensorDataBuffer::getInstance().getLatestMagneticFieldX();
                         break;
                     case SENSOR_MAG_FIELD_Y:
-                        value = ImuSensor::getInstance().getMagneticFieldY();
+                        value = SensorDataBuffer::getInstance().getLatestMagneticFieldY();
                         break;
                     case SENSOR_MAG_FIELD_Z:
-                        value = ImuSensor::getInstance().getMagneticFieldZ();
+                        value = SensorDataBuffer::getInstance().getLatestMagneticFieldZ();
                         break;
                     // case SENSOR_SIDE_LEFT_PROXIMITY: {
                     //     uint16_t counts = SideTofManager::getInstance().leftSideTofSensor.getCounts();
@@ -511,7 +511,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             // Initialize turning state
             turningInProgress = true;
             targetTurnDegrees = degrees;
-            initialTurnYaw = ImuSensor::getInstance().getYaw();
+            initialTurnYaw = SensorDataBuffer::getInstance().getLatestYaw();
             turnClockwise = clockwise;
             turnStartTime = millis();
 
@@ -657,7 +657,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
 
 void BytecodeVM::updateTurning() {
     // Get current yaw
-    float currentYaw = ImuSensor::getInstance().getYaw();
+    float currentYaw = SensorDataBuffer::getInstance().getLatestYaw();
     
     // Calculate rotation delta with wraparound handling
     float rotationDelta;
