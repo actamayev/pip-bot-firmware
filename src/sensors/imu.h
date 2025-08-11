@@ -29,11 +29,10 @@ class ImuSensor : public Singleton<ImuSensor> {
         Adafruit_BNO08x imu;
         sh2_SensorValue_t sensorValue;
         bool isInitialized = false;
-
+        
         // Report management based on timeout system
         EnabledReports enabledReports;
         void updateEnabledReports();  // Check timeouts and enable/disable reports
-
         void enableGameRotationVector();
         void enableAccelerometer();
         void enableGyroscope();

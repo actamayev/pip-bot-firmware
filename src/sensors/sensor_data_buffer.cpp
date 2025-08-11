@@ -1,11 +1,5 @@
 #include "sensor_data_buffer.h"
 
-// Write methods - called by sensor polling task
-void SensorDataBuffer::updateImuSample(const ImuSample& sample) {
-    currentSample = sample;
-    markDataUpdated();
-}
-
 void SensorDataBuffer::updateQuaternion(const QuaternionData& quaternion) {
     currentSample.quaternion = quaternion;
     // Update derived Euler angles if quaternion is valid
@@ -142,10 +136,6 @@ void SensorDataBuffer::stopPollingAllSensors() {
     timeouts.accelerometer_last_request.store(expiredTime);
     timeouts.gyroscope_last_request.store(expiredTime);
     timeouts.magnetometer_last_request.store(expiredTime);
-}
-
-bool SensorDataBuffer::hasValidData() const {
-    return lastUpdateTime.load() > 0;
 }
 
 void SensorDataBuffer::markDataUpdated() {

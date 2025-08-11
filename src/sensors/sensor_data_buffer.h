@@ -72,15 +72,9 @@ struct ReportTimeouts {
 
 class SensorDataBuffer : public Singleton<SensorDataBuffer> {
     friend class Singleton<SensorDataBuffer>;
+    friend class ImuSensor;
 
-    public:
-        // Write methods (called by sensor polling task on Core 0)
-        void updateImuSample(const ImuSample& sample);
-        void updateQuaternion(const QuaternionData& quaternion);
-        void updateAccelerometer(const AccelerometerData& accel);
-        void updateGyroscope(const GyroscopeData& gyro);
-        void updateMagnetometer(const MagnetometerData& mag);
-        
+    public:        
         // Read methods (called from any core, resets timeouts)
         EulerAngles getLatestEulerAngles();
         QuaternionData getLatestQuaternion();
@@ -112,13 +106,15 @@ class SensorDataBuffer : public Singleton<SensorDataBuffer> {
         
         // Get complete sample (for debugging/logging)
         ImuSample getLatestImuSample();
-        
-        // Check if any data is available
-        bool hasValidData() const;
-        
+
     private:
         SensorDataBuffer() = default;
         
+        // Write methods (called by sensor polling task on Core 0)
+        void updateQuaternion(const QuaternionData& quaternion);
+        void updateAccelerometer(const AccelerometerData& accel);
+        void updateGyroscope(const GyroscopeData& gyro);
+        void updateMagnetometer(const MagnetometerData& mag);
         // Thread-safe data storage
         ImuSample currentSample;
         std::atomic<uint32_t> lastUpdateTime{0};
