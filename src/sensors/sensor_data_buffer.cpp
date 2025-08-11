@@ -1,5 +1,6 @@
 #include "sensor_data_buffer.h"
 
+// IMU update methods (existing)
 void SensorDataBuffer::updateQuaternion(const QuaternionData& quaternion) {
     currentSample.quaternion = quaternion;
     // Update derived Euler angles if quaternion is valid
@@ -30,7 +31,13 @@ void SensorDataBuffer::updateMagnetometer(const MagnetometerData& mag) {
     markDataUpdated();
 }
 
-// Read methods - reset timeouts when called
+// NEW: TOF update method
+void SensorDataBuffer::updateTofData(const TofData& tof) {
+    currentTofData = tof;
+    markTofDataUpdated();
+}
+
+// IMU Read methods - reset timeouts when called (existing)
 EulerAngles SensorDataBuffer::getLatestEulerAngles() {
     timeouts.quaternion_last_request.store(millis());
     return currentSample.eulerAngles;
@@ -56,7 +63,23 @@ MagnetometerData SensorDataBuffer::getLatestMagnetometer() {
     return currentSample.magnetometer;
 }
 
-// Convenience methods for individual values
+// NEW: TOF Read methods - reset timeouts when called
+TofData SensorDataBuffer::getLatestTofData() {
+    timeouts.tof_last_request.store(millis());
+    return currentTofData;
+}
+
+VL53L7CX_ResultsData SensorDataBuffer::getLatestTofRawData() {
+    timeouts.tof_last_request.store(millis());
+    return currentTofData.rawData;
+}
+
+bool SensorDataBuffer::isObjectDetectedTof() {
+    timeouts.tof_last_request.store(millis());
+    return currentTofData.isObjectDetected && currentTofData.isValid;
+}
+
+// Convenience methods for individual values (existing)
 float SensorDataBuffer::getLatestPitch() {
     return getLatestEulerAngles().roll;  // Note: roll maps to pitch in your system
 }
@@ -127,6 +150,7 @@ void SensorDataBuffer::startPollingAllSensors() {
     timeouts.accelerometer_last_request.store(currentTime);
     timeouts.gyroscope_last_request.store(currentTime);
     timeouts.magnetometer_last_request.store(currentTime);
+    timeouts.tof_last_request.store(currentTime);  // Include TOF
 }
 
 void SensorDataBuffer::stopPollingAllSensors() {
@@ -136,8 +160,13 @@ void SensorDataBuffer::stopPollingAllSensors() {
     timeouts.accelerometer_last_request.store(expiredTime);
     timeouts.gyroscope_last_request.store(expiredTime);
     timeouts.magnetometer_last_request.store(expiredTime);
+    timeouts.tof_last_request.store(expiredTime);  // Include TOF
 }
 
 void SensorDataBuffer::markDataUpdated() {
     lastUpdateTime.store(millis());
+}
+
+void SensorDataBuffer::markTofDataUpdated() {
+    lastTofUpdateTime.store(millis());
 }

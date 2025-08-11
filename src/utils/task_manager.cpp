@@ -88,6 +88,10 @@ void TaskManager::sensorInitTask(void* parameter) {
             SerialQueueManager::getInstance().queueMessage("Trying to init IMU...");
             initializer.tryInitializeIMU();
         }
+        // if (!initializer.isSensorInitialized(SensorInitializer::MULTIZONE_TOF)) {
+        //     SerialQueueManager::getInstance().queueMessage("Trying to init Multizone TOF...");
+        //     initializer.tryInitializeMultizoneTof();
+        // }
         
         vTaskDelay(pdMS_TO_TICKS(100));
     }
@@ -118,6 +122,9 @@ void TaskManager::sensorPollingTask(void* parameter) {
     for(;;) {
         if (ImuSensor::getInstance().shouldBePolling()) {
             ImuSensor::getInstance().updateSensorData();
+        }
+        if (MultizoneTofSensor::getInstance().shouldBePolling()) {
+            MultizoneTofSensor::getInstance().updateSensorData();
         }
         vTaskDelay(pdMS_TO_TICKS(5));  // Same timing as before
     }

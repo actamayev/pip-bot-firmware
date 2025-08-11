@@ -1,10 +1,27 @@
 #pragma once
 #include <atomic>
 #include <math.h>
+#include <vl53l7cx_class.h>
 #include "utils/utils.h"
 #include "utils/structs.h"
 #include "utils/singleton.h"
 #include "networking/serial_queue_manager.h"
+
+// TOF sensor data structure
+struct TofData {
+    VL53L7CX_ResultsData rawData;
+    bool isObjectDetected;
+    bool isValid;
+    uint32_t timestamp;
+    
+    TofData() {
+        isObjectDetected = false;
+        isValid = false;
+        timestamp = 0;
+        // Initialize rawData to safe defaults
+        memset(&rawData, 0, sizeof(VL53L7CX_ResultsData));
+    }
+};
 
 // Combined sensor data structure
 struct ImuSample {
@@ -50,6 +67,7 @@ struct ReportTimeouts {
     std::atomic<uint32_t> accelerometer_last_request{0};
     std::atomic<uint32_t> gyroscope_last_request{0};
     std::atomic<uint32_t> magnetometer_last_request{0};
+    std::atomic<uint32_t> tof_last_request{0};  // Add TOF timeout tracking
     
     static constexpr uint32_t TIMEOUT_MS = 60000; // 1 minute
     
@@ -68,19 +86,29 @@ struct ReportTimeouts {
     bool shouldEnableMagnetometer() const {
         return (millis() - magnetometer_last_request.load()) < TIMEOUT_MS;
     }
+    
+    bool shouldEnableTof() const {
+        return (millis() - tof_last_request.load()) < TIMEOUT_MS;
+    }
 };
 
 class SensorDataBuffer : public Singleton<SensorDataBuffer> {
     friend class Singleton<SensorDataBuffer>;
     friend class ImuSensor;
+    friend class MultizoneTofSensor;  // Add TOF sensor as friend
 
     public:        
-        // Read methods (called from any core, resets timeouts)
+        // IMU Read methods (called from any core, resets timeouts)
         EulerAngles getLatestEulerAngles();
         QuaternionData getLatestQuaternion();
         AccelerometerData getLatestAccelerometer();
         GyroscopeData getLatestGyroscope();
         MagnetometerData getLatestMagnetometer();
+        
+        // TOF Read methods (called from any core, resets timeouts)
+        TofData getLatestTofData();
+        VL53L7CX_ResultsData getLatestTofRawData();
+        bool isObjectDetectedTof();
         
         // Convenience methods for individual values
         float getLatestPitch();
@@ -97,14 +125,14 @@ class SensorDataBuffer : public Singleton<SensorDataBuffer> {
         float getLatestMagneticFieldY();
         float getLatestMagneticFieldZ();
 
-        // Timeout checking (called by IMU sensor to determine what to enable)
+        // Timeout checking (called by sensors to determine what to enable)
         ReportTimeouts& getReportTimeouts() { return timeouts; }
         
         // Helper methods for bulk polling control
         void startPollingAllSensors();
         void stopPollingAllSensors();
         
-        // Get complete sample (for debugging/logging)
+        // Get complete samples (for debugging/logging)
         ImuSample getLatestImuSample();
 
     private:
@@ -115,13 +143,18 @@ class SensorDataBuffer : public Singleton<SensorDataBuffer> {
         void updateAccelerometer(const AccelerometerData& accel);
         void updateGyroscope(const GyroscopeData& gyro);
         void updateMagnetometer(const MagnetometerData& mag);
+        void updateTofData(const TofData& tof);  // Add TOF update method
+        
         // Thread-safe data storage
         ImuSample currentSample;
+        TofData currentTofData;  // Add TOF data storage
         std::atomic<uint32_t> lastUpdateTime{0};
+        std::atomic<uint32_t> lastTofUpdateTime{0};  // Separate timestamp for TOF
         
         // Timeout tracking for each report type
         ReportTimeouts timeouts;
         
         // Helper to update timestamp
         void markDataUpdated();
+        void markTofDataUpdated();  // Separate method for TOF timestamp
 };
