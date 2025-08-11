@@ -44,11 +44,11 @@ void BalanceController::disable() {
 void BalanceController::update() {
     if (_balancingEnabled != BalanceStatus::BALANCED) return;
 
-    unsigned long currentTime = millis();
-    if (currentTime - _lastUpdateTime < UPDATE_INTERVAL) {
-        return; // Maintain update rate
-    }
-    _lastUpdateTime = currentTime;
+    // unsigned long currentTime = millis();
+    // if (currentTime - _lastUpdateTime < UPDATE_INTERVAL) {
+    //     return; // Maintain update rate
+    // }
+    // _lastUpdateTime = currentTime;
 
     // Get current pitch
     float rawAngle = SensorDataBuffer::getInstance().getLatestPitch();
@@ -105,11 +105,11 @@ void BalanceController::update() {
     float proportionalTerm = P_GAIN * error;
     float integralTerm = I_GAIN * _errorSum;
     float derivativeTerm = D_GAIN * -gyroRate; 
-    float yAccel = SensorDataBuffer::getInstance().getLatestYAccel();
-    float feedforwardTerm = FF_GAIN * yAccel;
+    // float yAccel = SensorDataBuffer::getInstance().getLatestYAccel();
+    // float feedforwardTerm = FF_GAIN * yAccel;
 
     int16_t motorPower = constrain(
-        (int16_t)(proportionalTerm + integralTerm + derivativeTerm + feedforwardTerm),
+        (int16_t)(proportionalTerm + integralTerm + derivativeTerm),
         -MAX_BALANCE_POWER, 
         MAX_BALANCE_POWER
     );
@@ -127,15 +127,6 @@ void BalanceController::update() {
 
     // Store error for next iteration
     _lastError = error;
-    
-    // Debug output
-    static unsigned long lastDebugTime = 0;
-    if (currentTime - lastDebugTime > 100) {
-        // SerialQueueManager::getInstance().queueMessage("Bal: Raw: %.2f, Filtered: %.2f, Error: %.2f, P: %.2f, I: %.2f, D: %.2f, Power: %d\n",
-        //              rawAngle, currentAngle, error, 
-        //              proportionalTerm, integralTerm, derivativeTerm, motorPower);
-        lastDebugTime = currentTime;
-    }
 }
 
 void BalanceController::updateBalancePids(NewBalancePids newBalancePids) {

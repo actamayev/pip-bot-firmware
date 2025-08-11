@@ -21,11 +21,6 @@ void SensorDataBuffer::updateQuaternion(const QuaternionData& quaternion) {
     markDataUpdated();
 }
 
-void SensorDataBuffer::updateEulerAngles(const EulerAngles& euler) {
-    currentSample.eulerAngles = euler;
-    markDataUpdated();
-}
-
 void SensorDataBuffer::updateAccelerometer(const AccelerometerData& accel) {
     currentSample.accelerometer = accel;
     markDataUpdated();

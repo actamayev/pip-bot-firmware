@@ -16,7 +16,7 @@ constexpr uint8_t I2C_SDA_1 = 18;
 constexpr uint8_t I2C_SCL_1 = 8;
 constexpr uint8_t I2C_SDA_2 = 9; // Battery monitor
 constexpr uint8_t I2C_SCL_2 = 10; // Battery monitor
-constexpr uint32_t I2C_CLOCK_SPEED = 100 * 1000; // 400 kHz
+constexpr uint32_t I2C_CLOCK_SPEED = 400 * 1000; // 400 kHz
 
 // Side TOFs
 constexpr uint8_t LEFT_TOF_ADDRESS = 0x51;
@@ -26,7 +26,7 @@ constexpr uint8_t RIGHT_TOF_ADDRESS = 0x60;
 constexpr uint8_t MULTIZONE_TOF_ADDRESS = 0x29; // Default address
 
 // IMU
-constexpr uint16_t IMU_UPDATE_FREQ_MICROSECS = 5000;  // 5ms, 200Hz
+constexpr uint16_t IMU_UPDATE_FREQ_MICROSECS = 1000;  // 5ms, 200Hz
 constexpr uint8_t IMU_DEFAULT_ADDRESS = 0x4A;
 
 // Motors + Encoders

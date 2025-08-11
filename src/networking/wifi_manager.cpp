@@ -73,6 +73,7 @@ bool WiFiManager::attemptDirectConnectionToSavedNetworks() {
         // Attempt connection
         if (attemptNewWifiConnection(network)) return true;
         
+        // 8/11/25 TODO: Remove all blocking delays in the wifi manager
         // Brief delay before trying the next network
         vTaskDelay(pdMS_TO_TICKS(100));
     }

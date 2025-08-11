@@ -36,8 +36,8 @@ class BalanceController : public Singleton<BalanceController> {
         // PID Constants
         float P_GAIN = 28.5f;
         float I_GAIN = 0.0f;
-        float D_GAIN = 6.0f;
-        float FF_GAIN = 0.0f;
+        float D_GAIN = 0.0f; // Previously 6.0f
+        float FF_GAIN = 0.0f; // Not using this
 
         // Limits and safety parameters
         float MAX_SAFE_ANGLE_DEVIATION = 30.0f;

@@ -78,6 +78,7 @@ bool Speaker::recreateAudioObjects() {
     // Clean up existing objects
     cleanup();
     
+    // 8/11/25 TODO: Remove all blocking delays in this class
     // Wait for cleanup to complete
     delay(100);
     

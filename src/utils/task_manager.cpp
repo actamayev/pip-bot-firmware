@@ -125,9 +125,7 @@ void TaskManager::sensorPollingTask(void* parameter) {
 
 void TaskManager::networkManagementTask(void* parameter) {
     // Initialize WiFi and networking components (heavy setup)
-    SerialQueueManager::getInstance().queueMessage("Initializing WiFi on Core 1...");
     WiFiManager::getInstance();
-    SerialQueueManager::getInstance().queueMessage("WiFi initialization complete on Core 1");
     FirmwareVersionTracker::getInstance();
     
     // Create the communication task now that management is initialized
@@ -258,7 +256,7 @@ bool TaskManager::createSensorInitTask() {
 
 bool TaskManager::createSensorPollingTask() {
     return createTask("SensorPolling", sensorPollingTask, SENSOR_POLLING_STACK_SIZE,
-                     Priority::SYSTEM_CONTROL, Core::CORE_0, &sensorPollingTaskHandle);
+                     Priority::CRITICAL, Core::CORE_0, &sensorPollingTaskHandle);
 }
 
 bool TaskManager::createNetworkManagementTask() {

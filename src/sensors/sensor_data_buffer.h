@@ -77,7 +77,6 @@ class SensorDataBuffer : public Singleton<SensorDataBuffer> {
         // Write methods (called by sensor polling task on Core 0)
         void updateImuSample(const ImuSample& sample);
         void updateQuaternion(const QuaternionData& quaternion);
-        void updateEulerAngles(const EulerAngles& euler);
         void updateAccelerometer(const AccelerometerData& accel);
         void updateGyroscope(const GyroscopeData& gyro);
         void updateMagnetometer(const MagnetometerData& mag);
