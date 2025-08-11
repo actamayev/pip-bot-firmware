@@ -3,11 +3,6 @@
 // Initialize the display with explicit Wire reference
 bool DisplayScreen::init() {
     if (initialized) return true;  // Already initialized
-    
-    // Initialize the OLED display with the provided Wire instance
-    // display = Adafruit_SSD1306(SCREEN_WIDTH, SCREEN_HEIGHT, Wire1);
-    // 5/10/25: TODO: Change to:
-    // display = Adafruit_SSD1306(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire);
 
     if(!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
         SerialQueueManager::getInstance().queueMessage("SSD1306 allocation failed");
