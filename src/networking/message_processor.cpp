@@ -36,8 +36,6 @@ void MessageProcessor::executeCommand(int16_t leftSpeed, int16_t rightSpeed) {
     // Start the command timer
     commandStartTime = millis();
 
-    // SerialQueueManager::getInstance().queueMessage("Motors updated - Left: %d, Right: %d\n", leftSpeed, rightSpeed);
-
     motorDriver.set_motor_speeds(leftSpeed, rightSpeed);
 
     // Enable straight driving correction for forward movement only. 
@@ -86,14 +84,6 @@ void MessageProcessor::processPendingCommands() {
     // Calculate absolute change in encoder counts
     // int64_t leftDelta = abs(currentLeftCount - startLeftCount);
     // int64_t rightDelta = abs(currentRightCount - startRightCount);
-    
-    // Optional debugging (only printed once every 500ms)
-    // static unsigned long lastDebugTime = 0;
-    // if (millis() - lastDebugTime > 500) {
-    //     // SerialQueueManager::getInstance().queueMessage("Encoder deltas - Left: %lld, Right: %lld (Target: %d)\n", 
-    //     //              leftDelta, rightDelta, MIN_ENCODER_PULSES);
-    //     lastDebugTime = millis();
-    // }
     
     // Check for command completion conditions:
     // bool encoderThresholdMet = (leftDelta >= MIN_ENCODER_PULSES || rightDelta >= MIN_ENCODER_PULSES);
@@ -190,8 +180,6 @@ void MessageProcessor::handleNewLightColors(NewLightColors newLightColors) {
 }
 
 void MessageProcessor::handleGetSavedWiFiNetworks() {
-    SerialQueueManager::getInstance().queueMessage("Retrieving saved WiFi networks...");
-    
     // Get saved networks from WiFiManager
     std::vector<WiFiCredentials> savedNetworks = WiFiManager::getInstance().getSavedNetworksForResponse();
     
@@ -203,13 +191,11 @@ void MessageProcessor::handleSoftScanWiFiNetworks() {
     // Check if we have recent scan results (within 1 minute)
     WiFiManager& wifiManager = WiFiManager::getInstance();
     if (wifiManager.hasAvailableNetworks()) {
-        SerialQueueManager::getInstance().queueMessage("Returning cached WiFi scan results (scan < 1 min old)");
         SerialManager::getInstance().sendScanResultsResponse(wifiManager.getAvailableNetworks());
         return;
     }
     unsigned long now = millis();
     if (now - wifiManager.getLastScanCompleteTime() < 60000) return;
-    SerialQueueManager::getInstance().queueMessage("Starting async WiFi network scan...");
     // Start async scan instead of blocking scan
     bool success = wifiManager.startAsyncScan();
     
@@ -221,7 +207,6 @@ void MessageProcessor::handleSoftScanWiFiNetworks() {
 }
 
 void MessageProcessor::handleHardScanWiFiNetworks() {
-    SerialQueueManager::getInstance().queueMessage("Starting hard WiFi network scan (cache cleared)...");
     bool success = WiFiManager::getInstance().startAsyncScan();
     if (success) return;
     SerialQueueManager::getInstance().queueMessage("Failed to start hard WiFi scan");
@@ -269,7 +254,6 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             break;
         }
         case DataMessageType::SPEAKER_MUTE: {
-            SerialQueueManager::getInstance().queueMessage("Received speaker message");
             if (length != 2) {
                 SerialQueueManager::getInstance().queueMessage("Invalid speaker mute message length");
             } else {
@@ -283,10 +267,6 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
                 SerialQueueManager::getInstance().queueMessage("Invalid balance control message length");
             } else {
                 BalanceStatus status = static_cast<BalanceStatus>(data[1]);
-                char logMessage[64];
-                snprintf(logMessage, sizeof(logMessage), "Balance Status: %s", 
-                        status == BalanceStatus::BALANCED ? "BALANCED" : "UNBALANCED");
-                SerialQueueManager::getInstance().queueMessage(logMessage);
                 handleBalanceCommand(status);
             }
             break;
@@ -349,16 +329,11 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
                 SerialQueueManager::getInstance().queueMessage("Invalid obstacle avoidance command");
             } else {
                 ObstacleAvoidanceStatus status = static_cast<ObstacleAvoidanceStatus>(data[1]);
-                char logMessage[64];
-                snprintf(logMessage, sizeof(logMessage), "Avoidance Status: %s", 
-                        status == ObstacleAvoidanceStatus::AVOID ? "AVOID" : "STOP Avoiding");
-                SerialQueueManager::getInstance().queueMessage(logMessage);
                 handleObstacleAvoidanceCommand(status);
             }
             break;
         }
         case DataMessageType::SERIAL_HANDSHAKE: {
-            SerialQueueManager::getInstance().queueMessage("Handshake received from browser!");  // Use safe print
             rgbLed.set_led_blue();
             SerialManager::getInstance().isConnected = true;
             SerialManager::getInstance().lastActivityTime = millis();
@@ -368,7 +343,6 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             // Send initial battery data on handshake
             const BatteryState& batteryState = BatteryMonitor::getInstance().getBatteryState();
             if (batteryState.isInitialized) {
-                SerialQueueManager::getInstance().queueMessage("Sending initial battery data on handshake...");
                 SerialManager::getInstance().sendBatteryMonitorData();
                 BatteryMonitor::getInstance().lastBatteryLogTime = millis();
             }
@@ -511,7 +485,6 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             break;
         }
         default:
-            // SerialQueueManager::getInstance().queueMessage("Unknown message type: %d\n", static_cast<int>(messageType));
             break;
     }
 }
@@ -526,6 +499,4 @@ void MessageProcessor::resetCommandState() {
     startLeftCount = 0;
     startRightCount = 0;
     commandStartTime = 0;
-    
-    SerialQueueManager::getInstance().queueMessage("MessageProcessor command state reset");
 }

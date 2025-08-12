@@ -180,9 +180,6 @@ void Speaker::playFile(SoundType file) {
         return;
     }
     lastPlaybackTime = currentTime;
-
-    // Log the volume
-    SerialQueueManager::getInstance().queueMessage("Speaker volume: " + String(currentVolume));
     
     // Check if we need to recreate audio objects
     if (forceRecreateObjects || !validateAudioObjects()) {
@@ -205,13 +202,8 @@ void Speaker::playFile(SoundType file) {
 bool Speaker::safeStopPlayback() {
     if (!isCurrentlyPlaying) return true;
     
-    SerialQueueManager::getInstance().queueMessage("Stopping audio playback...");
-    
     if (audioMP3 && audioMP3->isRunning()) {
         audioMP3->stop();
-        // Give more time for ESP32-S3 to clean up I2S resources
-        delay(20);
-        SerialQueueManager::getInstance().queueMessage("Audio playback stopped");
     }
     
     // Close any open files

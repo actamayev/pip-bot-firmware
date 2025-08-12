@@ -15,8 +15,7 @@ bool DisplayScreen::init() {
 
     // Start the startup sequence
     showStartScreen();
-    
-    SerialQueueManager::getInstance().queueMessage("OLED display initialized successfully!");
+
     return true;
 }
 
@@ -189,13 +188,10 @@ void DisplayScreen::showCustomBuffer(const uint8_t* buffer) {
     memcpy(display.getBuffer(), buffer, 1024);
     
     renderDisplay();
-    
-    SerialQueueManager::getInstance().queueMessage("Custom display buffer applied");
 }
 
 void DisplayScreen::turnScreenOff() {
     if (!initialized) return;
-    SerialQueueManager::getInstance().queueMessage("Turning screen off");
     display.clearDisplay();
     display.display();
 }

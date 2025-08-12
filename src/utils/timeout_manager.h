@@ -22,5 +22,4 @@ class TimeoutManager : public Singleton<TimeoutManager> {
 
         void cancelConfirmation();
         void enterConfirmationState();
-        void enterDeepSleep();
 };

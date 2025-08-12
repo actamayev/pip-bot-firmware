@@ -33,7 +33,7 @@ bool ImuSensor::initialize() {
     }
     
     SerialQueueManager::getInstance().queueMessage("Failed to find BNO08x chip");
-    scanI2C();
+    // scanI2C();
     return false;
 }
 

@@ -12,8 +12,6 @@ bool holdToWake() {
         return true; // Normal startup for other wake reasons
     }
     
-    SerialQueueManager::getInstance().queueMessage("Woke up from deep sleep due to button press. Checking hold duration...");
-    
     // Configure both button pins for reading (changed to INPUT_PULLDOWN)
     pinMode(BUTTON_PIN_1, INPUT_PULLDOWN);
     pinMode(BUTTON_PIN_2, INPUT_PULLDOWN);
@@ -23,7 +21,6 @@ bool holdToWake() {
     bool button2Pressed = digitalRead(BUTTON_PIN_2) == HIGH;
     
     if (!button1Pressed && !button2Pressed) {
-        SerialQueueManager::getInstance().queueMessage("Both buttons already released. Going back to sleep...");
         Buttons::getInstance().enterDeepSleep();
         return false;
     }
@@ -40,8 +37,6 @@ bool holdToWake() {
         // If both buttons are released, go back to sleep
         if (!button1Pressed && !button2Pressed) {
             uint32_t heldTime = millis() - startTime;
-            String message = "All buttons released after " + String(heldTime) + "ms. Going back to sleep...";
-            SerialQueueManager::getInstance().queueMessage(message.c_str());
             Buttons::getInstance().enterDeepSleep();
             return false;
         }
@@ -49,7 +44,6 @@ bool holdToWake() {
     }
     
     // WAKE-UP SUCCESSFUL - Reset button state so this press doesn't count toward shutdown
-    SerialQueueManager::getInstance().queueMessage("Wake-up successful - clearing button state");
     rgbLed.setDefaultColors(0, 0, MAX_LED_BRIGHTNESS);
     ledAnimations.startBreathing(2000, 0.0f);
 
@@ -59,8 +53,6 @@ bool holdToWake() {
         button2Pressed = digitalRead(BUTTON_PIN_2) == HIGH;
         vTaskDelay(pdMS_TO_TICKS(10));
     } while (button1Pressed || button2Pressed);
-    
-    SerialQueueManager::getInstance().queueMessage("All buttons released - ready for normal operation");
     
     return true; // Proceed with full startup
 }

@@ -23,15 +23,12 @@ void TimeoutManager::update() {
     } else {
         // Check for confirmation timeout
         if (currentTime - confirmationStartTime >= CONFIRMATION_TIMEOUT) {
-            enterDeepSleep();
+            Buttons::getInstance().enterDeepSleep();
         }
     }
 }
 
-void TimeoutManager::enterConfirmationState() {
-    SerialQueueManager::getInstance().queueMessage("Inactivity timeout reached! Entering sleep confirmation...");
-    SerialQueueManager::getInstance().queueMessage("Press Button 1 to wake up and reset timeout");
-    
+void TimeoutManager::enterConfirmationState() {    
     // Stop bytecode and prepare for sleep (same as long press logic)
     BytecodeVM::getInstance().stopProgram();
     rgbLed.set_led_yellow();
@@ -43,17 +40,9 @@ void TimeoutManager::enterConfirmationState() {
 void TimeoutManager::cancelConfirmation() {
     if (!inConfirmationState) return;
 
-    SerialQueueManager::getInstance().queueMessage("Timeout canceled! Restoring normal operation...");
     inConfirmationState = false;
     rgbLed.turn_all_leds_off();
 
     // Reset activity timer
     lastActivityTime = millis();
-}
-
-void TimeoutManager::enterDeepSleep() {
-    SerialQueueManager::getInstance().queueMessage("No activity detected. Entering deep sleep...");
-    
-    // Use existing deep sleep logic from Buttons class
-    Buttons::getInstance().enterDeepSleep();
 }

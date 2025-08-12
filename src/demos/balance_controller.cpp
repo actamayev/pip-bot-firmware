@@ -24,12 +24,10 @@ void BalanceController::enable() {
     _safetyBufferCount = ANGLE_BUFFER_SIZE;
 
     // Disable straight driving correction
-    StraightLineDrive::getInstance().disable();
+    // StraightLineDrive::getInstance().disable();
 
     // Set LED to indicate balancing mode
-    rgbLed.set_led_green();
-    
-    SerialQueueManager::getInstance().queueMessage("Balance mode enabled");
+    // rgbLed.set_led_green();
 }
 
 void BalanceController::disable() {
@@ -38,7 +36,6 @@ void BalanceController::disable() {
     motorDriver.brake_if_moving();
     rgbLed.turn_all_leds_off();
     DemoManager::getInstance()._currentDemo = Demo::DemoType::NONE;
-    SerialQueueManager::getInstance().queueMessage("Balance mode disabled");
 }
 
 void BalanceController::update() {
@@ -82,7 +79,6 @@ void BalanceController::update() {
 
     // Safety check
     if (abs(safetyAverage - TARGET_ANGLE) > MAX_SAFE_ANGLE_DEVIATION) {
-        // SerialQueueManager::getInstance().queueMessage("Safety cutoff triggered: Avg Angle exceeds limits\n");
         disable();
         return;
     } 

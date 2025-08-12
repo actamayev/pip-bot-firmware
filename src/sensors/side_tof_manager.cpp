@@ -92,7 +92,6 @@ void SideTofManager::enableSideTofSensors() {
     if (!isInitialized || sensorsEnabled) return;
     
     sensorsEnabled = true;
-    SerialQueueManager::getInstance().queueMessage("Side TOF sensors enabled");
 }
 
 void SideTofManager::disableSideTofSensors() {

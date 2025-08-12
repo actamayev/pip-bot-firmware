@@ -64,7 +64,6 @@ void WebSocketManager::connectToWebSocket() {
     wsClient.onEvent([this](WebsocketsEvent event, String data) {
         switch (event) {
             case WebsocketsEvent::ConnectionOpened:
-                SerialQueueManager::getInstance().queueMessage("WebSocket connected");
                 this->wsConnected = true;
                 this->hasKilledWiFiProcesses = false; // Reset the flag
                 this->lastPingTime = millis(); // Initialize ping time
@@ -179,7 +178,6 @@ void WebSocketManager::killWiFiProcesses() {
     // This method activates when the ESP has been disconnected from WS.
     // Should only run once.
     if (hasKilledWiFiProcesses) return;
-    SerialQueueManager::getInstance().queueMessage("Killing WiFi processes...");
     motorDriver.brake_if_moving();
     rgbLed.set_led_red();
     ledAnimations.startBreathing();

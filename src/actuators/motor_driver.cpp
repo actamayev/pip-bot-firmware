@@ -51,7 +51,6 @@ void MotorDriver::brake_left_motor() {
     analogWrite(LEFT_MOTOR_PIN_IN_2, 255);
     _leftMotorBraking = true;
     _leftBrakeStartTime = millis(); // Start the timer
-    // SerialQueueManager::getInstance().queueMessage("Braking left motor");
 }
 
 void MotorDriver::brake_right_motor() {
@@ -59,7 +58,6 @@ void MotorDriver::brake_right_motor() {
     analogWrite(RIGHT_MOTOR_PIN_IN_2, 255);
     _rightMotorBraking = true;
     _rightBrakeStartTime = millis(); // Start the timer
-    // SerialQueueManager::getInstance().queueMessage("Braking right motor");
 }
 
 void MotorDriver::brake_both_motors() {
@@ -71,14 +69,12 @@ void MotorDriver::release_left_brake() {
     left_motor_stop();
     _leftMotorBraking = false;
     _leftBrakeStartTime = 0; // Reset timer
-    // SerialQueueManager::getInstance().queueMessage("Released left brake");
 }
 
 void MotorDriver::release_right_brake() {
     right_motor_stop();
     _rightMotorBraking = false;
     _rightBrakeStartTime = 0; // Reset timer
-    // SerialQueueManager::getInstance().queueMessage("Released right brake");
 }
 
 void MotorDriver::check_brake_timers() {
@@ -172,12 +168,14 @@ void MotorDriver::update_motor_speeds(bool should_ramp_up) {
     int16_t leftAdjusted = _currentLeftSpeed;
     int16_t rightAdjusted = _currentRightSpeed;
 
-    if (StraightLineDrive::getInstance().isEnabled()) {
-        StraightLineDrive::getInstance().update(leftAdjusted, rightAdjusted);
-    }
+    // if (StraightLineDrive::getInstance().isEnabled()) {
+    //     StraightLineDrive::getInstance().update(leftAdjusted, rightAdjusted);
+    // }
 
     // Only update motor controls if speeds have changed
-    if (speedsChanged || StraightLineDrive::getInstance().isEnabled()) {
+    // TODO: Bring this back after SLD works
+    // if (speedsChanged || StraightLineDrive::getInstance().isEnabled()) {
+    if (speedsChanged) {
         // Apply the current speeds
         if (leftAdjusted == 0) {
             if (!_leftMotorBraking) {

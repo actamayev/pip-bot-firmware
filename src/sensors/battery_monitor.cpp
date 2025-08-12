@@ -14,7 +14,6 @@ bool BatteryMonitor::initialize() {
     
     // Set the battery capacity if it hasn't been set already
     if (lipo.capacity(FULL) != DEFAULT_BATTERY_CAPACITY) {
-        SerialQueueManager::getInstance().queueMessage("Setting battery capacity to " + String(DEFAULT_BATTERY_CAPACITY) + "mAh");
         lipo.setCapacity(DEFAULT_BATTERY_CAPACITY);
     }
     
@@ -126,13 +125,11 @@ void BatteryMonitor::retryInitializationIfNeeded() {
 void BatteryMonitor::sendBatteryMonitorDataOverSerial() {
     if (!SerialManager::getInstance().isSerialConnected()) return;
     SerialManager::getInstance().sendBatteryMonitorData();
-    SerialQueueManager::getInstance().queueMessage("Battery data sent to serial", SerialPriority::HIGH_PRIO);
     lastBatteryLogTime = millis();
 }
 
 void BatteryMonitor::sendBatteryMonitorDataOverWebSocket() {
     if (!WebSocketManager::getInstance().isConnected()) return;
     WebSocketManager::getInstance().sendBatteryMonitorData();
-    SerialQueueManager::getInstance().queueMessage("Battery data sent to websocket", SerialPriority::HIGH_PRIO);
     lastBatteryLogTime = millis();
 }

@@ -42,7 +42,7 @@ bool MultizoneTofSensor::initialize() {
     }
     
     SerialQueueManager::getInstance().queueMessage("TOF sensor initialization failed");
-    scanI2C();  // Scan I2C bus to help debug
+    // scanI2C();  // Scan I2C bus to help debug
     return false;
 }
 
@@ -185,7 +185,6 @@ void MultizoneTofSensor::initializePointHistories() {
             }
         }
     }
-    SerialQueueManager::getInstance().queueMessage("Point histories initialized");
 }
 
 // Update the history for a specific point
@@ -233,7 +232,6 @@ bool MultizoneTofSensor::configureSensor() {
     sensor.vl53l7cx_set_integration_time_ms(INTEGRATION_TIME_MS);
     sensor.vl53l7cx_set_ranging_mode(VL53L7CX_RANGING_MODE_CONTINUOUS);
 
-    SerialQueueManager::getInstance().queueMessage("Sensor configured with optimized parameters");
     return true;
 }
 
@@ -282,7 +280,6 @@ bool MultizoneTofSensor::checkWatchdog() {
 }
 
 void MultizoneTofSensor::startRanging() {
-    SerialQueueManager::getInstance().queueMessage("Starting to range");
     sensor.vl53l7cx_start_ranging();
 }
 
@@ -300,6 +297,4 @@ void MultizoneTofSensor::turnOffSensor() {
     lastInitAttempt = 0;
     
     initializePointHistories();
-    
-    SerialQueueManager::getInstance().queueMessage("MZ sensor turned off");
 }

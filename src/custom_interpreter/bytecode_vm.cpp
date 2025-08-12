@@ -8,7 +8,6 @@ bool BytecodeVM::loadProgram(const uint8_t* byteCode, uint16_t size) {
     // Free any existing program
     stopProgram();
     MessageProcessor::getInstance().resetCommandState();
-    // SerialQueueManager::getInstance().queueMessage("Loading program of size %zu\n", size);
 
     // Validate bytecode size (must be multiple of 20 now)
     if (size % INSTRUCTION_SIZE != 0 || size / INSTRUCTION_SIZE > MAX_PROGRAM_SIZE) {
@@ -17,10 +16,7 @@ bool BytecodeVM::loadProgram(const uint8_t* byteCode, uint16_t size) {
     
     programSize = size / INSTRUCTION_SIZE;
     program = new(std::nothrow) BytecodeInstruction[programSize];
-    if (!program) {
-        SerialQueueManager::getInstance().queueMessage("Failed to allocate memory for program");
-        return false;
-    }
+    if (!program) return false;
 
     // Iterate through program indices (0 to programSize-1)
     for (uint16_t i = 0; i < programSize; i++) {
@@ -43,12 +39,10 @@ bool BytecodeVM::loadProgram(const uint8_t* byteCode, uint16_t size) {
         // Program has a start button - set to waiting state
         isPaused = PROGRAM_NOT_STARTED;
         waitingForButtonPressToStart = true;
-        SerialQueueManager::getInstance().queueMessage("Program loaded with start button - waiting for button press to begin");
     } else {
         // Program has no start button - set to auto-running
         isPaused = RUNNING;
         waitingForButtonPressToStart = false;
-        SerialQueueManager::getInstance().queueMessage("Program loaded without start button - auto-starting");
     }
 
     scanProgramForMotors();
@@ -650,7 +644,6 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
         default:
             // Unknown opcode, stop execution
             pc = programSize;
-            // SerialQueueManager::getInstance().queueMessage("Unknown code - stopping execution %d\n", instr.opcode);
             break;
     }
 }
@@ -835,13 +828,10 @@ void BytecodeVM::scanProgramForMotors() {
         for (const auto& motorOpcode : motorOpcodes) {
             if (program[i].opcode == motorOpcode) {
                 programContainsMotors = true;
-                SerialQueueManager::getInstance().queueMessage("Program contains motor commands - USB safety restrictions apply");
                 return;
             }
         }
     }
-    
-    SerialQueueManager::getInstance().queueMessage("Program contains no motor commands - safe for USB execution");
 }
 
 void BytecodeVM::checkUsbSafetyConditions() {
@@ -858,7 +848,6 @@ void BytecodeVM::checkUsbSafetyConditions() {
 void BytecodeVM::handleUsbConnect() {
     // If program contains motors and is currently running, stop it
     if (programContainsMotors && isPaused == RUNNING) {
-        SerialQueueManager::getInstance().queueMessage("USB connected - stopping motor program for safety");
         stopProgram();
         stoppedDueToUsbSafety = true;
     }
@@ -868,7 +857,6 @@ bool BytecodeVM::canStartProgram() {
     // Block start if program contains motors and USB is connected
     if (!programContainsMotors || !SerialManager::getInstance().isSerialConnected()) return true;
 
-    SerialQueueManager::getInstance().queueMessage("Cannot start motor program while USB connected - disconnect USB first");
     SerialManager::getInstance().sendJsonMessage(RouteType::MOTORS_DISABLED_USB, "Cannot start motor program while USB connected - disconnect USB first");
     return false;
 }

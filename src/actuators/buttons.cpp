@@ -28,7 +28,6 @@ void Buttons::update() {
             waitingForSleepConfirmation = false;
             sleepConfirmationStartTime = 0;
             rgbLed.turn_all_leds_off();
-            SerialQueueManager::getInstance().queueMessage("Sleep confirmation timed out, returning to normal state");
         }
     }
 }
@@ -53,7 +52,6 @@ void Buttons::setButton1ClickHandler(std::function<void(Button2&)> callback) {
         if (vm.isPaused == BytecodeVM::RUNNING) {
             vm.pauseProgram();
             this->justPausedOnPress = true;  // Set the flag
-            SerialQueueManager::getInstance().queueMessage("Program paused on button press!");
             return;
         }
     });
@@ -65,8 +63,6 @@ void Buttons::setButton1ClickHandler(std::function<void(Button2&)> callback) {
         
         // Handle deep sleep logic first (existing functionality)
         if (this->longPressFlagForSleep) {
-            SerialQueueManager::getInstance().queueMessage("Button released after long press, entering deep sleep confirmation...");
-            SerialQueueManager::getInstance().queueMessage("Press Button 1 to confirm sleep or Button 2 to cancel");
             this->longPressFlagForSleep = false;
             this->waitingForSleepConfirmation = true;
             this->sleepConfirmationStartTime = millis();
@@ -76,7 +72,6 @@ void Buttons::setButton1ClickHandler(std::function<void(Button2&)> callback) {
         // If we just paused on press, clear the flag and don't resume yet
         if (this->justPausedOnPress) {
             this->justPausedOnPress = false;
-            SerialQueueManager::getInstance().queueMessage("Button released after pause - press and release again to resume");
             return;
         }
 
@@ -94,20 +89,17 @@ void Buttons::setButton1ClickHandler(std::function<void(Button2&)> callback) {
             vm.isPaused = BytecodeVM::RUNNING;
             vm.waitingForButtonPressToStart = false;
             vm.incrementPC();
-            SerialQueueManager::getInstance().queueMessage("Program started on button release!");
             return;
         }
 
         // Handle resume for paused programs (only if we didn't just pause)
         if (vm.isPaused == BytecodeVM::PAUSED) {
             vm.resumeProgram();
-            SerialQueueManager::getInstance().queueMessage("Program resumed on button release!");
             return;
         }
 
         // If no program is running and we're not waiting to start, use original callback
         if (vm.isPaused == BytecodeVM::PROGRAM_NOT_STARTED) {
-            SerialQueueManager::getInstance().queueMessage("Program not running - executing normal callback on release");
             if (originalCallback) {
                 originalCallback(btn);
             }
@@ -120,7 +112,6 @@ void Buttons::setButton1ClickHandler(std::function<void(Button2&)> callback) {
         TimeoutManager::getInstance().resetActivity();
         
         if (!(this->waitingForSleepConfirmation)) return;
-        SerialQueueManager::getInstance().queueMessage("Sleep confirmed with Button 1! Entering deep sleep...");
         this->waitingForSleepConfirmation = false;
         this->sleepConfirmationStartTime = 0;
         enterDeepSleep();
@@ -140,7 +131,6 @@ void Buttons::setButton2ClickHandler(std::function<void(Button2&)> callback) {
 
         // If we're waiting for confirmation, this click cancels deep sleep
         if (this->waitingForSleepConfirmation) {
-            SerialQueueManager::getInstance().queueMessage("Sleep canceled with Button 2!");
             rgbLed.turn_all_leds_off();
             this->waitingForSleepConfirmation = false;
             this->sleepConfirmationStartTime = 0;
@@ -179,7 +169,6 @@ void Buttons::setupDeepSleep() {
         // Reset timeout on any button activity
         TimeoutManager::getInstance().resetActivity();
         
-        SerialQueueManager::getInstance().queueMessage("Long press detected on Button 1! Release to enter confirmation stage...");
         BytecodeVM::getInstance().pauseProgram();
         rgbLed.set_led_yellow();
         this->longPressFlagForSleep = true;
@@ -205,10 +194,7 @@ void Buttons::enterDeepSleep() {
     // Wake up when ANY of the pins goes HIGH (button pressed with pull-down)
     esp_sleep_enable_ext1_wakeup(wakeup_pin_mask, ESP_EXT1_WAKEUP_ANY_HIGH);
 
-    SerialQueueManager::getInstance().queueMessage("Going to deep sleep now (both buttons can wake)");
     Serial.flush();
     
     esp_deep_sleep_start();
-    
-    SerialQueueManager::getInstance().queueMessage("This will never be printed");
 }

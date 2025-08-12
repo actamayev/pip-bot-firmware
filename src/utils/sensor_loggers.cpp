@@ -71,7 +71,7 @@ void imuLogger() {
         char buffer[128];
         snprintf(buffer, sizeof(buffer), "Orientation - Yaw: %.1f° Pitch: %.1f° Roll: %.1f°", 
                 eulerAngles.yaw, eulerAngles.roll, eulerAngles.pitch);
-        SerialQueueManager::getInstance().queueMessage(buffer, SerialPriority::LOW_PRIO);
+        SerialQueueManager::getInstance().queueMessage(buffer);
     }
 
     lastImuPrintTime = millis();
@@ -88,7 +88,7 @@ void sideTofsLogger() {
     char buffer[128];
     snprintf(buffer, sizeof(buffer), "Left TOF: %u counts              || Right TOF: %u counts", 
             tofCounts.leftCounts, tofCounts.rightCounts);
-    SerialQueueManager::getInstance().queueMessage(buffer, SerialPriority::LOW_PRIO);
+    SerialQueueManager::getInstance().queueMessage(buffer);
     lastPrintTime = millis();
 }
 
@@ -121,7 +121,7 @@ void setupButtonLoggers() {
 //     char buffer[128];
 //     snprintf(buffer, sizeof(buffer), "Motor RPM - Left: %.2f || Right: %.2f", 
 //              rpms.leftWheelRPM, rpms.rightWheelRPM);
-//     SerialQueueManager::getInstance().queueMessage(buffer, SerialPriority::LOW_PRIO);
+//     SerialQueueManager::getInstance().queueMessage(buffer);
     
 //     lastPrintTime = millis();
 // }
