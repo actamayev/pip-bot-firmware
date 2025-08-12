@@ -88,22 +88,22 @@ void TaskManager::sensorInitTask(void* parameter) {
             SerialQueueManager::getInstance().queueMessage("Trying to init IMU...");
             initializer.tryInitializeIMU();
         }
-        // if (!initializer.isSensorInitialized(SensorInitializer::MULTIZONE_TOF)) {
-        //     SerialQueueManager::getInstance().queueMessage("Trying to init Multizone TOF...");
-        //     initializer.tryInitializeMultizoneTof();
-        // }
-        // if (!initializer.isSensorInitialized(SensorInitializer::SIDE_TOFS)) {
-        //     SerialQueueManager::getInstance().queueMessage("Trying to init Multizone TOF...");
-        //     initializer.tryInitializeSideTofs();
-        // }
-        if (!initializer.isSensorInitialized(SensorInitializer::COLOR_SENSOR)) {
-            SerialQueueManager::getInstance().queueMessage("Trying to init IR sensors...");
-            initializer.tryInitializeColorSensor();
+        if (!initializer.isSensorInitialized(SensorInitializer::MULTIZONE_TOF)) {
+            SerialQueueManager::getInstance().queueMessage("Trying to init Multizone TOF...");
+            initializer.tryInitializeMultizoneTof();
         }
-        if (!initializer.isSensorInitialized(SensorInitializer::IR_SENSORS)) {
-            SerialQueueManager::getInstance().queueMessage("Trying to init IR sensors...");
-            initializer.tryInitializeIrSensors();
+        if (!initializer.isSensorInitialized(SensorInitializer::SIDE_TOFS)) {
+            SerialQueueManager::getInstance().queueMessage("Trying to init Multizone TOF...");
+            initializer.tryInitializeSideTofs();
         }
+        // if (!initializer.isSensorInitialized(SensorInitializer::COLOR_SENSOR)) {
+        //     SerialQueueManager::getInstance().queueMessage("Trying to init IR sensors...");
+        //     initializer.tryInitializeColorSensor();
+        // }
+        // if (!initializer.isSensorInitialized(SensorInitializer::IR_SENSORS)) {
+        //     SerialQueueManager::getInstance().queueMessage("Trying to init IR sensors...");
+        //     initializer.tryInitializeIrSensors();
+        // }
 
         vTaskDelay(pdMS_TO_TICKS(100));
     }
@@ -141,12 +141,12 @@ void TaskManager::sensorPollingTask(void* parameter) {
         if (SideTofManager::getInstance().shouldBePolling()) {
             SideTofManager::getInstance().updateSensorData();
         }
-        if (ColorSensor::getInstance().shouldBePolling()) {
-            ColorSensor::getInstance().updateSensorData();
-        }
-        if (IrSensor::getInstance().shouldBePolling()) {
-            IrSensor::getInstance().updateSensorData();
-        }
+        // if (ColorSensor::getInstance().shouldBePolling()) {
+        //     ColorSensor::getInstance().updateSensorData();
+        // }
+        // if (IrSensor::getInstance().shouldBePolling()) {
+        //     IrSensor::getInstance().updateSensorData();
+        // }
         vTaskDelay(pdMS_TO_TICKS(5));  // Same timing as before
     }
 }

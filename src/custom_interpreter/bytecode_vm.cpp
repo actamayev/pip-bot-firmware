@@ -278,7 +278,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
                         break;
                     }
                     case SENSOR_FRONT_PROXIMITY: {
-                        float isObjectDetected = SensorDataBuffer::getInstance().isObjectDetectedTof();
+                        bool isObjectDetected = SensorDataBuffer::getInstance().isObjectDetectedTof();
                         registers[regId].asBool = isObjectDetected;
                         registerTypes[regId] = VAR_BOOL;
                         registerInitialized[regId] = true;

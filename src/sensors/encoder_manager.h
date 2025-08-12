@@ -1,6 +1,8 @@
 // #pragma once
 // #include <Arduino.h>
 // #include <ESP32Encoder.h>
+// #include <freertos/FreeRTOS.h>
+// #include <freertos/semphr.h>  // ADD this for mutex
 // #include "utils/structs.h"
 // #include "actuators/motor_driver.h"
 // #include "networking/wifi_manager.h"
@@ -19,6 +21,7 @@
 
 //         void resetDistanceTracking();
 //         float getDistanceTraveledCm();
+
 //     private:
 //         // ESP32Encoder objects
 //         ESP32Encoder _leftEncoder;
@@ -44,6 +47,8 @@
 //         // Wheel physical properties
 //         static constexpr float WHEEL_DIAMETER_CM = 3.9; // Replace with actual wheel diameter
 //         static constexpr float WHEEL_CIRCUMFERENCE_CM = WHEEL_DIAMETER_CM * PI;
+
+//         SemaphoreHandle_t encoderMutex = nullptr;
 // };
 
 // extern EncoderManager encoderManager;

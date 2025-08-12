@@ -9,8 +9,8 @@ SensorInitializer::SensorInitializer() {
     initializeMultizoneTof();
     initializeIMU();
     initializeSideTofs();      // Added side TOF initialization
-    initializeColorSensor();  // Added color sensor initialization
-    initializeIRSensors();  // Uncomment this line
+    // initializeColorSensor();  // Added color sensor initialization
+    // initializeIRSensors();  // Uncomment this line
 }
 
 bool SensorInitializer::isSensorInitialized(SensorType sensor) const {
@@ -52,16 +52,16 @@ void SensorInitializer::initializeIMU() {
     sensorInitialized[IMU] = true;
 }
 
-void SensorInitializer::initializeColorSensor() {
-    SerialQueueManager::getInstance().queueMessage("Initializing Color Sensor...");
+// void SensorInitializer::initializeColorSensor() {
+//     SerialQueueManager::getInstance().queueMessage("Initializing Color Sensor...");
 
-    if (!ColorSensor::getInstance().initialize()) {
-        SerialQueueManager::getInstance().queueMessage("Color Sensor initialization failed");
-        return;
-    }
-    SerialQueueManager::getInstance().queueMessage("Color Sensor setup complete");
-    // sensorInitialized[COLOR_SENSOR] = true;
-}
+//     if (!ColorSensor::getInstance().initialize()) {
+//         SerialQueueManager::getInstance().queueMessage("Color Sensor initialization failed");
+//         return;
+//     }
+//     SerialQueueManager::getInstance().queueMessage("Color Sensor setup complete");
+//     // sensorInitialized[COLOR_SENSOR] = true;
+// }
 
 void SensorInitializer::initializeSideTofs() {
     SerialQueueManager::getInstance().queueMessage("Initializing Side TOF sensors...");
@@ -74,12 +74,12 @@ void SensorInitializer::initializeSideTofs() {
     sensorInitialized[SIDE_TOFS] = true;
 }
 
-void SensorInitializer::initializeIRSensors() {
-    SerialQueueManager::getInstance().queueMessage("Initializing IR sensors...");
-    IrSensor::getInstance();  // Simple initialization - just creates instance
-    SerialQueueManager::getInstance().queueMessage("IR sensors setup complete");
-    sensorInitialized[IR_SENSORS] = true;  // Uncomment this line
-}
+// void SensorInitializer::initializeIRSensors() {
+//     SerialQueueManager::getInstance().queueMessage("Initializing IR sensors...");
+//     IrSensor::getInstance();  // Simple initialization - just creates instance
+//     SerialQueueManager::getInstance().queueMessage("IR sensors setup complete");
+//     sensorInitialized[IR_SENSORS] = true;  // Uncomment this line
+// }
 
 bool SensorInitializer::tryInitializeMultizoneTof() {
     MultizoneTofSensor& mZoneSensor = MultizoneTofSensor::getInstance();
@@ -161,33 +161,33 @@ bool SensorInitializer::tryInitializeSideTofs() {
     return success;
 }
 
-bool SensorInitializer::tryInitializeColorSensor() {
-    ColorSensor& colorSensor = ColorSensor::getInstance();
+// bool SensorInitializer::tryInitializeColorSensor() {
+//     ColorSensor& colorSensor = ColorSensor::getInstance();
 
-    if (!colorSensor.needsInitialization()) {
-        sensorInitialized[COLOR_SENSOR] = true;
-        return true; // Already initialized
-    }
+//     if (!colorSensor.needsInitialization()) {
+//         sensorInitialized[COLOR_SENSOR] = true;
+//         return true; // Already initialized
+//     }
     
-    if (!colorSensor.canRetryInitialization()) {
-        return false; // Can't retry yet
-    }
+//     if (!colorSensor.canRetryInitialization()) {
+//         return false; // Can't retry yet
+//     }
     
-    SerialQueueManager::getInstance().queueMessage("Retrying Color sensor initialization...");
-    bool success = colorSensor.initialize();
+//     SerialQueueManager::getInstance().queueMessage("Retrying Color sensor initialization...");
+//     bool success = colorSensor.initialize();
     
-    if (success) {
-        SerialQueueManager::getInstance().queueMessage("Color sensor retry initialization successful!");
-        sensorInitialized[COLOR_SENSOR] = true;
-    }
+//     if (success) {
+//         SerialQueueManager::getInstance().queueMessage("Color sensor retry initialization successful!");
+//         sensorInitialized[COLOR_SENSOR] = true;
+//     }
     
-    return success;
-}
+//     return success;
+// }
 
-bool SensorInitializer::tryInitializeIrSensors() {
-    // IR sensors don't need complex retry logic - just check if they exist
-    if (!isSensorInitialized(IR_SENSORS)) {
-        initializeIRSensors();
-    }
-    return isSensorInitialized(IR_SENSORS);
-}
+// bool SensorInitializer::tryInitializeIrSensors() {
+//     // IR sensors don't need complex retry logic - just check if they exist
+//     if (!isSensorInitialized(IR_SENSORS)) {
+//         initializeIRSensors();
+//     }
+//     return isSensorInitialized(IR_SENSORS);
+// }

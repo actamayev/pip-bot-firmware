@@ -3,9 +3,6 @@
 #include <cstdint>
 #include <Wire.h>
 
-#define DEV_I2C_1 Wire   // I2C peripheral 0
-#define DEV_I2C_2 Wire1  // I2C peripheral 1
-
 // LED Configuration
 constexpr uint8_t ESP_LED_PIN = 4;
 constexpr uint8_t NUM_LEDS = 8;
@@ -30,8 +27,8 @@ constexpr uint16_t IMU_UPDATE_FREQ_MICROSECS = 1000;  // 5ms, 200Hz
 constexpr uint8_t IMU_DEFAULT_ADDRESS = 0x4A;
 
 // Motors + Encoders
-constexpr uint8_t LEFT_MOTOR_PIN_IN_1 = 39;
-constexpr uint8_t LEFT_MOTOR_PIN_IN_2 = 40;
+constexpr uint8_t LEFT_MOTOR_PIN_IN_1 = 40;
+constexpr uint8_t LEFT_MOTOR_PIN_IN_2 = 39;
 constexpr uint8_t LEFT_MOTOR_ENCODER_A = 47;
 constexpr uint8_t LEFT_MOTOR_ENCODER_B = 49;
 

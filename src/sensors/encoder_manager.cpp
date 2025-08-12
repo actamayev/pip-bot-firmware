@@ -4,6 +4,7 @@
 // EncoderManager encoderManager;
 
 // EncoderManager::EncoderManager() {
+//     encoderMutex = xSemaphoreCreateMutex();
 //     _leftWheelRPM = 0;
 //     _rightWheelRPM = 0;
 //     _lastUpdateTime = 0;
@@ -49,7 +50,21 @@
 // }
 
 // WheelRPMs EncoderManager::getBothWheelRPMs() {
-//     update();  // Update once for both wheels
+//     // Lock mutex before accessing data
+//     if (xSemaphoreTake(encoderMutex, pdMS_TO_TICKS(10)) == pdTRUE) {
+//         update();  // Update once for both wheels
+        
+//         WheelRPMs result = {
+//             leftWheelRPM: _leftWheelRPM,
+//             rightWheelRPM: _rightWheelRPM
+//         };
+        
+//         // Unlock mutex
+//         xSemaphoreGive(encoderMutex);
+//         return result;
+//     }
+
+//     // If mutex timeout, return last known values
 //     return {
 //         leftWheelRPM: _leftWheelRPM,
 //         rightWheelRPM: _rightWheelRPM
@@ -57,31 +72,45 @@
 // }
 
 // void EncoderManager::resetDistanceTracking() {
+//     // Lock mutex before accessing encoder counts
+//     if (xSemaphoreTake(encoderMutex, pdMS_TO_TICKS(10)) != pdTRUE) return;
 //     // Store current encoder counts as starting point
 //     _leftEncoderStartCount = _leftEncoder.getCount();
 //     _rightEncoderStartCount = _rightEncoder.getCount();
+    
+//     // Unlock mutex
+//     xSemaphoreGive(encoderMutex);
 // }
 
 // float EncoderManager::getDistanceTraveledCm() {
-//     // Get current encoder counts
-//     int64_t leftEncoderCurrentCount = _leftEncoder.getCount();
-//     int64_t rightEncoderCurrentCount = _rightEncoder.getCount();
+//     // Lock mutex before accessing encoder counts
+//     if (xSemaphoreTake(encoderMutex, pdMS_TO_TICKS(10)) == pdTRUE) {
+//         // Get current encoder counts
+//         int64_t leftEncoderCurrentCount = _leftEncoder.getCount();
+//         int64_t rightEncoderCurrentCount = _rightEncoder.getCount();
+        
+//         // Calculate change in encoder counts
+//         int64_t leftEncoderDelta = abs(leftEncoderCurrentCount - _leftEncoderStartCount);
+//         int64_t rightEncoderDelta = abs(rightEncoderCurrentCount - _rightEncoderStartCount);
+        
+//         // Unlock mutex
+//         xSemaphoreGive(encoderMutex);
+        
+//         // Average the two encoders to account for slight differences in wheel speeds
+//         float avgEncoderDelta = (leftEncoderDelta + rightEncoderDelta) / 2.0f;
+        
+//         // Convert encoder counts to revolutions
+//         float wheelRevolutions = avgEncoderDelta / static_cast<float>(ENCODER_CPR);
+        
+//         // Compensate for gear ratio
+//         float wheelRevolutionsAfterGearing = wheelRevolutions / GEAR_RATIO;
+        
+//         // Convert wheel revolutions to distance traveled
+//         float distanceCm = wheelRevolutionsAfterGearing * WHEEL_CIRCUMFERENCE_CM;
+        
+//         return distanceCm;
+//     }
     
-//     // Calculate change in encoder counts
-//     int64_t leftEncoderDelta = abs(leftEncoderCurrentCount - _leftEncoderStartCount);
-//     int64_t rightEncoderDelta = abs(rightEncoderCurrentCount - _rightEncoderStartCount);
-    
-//     // Average the two encoders to account for slight differences in wheel speeds
-//     float avgEncoderDelta = (leftEncoderDelta + rightEncoderDelta) / 2.0f;
-    
-//     // Convert encoder counts to revolutions
-//     float wheelRevolutions = avgEncoderDelta / static_cast<float>(ENCODER_CPR);
-    
-//     // Compensate for gear ratio
-//     float wheelRevolutionsAfterGearing = wheelRevolutions / GEAR_RATIO;
-    
-//     // Convert wheel revolutions to distance traveled
-//     float distanceCm = wheelRevolutionsAfterGearing * WHEEL_CIRCUMFERENCE_CM;
-    
-//     return distanceCm;
+//     // If mutex timeout, return 0
+//     return 0.0f;
 // }

@@ -10,11 +10,11 @@ void setup() {
     pinMode(PWR_EN, OUTPUT);
     digitalWrite(PWR_EN, HIGH);
     // I2C setup
-    DEV_I2C_1.setPins(I2C_SDA_1, I2C_SCL_1);
-    DEV_I2C_1.begin(I2C_SDA_1, I2C_SCL_1, I2C_CLOCK_SPEED);
+    Wire.setPins(I2C_SDA_1, I2C_SCL_1);
+    Wire.begin(I2C_SDA_1, I2C_SCL_1, I2C_CLOCK_SPEED);
 
-    DEV_I2C_2.setPins(I2C_SDA_2, I2C_SCL_2);
-    DEV_I2C_2.begin(I2C_SDA_2, I2C_SCL_2, I2C_CLOCK_SPEED);
+    Wire1.setPins(I2C_SDA_2, I2C_SCL_2);
+    Wire1.begin(I2C_SDA_2, I2C_SCL_2, I2C_CLOCK_SPEED);
 
     SerialQueueManager::getInstance().initialize();
     TaskManager::createSerialQueueTask();

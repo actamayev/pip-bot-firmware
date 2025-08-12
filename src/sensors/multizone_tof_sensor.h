@@ -18,7 +18,7 @@ class MultizoneTofSensor : public Singleton<MultizoneTofSensor> {
     public:
         // Constructor that takes TwoWire instance and optional pin parameters
         MultizoneTofSensor() 
-            : sensor(&DEV_I2C_1, -1, -1) {}
+            : sensor(&Wire, -1, -1) {}
 
         bool initialize();
         bool canRetryInitialization() const;
