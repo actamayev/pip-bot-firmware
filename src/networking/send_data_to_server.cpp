@@ -65,7 +65,10 @@ void SendDataToServer::attachColorSensorData(JsonObject& payload) {
 }
 
 void SendDataToServer::sendSensorDataToServer() {
-    if (!sendSensorData) return;
+    if (
+        !sendSensorData ||
+        !WebSocketManager::getInstance().isConnected()
+    ) return;
 
     unsigned long currentTime = millis();
     if (currentTime - lastSendTime < SEND_INTERVAL) return;

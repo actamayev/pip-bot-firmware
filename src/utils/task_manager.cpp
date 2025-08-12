@@ -135,9 +135,9 @@ void TaskManager::sensorPollingTask(void* parameter) {
         if (ImuSensor::getInstance().shouldBePolling()) {
             ImuSensor::getInstance().updateSensorData();
         }
-        if (MultizoneTofSensor::getInstance().shouldBePolling()) {
-            MultizoneTofSensor::getInstance().updateSensorData();
-        }
+        // if (MultizoneTofSensor::getInstance().shouldBePolling()) {
+        //     MultizoneTofSensor::getInstance().updateSensorData();
+        // }
         if (SideTofManager::getInstance().shouldBePolling()) {
             SideTofManager::getInstance().updateSensorData();
         }
@@ -338,10 +338,7 @@ bool TaskManager::createTask(
 
 bool TaskManager::logTaskCreation(const char* name, bool success) {
     if (success) {
-        SerialQueueManager::getInstance().queueMessage(
-            String("✓ Created task: ") + name, 
-            SerialPriority::HIGH_PRIO
-        );
+        SerialQueueManager::getInstance().queueMessage(String("✓ Created task: ") + name);
     } else {
         SerialQueueManager::getInstance().queueMessage(
             String("✗ Failed to create task: ") + name, 

@@ -19,7 +19,7 @@ class SendDataToServer : public Singleton<SendDataToServer> {
         void sendBytecodeMessage(String message);
 
     private:
-        bool sendSensorData = true;
+        bool sendSensorData = false;
         // void attachRPMData(JsonObject& payload);
         void attachIRData(JsonObject& payload);
         void attachColorSensorData(JsonObject& payload);
