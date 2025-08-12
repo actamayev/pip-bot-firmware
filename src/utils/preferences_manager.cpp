@@ -49,11 +49,6 @@ String PreferencesManager::getPipId() {
     return pipId;
 }
 
-void PreferencesManager::setPipId(const String& id) {
-    if (!beginNamespace(NS_PIP_ID)) return;
-    preferences.putString(KEY_PIP_ID, id);
-}
-
 // Firmware version methods
 int PreferencesManager::getFirmwareVersion() {
     if (!beginNamespace(NS_FIRMWARE)) return 0;  // Fallback to 0 if can't access preferences

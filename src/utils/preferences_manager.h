@@ -11,9 +11,7 @@ class PreferencesManager : public Singleton<PreferencesManager> {
     friend class Singleton<PreferencesManager>;
 
     public:
-        // PIP ID methods
         String getPipId();
-        void setPipId(const String& id);
 
         // Firmware version methods
         int getFirmwareVersion();
