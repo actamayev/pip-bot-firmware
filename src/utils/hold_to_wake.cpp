@@ -5,13 +5,7 @@
 bool holdToWake() {
     esp_sleep_wakeup_cause_t wakeup_reason = esp_sleep_get_wakeup_cause();
     
-    // Only apply hold-to-wake behavior if woken from deep sleep by button
-    // Now using EXT1 instead of EXT0
-    if (wakeup_reason != ESP_SLEEP_WAKEUP_EXT1) {
-        rgbLed.setDefaultColors(0, 0, MAX_LED_BRIGHTNESS);
-        ledAnimations.startBreathing(2000, 0.0f);
-        return true; // Normal startup for other wake reasons
-    }
+    if (wakeup_reason != ESP_SLEEP_WAKEUP_EXT1) return true;
     
     // Configure both button pins for reading (changed to INPUT_PULLDOWN)
     pinMode(BUTTON_PIN_1, INPUT_PULLDOWN);
@@ -48,10 +42,6 @@ bool holdToWake() {
     if (!TaskManager::isDisplayInitialized()) {
         TaskManager::createDisplayInitTask();
     }
-    
-    // WAKE-UP SUCCESSFUL - Reset button state so this press doesn't count toward shutdown
-    // rgbLed.setDefaultColors(0, 0, MAX_LED_BRIGHTNESS);
-    // ledAnimations.startBreathing(2000, 0.0f);
 
     // Wait for user to release all buttons before proceeding
     do {
@@ -59,6 +49,6 @@ bool holdToWake() {
         button2Pressed = digitalRead(BUTTON_PIN_2) == HIGH;
         vTaskDelay(pdMS_TO_TICKS(10));
     } while (button1Pressed || button2Pressed);
-    
+
     return true; // Proceed with full startup
 }

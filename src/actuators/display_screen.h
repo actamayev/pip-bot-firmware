@@ -22,13 +22,7 @@ class DisplayScreen: public Singleton<DisplayScreen> {
         void turnScreenOff();
     private:
         // Private constructor for singleton
-        DisplayScreen() : 
-            initialized(false),
-            isShowingStartScreen(false),
-            customScreenActive(false),
-            redrawStartScreen(false),
-            lastUpdateTime(0),
-            startScreenStartTime(0) {}
+        DisplayScreen() = default;
         
         // Helper method
         void renderDisplay();
@@ -45,14 +39,14 @@ class DisplayScreen: public Singleton<DisplayScreen> {
         Adafruit_SSD1306 display = Adafruit_SSD1306(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
         
         // State flags
-        bool initialized;
-        bool isShowingStartScreen;
-        bool customScreenActive;
-        bool redrawStartScreen;
+        bool initialized = false;
+        bool isShowingStartScreen = false;
+        bool customScreenActive = false;
+        bool redrawStartScreen = false;
         
         // Timing management
-        unsigned long lastUpdateTime;
-        unsigned long startScreenStartTime;
+        unsigned long lastUpdateTime = 0;
+        unsigned long startScreenStartTime = 0;
 
         // Constants
         static const unsigned long START_SCREEN_DURATION = 2000;  // 2 seconds
