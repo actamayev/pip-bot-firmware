@@ -14,6 +14,7 @@ TaskHandle_t TaskManager::networkCommunicationTaskHandle = NULL;
 TaskHandle_t TaskManager::serialQueueTaskHandle = NULL;
 TaskHandle_t TaskManager::batteryMonitorTaskHandle = NULL;
 TaskHandle_t TaskManager::speakerTaskHandle = NULL;
+TaskHandle_t TaskManager::displayInitTaskHandle = NULL;
 
 void TaskManager::buttonTask(void* parameter) {
     setupButtonLoggers();
@@ -73,12 +74,7 @@ void TaskManager::sensorInitTask(void* parameter) {
     vTaskDelay(pdMS_TO_TICKS(10));
     
     SerialQueueManager::getInstance().queueMessage("Starting sensor initialization on Core 0...");
-    
-    if (!DisplayScreen::getInstance().init()) {
-        SerialQueueManager::getInstance().queueMessage("Display initialization failed");
-    } else {
-        SerialQueueManager::getInstance().queueMessage("Display initialized successfully");
-    }
+
     // Get the sensor initializer
     SensorInitializer& initializer = SensorInitializer::getInstance();
 
@@ -113,9 +109,8 @@ void TaskManager::sensorInitTask(void* parameter) {
     
     // Create the sensor polling task now that init is complete
     bool pollingTaskCreated = createSensorPollingTask();
-    bool displayTaskCreated = createDisplayTask();
 
-    if (pollingTaskCreated && displayTaskCreated) {
+    if (pollingTaskCreated) {
         SerialQueueManager::getInstance().queueMessage("All tasks created - sensor polling ready");
     } else {
         SerialQueueManager::getInstance().queueMessage("ERROR: Failed to create required tasks!");
@@ -242,6 +237,34 @@ void TaskManager::speakerTask(void* parameter) {
     }
 }
 
+void TaskManager::displayInitTask(void* parameter) {
+    disableCore0WDT();
+    vTaskDelay(pdMS_TO_TICKS(10));
+    
+    SerialQueueManager::getInstance().queueMessage("Starting display initialization...");
+    
+    if (!DisplayScreen::getInstance().init()) {
+        SerialQueueManager::getInstance().queueMessage("Display initialization failed");
+    } else {
+        SerialQueueManager::getInstance().queueMessage("Display initialized successfully");
+        
+        // Create the display task now that init is complete
+        bool displayTaskCreated = createDisplayTask();
+        if (displayTaskCreated) {
+            SerialQueueManager::getInstance().queueMessage("Display task created successfully");
+        } else {
+            SerialQueueManager::getInstance().queueMessage("ERROR: Failed to create Display task!");
+        }
+    }
+    
+    enableCore0WDT();
+    
+    // Self-delete - our job is done
+    SerialQueueManager::getInstance().queueMessage("DisplayInit task self-deleting");
+    displayInitTaskHandle = NULL;
+    vTaskDelete(NULL);
+}
+
 bool TaskManager::createButtonTask() {
     return createTask("Buttons", buttonTask, BUTTON_STACK_SIZE, 
                      Priority::CRITICAL, Core::CORE_0, &buttonTaskHandle);
@@ -314,6 +337,11 @@ bool TaskManager::createSpeakerTask() {
                      Priority::BACKGROUND, Core::CORE_1, &speakerTaskHandle);
 }
 
+bool TaskManager::createDisplayInitTask() {
+    return createTask("DisplayInit", displayInitTask, DISPLAY_INIT_STACK_SIZE,
+                     Priority::SYSTEM_CONTROL, Core::CORE_0, &displayInitTaskHandle);
+}
+
 bool TaskManager::createTask(
     const char* name,
     TaskFunction_t taskFunction, 
@@ -374,6 +402,7 @@ void TaskManager::printStackUsage() {
         {serialQueueTaskHandle, "SerialQueue", SERIAL_QUEUE_STACK_SIZE}, // ADD THIS LINE
         {batteryMonitorTaskHandle, "BatteryMonitor", BATTERY_MONITOR_STACK_SIZE},
         {speakerTaskHandle, "Speaker", SPEAKER_STACK_SIZE},
+        {displayInitTaskHandle, "DisplayInit", DISPLAY_INIT_STACK_SIZE}
     };
     
     for (const auto& task : tasks) {

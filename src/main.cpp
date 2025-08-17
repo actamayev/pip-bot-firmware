@@ -19,26 +19,46 @@ void setup() {
     SerialQueueManager::getInstance().initialize();
     TaskManager::createSerialQueueTask();
 
-    rgbLed.turn_all_leds_off(); // Start with LEDs off
-    TaskManager::createLedTask(); // Start LED task so updates work
-
     // Check hold-to-wake condition BEFORE any other initialization
     if (!holdToWake()) {
         // Function handles going back to sleep if conditions aren't met
         // This return should never be reached, but added for completeness
         return;
     }
-
+    
+    // 1. Buttons
     TaskManager::createButtonTask();
-    // Create remaining tasks
-    TaskManager::createSerialInputTask(); // Internal function
-    TaskManager::createMessageProcessorTask();  // Core 0 - motor control
-    TaskManager::createBytecodeVMTask();        // Core 1 - user programs
-    TaskManager::createSensorInitTask();  // Only create init task at startup
-    TaskManager::createNetworkManagementTask();    // External function
-    // TaskManager::createStackMonitorTask();   // Enable in debug builds
-    TaskManager::createBatteryMonitorTask();
+    
+    // 2. Display (initialize display hardware first, then create task)
+    TaskManager::createDisplayInitTask(); // New task to handle display init separately
+    
+    // 3. Speaker
     TaskManager::createSpeakerTask();
+    
+    // 4. SerialInput
+    TaskManager::createSerialInputTask();
+    
+    // 5. BatteryMonitor
+    TaskManager::createBatteryMonitorTask();
+    
+    // 6. MessageProcessor
+    TaskManager::createMessageProcessorTask();
+    
+    // 7. Network (Management task creates Communication task)
+    TaskManager::createNetworkManagementTask();
+    
+    // 8. LEDs (moved later in sequence)
+    rgbLed.turn_all_leds_off(); // Still turn off LEDs early for safety
+    TaskManager::createLedTask();
+
+    // 9. Sensors (Init task creates Polling task)
+    TaskManager::createSensorInitTask();
+    
+    // 10. BytecodeVM
+    TaskManager::createBytecodeVMTask();
+    
+    // Note: StackMonitor can be enabled for debugging
+    // TaskManager::createStackMonitorTask();
 }
 
 // Main loop runs on Core 1

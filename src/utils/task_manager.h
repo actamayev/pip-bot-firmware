@@ -22,6 +22,7 @@ class TaskManager {
         static bool createSensorInitTask();
         static bool createSensorPollingTask();  // Called by SensorInit when ready
         static bool createDisplayTask();
+        static bool createDisplayInitTask();    // NEW: Separate display initialization
         static bool createNetworkManagementTask();
         static bool createNetworkCommunicationTask();
         static bool createSerialQueueTask();
@@ -39,6 +40,7 @@ class TaskManager {
         static void sensorInitTask(void* parameter);
         static void sensorPollingTask(void* parameter);
         static void displayTask(void* parameter);
+        static void displayInitTask(void* parameter);        // NEW: Display init task
         static void networkManagementTask(void* parameter);
         static void networkCommunicationTask(void* parameter);
         static void serialQueueTask(void* parameter);
@@ -54,6 +56,7 @@ class TaskManager {
         static constexpr uint32_t SENSOR_INIT_STACK_SIZE = 6144;    // For I2C init complexity
         static constexpr uint32_t SENSOR_POLLING_STACK_SIZE = 10240; // Just polling
         static constexpr uint32_t DISPLAY_STACK_SIZE = 4096;  // I2C + display buffer operations
+        static constexpr uint32_t DISPLAY_INIT_STACK_SIZE = 4096;    // NEW: Display initialization
         static constexpr uint32_t NETWORK_MANAGEMENT_STACK_SIZE = 8192;    // Heavy WiFi operations
         static constexpr uint32_t NETWORK_COMMUNICATION_STACK_SIZE = 8192; // Lightweight WebSocket polling
         static constexpr uint32_t SERIAL_QUEUE_STACK_SIZE = MAX_PROGRAM_SIZE;
@@ -96,6 +99,7 @@ class TaskManager {
         static TaskHandle_t sensorInitTaskHandle;
         static TaskHandle_t sensorPollingTaskHandle;
         static TaskHandle_t displayTaskHandle;
+        static TaskHandle_t displayInitTaskHandle;           // NEW: Display init task handle
         static TaskHandle_t networkManagementTaskHandle;
         static TaskHandle_t networkCommunicationTaskHandle;
         static TaskHandle_t serialQueueTaskHandle;
