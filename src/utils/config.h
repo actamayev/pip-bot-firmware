@@ -1,11 +1,9 @@
 #pragma once
 #include <string>
+#include <Wire.h>   
 #include <cstdint>
-#include <Wire.h>
 
 // LED Configuration
-constexpr uint8_t ESP_LED_PIN = 4;
-constexpr uint8_t NUM_LEDS = 8;
 constexpr uint8_t MAX_LED_BRIGHTNESS = 75;
 
 // I2C Configuration
@@ -14,16 +12,6 @@ constexpr uint8_t I2C_SCL_1 = 8;
 constexpr uint8_t I2C_SDA_2 = 9; // Battery monitor
 constexpr uint8_t I2C_SCL_2 = 10; // Battery monitor
 constexpr uint32_t I2C_CLOCK_SPEED = 100 * 1000; // 100 kHz (works best for IMU)
-
-// Side TOFs
-constexpr uint8_t LEFT_TOF_ADDRESS = 0x51;
-constexpr uint8_t RIGHT_TOF_ADDRESS = 0x60;
-
-// Multizone TOF
-constexpr uint8_t MULTIZONE_TOF_ADDRESS = 0x29; // Default address
-
-// IMU
-constexpr uint8_t IMU_DEFAULT_ADDRESS = 0x4A;
 
 // Motors + Encoders
 constexpr uint8_t LEFT_MOTOR_PIN_IN_1 = 40;
@@ -43,21 +31,6 @@ constexpr uint8_t SCREEN_WIDTH = 128;
 constexpr uint8_t SCREEN_HEIGHT = 64;
 constexpr int8_t OLED_RESET = -1;  // Reset pin (-1 if sharing Arduino reset pin)
 constexpr uint8_t SCREEN_ADDRESS = 0x3C;
-
-// Color Sensor
-constexpr uint8_t COLOR_SENSOR_LED_PIN = 5;
-
-// IR sensor
-constexpr uint8_t PIN_MUX_A0 = 17;    // Multiplexer C input
-constexpr uint8_t PIN_MUX_A1 = 16;    // Multiplexer B input
-constexpr uint8_t PIN_MUX_A2 = 15;    // Multiplexer A input
-constexpr uint8_t PIN_MUX_OUT = 7;  // Multiplexer output
-constexpr uint8_t PIN_IR_EN = 6;    // IR sensor enable pin
-
-//Speaker
-constexpr uint8_t I2S_DOUT = 13;
-constexpr uint8_t I2S_BCLK = 14;
-constexpr uint8_t I2S_LRC = 21;
 
 // Buttons
 constexpr uint8_t BUTTON_PIN_1 = 11; // Left

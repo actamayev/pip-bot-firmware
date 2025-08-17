@@ -53,4 +53,5 @@
 //         // New buffer-based methods following the established pattern
 //         void updateSensorData();  // Single read, write to buffer
 //         bool shouldBePolling() const;
+//         const uint8_t COLOR_SENSOR_LED_PIN = 5;
 // };

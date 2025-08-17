@@ -61,4 +61,8 @@ class Speaker : public Singleton<Speaker> {
         bool validateAudioObjects();
 
         const char* getFilePath(SoundType audioFile) const;
+
+        const uint8_t I2S_DOUT = 13;
+        const uint8_t I2S_BCLK = 14;
+        const uint8_t I2S_LRC = 21;
 };

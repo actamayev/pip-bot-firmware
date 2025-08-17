@@ -32,4 +32,8 @@ class SideTofManager : public Singleton<SideTofManager> {
         // New buffer-based methods following IMU/TOF pattern
         void updateSensorData();  // Single read, write to buffer
         bool shouldBePolling() const;
+
+        // Side TOFs
+        const uint8_t LEFT_TOF_ADDRESS = 0x51;
+        const uint8_t RIGHT_TOF_ADDRESS = 0x60;
 };

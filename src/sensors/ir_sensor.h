@@ -34,4 +34,9 @@
 //         // Task Manager Methods:
 //         void updateSensorData();  // Single read, write to buffer
 //         bool shouldBePolling() const;
+//         const uint8_t PIN_MUX_A0 = 17;    // Multiplexer C input
+//         const uint8_t PIN_MUX_A1 = 16;    // Multiplexer B input
+//         const uint8_t PIN_MUX_A2 = 15;    // Multiplexer A input
+//         const uint8_t PIN_MUX_OUT = 7;  // Multiplexer output
+//         const uint8_t PIN_IR_EN = 6;    // IR sensor enable pin
 // };

@@ -45,6 +45,7 @@ class ImuSensor : public Singleton<ImuSensor> {
         unsigned long lastInitAttempt = 0;
         const unsigned long INIT_RETRY_INTERVAL = 1000; // 1 second between retry attempts
         const uint16_t IMU_UPDATE_FREQ_MICROSECS = 5000;  // 5ms, 200Hz
+        const uint8_t IMU_DEFAULT_ADDRESS = 0x4A;  // 5ms, 200Hz
 
         // Polling control
         void updateSensorData();  // Single read, write to buffer
