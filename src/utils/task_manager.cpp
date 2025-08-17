@@ -342,6 +342,11 @@ bool TaskManager::createDisplayInitTask() {
                      Priority::SYSTEM_CONTROL, Core::CORE_0, &displayInitTaskHandle);
 }
 
+bool TaskManager::isDisplayInitialized() {
+    // Return true if either init task is running or display task already exists
+    return (displayInitTaskHandle != NULL) || (displayTaskHandle != NULL);
+}
+
 bool TaskManager::createTask(
     const char* name,
     TaskFunction_t taskFunction, 

@@ -23,6 +23,7 @@ class TaskManager {
         static bool createSensorPollingTask();  // Called by SensorInit when ready
         static bool createDisplayTask();
         static bool createDisplayInitTask();    // NEW: Separate display initialization
+        static bool isDisplayInitialized();    // NEW: Check if display init is done or in progress
         static bool createNetworkManagementTask();
         static bool createNetworkCommunicationTask();
         static bool createSerialQueueTask();
