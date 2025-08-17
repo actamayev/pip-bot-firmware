@@ -771,10 +771,7 @@ void BytecodeVM::togglePause() {
 }
 
 void BytecodeVM::pauseProgram() {
-    if (!program || isPaused == PAUSED) {
-        SerialQueueManager::getInstance().queueMessage("pauseProgram: Already paused or no program");
-        return;
-    }
+    if (!program || isPaused == PAUSED) return;
     
     resetStateVariables();
     MessageProcessor::getInstance().resetCommandState();

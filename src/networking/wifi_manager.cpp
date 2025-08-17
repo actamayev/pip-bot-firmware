@@ -8,6 +8,11 @@ WiFiManager::WiFiManager() {
 
     WiFi.setTxPower(WIFI_POWER_19_5dBm);
     connectToStoredWiFi();
+
+    // TODO: 8/15/25: Possibly implement this (this was done in the WiFi + ESP NOW to substantially decrease the ESP-now latency when connected to WiFi)
+    // In receiver setup(), after WiFi connects:
+    // WiFi.setSleep(false);  // Disable WiFi power saving
+    // esp_wifi_set_ps(WIFI_PS_NONE);  // Disable power saving completely
 }
 
 void WiFiManager::connectToStoredWiFi() {
