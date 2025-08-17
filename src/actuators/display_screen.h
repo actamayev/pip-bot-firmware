@@ -19,7 +19,7 @@ class DisplayScreen: public Singleton<DisplayScreen> {
         void showDistanceSensors(SideTofCounts sideTofCounts);
         void showCustomBuffer(const uint8_t* buffer);
 
-        void turnScreenOff();
+        void turnDisplayOff();
     private:
         // Private constructor for singleton
         DisplayScreen() = default;

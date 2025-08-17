@@ -11,7 +11,7 @@ bool DisplayScreen::init() {
 
     initialized = true;
 
-    clear();
+    turnDisplayOff();
 
     // Start the startup sequence
     showStartScreen(true);
@@ -82,7 +82,7 @@ void DisplayScreen::showStartScreen(bool resetTimer) {
         carPosition = -20 + progress * (SCREEN_WIDTH + 40);
     }
 
-    clear();
+    turnDisplayOff();
     
     // Draw border
     display.drawRect(0, 0, display.width(), display.height(), SSD1306_WHITE);
@@ -110,7 +110,7 @@ void DisplayScreen::showDistanceSensors(SideTofCounts sideTofCounts) {
 
     customScreenActive = true;
 
-    clear();
+    turnDisplayOff();
     
     // Draw border
     display.drawRect(0, 0, display.width(), display.height(), SSD1306_WHITE);
@@ -127,12 +127,6 @@ void DisplayScreen::showDistanceSensors(SideTofCounts sideTofCounts) {
     drawText(String(sideTofCounts.rightCounts) + " counts", 50, 40, 1);
 
     renderDisplay();
-}
-
-// Clear the display
-void DisplayScreen::clear() {
-    if (!initialized) return;
-    display.clearDisplay();
 }
 
 // Render the display (apply the buffer to the screen)
@@ -175,7 +169,7 @@ void DisplayScreen::showCustomBuffer(const uint8_t* buffer) {
     isShowingStartScreen = false;
     
     // Clear display
-    clear();
+    turnDisplayOff();
     
     // Copy the buffer directly to the display
     // The buffer is already in SSD1306 format from React
@@ -190,7 +184,7 @@ void DisplayScreen::showCustomBuffer(const uint8_t* buffer) {
     renderDisplay();
 }
 
-void DisplayScreen::turnScreenOff() {
+void DisplayScreen::turnDisplayOff() {
     if (!initialized) return;
     display.clearDisplay();
     display.display();
