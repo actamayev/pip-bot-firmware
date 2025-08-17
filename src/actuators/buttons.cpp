@@ -166,6 +166,13 @@ void Buttons::setupDeepSleep() {
     // First, detect when long press threshold is reached
     button1.setLongClickTime(DEEP_SLEEP_TIMEOUT);
     button1.setLongClickDetectedHandler([this](Button2& btn) {
+        if (this->inHoldToWakeMode) return;
+        
+        // Ignore long clicks that happen within 500ms of hold-to-wake completion
+        if (this->holdToWakeCompletedTime > 0 && (millis() - this->holdToWakeCompletedTime) < 500) {
+            return;
+        }
+        
         // Reset timeout on any button activity
         TimeoutManager::getInstance().resetActivity();
         
@@ -193,4 +200,10 @@ void Buttons::enterDeepSleep() {
     Serial.flush();
     
     esp_deep_sleep_start();
+}
+
+void Buttons::setHoldToWakeMode(bool enabled) {
+    this->inHoldToWakeMode = enabled;
+    if (enabled) return;
+    this->holdToWakeCompletedTime = millis();
 }

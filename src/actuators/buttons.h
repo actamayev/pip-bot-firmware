@@ -26,6 +26,9 @@ class Buttons: public Singleton<Buttons> {
         void setButton1LongPressHandler(std::function<void(Button2&)> callback);
         void setButton2LongPressHandler(std::function<void(Button2&)> callback);
         void enterDeepSleep();
+        
+        // Hold-to-wake mode control
+        void setHoldToWakeMode(bool enabled);
 
     private:
         Button2 button1;
@@ -33,6 +36,8 @@ class Buttons: public Singleton<Buttons> {
 		bool longPressFlagForSleep = false;
         bool justPausedOnPress = false;
         bool waitingForSleepConfirmation = false; // New flag for confirmation stage
+        bool inHoldToWakeMode = false; // Flag to prevent long click LED during hold-to-wake
+        unsigned long holdToWakeCompletedTime = 0; // Timestamp when hold-to-wake completed
         static const uint32_t DEEP_SLEEP_TIMEOUT = 1000; // 1 second in milliseconds
         // Add for sleep confirmation timeout
         static const uint32_t SLEEP_CONFIRMATION_TIMEOUT = 5000; // 5 seconds in milliseconds
