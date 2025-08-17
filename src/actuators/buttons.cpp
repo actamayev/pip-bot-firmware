@@ -179,11 +179,7 @@ void Buttons::setupDeepSleep() {
 
 void Buttons::enterDeepSleep() {
     // Configure both buttons as wake-up sources
-    rgbLed.turn_all_leds_off();
     WebSocketManager::getInstance().sendPipTurningOff();
-    Speaker::getInstance().setMuted(true);
-    BytecodeVM::getInstance().stopProgram();
-    DisplayScreen::getInstance().turnScreenOff();
     digitalWrite(PWR_EN, LOW);
     vTaskDelay(pdMS_TO_TICKS(20));
 
