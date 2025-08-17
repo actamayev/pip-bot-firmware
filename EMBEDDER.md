@@ -13,7 +13,7 @@ Project Summary = Firmware for an educational robot
 build_command         = platformio run --environment local
 
 # --- Flash ------------------------------------------------------------------
-flash_command         =  platformio run --target upload --target monitor --environment local --upload-port /dev/cu.usbmodem101 --monitor-port /dev/cu.usbmodem101esp32-s3-devkitc-1
+flash_command         =  platformio run --target upload --target monitor --environment local --upload-port /dev/cu.usbmodem101 monitor-port /dev/cu.usbmodem101
 
 # --- Debug ------------------------------------------------------------------
 gdb_server_command    = <optional, e.g., openocd ... or ST-LINK_gdbserver ...>
