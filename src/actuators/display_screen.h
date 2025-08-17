@@ -39,7 +39,7 @@ class DisplayScreen: public Singleton<DisplayScreen> {
         void drawCenteredText(const String& text, uint16_t y, uint16_t size = 1);
 
         // Screen display methods
-        void showStartScreen(bool resetTimer = true);
+        void showStartScreen(bool resetTimer);
 
         // Display object
         Adafruit_SSD1306 display = Adafruit_SSD1306(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);

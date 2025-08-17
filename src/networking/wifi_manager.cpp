@@ -37,13 +37,13 @@ bool WiFiManager::attemptDirectConnectionToSavedNetworks() {
     // Get all saved networks
     std::vector<WiFiCredentials> savedNetworks = PreferencesManager::getInstance().getAllStoredWiFiNetworks();
 
-    if (
-        (ledAnimations.getCurrentAnimation() != LedTypes::BREATHING) &&
-        (BytecodeVM::getInstance().isPaused == BytecodeVM::getInstance().PROGRAM_NOT_STARTED)
-    ) {
-        rgbLed.set_led_red();
-        ledAnimations.startBreathing();
-    }
+    // if (
+    //     (ledAnimations.getCurrentAnimation() != LedTypes::BREATHING) &&
+    //     (BytecodeVM::getInstance().isPaused == BytecodeVM::getInstance().PROGRAM_NOT_STARTED)
+    // ) {
+    //     rgbLed.set_led_red();
+    //     ledAnimations.startBreathing();
+    // }
 
     SerialQueueManager::getInstance().queueMessage("Attempting direct connection to saved networks...");
     

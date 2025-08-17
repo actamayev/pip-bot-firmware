@@ -14,7 +14,7 @@ bool DisplayScreen::init() {
     clear();
 
     // Start the startup sequence
-    showStartScreen();
+    showStartScreen(true);
 
     return true;
 }

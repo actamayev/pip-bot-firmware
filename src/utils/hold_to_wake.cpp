@@ -49,12 +49,9 @@ bool holdToWake() {
         TaskManager::createDisplayInitTask();
     }
     
-    // Give the display task a moment to start
-    vTaskDelay(pdMS_TO_TICKS(50));
-    
     // WAKE-UP SUCCESSFUL - Reset button state so this press doesn't count toward shutdown
-    rgbLed.setDefaultColors(0, 0, MAX_LED_BRIGHTNESS);
-    ledAnimations.startBreathing(2000, 0.0f);
+    // rgbLed.setDefaultColors(0, 0, MAX_LED_BRIGHTNESS);
+    // ledAnimations.startBreathing(2000, 0.0f);
 
     // Wait for user to release all buttons before proceeding
     do {

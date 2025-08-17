@@ -237,10 +237,7 @@ void TaskManager::speakerTask(void* parameter) {
     }
 }
 
-void TaskManager::displayInitTask(void* parameter) {
-    disableCore0WDT();
-    vTaskDelay(pdMS_TO_TICKS(10));
-    
+void TaskManager::displayInitTask(void* parameter) {    
     SerialQueueManager::getInstance().queueMessage("Starting display initialization...");
     
     if (!DisplayScreen::getInstance().init()) {
@@ -256,8 +253,6 @@ void TaskManager::displayInitTask(void* parameter) {
             SerialQueueManager::getInstance().queueMessage("ERROR: Failed to create Display task!");
         }
     }
-    
-    enableCore0WDT();
     
     // Self-delete - our job is done
     SerialQueueManager::getInstance().queueMessage("DisplayInit task self-deleting");
