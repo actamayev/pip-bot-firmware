@@ -348,16 +348,24 @@ bool TaskManager::createTask(
     uint32_t stackSize,
     Priority priority,
     Core coreId,
-    TaskHandle_t* taskHandle,  // <-- ADD THIS PARAMETER
+    TaskHandle_t* taskHandle,
     void* parameters
 ) {
+    // Safety check: don't create if task already exists
+    if (taskHandle != nullptr && *taskHandle != NULL) {
+        SerialQueueManager::getInstance().queueMessage(
+            String("Task already exists: ") + name + ", skipping creation"
+        );
+        return true;  // Task exists, consider it success
+    }
+    
     BaseType_t result = xTaskCreatePinnedToCore(
         taskFunction,
         name,
         stackSize,
         parameters,
         static_cast<uint8_t>(priority),
-        taskHandle,  // <-- USE THE PASSED HANDLE INSTEAD OF NULL
+        taskHandle,
         static_cast<BaseType_t>(coreId)
     );
     
