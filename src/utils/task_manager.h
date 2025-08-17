@@ -53,11 +53,11 @@ class TaskManager {
         static constexpr uint32_t LED_STACK_SIZE = 6144;
         static constexpr uint32_t MESSAGE_PROCESSOR_STACK_SIZE = 8192; // Increase - motor + encoder logic
         static constexpr uint32_t BYTECODE_VM_STACK_SIZE = 16384;
-        static constexpr uint32_t STACK_MONITOR_STACK_SIZE = 2048;  // Small - just logging
+        static constexpr uint32_t STACK_MONITOR_STACK_SIZE = 4096;  // Increased - printStackUsage needs more space
         static constexpr uint32_t SENSOR_INIT_STACK_SIZE = 6144;    // For I2C init complexity
         static constexpr uint32_t SENSOR_POLLING_STACK_SIZE = 10240; // Just polling
         static constexpr uint32_t DISPLAY_STACK_SIZE = 4096;  // I2C + display buffer operations
-        static constexpr uint32_t DISPLAY_INIT_STACK_SIZE = 4096;    // NEW: Display initialization
+        static constexpr uint32_t DISPLAY_INIT_STACK_SIZE = 8192;     // Reduced from 30KB - should be sufficient with optimizations
         static constexpr uint32_t NETWORK_MANAGEMENT_STACK_SIZE = 8192;    // Heavy WiFi operations
         static constexpr uint32_t NETWORK_COMMUNICATION_STACK_SIZE = 8192; // Lightweight WebSocket polling
         static constexpr uint32_t SERIAL_QUEUE_STACK_SIZE = 10240;

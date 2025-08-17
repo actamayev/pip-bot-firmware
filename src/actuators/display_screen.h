@@ -40,15 +40,11 @@ class DisplayScreen: public Singleton<DisplayScreen> {
         
         // State flags
         bool initialized = false;
-        bool isShowingStartScreen = false;
         bool customScreenActive = false;
-        bool redrawStartScreen = false;
         
         // Timing management
         unsigned long lastUpdateTime = 0;
-        unsigned long startScreenStartTime = 0;
 
         // Constants
-        static const unsigned long START_SCREEN_DURATION = 2000;  // 2 seconds
         static const unsigned long UPDATE_INTERVAL = 50;          // 50ms (20fps)
 };

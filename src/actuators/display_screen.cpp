@@ -25,62 +25,21 @@ void DisplayScreen::update() {
     
     unsigned long currentTime = millis();
     
-    // Check if we're still in the initial screen display period
-    if (isShowingStartScreen) {
-        // If 2 seconds have passed, mark start screen as complete but keep displaying it
-        if (currentTime - startScreenStartTime >= START_SCREEN_DURATION) {
-            isShowingStartScreen = false;
-            redrawStartScreen = true; // Redraw without animation when done
-        } else {
-            // During the startup animation, update the car position frequently
-            if (currentTime - lastUpdateTime >= UPDATE_INTERVAL) { // ~30fps for smooth animation
-                lastUpdateTime = currentTime;
-                showStartScreen(false); // Update animation without resetting timer
-            }
-            return;
-        }
-    }
-
     // Only update display at regular intervals to save processing
     if (currentTime - lastUpdateTime >= UPDATE_INTERVAL) {
         lastUpdateTime = currentTime;
         
         // If nothing else has been set to display, keep the start screen showing
         if (!customScreenActive) {
-            // If we just finished showing the start screen animation, redraw it statically
-            if (redrawStartScreen) {
-                showStartScreen(false); // Show without resetting timer
-                redrawStartScreen = false;
-            }
+            showStartScreen(false);
         }
     }
 }
 
-// Show the start screen with car animation
+// Show the start screen
 void DisplayScreen::showStartScreen(bool resetTimer) {
     if (!initialized) return;
     
-    if (resetTimer) {
-        startScreenStartTime = millis();
-        isShowingStartScreen = true;
-        redrawStartScreen = false;
-    }
-
-    // For animation, calculate car position based on elapsed time
-    unsigned long currentTime = millis();
-    int16_t carPosition = -20; // Default position if not animating
-
-    if (isShowingStartScreen) {
-        // Calculate elapsed time (handle millis() overflow)
-        unsigned long elapsedTime = (currentTime >= startScreenStartTime) ? 
-            (currentTime - startScreenStartTime) : 
-            (UINT32_MAX - startScreenStartTime + currentTime);
-            
-        // Calculate car position based on elapsed time
-        // Move from left (-20) to right (SCREEN_WIDTH + 20)
-        float progress = (float)elapsedTime / START_SCREEN_DURATION;
-        carPosition = -20 + progress * (SCREEN_WIDTH + 40);
-    }
 
     turnDisplayOff();
     
@@ -92,13 +51,6 @@ void DisplayScreen::showStartScreen(bool resetTimer) {
     
     // Draw circle underneath
     display.fillCircle(display.width()/2, 40, 10, SSD1306_WHITE);
-
-    // Draw the car - simple car shape
-    const uint8_t carY = 55;
-    display.fillRect(carPosition, carY, 15, 5, SSD1306_WHITE);       // Car body
-    display.fillRect(carPosition + 3, carY - 3, 9, 3, SSD1306_WHITE); // Car top
-    display.fillCircle(carPosition + 3, carY + 5, 2, SSD1306_WHITE);  // Left wheel
-    display.fillCircle(carPosition + 12, carY + 5, 2, SSD1306_WHITE); // Right wheel
     
     renderDisplay();
 }
@@ -106,7 +58,7 @@ void DisplayScreen::showStartScreen(bool resetTimer) {
 // Show ToF sensor distances
 void DisplayScreen::showDistanceSensors(SideTofCounts sideTofCounts) {
     // If we're still showing the start screen, don't show anything yet
-    if (!initialized || isShowingStartScreen) return;
+    if (!initialized) return;
 
     customScreenActive = true;
 
@@ -166,7 +118,6 @@ void DisplayScreen::showCustomBuffer(const uint8_t* buffer) {
     
     // Override any current display state
     customScreenActive = true;
-    isShowingStartScreen = false;
     
     // Clear display
     turnDisplayOff();

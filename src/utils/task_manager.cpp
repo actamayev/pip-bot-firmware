@@ -240,10 +240,24 @@ void TaskManager::speakerTask(void* parameter) {
 void TaskManager::displayInitTask(void* parameter) {    
     SerialQueueManager::getInstance().queueMessage("Starting display initialization...");
     
+    // Log stack usage before init
+    UBaseType_t stackBefore = uxTaskGetStackHighWaterMark(NULL);
+    SerialQueueManager::getInstance().queueMessage("DisplayInit stack before init: " + String(stackBefore));
+    
     if (!DisplayScreen::getInstance().init()) {
         SerialQueueManager::getInstance().queueMessage("Display initialization failed");
+        // Log stack usage on failure
+        UBaseType_t stackAfter = uxTaskGetStackHighWaterMark(NULL);
+        SerialQueueManager::getInstance().queueMessage("DisplayInit stack after failed init: " + String(stackAfter));
     } else {
         SerialQueueManager::getInstance().queueMessage("Display initialized successfully");
+        
+        // Log stack usage after successful init
+        UBaseType_t stackAfter = uxTaskGetStackHighWaterMark(NULL);
+        SerialQueueManager::getInstance().queueMessage("DisplayInit stack after init: " + String(stackAfter));
+        
+        // Yield before creating display task
+        vTaskDelay(pdMS_TO_TICKS(5));
         
         // Create the display task now that init is complete
         bool displayTaskCreated = createDisplayTask();
@@ -253,6 +267,10 @@ void TaskManager::displayInitTask(void* parameter) {
             SerialQueueManager::getInstance().queueMessage("ERROR: Failed to create Display task!");
         }
     }
+    
+    // Final stack check before deletion
+    UBaseType_t stackFinal = uxTaskGetStackHighWaterMark(NULL);
+    SerialQueueManager::getInstance().queueMessage("DisplayInit stack before deletion: " + String(stackFinal));
     
     // Self-delete - our job is done
     SerialQueueManager::getInstance().queueMessage("DisplayInit task self-deleting");
@@ -402,6 +420,7 @@ void TaskManager::printStackUsage() {
         {ledTaskHandle, "LED", LED_STACK_SIZE},
         {messageProcessorTaskHandle, "MessageProcessor", MESSAGE_PROCESSOR_STACK_SIZE},
         {bytecodeVMTaskHandle, "BytecodeVM", BYTECODE_VM_STACK_SIZE},
+        {stackMonitorTaskHandle, "StackMonitor", STACK_MONITOR_STACK_SIZE},        // May be NULL after self-delete
         {sensorInitTaskHandle, "SensorInit", SENSOR_INIT_STACK_SIZE},        // May be NULL after self-delete
         {sensorPollingTaskHandle, "SensorPolling", SENSOR_POLLING_STACK_SIZE}, // May be NULL initially
         {displayTaskHandle, "Display", DISPLAY_STACK_SIZE},  // Add this line
@@ -414,7 +433,7 @@ void TaskManager::printStackUsage() {
     };
     
     for (const auto& task : tasks) {
-        if (task.handle != NULL) {
+        if (task.handle != NULL && eTaskGetState(task.handle) != eDeleted) {
             UBaseType_t freeStack = uxTaskGetStackHighWaterMark(task.handle);
             uint32_t usedStack = task.allocatedSize - (freeStack * sizeof(StackType_t));
             float percentUsed = (float)usedStack / task.allocatedSize * 100.0f;
