@@ -7,4 +7,3 @@
 #include "actuators/buttons.h"
 
 bool holdToWake();
-void initializeEarlyComponents();

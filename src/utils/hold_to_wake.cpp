@@ -44,11 +44,7 @@ bool holdToWake() {
         vTaskDelay(pdMS_TO_TICKS(10));
     }
     
-    // HOLD DURATION REACHED - INITIALIZE DISPLAY IMMEDIATELY
-    // Set up minimal required components for display
-    initializeEarlyComponents();
-    
-    // Initialize display immediately when hold duration is met (only if not already done)
+    // HOLD DURATION REACHED - INITIALIZE DISPLAY IMMEDIATELY for deep sleep wake
     if (!TaskManager::isDisplayInitialized()) {
         TaskManager::createDisplayInitTask();
     }
@@ -68,26 +64,4 @@ bool holdToWake() {
     } while (button1Pressed || button2Pressed);
     
     return true; // Proceed with full startup
-}
-
-// NEW FUNCTION: Initialize minimal components needed for display
-void initializeEarlyComponents() {
-    static bool initialized = false;
-    if (initialized) return; // Avoid double-initialization
-    
-    // Initialize Serial Queue Manager first (needed for logging)
-    SerialQueueManager::getInstance().initialize();
-    TaskManager::createSerialQueueTask();
-    
-    // Initialize I2C (needed for display)
-    Wire.setPins(I2C_SDA_1, I2C_SCL_1);
-    Wire.begin(I2C_SDA_1, I2C_SCL_1, I2C_CLOCK_SPEED);
-
-    Wire1.setPins(I2C_SDA_2, I2C_SCL_2);
-    Wire1.begin(I2C_SDA_2, I2C_SCL_2, I2C_CLOCK_SPEED);
-    
-    // Small delay to ensure I2C is ready
-    vTaskDelay(pdMS_TO_TICKS(10));
-    
-    initialized = true;
 }
