@@ -66,7 +66,7 @@ void setup() {
     TaskManager::createBytecodeVMTask();
     
     // Note: StackMonitor can be enabled for debugging
-    // TaskManager::createStackMonitorTask();
+    TaskManager::createStackMonitorTask();
 }
 
 // Main loop runs on Core 1
