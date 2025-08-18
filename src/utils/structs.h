@@ -107,7 +107,7 @@ struct LedState {
 };
 
 struct BatteryState {
-    unsigned int stateOfCharge = 0;      // Battery percentage (0-100%)
+    unsigned int realStateOfCharge = 0;      // Battery percentage (0-100%)
     unsigned int voltage = 0;            // Battery voltage (mV)
     int current = 0;                     // Current draw/charge (mA, + = discharging, - = charging)
     int power = 0;                       // Power consumption (mW)
@@ -122,6 +122,7 @@ struct BatteryState {
     float estimatedTimeToEmpty = 0.0;    // Hours until empty (0 if charging/standby)
     float estimatedTimeToFull = 0.0;     // Hours until full (0 if discharging/standby)
     bool isInitialized = false;          // True if BQ27441 is successfully initialized
+    float displayedStateOfCharge = 0;      // Battery percentage (0-100%)
 };
 
 enum class RouteType {

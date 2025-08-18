@@ -20,31 +20,28 @@ bool BatteryMonitor::initialize() {
     batteryState.isInitialized = true;
     
     // Initial battery state update
-    updateInitialBatteryInfo();
+    updateBatteryState();
     
-    SerialQueueManager::getInstance().queueMessage("✓ Battery monitor initialized - SOC: " + String(batteryState.stateOfCharge) + "%");
+    SerialQueueManager::getInstance().queueMessage("✓ Battery monitor initialized - SOC: " + String(batteryState.realStateOfCharge) + "%");
     
     return true;
-}
-
-void BatteryMonitor::updateInitialBatteryInfo() {
-    if (!batteryState.isInitialized) return;
-    batteryState.stateOfCharge = lipo.soc();
-    batteryState.isCriticalBattery = (batteryState.stateOfCharge <= CRITICAL_BATTERY_THRESHOLD);
 }
 
 void BatteryMonitor::updateBatteryState() {
     if (!batteryState.isInitialized) return;
     
     // Read battery parameters from BQ27441
-    batteryState.stateOfCharge = lipo.soc();
+    batteryState.realStateOfCharge = lipo.soc();
     batteryState.voltage = lipo.voltage();
     batteryState.current = lipo.current(AVG);
     batteryState.power = lipo.power();
     batteryState.remainingCapacity = lipo.capacity(REMAIN);
     batteryState.fullCapacity = lipo.capacity(FULL);
     batteryState.health = lipo.soh();
-    
+    // Prevent sub-0 values.
+    batteryState.displayedStateOfCharge = max(0.0f, 
+        (batteryState.realStateOfCharge) * (slopeTerm) + yInterceptTerm);
+
     // Update derived status flags
     updateStatusFlags();
     
@@ -63,8 +60,8 @@ void BatteryMonitor::updateStatusFlags() {
     }
     
     // Battery level warnings
-    batteryState.isLowBattery = (batteryState.stateOfCharge <= LOW_BATTERY_THRESHOLD);
-    batteryState.isCriticalBattery = (batteryState.stateOfCharge <= CRITICAL_BATTERY_THRESHOLD);
+    batteryState.isLowBattery = (batteryState.realStateOfCharge <= LOW_BATTERY_THRESHOLD);
+    batteryState.isCriticalBattery = (batteryState.realStateOfCharge <= CRITICAL_BATTERY_THRESHOLD);
 }
 
 void BatteryMonitor::calculateTimeEstimates() {
