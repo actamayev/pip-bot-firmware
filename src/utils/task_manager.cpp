@@ -220,8 +220,6 @@ void TaskManager::serialQueueTask(void* parameter) {
 }
 
 void TaskManager::batteryMonitorTask(void* parameter) {
-    BatteryMonitor::getInstance().initialize();
-    
     for(;;) {
         BatteryMonitor::getInstance().update();
         vTaskDelay(pdMS_TO_TICKS(1000));
@@ -241,7 +239,7 @@ void TaskManager::speakerTask(void* parameter) {
 void TaskManager::displayInitTask(void* parameter) {    
     SerialQueueManager::getInstance().queueMessage("Starting display initialization...");
     
-    if (!DisplayScreen::getInstance().init()) {
+    if (!DisplayScreen::getInstance().init(true)) {
         SerialQueueManager::getInstance().queueMessage("ERROR: Failed to init Display!");
     } else {
         // Yield before creating display task
@@ -319,6 +317,7 @@ bool TaskManager::createNetworkCommunicationTask() {
 
 bool TaskManager::createSerialQueueTask() {
     // Pass the SerialQueueManager instance as parameter
+    SerialQueueManager::getInstance().initialize();
     void* instance = &SerialQueueManager::getInstance();
     return createTask("SerialQueue", serialQueueTask, SERIAL_QUEUE_STACK_SIZE,
                      Priority::CRITICAL, Core::CORE_1, &serialQueueTaskHandle, instance);

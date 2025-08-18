@@ -20,15 +20,16 @@ bool BatteryMonitor::initialize() {
     batteryState.isInitialized = true;
     
     // Initial battery state update
-    updateBatteryState();
+    updateStateOfCharge();
     
     SerialQueueManager::getInstance().queueMessage("✓ Battery monitor initialized - SOC: " + String(batteryState.stateOfCharge) + "%");
     
-    // Send battery data immediately if connected to serial
-    sendBatteryMonitorDataOverSerial();
-    sendBatteryMonitorDataOverWebSocket();
-    
     return true;
+}
+
+void BatteryMonitor::updateStateOfCharge() {
+    if (!batteryState.isInitialized) return;
+    batteryState.stateOfCharge = lipo.soc();
 }
 
 void BatteryMonitor::updateBatteryState() {

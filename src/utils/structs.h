@@ -116,6 +116,7 @@ struct BatteryState {
     int health = 0;                      // Battery health (0-100%)
     bool isCharging = false;             // True if battery is charging
     bool isDischarging = false;          // True if battery is discharging
+    // TODO 8/18/25: Remove isLowBattery, isCriticalBattery. We'll do this in the UI
     bool isLowBattery = false;           // True if battery is below threshold
     bool isCriticalBattery = false;      // True if battery is critically low
     float estimatedTimeToEmpty = 0.0;    // Hours until empty (0 if charging/standby)

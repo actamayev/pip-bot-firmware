@@ -68,4 +68,5 @@ class BatteryMonitor : public Singleton<BatteryMonitor> {
         void handleBatteryLogging();
         void retryInitializationIfNeeded();
         void sendBatteryMonitorDataOverSerial();
+        void updateStateOfCharge();
 };
