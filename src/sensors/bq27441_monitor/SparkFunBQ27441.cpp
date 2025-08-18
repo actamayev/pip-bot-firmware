@@ -420,7 +420,7 @@ bool BQ27441::enterConfig(bool userControl)
 	{
 		int16_t timeout = BQ72441_I2C_TIMEOUT;
 		while ((timeout--) && (!(flags() & BQ27441_FLAG_CFGUPMODE)))
-			delay(1);
+			vTaskDelay(pdMS_TO_TICKS(1));
 		
 		if (timeout > 0)
 			return true;
@@ -445,7 +445,7 @@ bool BQ27441::exitConfig(bool resim)
 		{
 			int16_t timeout = BQ72441_I2C_TIMEOUT;
 			while ((timeout--) && ((flags() & BQ27441_FLAG_CFGUPMODE)))
-				delay(1);
+				vTaskDelay(pdMS_TO_TICKS(1));
 			if (timeout > 0)
 			{
 				if (_sealFlag) seal(); // Seal back up if we IC was sealed coming in
