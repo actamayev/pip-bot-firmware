@@ -63,7 +63,7 @@ void imuLogger() {
     const unsigned long IMU_PRINT_INTERVAL = 50; // Print every 500ms
     
     if (millis() - lastImuPrintTime < IMU_PRINT_INTERVAL) return;
-    EulerAngles eulerAngles = ImuSensor::getInstance().getEulerAngles();
+    EulerAngles eulerAngles = SensorDataBuffer::getInstance().getLatestEulerAngles();
     
     if (!eulerAngles.isValid) {
         SerialQueueManager::getInstance().queueMessage("Failed to get IMU data");
@@ -71,26 +71,26 @@ void imuLogger() {
         char buffer[128];
         snprintf(buffer, sizeof(buffer), "Orientation - Yaw: %.1f° Pitch: %.1f° Roll: %.1f°", 
                 eulerAngles.yaw, eulerAngles.roll, eulerAngles.pitch);
-        SerialQueueManager::getInstance().queueMessage(buffer, SerialPriority::LOW_PRIO);
+        SerialQueueManager::getInstance().queueMessage(buffer);
     }
 
     lastImuPrintTime = millis();
 }
 
-// void sideTofsLogger() {
-//     static unsigned long lastPrintTime = 0;
-//     const unsigned long PRINT_INTERVAL = 50; // Print every 500ms
+void sideTofsLogger() {
+    static unsigned long lastPrintTime = 0;
+    const unsigned long PRINT_INTERVAL = 50; // Print every 500ms
     
-//     if (millis() - lastPrintTime < PRINT_INTERVAL) return;
-//     SideTofCounts tofCounts = SideTofManager::getInstance().getBothSideTofCounts();
-//     // DisplayScreen::getInstance().showDistanceSensors(tofCounts);
+    if (millis() - lastPrintTime < PRINT_INTERVAL) return;
+    SideTofData tofCounts = SensorDataBuffer::getInstance().getLatestSideTofData();
+    // DisplayScreen::getInstance().showDistanceSensors(tofCounts);
 
-//     char buffer[128];
-//     snprintf(buffer, sizeof(buffer), "Left TOF: %u counts              || Right TOF: %u counts", 
-//             tofCounts.leftCounts, tofCounts.rightCounts);
-//     SerialQueueManager::getInstance().queueMessage(buffer, SerialPriority::LOW_PRIO);
-//     lastPrintTime = millis();
-// }
+    char buffer[128];
+    snprintf(buffer, sizeof(buffer), "Left TOF: %u counts              || Right TOF: %u counts", 
+            tofCounts.leftCounts, tofCounts.rightCounts);
+    SerialQueueManager::getInstance().queueMessage(buffer);
+    lastPrintTime = millis();
+}
 
 void setupButtonLoggers() {
     Buttons::getInstance().setButton1ClickHandler([](Button2& btn) {
@@ -110,18 +110,18 @@ void setupButtonLoggers() {
     });
 }
 
-void log_motor_rpm() {
-    static unsigned long lastPrintTime = 0;
-    const unsigned long PRINT_INTERVAL = 500;
+// void log_motor_rpm() {
+//     static unsigned long lastPrintTime = 0;
+//     const unsigned long PRINT_INTERVAL = 500;
     
-    if (millis() - lastPrintTime < PRINT_INTERVAL) return;
+//     if (millis() - lastPrintTime < PRINT_INTERVAL) return;
 
-    auto rpms = encoderManager.getBothWheelRPMs();
+//     auto rpms = encoderManager.getBothWheelRPMs();
 
-    char buffer[128];
-    snprintf(buffer, sizeof(buffer), "Motor RPM - Left: %.2f || Right: %.2f", 
-             rpms.leftWheelRPM, rpms.rightWheelRPM);
-    SerialQueueManager::getInstance().queueMessage(buffer, SerialPriority::LOW_PRIO);
+//     char buffer[128];
+//     snprintf(buffer, sizeof(buffer), "Motor RPM - Left: %.2f || Right: %.2f", 
+//              rpms.leftWheelRPM, rpms.rightWheelRPM);
+//     SerialQueueManager::getInstance().queueMessage(buffer);
     
-    lastPrintTime = millis();
-}
+//     lastPrintTime = millis();
+// }

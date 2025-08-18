@@ -8,6 +8,11 @@ WiFiManager::WiFiManager() {
 
     WiFi.setTxPower(WIFI_POWER_19_5dBm);
     connectToStoredWiFi();
+
+    // TODO: 8/15/25: Possibly implement this (this was done in the WiFi + ESP NOW to substantially decrease the ESP-now latency when connected to WiFi)
+    // In receiver setup(), after WiFi connects:
+    // WiFi.setSleep(false);  // Disable WiFi power saving
+    // esp_wifi_set_ps(WIFI_PS_NONE);  // Disable power saving completely
 }
 
 void WiFiManager::connectToStoredWiFi() {
@@ -19,26 +24,6 @@ void WiFiManager::connectToStoredWiFi() {
     } else {
         WebSocketManager::getInstance().connectToWebSocket();
     }
-
-    // 4/29/25 NOTE: When serial was implemented, this was commented out because the code got stuck in wifi scan mode when the serial code was brought in in main.cpp
-
-    // If direct connection failed, do a full scan for all networks
-    // auto networks = scanWiFiNetworkInfos();
-
-    // if (networks.empty()) {
-    //     // If no networks found
-    //     SerialQueueManager::getInstance().queueMessage("No networks found in full scan.");
-    //     return;
-    // }
-    
-    // // Print the available networks and select the first one
-    // printNetworkList(networks);
-    // setSelectedNetworkIndex(0);
-    
-    // // Init encoder for network selection
-    // WifiSelectionManager::getInstance().initNetworkSelection();
-
-    // SerialQueueManager::getInstance().queueMessage("Use the right motor to scroll through networks");
 }
 
 // 4/9/25 TODO: Connect to the network we've most recently connected to first.
@@ -52,13 +37,13 @@ bool WiFiManager::attemptDirectConnectionToSavedNetworks() {
     // Get all saved networks
     std::vector<WiFiCredentials> savedNetworks = PreferencesManager::getInstance().getAllStoredWiFiNetworks();
 
-    if (
-        (ledAnimations.getCurrentAnimation() != LedTypes::BREATHING) &&
-        (BytecodeVM::getInstance().isPaused == BytecodeVM::getInstance().PROGRAM_NOT_STARTED)
-    ) {
-        rgbLed.set_led_red();
-        ledAnimations.startBreathing();
-    }
+    // if (
+    //     (ledAnimations.getCurrentAnimation() != LedTypes::BREATHING) &&
+    //     (BytecodeVM::getInstance().isPaused == BytecodeVM::getInstance().PROGRAM_NOT_STARTED)
+    // ) {
+    //     rgbLed.set_led_red();
+    //     ledAnimations.startBreathing();
+    // }
 
     SerialQueueManager::getInstance().queueMessage("Attempting direct connection to saved networks...");
     
@@ -73,6 +58,7 @@ bool WiFiManager::attemptDirectConnectionToSavedNetworks() {
         // Attempt connection
         if (attemptNewWifiConnection(network)) return true;
         
+        // 8/11/25 TODO: Remove all blocking delays in the wifi manager
         // Brief delay before trying the next network
         vTaskDelay(pdMS_TO_TICKS(100));
     }
@@ -96,9 +82,6 @@ bool WiFiManager::attemptNewWifiConnection(WiFiCredentials wifiCredentials) {
     }
 
     WiFi.begin(wifiCredentials.ssid, wifiCredentials.password);
-    SerialQueueManager::getInstance().queueMessage("SSID: " + wifiCredentials.ssid);
-    SerialQueueManager::getInstance().queueMessage("Password: " + wifiCredentials.password);
-    SerialQueueManager::getInstance().queueMessage("Attempting to connect to Wi-Fi...");
 
     unsigned long startAttemptTime = millis();
     unsigned long lastPrintTime = startAttemptTime;
@@ -108,7 +91,6 @@ bool WiFiManager::attemptNewWifiConnection(WiFiCredentials wifiCredentials) {
         // Non-blocking print of dots
         unsigned long currentTime = millis();
         if (currentTime - lastPrintTime >= printInterval) {
-            SerialQueueManager::getInstance().queueMessage(".");
             lastPrintTime = currentTime;
             yield();  // Allow the ESP32 to handle background tasks
         }
@@ -218,17 +200,12 @@ void WiFiManager::startAddPipWiFiTest(const String& ssid, const String& password
     _addPipSSID = ssid;
     _addPipPassword = password;
     _isTestingAddPipCredentials = true;
-    
-    SerialQueueManager::getInstance().queueMessage("Starting ADD_PIP_MODE WiFi test...");
 }
 
 void WiFiManager::processAddPipMode() {
     if (!_isTestingAddPipCredentials) return;
     
     _isTestingAddPipCredentials = false;
-
-    SerialQueueManager::getInstance().queueMessage("=== Starting WiFi credential test ===");
-    SerialQueueManager::getInstance().queueMessage("Target SSID: " + _addPipSSID);
 
     // Directly attempt connection without scanning
     if (testConnectionOnly(_addPipSSID, _addPipPassword)) {
@@ -245,25 +222,21 @@ void WiFiManager::processAddPipMode() {
             WebSocketManager::getInstance().pollWebSocket();
             if (WebSocketManager::getInstance().isConnected()) {
                 websocketConnected = true;
-                SerialQueueManager::getInstance().queueMessage("WebSocket connection successful!");
                 break;
             }
             vTaskDelay(pdMS_TO_TICKS(100));
         }
         
         if (websocketConnected) {
-            SerialQueueManager::getInstance().queueMessage("=== Full connection successful - storing credentials ===");
             storeWiFiCredentials(_addPipSSID, _addPipPassword, 0);
             NetworkStateManager::getInstance().setAddPipMode(false);
             SerialManager::getInstance().sendJsonMessage(RouteType::WIFI_CONNECTION_RESULT, "success");
         } else {
-            SerialQueueManager::getInstance().queueMessage("=== WebSocket connection failed - likely captive portal ===");
             WiFi.setAutoReconnect(false);
             WiFi.disconnect(true);
             SerialManager::getInstance().sendJsonMessage(RouteType::WIFI_CONNECTION_RESULT, "wifi_only");
         }
     } else {
-        SerialQueueManager::getInstance().queueMessage("=== WiFi connection failed ===");
         WiFi.setAutoReconnect(false);
         WiFi.disconnect(true);
         SerialManager::getInstance().sendJsonMessage(RouteType::WIFI_CONNECTION_RESULT, "failed");

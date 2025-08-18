@@ -5,7 +5,7 @@ bool BatteryMonitor::initialize() {
     SerialQueueManager::getInstance().queueMessage("Initializing BQ27441 battery monitor...");
 
     // Initialize the fuel gauge
-    if (!lipo.begin()) {
+    if (!lipo.begin(Wire1)) {
         SerialQueueManager::getInstance().queueMessage("✗ Failed to connect to BQ27441 - check wiring and I2C address");
         batteryState.isInitialized = false;
         return false;
@@ -14,7 +14,6 @@ bool BatteryMonitor::initialize() {
     
     // Set the battery capacity if it hasn't been set already
     if (lipo.capacity(FULL) != DEFAULT_BATTERY_CAPACITY) {
-        SerialQueueManager::getInstance().queueMessage("Setting battery capacity to " + String(DEFAULT_BATTERY_CAPACITY) + "mAh");
         lipo.setCapacity(DEFAULT_BATTERY_CAPACITY);
     }
     
@@ -126,13 +125,11 @@ void BatteryMonitor::retryInitializationIfNeeded() {
 void BatteryMonitor::sendBatteryMonitorDataOverSerial() {
     if (!SerialManager::getInstance().isSerialConnected()) return;
     SerialManager::getInstance().sendBatteryMonitorData();
-    SerialQueueManager::getInstance().queueMessage("Battery data sent to serial", SerialPriority::HIGH_PRIO);
     lastBatteryLogTime = millis();
 }
 
 void BatteryMonitor::sendBatteryMonitorDataOverWebSocket() {
     if (!WebSocketManager::getInstance().isConnected()) return;
     WebSocketManager::getInstance().sendBatteryMonitorData();
-    SerialQueueManager::getInstance().queueMessage("Battery data sent to websocket", SerialPriority::HIGH_PRIO);
     lastBatteryLogTime = millis();
 }

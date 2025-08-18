@@ -41,17 +41,9 @@ String PreferencesManager::getPipId() {
         // First boot - initialize with the compile-time default
         pipId = String(DEFAULT_PIP_ID);
         preferences.putString(KEY_PIP_ID, pipId);
-        char logMessage[128];
-        snprintf(logMessage, sizeof(logMessage), "First boot: Initialized PIP ID to default: %s", pipId.c_str());
-        SerialQueueManager::getInstance().queueMessage(logMessage);
     }
     
     return pipId;
-}
-
-void PreferencesManager::setPipId(const String& id) {
-    if (!beginNamespace(NS_PIP_ID)) return;
-    preferences.putString(KEY_PIP_ID, id);
 }
 
 // Firmware version methods

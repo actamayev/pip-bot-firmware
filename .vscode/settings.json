@@ -50,6 +50,16 @@
 		"streambuf": "cpp",
 		"cinttypes": "cpp",
 		"typeinfo": "cpp",
-		"queue": "cpp"
+		"queue": "cpp",
+		"codecvt": "cpp",
+		"condition_variable": "cpp",
+		"list": "cpp",
+		"future": "cpp",
+		"mutex": "cpp",
+		"thread": "cpp",
+		"chrono": "cpp",
+		"csignal": "cpp",
+		"ratio": "cpp",
+		"set": "cpp"
 	}
 }

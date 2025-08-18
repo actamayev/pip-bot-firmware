@@ -5,6 +5,9 @@
 #include "utils/config.h"
 #include "utils/structs.h"
 
+constexpr uint8_t ESP_LED_PIN = 4;
+constexpr uint8_t NUM_LEDS = 8;
+
 class RgbLed {
     public:
         // Basic color controls

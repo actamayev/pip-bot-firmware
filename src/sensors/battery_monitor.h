@@ -1,10 +1,11 @@
 #pragma once
 
 #include <Wire.h>
-#include <SparkFunBQ27441.h>
+#include "sensors/bq27441_monitor/SparkFunBQ27441.h"
 #include "utils/config.h"
 #include "utils/singleton.h"
 #include "networking/serial_manager.h"
+#include "networking/websocket_manager.h"
 #include "utils/structs.h"
 
 class BatteryMonitor : public Singleton<BatteryMonitor> {

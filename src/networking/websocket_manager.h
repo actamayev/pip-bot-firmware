@@ -6,11 +6,11 @@
 #include "utils/singleton.h"
 #include "message_processor.h"
 #include "send_data_to_server.h"
-#include "firmware_version_tracker.h"
-#include "custom_interpreter/bytecode_vm.h"
-#include "sensors/sensor_polling_manager.h"
-#include "utils/preferences_manager.h"
 #include "sensors/battery_monitor.h"
+#include "firmware_version_tracker.h"
+#include "utils/preferences_manager.h"
+#include "sensors/sensor_data_buffer.h"
+#include "custom_interpreter/bytecode_vm.h"
 
 using namespace websockets;
 
