@@ -250,18 +250,6 @@ void SensorDataBuffer::startPollingAllSensors() {
     timeouts.ir_last_request.store(currentTime);  // Include IR sensor
 }
 
-void SensorDataBuffer::stopPollingAllSensors() {
-    // Set timeouts to expired (more than 1 minute ago)
-    uint32_t expiredTime = millis() - (ReportTimeouts::TIMEOUT_MS + 1000);
-    timeouts.quaternion_last_request.store(expiredTime);
-    timeouts.accelerometer_last_request.store(expiredTime);
-    timeouts.gyroscope_last_request.store(expiredTime);
-    timeouts.magnetometer_last_request.store(expiredTime);
-    timeouts.tof_last_request.store(expiredTime);
-    timeouts.side_tof_last_request.store(expiredTime);
-    timeouts.color_last_request.store(expiredTime);  // Include color sensor
-    timeouts.ir_last_request.store(expiredTime);  // Include IR sensor
-}
 
 void SensorDataBuffer::markDataUpdated() {
     lastUpdateTime.store(millis());

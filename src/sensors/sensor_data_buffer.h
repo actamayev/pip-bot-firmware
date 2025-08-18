@@ -217,7 +217,6 @@ class SensorDataBuffer : public Singleton<SensorDataBuffer> {
         
         // Helper methods for bulk polling control
         void startPollingAllSensors();
-        void stopPollingAllSensors();
         
         // Get complete samples (for debugging/logging)
         ImuSample getLatestImuSample();

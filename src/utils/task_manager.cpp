@@ -130,9 +130,10 @@ void TaskManager::sensorPollingTask(void* parameter) {
         if (ImuSensor::getInstance().shouldBePolling()) {
             ImuSensor::getInstance().updateSensorData();
         }
-        // if (MultizoneTofSensor::getInstance().shouldBePolling()) {
-        //     MultizoneTofSensor::getInstance().updateSensorData();
-        // }
+        // The MZ sensor update slows down the loop extensively. Consider breaking the sensor polling into multiple tasks
+        if (MultizoneTofSensor::getInstance().shouldBePolling()) {
+            MultizoneTofSensor::getInstance().updateSensorData();
+        }
         if (SideTofManager::getInstance().shouldBePolling()) {
             SideTofManager::getInstance().updateSensorData();
         }
