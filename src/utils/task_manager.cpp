@@ -69,10 +69,7 @@ void TaskManager::displayTask(void* parameter) {
     }
 }
 
-void TaskManager::sensorInitTask(void* parameter) {
-    disableCore0WDT();
-    vTaskDelay(pdMS_TO_TICKS(10));
-    
+void TaskManager::sensorInitTask(void* parameter) {    
     SerialQueueManager::getInstance().queueMessage("Starting sensor initialization on Core 0...");
 
     // Get the sensor initializer
@@ -105,7 +102,6 @@ void TaskManager::sensorInitTask(void* parameter) {
     }
     
     SerialQueueManager::getInstance().queueMessage("All sensors initialized successfully!");
-    enableCore0WDT();
     
     // Create the sensor polling task now that init is complete
     bool pollingTaskCreated = createSensorPollingTask();
