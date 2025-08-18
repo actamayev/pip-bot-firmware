@@ -241,22 +241,9 @@ void TaskManager::speakerTask(void* parameter) {
 void TaskManager::displayInitTask(void* parameter) {    
     SerialQueueManager::getInstance().queueMessage("Starting display initialization...");
     
-    // Log stack usage before init
-    UBaseType_t stackBefore = uxTaskGetStackHighWaterMark(NULL);
-    SerialQueueManager::getInstance().queueMessage("DisplayInit stack before init: " + String(stackBefore));
-    
     if (!DisplayScreen::getInstance().init()) {
-        SerialQueueManager::getInstance().queueMessage("Display initialization failed");
-        // Log stack usage on failure
-        UBaseType_t stackAfter = uxTaskGetStackHighWaterMark(NULL);
-        SerialQueueManager::getInstance().queueMessage("DisplayInit stack after failed init: " + String(stackAfter));
+        SerialQueueManager::getInstance().queueMessage("ERROR: Failed to init Display!");
     } else {
-        SerialQueueManager::getInstance().queueMessage("Display initialized successfully");
-        
-        // Log stack usage after successful init
-        UBaseType_t stackAfter = uxTaskGetStackHighWaterMark(NULL);
-        SerialQueueManager::getInstance().queueMessage("DisplayInit stack after init: " + String(stackAfter));
-        
         // Yield before creating display task
         vTaskDelay(pdMS_TO_TICKS(5));
         
@@ -268,10 +255,6 @@ void TaskManager::displayInitTask(void* parameter) {
             SerialQueueManager::getInstance().queueMessage("ERROR: Failed to create Display task!");
         }
     }
-    
-    // Final stack check before deletion
-    UBaseType_t stackFinal = uxTaskGetStackHighWaterMark(NULL);
-    SerialQueueManager::getInstance().queueMessage("DisplayInit stack before deletion: " + String(stackFinal));
     
     // Self-delete - our job is done
     SerialQueueManager::getInstance().queueMessage("DisplayInit task self-deleting");

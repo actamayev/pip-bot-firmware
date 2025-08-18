@@ -20,7 +20,8 @@ void setup() {
     SerialQueueManager::getInstance().initialize();
     TaskManager::createSerialQueueTask();
     
-    // For normal startup (not deep sleep wake), initialize display immediately
+    // For normal startup (not deep sleep wake), initialize display immediately (this isn't working).
+    // When upload and monitor from Platform, the display doesn't turn on
     if (esp_sleep_get_wakeup_cause() != ESP_SLEEP_WAKEUP_EXT1) {
         TaskManager::createDisplayInitTask();
     }
