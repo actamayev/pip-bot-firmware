@@ -19,7 +19,7 @@ void setup() {
     TaskManager::createSerialQueueTask();
     
     // Initialize battery monitor SYNCHRONOUSLY before display to check battery level
-    bool batteryInitialized = BatteryMonitor::getInstance().initialize();
+    BatteryMonitor::getInstance().initialize();
 
     // Initialize 
     Wire.setPins(I2C_SDA_1, I2C_SCL_1);
