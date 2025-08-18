@@ -20,16 +20,6 @@ void setup() {
     
     // Initialize battery monitor SYNCHRONOUSLY before display to check battery level
     bool batteryInitialized = BatteryMonitor::getInstance().initialize();
-    
-    // Check battery level and decide startup behavior
-    bool isLowBattery = false;
-    if (batteryInitialized) {
-        // Give the battery monitor a moment to get first reading
-        vTaskDelay(pdMS_TO_TICKS(100));
-        BatteryMonitor::getInstance().updateBatteryState();
-        unsigned int batteryLevel = BatteryMonitor::getInstance().getStateOfCharge();
-        isLowBattery = (batteryLevel <= 5);
-    }
 
     // Initialize 
     Wire.setPins(I2C_SDA_1, I2C_SCL_1);
@@ -40,11 +30,11 @@ void setup() {
     if (!holdToWake()) return;
 
     // Handle low battery condition BEFORE normal display initialization
-    if (isLowBattery) {
+    if (BatteryMonitor::getInstance().isCriticalBattery()) {
         // Initialize display directly without showing startup screen
         DisplayScreen::getInstance().init(false);
         DisplayScreen::getInstance().showLowBatteryScreen();
-        delay(3000); // Show low battery message for 3 seconds
+        vTaskDelay(pdMS_TO_TICKS(3000)); // Show low battery message for 3 seconds
         Buttons::getInstance().enterDeepSleep();
         return; // Should never reach here, but just in case
     }

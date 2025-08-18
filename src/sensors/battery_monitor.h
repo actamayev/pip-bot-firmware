@@ -55,7 +55,7 @@ class BatteryMonitor : public Singleton<BatteryMonitor> {
         // Configuration constants
         static constexpr unsigned int DEFAULT_BATTERY_CAPACITY = 1800; // mAh
         static constexpr unsigned int LOW_BATTERY_THRESHOLD = 20;      // %
-        static constexpr unsigned int CRITICAL_BATTERY_THRESHOLD = 10;  // %
+        static constexpr unsigned int CRITICAL_BATTERY_THRESHOLD = 5;  // %
         
         BatteryState batteryState;
         unsigned long lastInitAttempt = 0;
@@ -68,5 +68,5 @@ class BatteryMonitor : public Singleton<BatteryMonitor> {
         void handleBatteryLogging();
         void retryInitializationIfNeeded();
         void sendBatteryMonitorDataOverSerial();
-        void updateStateOfCharge();
+        void updateInitialBatteryInfo();
 };

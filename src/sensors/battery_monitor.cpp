@@ -20,16 +20,17 @@ bool BatteryMonitor::initialize() {
     batteryState.isInitialized = true;
     
     // Initial battery state update
-    updateStateOfCharge();
+    updateInitialBatteryInfo();
     
     SerialQueueManager::getInstance().queueMessage("✓ Battery monitor initialized - SOC: " + String(batteryState.stateOfCharge) + "%");
     
     return true;
 }
 
-void BatteryMonitor::updateStateOfCharge() {
+void BatteryMonitor::updateInitialBatteryInfo() {
     if (!batteryState.isInitialized) return;
     batteryState.stateOfCharge = lipo.soc();
+    batteryState.isCriticalBattery = (batteryState.stateOfCharge <= CRITICAL_BATTERY_THRESHOLD);
 }
 
 void BatteryMonitor::updateBatteryState() {
@@ -95,6 +96,11 @@ void BatteryMonitor::update() {
     
     // Handle periodic battery logging when connected to serial
     handleBatteryLogging();
+
+    if (!batteryState.isCriticalBattery) return;
+    DisplayScreen::getInstance().showLowBatteryScreen();
+    vTaskDelay(pdMS_TO_TICKS(3000)); // Show low battery message for 3 seconds
+    Buttons::getInstance().enterDeepSleep();
 }
 
 void BatteryMonitor::handleBatteryLogging() {
