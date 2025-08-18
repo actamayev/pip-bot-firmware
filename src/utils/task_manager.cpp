@@ -80,6 +80,10 @@ void TaskManager::sensorInitTask(void* parameter) {
 
     // Keep trying until ALL sensors are initialized
     while (!initializer.areAllSensorsInitialized()) {
+        if (!initializer.isSensorInitialized(SensorInitializer::SIDE_TOFS)) {
+            SerialQueueManager::getInstance().queueMessage("Trying to init Multizone TOF...");
+            initializer.tryInitializeSideTofs();
+        }
         if (!initializer.isSensorInitialized(SensorInitializer::IMU)) {
             SerialQueueManager::getInstance().queueMessage("Trying to init IMU...");
             initializer.tryInitializeIMU();
@@ -88,12 +92,8 @@ void TaskManager::sensorInitTask(void* parameter) {
             SerialQueueManager::getInstance().queueMessage("Trying to init Multizone TOF...");
             initializer.tryInitializeMultizoneTof();
         }
-        if (!initializer.isSensorInitialized(SensorInitializer::SIDE_TOFS)) {
-            SerialQueueManager::getInstance().queueMessage("Trying to init Multizone TOF...");
-            initializer.tryInitializeSideTofs();
-        }
         // if (!initializer.isSensorInitialized(SensorInitializer::COLOR_SENSOR)) {
-        //     SerialQueueManager::getInstance().queueMessage("Trying to init IR sensors...");
+            //     SerialQueueManager::getInstance().queueMessage("Trying to init IR sensors...");
         //     initializer.tryInitializeColorSensor();
         // }
         // if (!initializer.isSensorInitialized(SensorInitializer::IR_SENSORS)) {

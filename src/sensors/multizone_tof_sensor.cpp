@@ -32,7 +32,7 @@ bool MultizoneTofSensor::initialize() {
                     // Initialize point histories
                     initializePointHistories();
                     
-                    SerialQueueManager::getInstance().queueMessage("TOF sensor initialization complete");
+                    SerialQueueManager::getInstance().queueMessage("MZ TOF sensor initialization complete");
                     isInitialized = true;
                     return true;
                 }

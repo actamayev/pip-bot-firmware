@@ -4,6 +4,7 @@
 bool DisplayScreen::init() {
     if (initialized) return true;  // Already initialized
 
+    display = Adafruit_SSD1306(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
     if(!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
         SerialQueueManager::getInstance().queueMessage("SSD1306 allocation failed");
         return false;
@@ -14,7 +15,7 @@ bool DisplayScreen::init() {
     turnDisplayOff();
 
     // Start the startup sequence
-    showStartScreen(true);
+    showStartScreen();
 
     return true;
 }
@@ -26,20 +27,18 @@ void DisplayScreen::update() {
     unsigned long currentTime = millis();
     
     // Only update display at regular intervals to save processing
-    if (currentTime - lastUpdateTime >= UPDATE_INTERVAL) {
-        lastUpdateTime = currentTime;
-        
-        // If nothing else has been set to display, keep the start screen showing
-        if (!customScreenActive) {
-            showStartScreen(false);
-        }
+    if (currentTime - lastUpdateTime < UPDATE_INTERVAL) return;
+    lastUpdateTime = currentTime;
+    
+    // If nothing else has been set to display, keep the start screen showing
+    if (!customScreenActive) {
+        showStartScreen();
     }
 }
 
 // Show the start screen
-void DisplayScreen::showStartScreen(bool resetTimer) {
-    if (!initialized) return;
-    
+void DisplayScreen::showStartScreen() {
+    if (!initialized || isShowingStartScreen) return;
 
     turnDisplayOff();
     
@@ -53,32 +52,7 @@ void DisplayScreen::showStartScreen(bool resetTimer) {
     display.fillCircle(display.width()/2, 40, 10, SSD1306_WHITE);
     
     renderDisplay();
-}
-
-// Show ToF sensor distances
-void DisplayScreen::showDistanceSensors(SideTofCounts sideTofCounts) {
-    // If we're still showing the start screen, don't show anything yet
-    if (!initialized) return;
-
-    customScreenActive = true;
-
-    turnDisplayOff();
-    
-    // Draw border
-    display.drawRect(0, 0, display.width(), display.height(), SSD1306_WHITE);
-    
-    // Title
-    drawCenteredText("Distance Sensors", 1);
-
-    // Left sensor - use String(value) without decimal places
-    drawText("Left:", 10, 25, 1);
-    drawText(String(sideTofCounts.leftCounts) + " counts", 50, 25, 1);
-
-    // Right sensor - use String(value) without decimal places
-    drawText("Right:", 10, 40, 1);
-    drawText(String(sideTofCounts.rightCounts) + " counts", 50, 40, 1);
-
-    renderDisplay();
+    isShowingStartScreen = true;
 }
 
 // Render the display (apply the buffer to the screen)
