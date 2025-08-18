@@ -11,12 +11,14 @@ class DisplayScreen: public Singleton<DisplayScreen> {
     friend class Singleton<DisplayScreen>;  // Allow Singleton to access private constructor
 
     public:
-        bool init();
+        bool init(bool showStartup);
         
         // Main update method to call in the task loop
         void update();
 
         void showCustomBuffer(const uint8_t* buffer);
+
+        void showLowBatteryScreen();
 
         void turnDisplayOff();
     private:

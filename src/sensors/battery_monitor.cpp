@@ -22,11 +22,7 @@ bool BatteryMonitor::initialize() {
     // Initial battery state update
     updateBatteryState();
     
-    SerialQueueManager::getInstance().queueMessage("✓ Battery monitor initialized - SOC: " + String(batteryState.stateOfCharge) + "%");
-    
-    // Send battery data immediately if connected to serial
-    sendBatteryMonitorDataOverSerial();
-    sendBatteryMonitorDataOverWebSocket();
+    SerialQueueManager::getInstance().queueMessage("✓ Battery monitor initialized - SOC: " + String(batteryState.realStateOfCharge) + "%");
     
     return true;
 }
@@ -35,14 +31,17 @@ void BatteryMonitor::updateBatteryState() {
     if (!batteryState.isInitialized) return;
     
     // Read battery parameters from BQ27441
-    batteryState.stateOfCharge = lipo.soc();
+    batteryState.realStateOfCharge = lipo.soc();
     batteryState.voltage = lipo.voltage();
     batteryState.current = lipo.current(AVG);
     batteryState.power = lipo.power();
     batteryState.remainingCapacity = lipo.capacity(REMAIN);
     batteryState.fullCapacity = lipo.capacity(FULL);
     batteryState.health = lipo.soh();
-    
+    // Prevent sub-0 values.
+    batteryState.displayedStateOfCharge = max(0.0f, 
+        (batteryState.realStateOfCharge) * (slopeTerm) + yInterceptTerm);
+
     // Update derived status flags
     updateStatusFlags();
     
@@ -61,8 +60,8 @@ void BatteryMonitor::updateStatusFlags() {
     }
     
     // Battery level warnings
-    batteryState.isLowBattery = (batteryState.stateOfCharge <= LOW_BATTERY_THRESHOLD);
-    batteryState.isCriticalBattery = (batteryState.stateOfCharge <= CRITICAL_BATTERY_THRESHOLD);
+    batteryState.isLowBattery = (batteryState.realStateOfCharge <= LOW_BATTERY_THRESHOLD);
+    batteryState.isCriticalBattery = (batteryState.realStateOfCharge <= CRITICAL_BATTERY_THRESHOLD);
 }
 
 void BatteryMonitor::calculateTimeEstimates() {
@@ -94,6 +93,11 @@ void BatteryMonitor::update() {
     
     // Handle periodic battery logging when connected to serial
     handleBatteryLogging();
+
+    if (!batteryState.isCriticalBattery) return;
+    DisplayScreen::getInstance().showLowBatteryScreen();
+    vTaskDelay(pdMS_TO_TICKS(3000)); // Show low battery message for 3 seconds
+    Buttons::getInstance().enterDeepSleep();
 }
 
 void BatteryMonitor::handleBatteryLogging() {
