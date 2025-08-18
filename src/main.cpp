@@ -32,24 +32,23 @@ void setup() {
         return;
     }
 
-    // YOUR DESIRED INITIALIZATION ORDER:
-    
-    // 1. Buttons
-    TaskManager::createButtonTask();
-    
-    // 2. Display
+    // INITIALIZATION ORDER:
+    // 1. Display
     // - For normal startup: Display initialized immediately above
     // - For deep sleep wake: Display initialized after 1-second button hold in holdToWake()
-    
-    // 3. Speaker
-    TaskManager::createSpeakerTask();
-    
-    // 4. SerialInput
-    TaskManager::createSerialInputTask();
-    
-    // 5. BatteryMonitor
+
+    // 2. BatteryMonitor (to decide what to display on startup(low battery vs logo startup screen))
     TaskManager::createBatteryMonitorTask();
     
+    // 3. SerialInput: To show user we're connected (in the UI)
+    TaskManager::createSerialInputTask();
+    
+    // 4. Speaker: For the startup sound
+    TaskManager::createSpeakerTask();
+
+    // 5. Buttons
+    TaskManager::createButtonTask();
+
     // 6. MessageProcessor
     TaskManager::createMessageProcessorTask();
     
