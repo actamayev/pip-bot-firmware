@@ -2,18 +2,15 @@
 
 FirmwareVersionTracker::FirmwareVersionTracker() {
     firmwareVersion = PreferencesManager::getInstance().getFirmwareVersion(); // used to set the class' firmwareVersion
-    // SerialQueueManager::getInstance().queueMessage("firmwareVersion %d\n", firmwareVersion);
     
     // Configure HTTPUpdate instance
     httpUpdate.onProgress([this](int curr, int total) {
-        // SerialQueueManager::getInstance().queueMessage("Update progress: %d%%\n", (curr * 100) / total);
         this->updateProgressLeds(curr, total);
     });
     
     // Set onEnd callback to update firmware version before reboot
     httpUpdate.onEnd([this]() {
         PreferencesManager::getInstance().setFirmwareVersion(this->pendingVersion);
-        // SerialQueueManager::getInstance().queueMessage("Firmware version updated to: %d\n", this->pendingVersion);
     });
 
     // Setup clients based on environment
@@ -32,11 +29,12 @@ void FirmwareVersionTracker::retrieveLatestFirmwareFromServer(uint16_t newVersio
     }
 
     if (firmwareVersion >= newVersion) {
-        // SerialQueueManager::getInstance().queueMessage("Pip is up to date. Current version is: %d, new version is: %d\n", firmwareVersion, newVersion);
+        char buffer[128];
+        snprintf(buffer, sizeof(buffer), "Pip is up to date. Current version is: %d, new version is: %d\n", firmwareVersion, newVersion);
+        SerialQueueManager::getInstance().queueMessage(buffer);
         return;
     }
 
-    // SerialQueueManager::getInstance().queueMessage("Starting update to version %d...\n", newVersion);
     pendingVersion = newVersion;  // Store for the callback to use
     isRetrievingFirmwareFromServer = true;
 
@@ -48,7 +46,6 @@ void FirmwareVersionTracker::retrieveLatestFirmwareFromServer(uint16_t newVersio
     
     switch (result) {
         case HTTP_UPDATE_FAILED:
-            // SerialQueueManager::getInstance().queueMessage("HTTP update failed: %s\n", httpUpdate.getLastErrorString().c_str());
             isRetrievingFirmwareFromServer = false;
             break;
             

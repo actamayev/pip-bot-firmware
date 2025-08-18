@@ -78,8 +78,9 @@ bool Speaker::recreateAudioObjects() {
     // Clean up existing objects
     cleanup();
     
+    // 8/11/25 TODO: Remove all blocking delays in this class
     // Wait for cleanup to complete
-    delay(100);
+    vTaskDelay(pdMS_TO_TICKS(100));
     
     // Recreate audio objects
     bool success = initializeAudio();
@@ -106,7 +107,7 @@ void Speaker::cleanup() {
     // Stop any ongoing playback first
     if (audioMP3 && audioMP3->isRunning()) {
         audioMP3->stop();
-        delay(50); // Give time for stop to complete
+        vTaskDelay(pdMS_TO_TICKS(50));
     }
     
     // Close any open files
@@ -139,7 +140,7 @@ void Speaker::cleanup() {
     currentFilename = "";
     
     // Give time for I2S resources to be released
-    delay(50);
+    vTaskDelay(pdMS_TO_TICKS(50));
 }
 
 const char* Speaker::getFilePath(SoundType audioFile) const {
@@ -179,9 +180,6 @@ void Speaker::playFile(SoundType file) {
         return;
     }
     lastPlaybackTime = currentTime;
-
-    // Log the volume
-    SerialQueueManager::getInstance().queueMessage("Speaker volume: " + String(currentVolume));
     
     // Check if we need to recreate audio objects
     if (forceRecreateObjects || !validateAudioObjects()) {
@@ -204,13 +202,8 @@ void Speaker::playFile(SoundType file) {
 bool Speaker::safeStopPlayback() {
     if (!isCurrentlyPlaying) return true;
     
-    SerialQueueManager::getInstance().queueMessage("Stopping audio playback...");
-    
     if (audioMP3 && audioMP3->isRunning()) {
         audioMP3->stop();
-        // Give more time for ESP32-S3 to clean up I2S resources
-        delay(20);
-        SerialQueueManager::getInstance().queueMessage("Audio playback stopped");
     }
     
     // Close any open files
@@ -249,7 +242,7 @@ bool Speaker::safeStartPlayback(SoundType file) {
     audioFile->close();
     
     // Small delay to ensure file is properly closed
-    delay(10);
+    vTaskDelay(pdMS_TO_TICKS(10));
     
     // Open new file
     if (!audioFile->open(filename)) {

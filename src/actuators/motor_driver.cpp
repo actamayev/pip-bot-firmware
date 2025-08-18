@@ -50,14 +50,15 @@ void MotorDriver::brake_left_motor() {
     analogWrite(LEFT_MOTOR_PIN_IN_1, 255);
     analogWrite(LEFT_MOTOR_PIN_IN_2, 255);
     _leftMotorBraking = true;
-    // SerialQueueManager::getInstance().queueMessage("Braking left motor");
+    // TODO: 8/18/25: Remove this, and check brake timers when we get encoders
+    _leftBrakeStartTime = millis(); // Start the timer
 }
 
 void MotorDriver::brake_right_motor() {
     analogWrite(RIGHT_MOTOR_PIN_IN_1, 255);
     analogWrite(RIGHT_MOTOR_PIN_IN_2, 255);
     _rightMotorBraking = true;
-    // SerialQueueManager::getInstance().queueMessage("Braking right motor");
+    _rightBrakeStartTime = millis(); // Start the timer
 }
 
 void MotorDriver::brake_both_motors() {
@@ -68,36 +69,57 @@ void MotorDriver::brake_both_motors() {
 void MotorDriver::release_left_brake() {
     left_motor_stop();
     _leftMotorBraking = false;
-    // SerialQueueManager::getInstance().queueMessage("Released left brake");
+    _leftBrakeStartTime = 0; // Reset timer
 }
 
 void MotorDriver::release_right_brake() {
     right_motor_stop();
     _rightMotorBraking = false;
-    // SerialQueueManager::getInstance().queueMessage("Released right brake");
+    _rightBrakeStartTime = 0; // Reset timer
+}
+
+void MotorDriver::check_brake_timers() {
+    unsigned long currentTime = millis();
+    
+    // Check left motor brake timer
+    if (_leftMotorBraking && _leftBrakeStartTime > 0) {
+        if (currentTime - _leftBrakeStartTime >= BRAKE_HOLD_TIME_MS) {
+            release_left_brake();
+        }
+    }
+    
+    // Check right motor brake timer
+    if (_rightMotorBraking && _rightBrakeStartTime > 0) {
+        if (currentTime - _rightBrakeStartTime >= BRAKE_HOLD_TIME_MS) {
+            release_right_brake();
+        }
+    }
 }
 
 void MotorDriver::brake_if_moving() {
+    brake_both_motors();
     // Get current wheel speeds from encoder manager
-    WheelRPMs rpms = encoderManager.getBothWheelRPMs();
+    // WheelRPMs rpms = encoderManager.getBothWheelRPMs();
     
-    // Check if left motor is moving
-    if (abs(rpms.leftWheelRPM) > MOTOR_STOPPED_THRESHOLD) {
-        // Left motor is moving, apply brake
-        brake_left_motor();
-    } else if (_leftMotorBraking) {
-        // Left motor already stopped but brake still applied, release it
-        release_left_brake();
-    }
+    // // Check if left motor is moving
+    // if (abs(rpms.leftWheelRPM) > MOTOR_STOPPED_THRESHOLD) {
+    //     // Left motor is moving, apply brake
+    //     brake_left_motor();
+    // } else
+    // if (_leftMotorBraking) {
+    //     // Left motor already stopped but brake still applied, release it
+    //     release_left_brake();
+    // }
     
-    // Check if right motor is moving
-    if (abs(rpms.rightWheelRPM) > MOTOR_STOPPED_THRESHOLD) {
-        // Right motor is moving, apply brake
-        brake_right_motor();
-    } else if (_rightMotorBraking) {
-        // Right motor already stopped but brake still applied, release it
-        release_right_brake();
-    }
+    // // // Check if right motor is moving
+    // // if (abs(rpms.rightWheelRPM) > MOTOR_STOPPED_THRESHOLD) {
+    // //     // Right motor is moving, apply brake
+    // //     brake_right_motor();
+    // // } else
+    // if (_rightMotorBraking) {
+    //     // Right motor already stopped but brake still applied, release it
+    //     release_right_brake();
+    // }
 }
 
 void MotorDriver::set_motor_speeds(int16_t leftTarget, int16_t rightTarget) {
@@ -109,6 +131,9 @@ void MotorDriver::set_motor_speeds(int16_t leftTarget, int16_t rightTarget) {
 
 void MotorDriver::update_motor_speeds(bool should_ramp_up) {
     bool speedsChanged = false;
+
+    // Check brake timers first
+    check_brake_timers();
 
     if (should_ramp_up) {
         // Gradually ramp left motor speed toward target
@@ -144,26 +169,14 @@ void MotorDriver::update_motor_speeds(bool should_ramp_up) {
     int16_t leftAdjusted = _currentLeftSpeed;
     int16_t rightAdjusted = _currentRightSpeed;
 
-    if (StraightLineDrive::getInstance().isEnabled()) {
-        StraightLineDrive::getInstance().update(leftAdjusted, rightAdjusted);
-    }
-
-    if (_leftMotorBraking || _rightMotorBraking) {
-        WheelRPMs rpms = encoderManager.getBothWheelRPMs();
-        
-        // If left motor is braking and has stopped, release the brake
-        if (_leftMotorBraking && abs(rpms.leftWheelRPM) < MOTOR_STOPPED_THRESHOLD) {
-            release_left_brake();
-        }
-        
-        // If right motor is braking and has stopped, release the brake
-        if (_rightMotorBraking && abs(rpms.rightWheelRPM) < MOTOR_STOPPED_THRESHOLD) {
-            release_right_brake();
-        }
-    }
+    // if (StraightLineDrive::getInstance().isEnabled()) {
+    //     StraightLineDrive::getInstance().update(leftAdjusted, rightAdjusted);
+    // }
 
     // Only update motor controls if speeds have changed
-    if (speedsChanged || StraightLineDrive::getInstance().isEnabled()) {
+    // TODO: Bring this back after SLD works
+    // if (speedsChanged || StraightLineDrive::getInstance().isEnabled()) {
+    if (speedsChanged) {
         // Apply the current speeds
         if (leftAdjusted == 0) {
             if (!_leftMotorBraking) {
@@ -171,9 +184,11 @@ void MotorDriver::update_motor_speeds(bool should_ramp_up) {
             }
         } else if (leftAdjusted > 0) {
             _leftMotorBraking = false;
+            _leftBrakeStartTime = 0; // Reset timer when motor starts moving
             left_motor_forward(leftAdjusted);
         } else {
             _leftMotorBraking = false;
+            _leftBrakeStartTime = 0; // Reset timer when motor starts moving
             left_motor_backward(-leftAdjusted);
         }
 
@@ -183,24 +198,18 @@ void MotorDriver::update_motor_speeds(bool should_ramp_up) {
             }
         } else if (rightAdjusted > 0) {
             _rightMotorBraking = false;
+            _rightBrakeStartTime = 0; // Reset timer when motor starts moving
             right_motor_forward(rightAdjusted);
         } else {
             _rightMotorBraking = false;
+            _rightBrakeStartTime = 0; // Reset timer when motor starts moving
             right_motor_backward(-rightAdjusted);
         }
     }
 }
 
 void MotorDriver::force_reset_motors() {
-    // Force release any brakes
-    if (_leftMotorBraking) {
-        release_left_brake();
-    }
-    if (_rightMotorBraking) {
-        release_right_brake();
-    }
-    left_motor_stop();
-    right_motor_stop();
+    brake_if_moving();
 
     // Reset speed targets
     _targetLeftSpeed = 0;

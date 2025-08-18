@@ -22,6 +22,8 @@ class TaskManager {
         static bool createSensorInitTask();
         static bool createSensorPollingTask();  // Called by SensorInit when ready
         static bool createDisplayTask();
+        static bool createDisplayInitTask();    // NEW: Separate display initialization
+        static bool isDisplayInitialized();    // NEW: Check if display init is done or in progress
         static bool createNetworkManagementTask();
         static bool createNetworkCommunicationTask();
         static bool createSerialQueueTask();
@@ -39,6 +41,7 @@ class TaskManager {
         static void sensorInitTask(void* parameter);
         static void sensorPollingTask(void* parameter);
         static void displayTask(void* parameter);
+        static void displayInitTask(void* parameter);        // NEW: Display init task
         static void networkManagementTask(void* parameter);
         static void networkCommunicationTask(void* parameter);
         static void serialQueueTask(void* parameter);
@@ -50,14 +53,15 @@ class TaskManager {
         static constexpr uint32_t LED_STACK_SIZE = 6144;
         static constexpr uint32_t MESSAGE_PROCESSOR_STACK_SIZE = 8192; // Increase - motor + encoder logic
         static constexpr uint32_t BYTECODE_VM_STACK_SIZE = 16384;
-        static constexpr uint32_t STACK_MONITOR_STACK_SIZE = 2048;  // Small - just logging
+        static constexpr uint32_t STACK_MONITOR_STACK_SIZE = 4096;  // Increased - printStackUsage needs more space
         static constexpr uint32_t SENSOR_INIT_STACK_SIZE = 6144;    // For I2C init complexity
         static constexpr uint32_t SENSOR_POLLING_STACK_SIZE = 10240; // Just polling
         static constexpr uint32_t DISPLAY_STACK_SIZE = 4096;  // I2C + display buffer operations
+        static constexpr uint32_t DISPLAY_INIT_STACK_SIZE = 8192;     // Reduced from 30KB - should be sufficient with optimizations
         static constexpr uint32_t NETWORK_MANAGEMENT_STACK_SIZE = 8192;    // Heavy WiFi operations
         static constexpr uint32_t NETWORK_COMMUNICATION_STACK_SIZE = 8192; // Lightweight WebSocket polling
-        static constexpr uint32_t SERIAL_QUEUE_STACK_SIZE = MAX_PROGRAM_SIZE;
-        static constexpr uint32_t BATTERY_MONITOR_STACK_SIZE = 4096;
+        static constexpr uint32_t SERIAL_QUEUE_STACK_SIZE = 10240;
+        static constexpr uint32_t BATTERY_MONITOR_STACK_SIZE = 6144;
         static constexpr uint32_t SPEAKER_STACK_SIZE = 12288;
 
         // Task priorities (higher number = higher priority)
@@ -96,6 +100,7 @@ class TaskManager {
         static TaskHandle_t sensorInitTaskHandle;
         static TaskHandle_t sensorPollingTaskHandle;
         static TaskHandle_t displayTaskHandle;
+        static TaskHandle_t displayInitTaskHandle;           // NEW: Display init task handle
         static TaskHandle_t networkManagementTaskHandle;
         static TaskHandle_t networkCommunicationTaskHandle;
         static TaskHandle_t serialQueueTaskHandle;

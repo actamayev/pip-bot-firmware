@@ -16,18 +16,12 @@ class DisplayScreen: public Singleton<DisplayScreen> {
         // Main update method to call in the task loop
         void update();
 
-        void showDistanceSensors(SideTofCounts sideTofCounts);
         void showCustomBuffer(const uint8_t* buffer);
 
+        void turnDisplayOff();
     private:
         // Private constructor for singleton
-        DisplayScreen() : 
-            initialized(false),
-            isShowingStartScreen(false),
-            customScreenActive(false),
-            redrawStartScreen(false),
-            lastUpdateTime(0),
-            startScreenStartTime(0) {}
+        DisplayScreen() = default;
         
         // Helper method
         void renderDisplay();
@@ -38,22 +32,19 @@ class DisplayScreen: public Singleton<DisplayScreen> {
         void drawCenteredText(const String& text, uint16_t y, uint16_t size = 1);
 
         // Screen display methods
-        void showStartScreen(bool resetTimer = true);
+        void showStartScreen();
 
         // Display object
-        Adafruit_SSD1306 display = Adafruit_SSD1306(SCREEN_WIDTH, SCREEN_HEIGHT, nullptr, OLED_RESET);
+        Adafruit_SSD1306 display;
         
         // State flags
-        bool initialized;
-        bool isShowingStartScreen;
-        bool customScreenActive;
-        bool redrawStartScreen;
+        bool initialized = false;
+        bool customScreenActive = false;
         
         // Timing management
-        unsigned long lastUpdateTime;
-        unsigned long startScreenStartTime;
+        unsigned long lastUpdateTime = 0;
 
         // Constants
-        static const unsigned long START_SCREEN_DURATION = 2000;  // 2 seconds
         static const unsigned long UPDATE_INTERVAL = 50;          // 50ms (20fps)
+        bool isShowingStartScreen = false;
 };

@@ -1,0 +1,18 @@
+I2C are on pins:
+- SDA: 18
+- SCL: 8
+
+Devices:
+1. Left Side Tof: 0x51
+2. Right Side Tof: 0x60
+3. Multizone: 0x29
+4. IMU: 0x4A
+5. Display: 0x3C
+6. Color Sensor: 0x10
+
+I2C are on pins:
+- SDA: 9
+- SCL: 10
+
+Devices:
+1. Monitor: 0x55

@@ -1,54 +1,57 @@
 #include "hold_to_wake.h"
+#include "utils/task_manager.h"  // Add this include for TaskManager
+#include "actuators/buttons.h"    // Add this include for Buttons
 
 // Function to check if we should proceed with full startup after deep sleep wake
 bool holdToWake() {
+    // Set hold-to-wake mode immediately to prevent yellow LED flash
+    Buttons::getInstance().setHoldToWakeMode(true);
+    
     esp_sleep_wakeup_cause_t wakeup_reason = esp_sleep_get_wakeup_cause();
     
-    // Only apply hold-to-wake behavior if woken from deep sleep by button
-    if (wakeup_reason != ESP_SLEEP_WAKEUP_EXT0) {
-        rgbLed.setDefaultColors(0, 0, MAX_LED_BRIGHTNESS);
-        ledAnimations.startBreathing(2000, 0.0f);
-        return true; // Normal startup for other wake reasons
+    if (wakeup_reason != ESP_SLEEP_WAKEUP_EXT1) {
+        Buttons::getInstance().setHoldToWakeMode(false);
+        return true;
     }
     
-    SerialQueueManager::getInstance().queueMessage("Woke up from deep sleep due to button press. Checking hold duration...");
+    // Configure both button pins for reading (changed to INPUT_PULLDOWN)
+    pinMode(BUTTON_PIN_1, INPUT_PULLDOWN);
+    pinMode(BUTTON_PIN_2, INPUT_PULLDOWN);
     
-    // Configure button pin for reading
-    pinMode(BUTTON_PIN_1, INPUT_PULLUP);
+    // Check if any button is still pressed (HIGH due to INPUT_PULLDOWN)
+    bool button1Pressed = digitalRead(BUTTON_PIN_1) == HIGH;
+    bool button2Pressed = digitalRead(BUTTON_PIN_2) == HIGH;
     
-    // Check if button is still pressed (LOW due to INPUT_PULLUP)
-    if (digitalRead(BUTTON_PIN_1) == HIGH) {
-        SerialQueueManager::getInstance().queueMessage("Button already released. Going back to sleep...");
+    if (!button1Pressed && !button2Pressed) {
         Buttons::getInstance().enterDeepSleep();
         return false;
     }
     
-    // Start timing - button must be held for 1000ms
+    // Start timing - at least one button must be held for 1000ms
     const uint32_t HOLD_DURATION_MS = 1000;
     uint32_t startTime = millis();
     
     while ((millis() - startTime) < HOLD_DURATION_MS) {
-        if (digitalRead(BUTTON_PIN_1) == HIGH) {
+        // Re-check button states
+        button1Pressed = digitalRead(BUTTON_PIN_1) == HIGH;
+        button2Pressed = digitalRead(BUTTON_PIN_2) == HIGH;
+        
+        // If both buttons are released, go back to sleep
+        if (!button1Pressed && !button2Pressed) {
             uint32_t heldTime = millis() - startTime;
-            String message = "Button released after " + String(heldTime) + "ms. Going back to sleep...";
-            SerialQueueManager::getInstance().queueMessage(message.c_str());
             Buttons::getInstance().enterDeepSleep();
             return false;
         }
         vTaskDelay(pdMS_TO_TICKS(10));
     }
     
-    // WAKE-UP SUCCESSFUL - Reset button state so this press doesn't count toward shutdown
-    SerialQueueManager::getInstance().queueMessage("Wake-up successful - clearing button state");
-    rgbLed.setDefaultColors(0, 0, MAX_LED_BRIGHTNESS);
-    ledAnimations.startBreathing(2000, 0.0f);
-
-    // Wait for user to release the button before proceeding
-    while (digitalRead(BUTTON_PIN_1) == LOW) {
-        vTaskDelay(pdMS_TO_TICKS(10));
+    // HOLD DURATION REACHED - INITIALIZE DISPLAY IMMEDIATELY for deep sleep wake
+    if (!TaskManager::isDisplayInitialized()) {
+        TaskManager::createDisplayInitTask();
     }
     
-    SerialQueueManager::getInstance().queueMessage("Button released - ready for normal operation");
-    
+    // Clear hold-to-wake mode (timestamp will be set to ignore immediate long clicks)
+    Buttons::getInstance().setHoldToWakeMode(false);
+
     return true; // Proceed with full startup
 }

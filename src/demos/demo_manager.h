@@ -9,6 +9,7 @@
 
 class DemoManager : public Singleton<DemoManager> {
     friend class Singleton<DemoManager>;
+    friend class BalanceController;
 
     public:
         // Start a specific demo (automatically stops current demo if running)

@@ -8,7 +8,6 @@ bool BytecodeVM::loadProgram(const uint8_t* byteCode, uint16_t size) {
     // Free any existing program
     stopProgram();
     MessageProcessor::getInstance().resetCommandState();
-    // SerialQueueManager::getInstance().queueMessage("Loading program of size %zu\n", size);
 
     // Validate bytecode size (must be multiple of 20 now)
     if (size % INSTRUCTION_SIZE != 0 || size / INSTRUCTION_SIZE > MAX_PROGRAM_SIZE) {
@@ -17,10 +16,7 @@ bool BytecodeVM::loadProgram(const uint8_t* byteCode, uint16_t size) {
     
     programSize = size / INSTRUCTION_SIZE;
     program = new(std::nothrow) BytecodeInstruction[programSize];
-    if (!program) {
-        SerialQueueManager::getInstance().queueMessage("Failed to allocate memory for program");
-        return false;
-    }
+    if (!program) return false;
 
     // Iterate through program indices (0 to programSize-1)
     for (uint16_t i = 0; i < programSize; i++) {
@@ -43,12 +39,10 @@ bool BytecodeVM::loadProgram(const uint8_t* byteCode, uint16_t size) {
         // Program has a start button - set to waiting state
         isPaused = PROGRAM_NOT_STARTED;
         waitingForButtonPressToStart = true;
-        SerialQueueManager::getInstance().queueMessage("Program loaded with start button - waiting for button press to begin");
     } else {
         // Program has no start button - set to auto-running
         isPaused = RUNNING;
         waitingForButtonPressToStart = false;
-        SerialQueueManager::getInstance().queueMessage("Program loaded without start button - auto-starting");
     }
 
     scanProgramForMotors();
@@ -60,7 +54,7 @@ bool BytecodeVM::loadProgram(const uint8_t* byteCode, uint16_t size) {
 void BytecodeVM::update() {
     checkUsbSafetyConditions();
     if (program && pc < programSize && isPaused == RUNNING) {
-        SensorPollingManager::getInstance().startPolling();
+        SensorDataBuffer::getInstance().startPollingAllSensors();
     }
 
     if (!program || pc >= programSize || isPaused == PauseState::PAUSED) {
@@ -223,68 +217,68 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
                 // Read the appropriate sensor
                 switch (sensorType) {
                     case SENSOR_PITCH:
-                        value = ImuSensor::getInstance().getPitch();
+                        value = SensorDataBuffer::getInstance().getLatestPitch();
                         break;
                     case SENSOR_ROLL:
-                        value = ImuSensor::getInstance().getRoll();
+                        value = SensorDataBuffer::getInstance().getLatestRoll();
                         break;
                     case SENSOR_YAW:
-                        value = ImuSensor::getInstance().getYaw();
+                        value = SensorDataBuffer::getInstance().getLatestYaw();
                         break;
                     case SENSOR_ACCEL_X:
-                        value = ImuSensor::getInstance().getXAccel();
+                        value = SensorDataBuffer::getInstance().getLatestXAccel();
                         break;
                     case SENSOR_ACCEL_Y:
-                        value = ImuSensor::getInstance().getYAccel();
+                        value = SensorDataBuffer::getInstance().getLatestYAccel();
                         break;
                     case SENSOR_ACCEL_Z:
-                        value = ImuSensor::getInstance().getZAccel();
+                        value = SensorDataBuffer::getInstance().getLatestZAccel();
                         break;
                     case SENSOR_ACCEL_MAG:
-                        value = ImuSensor::getInstance().getAccelMagnitude();
+                        value = SensorDataBuffer::getInstance().getLatestAccelMagnitude();
                         break;
                     case SENSOR_ROT_RATE_X:
-                        value = ImuSensor::getInstance().getXRotationRate();
+                        value = SensorDataBuffer::getInstance().getLatestXRotationRate();
                         break;
                     case SENSOR_ROT_RATE_Y:
-                        value = ImuSensor::getInstance().getYRotationRate();
+                        value = SensorDataBuffer::getInstance().getLatestYRotationRate();
                         break;
                     case SENSOR_ROT_RATE_Z:
-                        value = ImuSensor::getInstance().getZRotationRate();
+                        value = SensorDataBuffer::getInstance().getLatestZRotationRate();
                         break;
                     case SENSOR_MAG_FIELD_X:
-                        value = ImuSensor::getInstance().getMagneticFieldX();
+                        value = SensorDataBuffer::getInstance().getLatestMagneticFieldX();
                         break;
                     case SENSOR_MAG_FIELD_Y:
-                        value = ImuSensor::getInstance().getMagneticFieldY();
+                        value = SensorDataBuffer::getInstance().getLatestMagneticFieldY();
                         break;
                     case SENSOR_MAG_FIELD_Z:
-                        value = ImuSensor::getInstance().getMagneticFieldZ();
+                        value = SensorDataBuffer::getInstance().getLatestMagneticFieldZ();
                         break;
-                    // case SENSOR_SIDE_LEFT_PROXIMITY: {
-                    //     uint16_t counts = SideTofManager::getInstance().leftSideTofSensor.getCounts();
-                    //     registers[regId].asBool = (counts > LEFT_PROXIMITY_THRESHOLD);
-                    //     registerTypes[regId] = VAR_BOOL;
-                    //     registerInitialized[regId] = true;
-                    //     skipDefaultAssignment = true;  // Set flag to skip default assignment
-                    //     break;
-                    // }
-                    // case SENSOR_SIDE_RIGHT_PROXIMITY: {
-                    //     uint16_t counts = SideTofManager::getInstance().rightSideTofSensor.getCounts();
-                    //     registers[regId].asBool = (counts > RIGHT_PROXIMITY_THRESHOLD);
-                    //     registerTypes[regId] = VAR_BOOL;
-                    //     registerInitialized[regId] = true;
-                    //     skipDefaultAssignment = true;  // Set flag to skip default assignment
-                    //     break;
-                    // }
-                    // case SENSOR_FRONT_PROXIMITY: {
-                    //     float isObjectDetected = MultizoneTofSensor::getInstance().isObjectDetected();
-                    //     registers[regId].asBool = isObjectDetected;
-                    //     registerTypes[regId] = VAR_BOOL;
-                    //     registerInitialized[regId] = true;
-                    //     skipDefaultAssignment = true;  // Set flag
-                    //     break;
-                    // }
+                    case SENSOR_SIDE_LEFT_PROXIMITY: {
+                        uint16_t counts = SensorDataBuffer::getInstance().getLatestLeftSideTofCounts();
+                        registers[regId].asBool = (counts > LEFT_PROXIMITY_THRESHOLD);
+                        registerTypes[regId] = VAR_BOOL;
+                        registerInitialized[regId] = true;
+                        skipDefaultAssignment = true;  // Set flag to skip default assignment
+                        break;
+                    }
+                    case SENSOR_SIDE_RIGHT_PROXIMITY: {
+                        uint16_t counts = SensorDataBuffer::getInstance().getLatestRightSideTofCounts();
+                        registers[regId].asBool = (counts > RIGHT_PROXIMITY_THRESHOLD);
+                        registerTypes[regId] = VAR_BOOL;
+                        registerInitialized[regId] = true;
+                        skipDefaultAssignment = true;  // Set flag to skip default assignment
+                        break;
+                    }
+                    case SENSOR_FRONT_PROXIMITY: {
+                        bool isObjectDetected = SensorDataBuffer::getInstance().isObjectDetectedTof();
+                        registers[regId].asBool = isObjectDetected;
+                        registerTypes[regId] = VAR_BOOL;
+                        registerInitialized[regId] = true;
+                        skipDefaultAssignment = true;  // Set flag
+                        break;
+                    }
                     default: {
                         char logMessage[32];
                         snprintf(logMessage, sizeof(logMessage), "Unknown sensor type: %u", sensorType);
@@ -498,8 +492,8 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
         
         case OP_MOTOR_STOP: {
             // Stop both motors
-            // motorDriver.brake_both_motors();
-            motorDriver.stop_both_motors();
+            motorDriver.brake_both_motors();
+            // motorDriver.stop_both_motors();
             motorDriver.force_reset_motors();
             break;
         }
@@ -511,7 +505,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             // Initialize turning state
             turningInProgress = true;
             targetTurnDegrees = degrees;
-            initialTurnYaw = ImuSensor::getInstance().getYaw();
+            initialTurnYaw = SensorDataBuffer::getInstance().getLatestYaw();
             turnClockwise = clockwise;
             turnStartTime = millis();
 
@@ -596,7 +590,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             uint8_t motorSpeed = map(throttlePercent, 0, 100, 0, MAX_MOTOR_SPEED);
             
             // Reset distance tracking in encoder manager
-            encoderManager.resetDistanceTracking();
+            // encoderManager.resetDistanceTracking();
             
             // Set up distance movement
             distanceMovementInProgress = true;
@@ -627,7 +621,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             uint8_t motorSpeed = map(throttlePercent, 0, 100, 0, MAX_MOTOR_SPEED);
             
             // Reset distance tracking in encoder manager
-            encoderManager.resetDistanceTracking();
+            // encoderManager.resetDistanceTracking();
             
             // Set up distance movement
             distanceMovementInProgress = true;
@@ -650,14 +644,13 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
         default:
             // Unknown opcode, stop execution
             pc = programSize;
-            // SerialQueueManager::getInstance().queueMessage("Unknown code - stopping execution %d\n", instr.opcode);
             break;
     }
 }
 
 void BytecodeVM::updateTurning() {
     // Get current yaw
-    float currentYaw = ImuSensor::getInstance().getYaw();
+    float currentYaw = SensorDataBuffer::getInstance().getLatestYaw();
     
     // Calculate rotation delta with wraparound handling
     float rotationDelta;
@@ -677,7 +670,7 @@ void BytecodeVM::updateTurning() {
     // Check if turn is complete
     if (rotationDelta >= targetTurnDegrees || timeout) {
         // Turn complete - stop motors
-        motorDriver.stop_both_motors();
+        motorDriver.brake_both_motors();
         turningInProgress = false;
     }
 }
@@ -686,7 +679,7 @@ void BytecodeVM::updateTimedMotorMovement() {
     // Check if the timed movement has completed
     if (millis() < motorMovementEndTime) return;
     // Movement complete - brake motors
-    motorDriver.stop_both_motors();
+    motorDriver.brake_both_motors();
 
     // Reset timed movement state
     timedMotorMovementInProgress = false;
@@ -694,12 +687,12 @@ void BytecodeVM::updateTimedMotorMovement() {
 
 void BytecodeVM::updateDistanceMovement() {
     // Get distance traveled from the encoder manager
-    float currentDistance = encoderManager.getDistanceTraveledCm();
+    // float currentDistance = encoderManager.getDistanceTraveledCm();
     
-    // Check if we've reached or exceeded the target distance
-    if (currentDistance < targetDistanceCm) return;
+    // // Check if we've reached or exceeded the target distance
+    // if (currentDistance < targetDistanceCm) return;
     // Distance reached - brake motors
-    motorDriver.stop_both_motors();
+    motorDriver.brake_both_motors();
     
     // Reset distance movement state
     distanceMovementInProgress = false;
@@ -713,7 +706,7 @@ void BytecodeVM::stopProgram() {
 
     Speaker::getInstance().setMuted(true);
     rgbLed.turn_all_leds_off();
-    motorDriver.brake_if_moving();
+    // motorDriver.brake_if_moving();
     return;
 }
 
@@ -778,10 +771,7 @@ void BytecodeVM::togglePause() {
 }
 
 void BytecodeVM::pauseProgram() {
-    if (!program || isPaused == PAUSED) {
-        SerialQueueManager::getInstance().queueMessage("pauseProgram: Already paused or no program");
-        return;
-    }
+    if (!program || isPaused == PAUSED) return;
     
     resetStateVariables();
     MessageProcessor::getInstance().resetCommandState();
@@ -835,13 +825,10 @@ void BytecodeVM::scanProgramForMotors() {
         for (const auto& motorOpcode : motorOpcodes) {
             if (program[i].opcode == motorOpcode) {
                 programContainsMotors = true;
-                SerialQueueManager::getInstance().queueMessage("Program contains motor commands - USB safety restrictions apply");
                 return;
             }
         }
     }
-    
-    SerialQueueManager::getInstance().queueMessage("Program contains no motor commands - safe for USB execution");
 }
 
 void BytecodeVM::checkUsbSafetyConditions() {
@@ -858,7 +845,6 @@ void BytecodeVM::checkUsbSafetyConditions() {
 void BytecodeVM::handleUsbConnect() {
     // If program contains motors and is currently running, stop it
     if (programContainsMotors && isPaused == RUNNING) {
-        SerialQueueManager::getInstance().queueMessage("USB connected - stopping motor program for safety");
         stopProgram();
         stoppedDueToUsbSafety = true;
     }
@@ -868,7 +854,6 @@ bool BytecodeVM::canStartProgram() {
     // Block start if program contains motors and USB is connected
     if (!programContainsMotors || !SerialManager::getInstance().isSerialConnected()) return true;
 
-    SerialQueueManager::getInstance().queueMessage("Cannot start motor program while USB connected - disconnect USB first");
     SerialManager::getInstance().sendJsonMessage(RouteType::MOTORS_DISABLED_USB, "Cannot start motor program while USB connected - disconnect USB first");
     return false;
 }

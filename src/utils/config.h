@@ -1,43 +1,30 @@
 #pragma once
 #include <string>
+#include <Wire.h>   
 #include <cstdint>
-#include <Wire.h>
-
-#define DEV_I2C Wire
 
 // LED Configuration
-constexpr uint8_t ESP_LED_PIN = 4;
-constexpr uint8_t NUM_LEDS = 8;
 constexpr uint8_t MAX_LED_BRIGHTNESS = 75;
 
 // I2C Configuration
-constexpr uint8_t I2C_SDA = 18;
-constexpr uint8_t I2C_SCL = 8;
-constexpr uint32_t I2C_CLOCK_SPEED = 100 * 1000; // 400 kHz
-
-// Side TOFs
-constexpr uint8_t LEFT_TOF_ADDRESS = 0x51;
-constexpr uint8_t RIGHT_TOF_ADDRESS = 0x60;
-
-// Multizone TOF
-constexpr uint8_t MULTIZONE_TOF_ADDRESS = 0x29; // Default address
-
-// IMU
-constexpr uint16_t IMU_UPDATE_FREQ_MICROSECS = 5000;  // 5ms, 200Hz
-constexpr uint8_t IMU_DEFAULT_ADDRESS = 0x4A;
+constexpr uint8_t I2C_SDA_1 = 18;
+constexpr uint8_t I2C_SCL_1 = 8;
+constexpr uint8_t I2C_SDA_2 = 9; // Battery monitor
+constexpr uint8_t I2C_SCL_2 = 10; // Battery monitor
+constexpr uint32_t I2C_CLOCK_SPEED = 100 * 1000; // 100 kHz (works best for IMU)
 
 // Motors + Encoders
-constexpr uint8_t LEFT_MOTOR_PIN_IN_1 = 48;
-constexpr uint8_t LEFT_MOTOR_PIN_IN_2 = 47;
-constexpr uint8_t LEFT_MOTOR_ENCODER_A = 12;
-constexpr uint8_t LEFT_MOTOR_ENCODER_B = 13;
+constexpr uint8_t LEFT_MOTOR_PIN_IN_1 = 40;
+constexpr uint8_t LEFT_MOTOR_PIN_IN_2 = 39;
+constexpr uint8_t LEFT_MOTOR_ENCODER_A = 47;
+constexpr uint8_t LEFT_MOTOR_ENCODER_B = 49;
 
-constexpr uint8_t RIGHT_MOTOR_PIN_IN_1 = 40;
+constexpr uint8_t RIGHT_MOTOR_PIN_IN_1 = 42;
 constexpr uint8_t RIGHT_MOTOR_PIN_IN_2 = 41;
-constexpr uint8_t RIGHT_MOTOR_ENCODER_A = 1;
-constexpr uint8_t RIGHT_MOTOR_ENCODER_B = 2;
+constexpr uint8_t RIGHT_MOTOR_ENCODER_A = 2;
+constexpr uint8_t RIGHT_MOTOR_ENCODER_B = 1;
 
-constexpr uint8_t MAX_MOTOR_SPEED = 230;
+constexpr uint8_t MAX_MOTOR_SPEED = 255;
 
 // Display Screen
 constexpr uint8_t SCREEN_WIDTH = 128;
@@ -45,27 +32,13 @@ constexpr uint8_t SCREEN_HEIGHT = 64;
 constexpr int8_t OLED_RESET = -1;  // Reset pin (-1 if sharing Arduino reset pin)
 constexpr uint8_t SCREEN_ADDRESS = 0x3C;
 
-// Color Sensor
-constexpr uint8_t COLOR_SENSOR_LED_PIN = 5;
-
-// IR sensor
-constexpr uint8_t PIN_MUX_A0 = 17;    // Multiplexer C input
-constexpr uint8_t PIN_MUX_A1 = 16;    // Multiplexer B input
-constexpr uint8_t PIN_MUX_A2 = 15;    // Multiplexer A input
-constexpr uint8_t PIN_MUX_OUT = 7;  // Multiplexer output
-constexpr uint8_t PIN_IR_EN = 6;    // IR sensor enable pin
-
-//Speaker
-constexpr uint8_t I2S_DOUT = 9;
-constexpr uint8_t I2S_BCLK = 10;
-constexpr uint8_t I2S_LRC = 11;
-
 // Buttons
-constexpr uint8_t BUTTON_PIN_1 = 21; // Left
-constexpr uint8_t BUTTON_PIN_2 = 14; // Right
+constexpr uint8_t BUTTON_PIN_1 = 11; // Left
+constexpr uint8_t BUTTON_PIN_2 = 12; // Right
 
 // Assign Stack sizes for the two cores
 constexpr uint16_t MAX_PROGRAM_SIZE = 8192;
+constexpr uint16_t PWR_EN = 38;
 
 // echo | openssl s_client -showcerts -connect staging-api.bluedotrobots.com:443
 constexpr const char* rootCACertificate = \
@@ -104,7 +77,7 @@ inline const char* getEnvironment() {
 inline const char* getServerFirmwareEndpoint() {
     std::string env = getEnvironment();
     if (env == "local") {
-        return "http://10.212.116.40:8080/pip/firmware-update";
+        return "http://10.202.102.40:8080/pip/firmware-update";
     } else if (env == "staging") {
         return "https://staging-api.bluedotrobots.com/pip/firmware-update";
     }
@@ -114,7 +87,7 @@ inline const char* getServerFirmwareEndpoint() {
 inline const char* getWsServerUrl() {
     std::string env = getEnvironment();
     if (env == "local") {
-        return "ws://10.212.116.40:8080/esp32";
+        return "ws://10.202.102.40:8080/esp32";
     } else if (env == "staging") {
         return "wss://staging-api.bluedotrobots.com/esp32";
     }

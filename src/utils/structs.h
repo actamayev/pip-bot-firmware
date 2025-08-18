@@ -28,7 +28,7 @@ struct EulerAngles {
     float yaw;
     float pitch;
     float roll;
-    bool isValid;
+    bool isValid = false;
 };
 
 struct AccelerometerData {

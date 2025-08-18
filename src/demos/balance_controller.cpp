@@ -10,7 +10,7 @@ void BalanceController::enable() {
     _lastError = 0.0f;
     _lastUpdateTime = millis();
 
-    float currentAngle = ImuSensor::getInstance().getPitch();
+    float currentAngle = SensorDataBuffer::getInstance().getLatestPitch();
     _lastValidAngle = currentAngle;
 
     // Initialize buffers with the current angle
@@ -24,12 +24,10 @@ void BalanceController::enable() {
     _safetyBufferCount = ANGLE_BUFFER_SIZE;
 
     // Disable straight driving correction
-    StraightLineDrive::getInstance().disable();
+    // StraightLineDrive::getInstance().disable();
 
     // Set LED to indicate balancing mode
-    rgbLed.set_led_green();
-    
-    SerialQueueManager::getInstance().queueMessage("Balance mode enabled");
+    // rgbLed.set_led_green();
 }
 
 void BalanceController::disable() {
@@ -37,20 +35,20 @@ void BalanceController::disable() {
     _balancingEnabled = BalanceStatus::UNBALANCED;
     motorDriver.brake_if_moving();
     rgbLed.turn_all_leds_off();
-    SerialQueueManager::getInstance().queueMessage("Balance mode disabled");
+    DemoManager::getInstance()._currentDemo = Demo::DemoType::NONE;
 }
 
 void BalanceController::update() {
     if (_balancingEnabled != BalanceStatus::BALANCED) return;
 
-    unsigned long currentTime = millis();
-    if (currentTime - _lastUpdateTime < UPDATE_INTERVAL) {
-        return; // Maintain update rate
-    }
-    _lastUpdateTime = currentTime;
+    // unsigned long currentTime = millis();
+    // if (currentTime - _lastUpdateTime < UPDATE_INTERVAL) {
+    //     return; // Maintain update rate
+    // }
+    // _lastUpdateTime = currentTime;
 
     // Get current pitch
-    float rawAngle = ImuSensor::getInstance().getPitch();
+    float rawAngle = SensorDataBuffer::getInstance().getLatestPitch();
     float currentAngle = rawAngle;
 
     // Update safety monitoring buffer
@@ -81,14 +79,13 @@ void BalanceController::update() {
 
     // Safety check
     if (abs(safetyAverage - TARGET_ANGLE) > MAX_SAFE_ANGLE_DEVIATION) {
-        // SerialQueueManager::getInstance().queueMessage("Safety cutoff triggered: Avg Angle %.2f exceeds limits\n", safetyAverage);
         disable();
         return;
     } 
 
     // PID calculation
     float error = TARGET_ANGLE - currentAngle;
-    float gyroRate = ImuSensor::getInstance().getYRotationRate();
+    float gyroRate = SensorDataBuffer::getInstance().getLatestYRotationRate();
 
     // If within deadband angle and rotation rate is low, stop motors
     if (abs(error) < DEADBAND_ANGLE && abs(gyroRate) < MAX_STABLE_ROTATION) {
@@ -104,11 +101,11 @@ void BalanceController::update() {
     float proportionalTerm = P_GAIN * error;
     float integralTerm = I_GAIN * _errorSum;
     float derivativeTerm = D_GAIN * -gyroRate; 
-    float yAccel = ImuSensor::getInstance().getYAccel();
-    float feedforwardTerm = FF_GAIN * yAccel;
+    // float yAccel = SensorDataBuffer::getInstance().getLatestYAccel();
+    // float feedforwardTerm = FF_GAIN * yAccel;
 
     int16_t motorPower = constrain(
-        (int16_t)(proportionalTerm + integralTerm + derivativeTerm + feedforwardTerm),
+        (int16_t)(proportionalTerm + integralTerm + derivativeTerm),
         -MAX_BALANCE_POWER, 
         MAX_BALANCE_POWER
     );
@@ -126,15 +123,6 @@ void BalanceController::update() {
 
     // Store error for next iteration
     _lastError = error;
-    
-    // Debug output
-    static unsigned long lastDebugTime = 0;
-    if (currentTime - lastDebugTime > 100) {
-        // SerialQueueManager::getInstance().queueMessage("Bal: Raw: %.2f, Filtered: %.2f, Error: %.2f, P: %.2f, I: %.2f, D: %.2f, Power: %d\n",
-        //              rawAngle, currentAngle, error, 
-        //              proportionalTerm, integralTerm, derivativeTerm, motorPower);
-        lastDebugTime = currentTime;
-    }
 }
 
 void BalanceController::updateBalancePids(NewBalancePids newBalancePids) {

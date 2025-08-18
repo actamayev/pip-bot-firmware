@@ -5,7 +5,6 @@ void SerialManager::pollSerial() {
     if (Serial.available() <= 0) {
         // Check for timeout if we're connected but haven't received data for a while
         if (isConnected && (millis() - lastActivityTime > SERIAL_CONNECTION_TIMEOUT)) {
-            SerialQueueManager::getInstance().queueMessage("Serial connection timed out!");
             isConnected = false;
         }
         return;
@@ -15,7 +14,6 @@ void SerialManager::pollSerial() {
 
     if (!isConnected) {
         isConnected = true;
-        SerialQueueManager::getInstance().queueMessage("Serial connection detected!");
         ledAnimations.turnOff();
     }
 
@@ -89,13 +87,7 @@ void SerialManager::pollSerial() {
                 break;
 
             case ParseState::WAITING_FOR_END:
-                // log inbyte
-                // SerialQueueManager::getInstance().queueMessage("Received byte: %02X\n", inByte);
                 if (inByte == END_MARKER) {
-                    // Complete message received
-                    // SerialQueueManager::getInstance().queueMessage("Complete framed message received. Type: %d, Length: %d\n", 
-                    //             currentMessageType, expectedPayloadLength);
-                    
                     // Process the message
                     MessageProcessor::getInstance().processBinaryMessage(receiveBuffer, bufferPosition);
                     
@@ -135,7 +127,6 @@ void SerialManager::sendPipIdMessage() {
     
     // Use CRITICAL priority for browser communication
     SerialQueueManager::getInstance().queueMessage(jsonString, SerialPriority::CRITICAL);
-    SerialQueueManager::getInstance().queueMessage("Sent PipID: " + pipId, SerialPriority::HIGH_PRIO);
 }
 
 void SerialManager::sendJsonMessage(RouteType route, const String& status) {
@@ -176,9 +167,7 @@ void SerialManager::sendSavedNetworksResponse(const std::vector<WiFiCredentials>
 
 void SerialManager::sendScanResultsResponse(const std::vector<WiFiNetworkInfo>& networks) {
     if (!isConnected) return;
-    
-    SerialQueueManager::getInstance().queueMessage("Sending " + String(networks.size()) + " networks individually...");
-    
+
     // Send each network as individual message
     for (size_t i = 0; i < networks.size(); i++) {
         StaticJsonDocument<256> doc;
@@ -204,7 +193,6 @@ void SerialManager::sendScanResultsResponse(const std::vector<WiFiNetworkInfo>& 
     serializeJson(completeDoc, completeJsonString);
     
     SerialQueueManager::getInstance().queueMessage(completeJsonString, SerialPriority::CRITICAL);
-    SerialQueueManager::getInstance().queueMessage("Scan results transmission complete");
 }
 
 void SerialManager::sendScanStartedMessage() {
@@ -226,8 +214,6 @@ void SerialManager::sendBatteryMonitorData() {
     if (!isConnected) return;
 
     const BatteryState& batteryState = BatteryMonitor::getInstance().getBatteryState();
-    
-    SerialQueueManager::getInstance().queueMessage("Sending battery data as individual items...");
 
     // Send each battery data field as individual message
     sendBatteryDataItem("stateOfCharge", batteryState.stateOfCharge);
@@ -254,7 +240,6 @@ void SerialManager::sendBatteryMonitorData() {
     serializeJson(completeDoc, completeJsonString);
     
     SerialQueueManager::getInstance().queueMessage(completeJsonString, SerialPriority::CRITICAL);
-    SerialQueueManager::getInstance().queueMessage("Battery data transmission complete");
 }
 
 void SerialManager::sendBatteryDataItem(const String& key, int value) {

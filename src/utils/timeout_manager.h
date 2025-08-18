@@ -9,8 +9,8 @@ class TimeoutManager : public Singleton<TimeoutManager> {
         void resetActivity();
         void update();
         bool isInConfirmationState() const { return inConfirmationState; }
-        
-        private:
+
+    private:
         TimeoutManager() = default;
         
         unsigned long lastActivityTime = 0;
@@ -22,5 +22,4 @@ class TimeoutManager : public Singleton<TimeoutManager> {
 
         void cancelConfirmation();
         void enterConfirmationState();
-        void enterDeepSleep();
 };
