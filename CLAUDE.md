@@ -20,5 +20,3 @@ Other sensors not connected to I2C include:
 - A string of 5 IR sensors using a multiplexer (A0: 17, A1: 16, A2: 15, MUX_OUT: 7, IR_EN: 6)
 - A visible, downward-facing LED for the color sensor on pin 5
 - 8 LEDS using NeoPixel library, on pin 4.
-
-To build the project, run: `platformio run --environment local`

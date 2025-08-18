@@ -26,5 +26,5 @@ class SendDataToServer : public Singleton<SendDataToServer> {
         void attachImuData(JsonObject& payload);
 
         unsigned long lastSendTime = 0;
-        const unsigned long SEND_INTERVAL = 10; // Poll every 50ms for more responsive data
+        const unsigned long SEND_INTERVAL = 50; // Poll every 50ms for more responsive data
 };
