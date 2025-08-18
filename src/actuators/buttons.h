@@ -29,6 +29,9 @@ class Buttons: public Singleton<Buttons> {
         
         // Hold-to-wake mode control
         void setHoldToWakeMode(bool enabled);
+        
+        // Check if either button is currently pressed
+        bool isEitherButtonPressed();
 
     private:
         Button2 button1;

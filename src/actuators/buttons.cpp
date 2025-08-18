@@ -207,3 +207,7 @@ void Buttons::setHoldToWakeMode(bool enabled) {
     if (enabled) return;
     this->holdToWakeCompletedTime = millis();
 }
+
+bool Buttons::isEitherButtonPressed() {
+    return button1.isPressed() || button2.isPressed();
+}
