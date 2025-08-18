@@ -111,7 +111,7 @@ void WebSocketManager::sendBatteryMonitorData() {
     StaticJsonDocument<256> batteryDoc;
     batteryDoc["route"] = routeToString(RouteType::BATTERY_MONITOR_DATA_FULL);
     JsonObject payload = batteryDoc.createNestedObject("payload");
-    payload["batteryData"]["stateOfCharge"] = batteryState.stateOfCharge;
+    payload["batteryData"]["stateOfCharge"] = static_cast<int>(round(batteryState.displayedStateOfCharge));
     payload["batteryData"]["voltage"] = batteryState.voltage;
     payload["batteryData"]["current"] = batteryState.current;
     payload["batteryData"]["power"] = batteryState.power;

@@ -41,7 +41,7 @@ bool MultizoneTofSensor::initialize() {
         vTaskDelay(pdMS_TO_TICKS(50));  // Longer delay between attempts
     }
     
-    SerialQueueManager::getInstance().queueMessage("TOF sensor initialization failed");
+    SerialQueueManager::getInstance().queueMessage("MZ TOF sensor initialization failed");
     // scanI2C();  // Scan I2C bus to help debug
     return false;
 }
@@ -113,7 +113,7 @@ void MultizoneTofSensor::enableTofSensor() {
     sensorEnabled = true;
     lastValidDataTime = millis();
     
-    SerialQueueManager::getInstance().queueMessage("TOF sensor enabled");
+    SerialQueueManager::getInstance().queueMessage("MZ TOF sensor enabled");
 }
 
 void MultizoneTofSensor::disableTofSensor() {
@@ -123,7 +123,7 @@ void MultizoneTofSensor::disableTofSensor() {
     sensorActive = false;
     sensorEnabled = false;
     
-    SerialQueueManager::getInstance().queueMessage("TOF sensor disabled due to timeout");
+    SerialQueueManager::getInstance().queueMessage("MZ TOF sensor disabled due to timeout");
 }
 
 bool MultizoneTofSensor::processObstacleDetection(const VL53L7CX_ResultsData& rawData) {

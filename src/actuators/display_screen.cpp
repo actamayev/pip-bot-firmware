@@ -1,7 +1,7 @@
 #include "display_screen.h"
 
 // Initialize the display with explicit Wire reference
-bool DisplayScreen::init() {
+bool DisplayScreen::init(bool showStartup) {
     if (initialized) return true;  // Already initialized
 
     display = Adafruit_SSD1306(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
@@ -14,8 +14,10 @@ bool DisplayScreen::init() {
 
     turnDisplayOff();
 
-    // Start the startup sequence
-    showStartScreen();
+    // Conditionally start the startup sequence
+    if (showStartup) {
+        showStartScreen();
+    }
 
     return true;
 }
@@ -105,6 +107,30 @@ void DisplayScreen::showCustomBuffer(const uint8_t* buffer) {
     
     // Alternative: Write directly to display buffer
     memcpy(display.getBuffer(), buffer, 1024);
+    
+    renderDisplay();
+}
+
+void DisplayScreen::showLowBatteryScreen() {
+    if (!initialized) return;
+
+    turnDisplayOff();
+    
+    // Draw border
+    display.drawRect(0, 0, display.width(), display.height(), SSD1306_WHITE);
+    
+    // Draw warning icon (triangle with exclamation)
+    int centerX = display.width() / 2;
+    display.drawTriangle(centerX - 8, 20, centerX + 8, 20, centerX, 5, SSD1306_WHITE);
+    display.drawPixel(centerX, 10, SSD1306_WHITE);
+    display.drawPixel(centerX, 12, SSD1306_WHITE);
+    display.drawPixel(centerX, 16, SSD1306_WHITE);
+    
+    // Draw "LOW BATTERY" text
+    drawCenteredText("LOW BATTERY", 25, 1);
+    
+    // Draw "SHUTTING DOWN" text
+    drawCenteredText("SHUTTING DOWN", 40, 1);
     
     renderDisplay();
 }
