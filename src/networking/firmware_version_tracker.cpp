@@ -28,7 +28,12 @@ void FirmwareVersionTracker::retrieveLatestFirmwareFromServer(uint16_t newVersio
         return;
     }
 
-    if (firmwareVersion >= newVersion) return;
+    if (firmwareVersion >= newVersion) {
+        char buffer[128];
+        snprintf(buffer, sizeof(buffer), "Pip is up to date. Current version is: %d, new version is: %d\n", firmwareVersion, newVersion);
+        SerialQueueManager::getInstance().queueMessage(buffer);
+        return;
+    }
 
     pendingVersion = newVersion;  // Store for the callback to use
     isRetrievingFirmwareFromServer = true;
