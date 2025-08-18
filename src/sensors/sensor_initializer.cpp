@@ -89,11 +89,9 @@ bool SensorInitializer::tryInitializeMultizoneTof() {
     }
     
     if (!mZoneSensor.canRetryInitialization()) {
-        // Check if we've reached max retries and should restart
+        // Check if we've reached max retries
         if (mZoneSensor.getInitRetryCount() >= mZoneSensor.getMaxInitRetries()) {
-            SerialQueueManager::getInstance().queueMessage("TOF sensor initialization failed after maximum retries. Restarting ESP...");
-            vTaskDelay(pdMS_TO_TICKS(1000)); // Give serial time to send
-            ESP.restart(); // Restart the ESP
+            SerialQueueManager::getInstance().queueMessage("TOF sensor initialization failed after maximum retries. Sensor disabled.");
         }
         return false; // Can't retry yet
     }
@@ -118,11 +116,9 @@ bool SensorInitializer::tryInitializeIMU() {
     }
     
     if (!imu.canRetryInitialization()) {
-        // Check if we've reached max retries and should restart
+        // Check if we've reached max retries
         if (imu.getInitRetryCount() >= imu.getMaxInitRetries()) {
-            SerialQueueManager::getInstance().queueMessage("IMU initialization failed after maximum retries. Restarting ESP...");
-            vTaskDelay(pdMS_TO_TICKS(1000));
-            ESP.restart();
+            SerialQueueManager::getInstance().queueMessage("IMU initialization failed after maximum retries. Sensor disabled.");
         }
         return false;
     }
