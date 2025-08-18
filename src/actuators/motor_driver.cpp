@@ -50,6 +50,7 @@ void MotorDriver::brake_left_motor() {
     analogWrite(LEFT_MOTOR_PIN_IN_1, 255);
     analogWrite(LEFT_MOTOR_PIN_IN_2, 255);
     _leftMotorBraking = true;
+    // TODO: 8/18/25: Remove this, and check brake timers when we get encoders
     _leftBrakeStartTime = millis(); // Start the timer
 }
 
