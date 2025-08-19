@@ -62,12 +62,12 @@ void setup() {
 
     // Create battery monitor task for ongoing monitoring
     TaskManager::createBatteryMonitorTask();
-
-    // 6. MessageProcessor
-    TaskManager::createMessageProcessorTask();
     
     // 11. Motor (high priority, fast updates)
     TaskManager::createMotorTask();
+    
+    // 12. DemoManager (high priority for demos)
+    TaskManager::createDemoManagerTask();
 
     // 7. Network (Management task creates Communication task)
     TaskManager::createNetworkManagementTask();

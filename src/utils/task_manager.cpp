@@ -3,7 +3,6 @@
 TaskHandle_t TaskManager::buttonTaskHandle = NULL;
 TaskHandle_t TaskManager::serialInputTaskHandle = NULL;
 TaskHandle_t TaskManager::ledTaskHandle = NULL;
-TaskHandle_t TaskManager::messageProcessorTaskHandle = NULL;
 TaskHandle_t TaskManager::bytecodeVMTaskHandle = NULL;
 TaskHandle_t TaskManager::stackMonitorTaskHandle = NULL;
 TaskHandle_t TaskManager::sensorInitTaskHandle = NULL;
@@ -15,6 +14,7 @@ TaskHandle_t TaskManager::serialQueueTaskHandle = NULL;
 TaskHandle_t TaskManager::batteryMonitorTaskHandle = NULL;
 TaskHandle_t TaskManager::speakerTaskHandle = NULL;
 TaskHandle_t TaskManager::motorTaskHandle = NULL;
+TaskHandle_t TaskManager::demoManagerTaskHandle = NULL;
 TaskHandle_t TaskManager::displayInitTaskHandle = NULL;
 
 void TaskManager::buttonTask(void* parameter) {
@@ -37,13 +37,6 @@ void TaskManager::ledTask(void* parameter) {
     for(;;) {
         ledAnimations.update();
         vTaskDelay(pdMS_TO_TICKS(5));
-    }
-}
-
-void TaskManager::messageProcessorTask(void* parameter) {
-    for(;;) {
-        motorDriver.processPendingCommands();
-        vTaskDelay(pdMS_TO_TICKS(2)); // Fast motor command processing
     }
 }
 
@@ -238,7 +231,17 @@ void TaskManager::motorTask(void* parameter) {
 
     for(;;) {
         motorDriver.update();
+        motorDriver.processPendingCommands();
         vTaskDelay(pdMS_TO_TICKS(2)); // Fast motor update - 2ms
+    }
+}
+
+void TaskManager::demoManagerTask(void* parameter) {
+    SerialQueueManager::getInstance().queueMessage("DemoManager task started");
+
+    for(;;) {
+        DemoManager::getInstance().update();
+        vTaskDelay(pdMS_TO_TICKS(5)); // Demo updates every 5ms
     }
 }
 
@@ -279,11 +282,6 @@ bool TaskManager::createSerialInputTask() {
 bool TaskManager::createLedTask() {
     return createTask("LED", ledTask, LED_STACK_SIZE,
                      Priority::BACKGROUND, Core::CORE_1, &ledTaskHandle);
-}
-
-bool TaskManager::createMessageProcessorTask() {
-    return createTask("MessageProcessor", messageProcessorTask, MESSAGE_PROCESSOR_STACK_SIZE,
-                     Priority::SYSTEM_CONTROL, Core::CORE_0, &messageProcessorTaskHandle);
 }
 
 bool TaskManager::createBytecodeVMTask() {
@@ -342,6 +340,11 @@ bool TaskManager::createSpeakerTask() {
 bool TaskManager::createMotorTask() {
     return createTask("Motor", motorTask, MOTOR_STACK_SIZE,
                      Priority::CRITICAL, Core::CORE_0, &motorTaskHandle);
+}
+
+bool TaskManager::createDemoManagerTask() {
+    return createTask("DemoManager", demoManagerTask, DEMO_MANAGER_STACK_SIZE,
+                     Priority::SYSTEM_CONTROL, Core::CORE_0, &demoManagerTaskHandle);
 }
 
 bool TaskManager::createDisplayInitTask() {
@@ -412,7 +415,6 @@ void TaskManager::printStackUsage() {
         {buttonTaskHandle, "Buttons", BUTTON_STACK_SIZE},
         {serialInputTaskHandle, "SerialInput", SERIAL_INPUT_STACK_SIZE},
         {ledTaskHandle, "LED", LED_STACK_SIZE},
-        {messageProcessorTaskHandle, "MessageProcessor", MESSAGE_PROCESSOR_STACK_SIZE},
         {bytecodeVMTaskHandle, "BytecodeVM", BYTECODE_VM_STACK_SIZE},
         {stackMonitorTaskHandle, "StackMonitor", STACK_MONITOR_STACK_SIZE},        // May be NULL after self-delete
         {sensorInitTaskHandle, "SensorInit", SENSOR_INIT_STACK_SIZE},        // May be NULL after self-delete
@@ -424,6 +426,7 @@ void TaskManager::printStackUsage() {
         {batteryMonitorTaskHandle, "BatteryMonitor", BATTERY_MONITOR_STACK_SIZE},
         {speakerTaskHandle, "Speaker", SPEAKER_STACK_SIZE},
         {motorTaskHandle, "Motor", MOTOR_STACK_SIZE},
+        {demoManagerTaskHandle, "DemoManager", DEMO_MANAGER_STACK_SIZE},
         {displayInitTaskHandle, "DisplayInit", DISPLAY_INIT_STACK_SIZE}
     };
     

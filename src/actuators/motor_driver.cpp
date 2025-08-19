@@ -210,8 +210,6 @@ void MotorDriver::executeCommand(int16_t leftSpeed, int16_t rightSpeed) {
 }
 
 void MotorDriver::processPendingCommands() {
-    DemoManager::getInstance().update();
-
     // If a demo is running, don't process motor commands
     if (DemoManager::getInstance().isAnyDemoActive()) return;
 
