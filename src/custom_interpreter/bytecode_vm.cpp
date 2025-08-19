@@ -474,8 +474,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             uint8_t motorSpeed = map(throttlePercent, 0, 100, 0, MAX_MOTOR_SPEED);
             
             // Set both motors to forward at calculated speed
-            motorDriver.set_motor_speeds(motorSpeed, motorSpeed);
-            motorDriver.update_motor_speeds(true); // Optional: enable ramping
+            motorDriver.set_motor_speeds(motorSpeed, motorSpeed, true);
             break;
         }
         
@@ -485,8 +484,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             uint8_t motorSpeed = map(throttlePercent, 0, 100, 0, MAX_MOTOR_SPEED);
             
             // Set both motors to backward (negative speed)
-            motorDriver.set_motor_speeds(-motorSpeed, -motorSpeed);
-            motorDriver.update_motor_speeds(true); // Optional: enable ramping
+            motorDriver.set_motor_speeds(-motorSpeed, -motorSpeed, true);
             break;
         }
         
@@ -530,8 +528,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             uint8_t motorSpeed = map(throttlePercent, 0, 100, 0, MAX_MOTOR_SPEED);
             
             // Set motors to forward motion
-            motorDriver.set_motor_speeds(motorSpeed, motorSpeed);
-            motorDriver.update_motor_speeds(true);  // Enable ramping
+            motorDriver.set_motor_speeds(motorSpeed, motorSpeed, true);
             
             // Set up timed movement
             timedMotorMovementInProgress = true;
@@ -558,8 +555,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             uint8_t motorSpeed = map(throttlePercent, 0, 100, 0, MAX_MOTOR_SPEED);
             
             // Set motors to backward motion
-            motorDriver.set_motor_speeds(-motorSpeed, -motorSpeed);
-            motorDriver.update_motor_speeds(true);  // Enable ramping
+            motorDriver.set_motor_speeds(-motorSpeed, -motorSpeed, true);
             
             break;
         }
@@ -589,8 +585,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             targetDistanceCm = distanceCm;
             
             // Set motors to forward motion
-            motorDriver.set_motor_speeds(motorSpeed, motorSpeed);
-            motorDriver.update_motor_speeds(true);  // Enable ramping
+            motorDriver.set_motor_speeds(motorSpeed, motorSpeed, true);
             
             break;
         }
@@ -620,8 +615,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             targetDistanceCm = distanceCm;
             
             // Set motors to backward motion
-            motorDriver.set_motor_speeds(-motorSpeed, -motorSpeed);
-            motorDriver.update_motor_speeds(true);  // Enable ramping
+            motorDriver.set_motor_speeds(-motorSpeed, -motorSpeed, true);
             
             break;
         }

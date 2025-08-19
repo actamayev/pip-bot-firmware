@@ -79,16 +79,17 @@ void MotorDriver::brake_if_moving() {
     }
 }
 
-void MotorDriver::set_motor_speeds(int16_t leftTarget, int16_t rightTarget) {
+void MotorDriver::set_motor_speeds(int16_t leftTarget, int16_t rightTarget, bool shouldRampUp) {
     // Store target speeds but don't change actual speeds immediately
     _targetLeftSpeed = constrain(leftTarget, -MAX_MOTOR_SPEED, MAX_MOTOR_SPEED);
     _targetRightSpeed = constrain(rightTarget, -MAX_MOTOR_SPEED, MAX_MOTOR_SPEED);
+    _shouldRampUp = shouldRampUp;
 }
 
-void MotorDriver::update_motor_speeds(bool should_ramp_up) {
+void MotorDriver::update() {
     bool speedsChanged = false;
 
-    if (should_ramp_up) {
+    if (_shouldRampUp) {
         // Gradually ramp left motor speed toward target
         if (_currentLeftSpeed < _targetLeftSpeed) {
             _currentLeftSpeed = min(static_cast<int16_t>(_currentLeftSpeed + SPEED_RAMP_STEP), _targetLeftSpeed);

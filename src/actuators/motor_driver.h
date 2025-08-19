@@ -13,8 +13,8 @@ class MotorDriver {
         void right_motor_backward(uint8_t speed = MAX_MOTOR_SPEED);
         void right_motor_stop();
 
-        void set_motor_speeds(int16_t leftTarget, int16_t rightTarget);
-        void update_motor_speeds(bool should_ramp_up);
+        void set_motor_speeds(int16_t leftTarget, int16_t rightTarget, bool shouldRampUp);
+        void update();
 
         void force_reset_motors();
         void brake_both_motors();
@@ -25,6 +25,7 @@ class MotorDriver {
         int16_t _targetRightSpeed = 0;
         int16_t _currentLeftSpeed = 0;
         int16_t _currentRightSpeed = 0;
+        bool _shouldRampUp = true;
         static constexpr int16_t SPEED_RAMP_STEP = 50;
 
         void left_motor_forward(uint8_t speed = MAX_MOTOR_SPEED);

@@ -36,7 +36,7 @@ void MessageProcessor::executeCommand(int16_t leftSpeed, int16_t rightSpeed) {
     // Start the command timer
     commandStartTime = millis();
 
-    motorDriver.set_motor_speeds(leftSpeed, rightSpeed);
+    motorDriver.set_motor_speeds(leftSpeed, rightSpeed, true);
 
     // Enable straight driving correction for forward movement only. 
     // 4/12/25: Removing straight line drive for backward movement. need to bring back eventually
@@ -55,7 +55,7 @@ void MessageProcessor::processPendingCommands() {
     // If a demo is running, don't process motor commands
     if (DemoManager::getInstance().isAnyDemoActive()) return;
 
-    motorDriver.update_motor_speeds(true);
+    motorDriver.update();
     if (!isExecutingCommand) {
         // If we have a next command, execute it
         if (hasNextCommand) {
