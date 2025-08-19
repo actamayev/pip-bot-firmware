@@ -42,7 +42,7 @@ void TaskManager::ledTask(void* parameter) {
 
 void TaskManager::messageProcessorTask(void* parameter) {
     for(;;) {
-        MessageProcessor::getInstance().processPendingCommands();
+        motorDriver.processPendingCommands();
         vTaskDelay(pdMS_TO_TICKS(2)); // Fast motor command processing
     }
 }
@@ -245,20 +245,20 @@ void TaskManager::motorTask(void* parameter) {
 void TaskManager::displayInitTask(void* parameter) {    
     SerialQueueManager::getInstance().queueMessage("Starting display initialization...");
     
-    // if (!DisplayScreen::getInstance().init(true)) {
-    //     SerialQueueManager::getInstance().queueMessage("ERROR: Failed to init Display!");
-    // } else {
-    //     // Yield before creating display task
-    //     vTaskDelay(pdMS_TO_TICKS(5));
+    if (!DisplayScreen::getInstance().init(true)) {
+        SerialQueueManager::getInstance().queueMessage("ERROR: Failed to init Display!");
+    } else {
+        // Yield before creating display task
+        vTaskDelay(pdMS_TO_TICKS(5));
         
-    //     // Create the display task now that init is complete
-    //     bool displayTaskCreated = createDisplayTask();
-    //     if (displayTaskCreated) {
-    //         SerialQueueManager::getInstance().queueMessage("Display task created successfully");
-    //     } else {
-    //         SerialQueueManager::getInstance().queueMessage("ERROR: Failed to create Display task!");
-    //     }
-    // }
+        // Create the display task now that init is complete
+        bool displayTaskCreated = createDisplayTask();
+        if (displayTaskCreated) {
+            SerialQueueManager::getInstance().queueMessage("Display task created successfully");
+        } else {
+            SerialQueueManager::getInstance().queueMessage("ERROR: Failed to create Display task!");
+        }
+    }
     
     // Self-delete - our job is done
     SerialQueueManager::getInstance().queueMessage("DisplayInit task self-deleting");

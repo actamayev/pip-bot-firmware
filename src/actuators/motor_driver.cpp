@@ -167,3 +167,111 @@ void MotorDriver::force_reset_motors() {
     _currentLeftSpeed = 0;
     _currentRightSpeed = 0;
 }
+
+void MotorDriver::updateMotorSpeeds(int16_t leftSpeed, int16_t rightSpeed) {
+    // Constrain speeds
+    leftSpeed = constrain(leftSpeed, -MAX_MOTOR_SPEED, MAX_MOTOR_SPEED);
+    rightSpeed = constrain(rightSpeed, -MAX_MOTOR_SPEED, MAX_MOTOR_SPEED);
+    
+    // If we're not executing a command, start this one immediately
+    if (!isExecutingCommand) {
+        executeCommand(leftSpeed, rightSpeed);
+    } else {
+        // Store as next command
+        hasNextCommand = true;
+        nextLeftSpeed = leftSpeed;
+        nextRightSpeed = rightSpeed;
+    }
+}
+
+void MotorDriver::executeCommand(int16_t leftSpeed, int16_t rightSpeed) {
+    // Save command details
+    currentLeftSpeed = leftSpeed;
+    currentRightSpeed = rightSpeed;
+
+    // Get initial encoder counts directly
+    startLeftCount = encoderManager._leftEncoder.getCount();
+    startRightCount = encoderManager._rightEncoder.getCount();
+
+    // Start the command timer
+    commandStartTime = millis();
+
+    set_motor_speeds(leftSpeed, rightSpeed, true);
+
+    // Enable straight driving correction for forward movement only. 
+    // 4/12/25: Removing straight line drive for backward movement. need to bring back eventually
+    // if ((leftSpeed > 0 && rightSpeed > 0) && (leftSpeed == rightSpeed)) {
+    //     StraightLineDrive::getInstance().enable();
+    // } else {
+    //     StraightLineDrive::getInstance().disable();
+    // }
+
+    isExecutingCommand = true;
+}
+
+void MotorDriver::processPendingCommands() {
+    DemoManager::getInstance().update();
+
+    // If a demo is running, don't process motor commands
+    if (DemoManager::getInstance().isAnyDemoActive()) return;
+
+    if (!isExecutingCommand) {
+        // If we have a next command, execute it
+        if (hasNextCommand) {
+            executeCommand(nextLeftSpeed, nextRightSpeed);
+            hasNextCommand = false;
+        }
+        return;
+    }
+
+    bool isMovementCommand = (currentLeftSpeed != 0 || currentRightSpeed != 0);
+
+    if (!isMovementCommand) {
+        isExecutingCommand = false;
+        
+        if (hasNextCommand) {
+            executeCommand(nextLeftSpeed, nextRightSpeed);
+            hasNextCommand = false;
+        }
+        return;
+    }
+
+    // Get current encoder counts
+    int64_t currentLeftCount = encoderManager._leftEncoder.getCount();
+    int64_t currentRightCount = encoderManager._rightEncoder.getCount();
+    
+    // Calculate absolute change in encoder counts
+    int64_t leftDelta = abs(currentLeftCount - startLeftCount);
+    int64_t rightDelta = abs(currentRightCount - startRightCount);
+    
+    // Check for command completion conditions:
+    bool encoderThresholdMet = (leftDelta >= MIN_ENCODER_PULSES || rightDelta >= MIN_ENCODER_PULSES);
+    bool commandTimedOut = (millis() - commandStartTime) >= COMMAND_TIMEOUT_MS;
+    
+    if (encoderThresholdMet || commandTimedOut) {
+        if (commandTimedOut) {
+            SerialQueueManager::getInstance().queueMessage("Command timed out after 1 second - possible motor stall");
+        } else {
+            // SerialQueueManager::getInstance().queueMessage("Command completed with pulses - Left: %lld, Right: %lld\n", 
+            //             leftDelta, rightDelta);
+        }
+        
+        isExecutingCommand = false;
+    }
+    if (hasNextCommand) {
+        executeCommand(nextLeftSpeed, nextRightSpeed);
+        hasNextCommand = false;
+    }
+}
+
+void MotorDriver::resetCommandState() {
+    isExecutingCommand = false;
+    hasNextCommand = false;
+    currentLeftSpeed = 0;
+    currentRightSpeed = 0;
+    nextLeftSpeed = 0;
+    nextRightSpeed = 0;
+    startLeftCount = 0;
+    startRightCount = 0;
+    commandStartTime = 0;
+}

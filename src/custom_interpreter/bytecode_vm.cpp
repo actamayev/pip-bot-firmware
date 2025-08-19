@@ -7,7 +7,7 @@ BytecodeVM::~BytecodeVM() {
 bool BytecodeVM::loadProgram(const uint8_t* byteCode, uint16_t size) {
     // Free any existing program
     stopProgram();
-    MessageProcessor::getInstance().resetCommandState();
+    motorDriver.resetCommandState();
 
     // Validate bytecode size (must be multiple of 20 now)
     if (size % INSTRUCTION_SIZE != 0 || size / INSTRUCTION_SIZE > MAX_PROGRAM_SIZE) {
@@ -659,7 +659,7 @@ void BytecodeVM::updateDistanceMovement() {
 
 void BytecodeVM::stopProgram() {
     resetStateVariables(true);
-    MessageProcessor::getInstance().resetCommandState();
+    motorDriver.resetCommandState();
 
     stoppedDueToUsbSafety = false; // Reset safety flag when manually stopping
 
@@ -730,7 +730,7 @@ void BytecodeVM::pauseProgram() {
     if (!program || isPaused == PAUSED) return;
     
     resetStateVariables();
-    MessageProcessor::getInstance().resetCommandState();
+    motorDriver.resetCommandState();
 
     Speaker::getInstance().setMuted(true);
     rgbLed.turn_all_leds_off();     
