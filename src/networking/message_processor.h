@@ -23,11 +23,10 @@ class MessageProcessor : public Singleton<MessageProcessor> {
     friend class Singleton<MessageProcessor>;
 
     public:
-        MessageProcessor() = default; // Keep the constructor for any additional initialization
-
         void processBinaryMessage(const uint8_t* data, uint16_t length);
 
     private:
+        MessageProcessor() = default;
         // Method declarations
         void handleMotorControl(const uint8_t* data);
         void handleBalanceCommand(BalanceStatus enableBalancing);

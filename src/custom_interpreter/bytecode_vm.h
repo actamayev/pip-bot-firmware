@@ -17,9 +17,6 @@ class BytecodeVM : public Singleton<BytecodeVM> {
     friend class Buttons;
 
     public:
-        BytecodeVM() = default;
-        ~BytecodeVM();
-
         // Load bytecode program into the VM
         bool loadProgram(const uint8_t* byteCode, uint16_t size);
         void stopProgram();
@@ -40,6 +37,8 @@ class BytecodeVM : public Singleton<BytecodeVM> {
         bool canStartProgram();
 
     private:
+        BytecodeVM() = default;
+        ~BytecodeVM();
         // Constants:
         static const uint16_t MAX_REGISTERS = 512; // Changed from uint8_t to uint16_t
                                         // to handle values > 255

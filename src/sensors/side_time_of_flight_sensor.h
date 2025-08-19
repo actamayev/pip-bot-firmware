@@ -14,13 +14,12 @@ class SideTimeOfFlightSensor {
     friend class SideTofManager;
 
     public:
-        SideTimeOfFlightSensor() = default;
-
         bool initialize(const uint8_t TOF_ADDRESS);
         bool canRetryInitialization() const;
         bool needsInitialization() const { return !isInitialized; }
 
     private:
+        SideTimeOfFlightSensor() = default;
         uint8_t sensorAddress = 0; // Store the specific sensor address
         
         // Initialization retry variables

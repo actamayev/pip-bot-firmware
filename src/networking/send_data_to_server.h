@@ -14,11 +14,11 @@ class SendDataToServer : public Singleton<SendDataToServer> {
     friend class Singleton<SendDataToServer>;
 
     public:
-        SendDataToServer() = default;
         void sendSensorDataToServer();
         void sendBytecodeMessage(String message);
 
     private:
+        SendDataToServer() = default;
         bool sendSensorData = false;
         void attachRPMData(JsonObject& payload);
         void attachIRData(JsonObject& payload);

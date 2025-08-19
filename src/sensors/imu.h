@@ -11,7 +11,6 @@ class ImuSensor : public Singleton<ImuSensor> {
     friend class TaskManager;
 
     public:
-        ImuSensor() = default;
 
         bool initialize();
 
@@ -23,6 +22,7 @@ class ImuSensor : public Singleton<ImuSensor> {
         void turnOff();
 
     private:
+        ImuSensor() = default;
         Adafruit_BNO08x imu;
         sh2_SensorValue_t sensorValue;
         bool isInitialized = false;

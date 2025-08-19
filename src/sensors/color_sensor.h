@@ -10,13 +10,12 @@
 //     friend class TaskManager;
 
 //     public:
-//         ColorSensor() = default;
-
 //         bool initialize();
 //         bool canRetryInitialization() const;
 //         bool needsInitialization() const { return !isInitialized; }
 
 //     private:
+//         ColorSensor() = default;
 //         void read_color_sensor();
 //         void precompute_inverse_matrix();
 //         void enableColorSensor();
