@@ -121,18 +121,18 @@ void TaskManager::sensorInitTask(void* parameter) {
 // SensorPolling Task - handles ongoing sensor data collection
 void TaskManager::sensorPollingTask(void* parameter) {
     SerialQueueManager::getInstance().queueMessage("Sensor polling task started");
-    
+
     for(;;) {
         if (ImuSensor::getInstance().shouldBePolling()) {
             ImuSensor::getInstance().updateSensorData();
         }
         // The MZ sensor update slows down the loop extensively. Consider breaking the sensor polling into multiple tasks
-        if (MultizoneTofSensor::getInstance().shouldBePolling()) {
-            MultizoneTofSensor::getInstance().updateSensorData();
-        }
-        if (SideTofManager::getInstance().shouldBePolling()) {
-            SideTofManager::getInstance().updateSensorData();
-        }
+        // if (MultizoneTofSensor::getInstance().shouldBePolling()) {
+        //     MultizoneTofSensor::getInstance().updateSensorData();
+        // }
+        // if (SideTofManager::getInstance().shouldBePolling()) {
+        //     SideTofManager::getInstance().updateSensorData();
+        // }
         // if (ColorSensor::getInstance().shouldBePolling()) {
         //     ColorSensor::getInstance().updateSensorData();
         // }
@@ -278,7 +278,7 @@ bool TaskManager::createMessageProcessorTask() {
 
 bool TaskManager::createBytecodeVMTask() {
     return createTask("BytecodeVM", bytecodeVMTask, BYTECODE_VM_STACK_SIZE,
-                     Priority::USER_PROGRAMS, Core::CORE_0, &bytecodeVMTaskHandle);
+                     Priority::SYSTEM_CONTROL, Core::CORE_1, &bytecodeVMTaskHandle);
 }
 
 bool TaskManager::createStackMonitorTask() {

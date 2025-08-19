@@ -67,11 +67,10 @@ class TaskManager {
         // Task priorities (higher number = higher priority)
         enum class Priority : uint8_t {
             BACKGROUND = 0,     // StackMonitor, LED
-            USER_PROGRAMS = 1,  // BytecodeVM 
-            SYSTEM_CONTROL = 2, // MessageProcessor, SensorPolling
-            COMMUNICATION = 3,  // SerialInput, NetworkMgmt
-            REALTIME_COMM = 4,  // NetworkComm (WebSocket needs low latency)
-            CRITICAL = 5        // Buttons, SerialQueue (immediate response)
+            SYSTEM_CONTROL = 1, // MessageProcessor, SensorPolling, BytecodeVM 
+            COMMUNICATION = 2,  // SerialInput, NetworkMgmt
+            REALTIME_COMM = 3,  // NetworkComm (WebSocket needs low latency)
+            CRITICAL = 4        // Buttons, SerialQueue (immediate response)
         };
 
         // Core assignments

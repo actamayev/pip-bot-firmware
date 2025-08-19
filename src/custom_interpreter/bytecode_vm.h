@@ -6,6 +6,7 @@
 #include "actuators/buttons.h"
 #include "actuators/led/rgb_led.h"
 #include "actuators/motor_driver.h"
+#include "demos/turning_manager.h"
 #include "sensors/multizone_tof_sensor.h"
 #include "networking/serial_queue_manager.h"
 #include "networking/serial_manager.h"
@@ -73,15 +74,6 @@ class BytecodeVM : public Singleton<BytecodeVM> {
         
         // Helper method for comparisons
         bool compareValues(ComparisonOp op, float leftOperand, float rightValue);
-
-        bool turningInProgress = false;
-        float targetTurnDegrees = 0;
-        float initialTurnYaw = 0;
-        bool turnClockwise = true;
-        unsigned long turnStartTime = 0;
-        
-        // Helper method for turn operations
-        void updateTurning();
 
         bool timedMotorMovementInProgress = false;
         unsigned long motorMovementEndTime = 0;

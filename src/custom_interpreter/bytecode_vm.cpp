@@ -75,8 +75,8 @@ void BytecodeVM::update() {
     }
 
     // Handle turning operation if in progress
-    if (turningInProgress) {
-        updateTurning();
+    if (TurningManager::getInstance().isActive()) {
+        TurningManager::getInstance().update();
         return; // Don't execute next instruction until turn is complete
     }
 
@@ -502,18 +502,10 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             bool clockwise = (instr.operand1 > 0);
             float degrees = instr.operand2;
             
-            // Initialize turning state
-            turningInProgress = true;
-            targetTurnDegrees = degrees;
-            initialTurnYaw = SensorDataBuffer::getInstance().getLatestYaw();
-            turnClockwise = clockwise;
-            turnStartTime = millis();
-
-            // Set motors for turning
-            if (clockwise) {
-                motorDriver.set_motor_speeds(100, -100); // Right turn
-            } else {
-                motorDriver.set_motor_speeds(-100, 100); // Left turn
+            // Use TurningManager for precise turning
+            float signedDegrees = clockwise ? degrees : -degrees;
+            if (!TurningManager::getInstance().startTurn(signedDegrees)) {
+                SerialQueueManager::getInstance().queueMessage("Failed to start turn - turn already in progress");
             }
             
             // The actual turn progress will be monitored in update()
@@ -648,33 +640,6 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
     }
 }
 
-void BytecodeVM::updateTurning() {
-    // Get current yaw
-    float currentYaw = SensorDataBuffer::getInstance().getLatestYaw();
-    
-    // Calculate rotation delta with wraparound handling
-    float rotationDelta;
-    
-    if (turnClockwise) {
-        rotationDelta = initialTurnYaw - currentYaw;
-        if (rotationDelta < 0) rotationDelta += 360;
-    } else {
-        rotationDelta = currentYaw - initialTurnYaw;
-        if (rotationDelta < 0) rotationDelta += 360;
-    }
-    
-    // Check for timeout (safety feature)
-    unsigned long elapsed = millis() - turnStartTime;
-    bool timeout = elapsed > TURN_TIMEOUT; // 10 second timeout
-    
-    // Check if turn is complete
-    if (rotationDelta >= targetTurnDegrees || timeout) {
-        // Turn complete - stop motors
-        motorDriver.brake_both_motors();
-        turningInProgress = false;
-    }
-}
-
 void BytecodeVM::updateTimedMotorMovement() {
     // Check if the timed movement has completed
     if (millis() < motorMovementEndTime) return;
@@ -716,11 +681,8 @@ void BytecodeVM::resetStateVariables(bool isFullReset) {
     waitingForDelay = false;
     lastComparisonResult = false;
     
-    turningInProgress = false;
-    targetTurnDegrees = 0;
-    initialTurnYaw = 0;
-    turnClockwise = true;
-    turnStartTime = 0;
+    // Reset TurningManager state
+    TurningManager::getInstance().completeNavigation(false);
     
     timedMotorMovementInProgress = false;
     distanceMovementInProgress = false;
