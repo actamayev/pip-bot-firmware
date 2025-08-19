@@ -66,6 +66,9 @@ void setup() {
     // 6. MessageProcessor
     TaskManager::createMessageProcessorTask();
     
+    // 11. Motor (high priority, fast updates)
+    TaskManager::createMotorTask();
+
     // 7. Network (Management task creates Communication task)
     TaskManager::createNetworkManagementTask();
     

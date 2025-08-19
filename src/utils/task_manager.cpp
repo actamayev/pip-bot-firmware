@@ -14,6 +14,7 @@ TaskHandle_t TaskManager::networkCommunicationTaskHandle = NULL;
 TaskHandle_t TaskManager::serialQueueTaskHandle = NULL;
 TaskHandle_t TaskManager::batteryMonitorTaskHandle = NULL;
 TaskHandle_t TaskManager::speakerTaskHandle = NULL;
+TaskHandle_t TaskManager::motorTaskHandle = NULL;
 TaskHandle_t TaskManager::displayInitTaskHandle = NULL;
 
 void TaskManager::buttonTask(void* parameter) {
@@ -232,6 +233,15 @@ void TaskManager::speakerTask(void* parameter) {
     }
 }
 
+void TaskManager::motorTask(void* parameter) {
+    SerialQueueManager::getInstance().queueMessage("Motor task started");
+
+    for(;;) {
+        motorDriver.update();
+        vTaskDelay(pdMS_TO_TICKS(2)); // Fast motor update - 2ms
+    }
+}
+
 void TaskManager::displayInitTask(void* parameter) {    
     SerialQueueManager::getInstance().queueMessage("Starting display initialization...");
     
@@ -329,6 +339,11 @@ bool TaskManager::createSpeakerTask() {
                      Priority::BACKGROUND, Core::CORE_1, &speakerTaskHandle);
 }
 
+bool TaskManager::createMotorTask() {
+    return createTask("Motor", motorTask, MOTOR_STACK_SIZE,
+                     Priority::CRITICAL, Core::CORE_0, &motorTaskHandle);
+}
+
 bool TaskManager::createDisplayInitTask() {
     return createTask("DisplayInit", displayInitTask, DISPLAY_INIT_STACK_SIZE,
                      Priority::SYSTEM_CONTROL, Core::CORE_0, &displayInitTaskHandle);
@@ -408,6 +423,7 @@ void TaskManager::printStackUsage() {
         {serialQueueTaskHandle, "SerialQueue", SERIAL_QUEUE_STACK_SIZE}, // ADD THIS LINE
         {batteryMonitorTaskHandle, "BatteryMonitor", BATTERY_MONITOR_STACK_SIZE},
         {speakerTaskHandle, "Speaker", SPEAKER_STACK_SIZE},
+        {motorTaskHandle, "Motor", MOTOR_STACK_SIZE},
         {displayInitTaskHandle, "DisplayInit", DISPLAY_INIT_STACK_SIZE}
     };
     

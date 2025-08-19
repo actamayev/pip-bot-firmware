@@ -55,7 +55,6 @@ void MessageProcessor::processPendingCommands() {
     // If a demo is running, don't process motor commands
     if (DemoManager::getInstance().isAnyDemoActive()) return;
 
-    motorDriver.update();
     if (!isExecutingCommand) {
         // If we have a next command, execute it
         if (hasNextCommand) {

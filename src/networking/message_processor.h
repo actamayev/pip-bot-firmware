@@ -26,6 +26,13 @@ class MessageProcessor : public Singleton<MessageProcessor> {
         void processPendingCommands();
         MessageProcessor() = default; // Keep the constructor for any additional initialization
 
+        void processBinaryMessage(const uint8_t* data, uint16_t length);
+        void resetCommandState();
+
+    private:
+        void updateMotorSpeeds(int16_t leftSpeed, int16_t rightSpeed);
+        void executeCommand(int16_t leftSpeed, int16_t rightSpeed);
+
         // Method declarations
         void handleMotorControl(const uint8_t* data);
         void handleBalanceCommand(BalanceStatus enableBalancing);
@@ -35,13 +42,6 @@ class MessageProcessor : public Singleton<MessageProcessor> {
         void handleGetSavedWiFiNetworks();
         void handleSoftScanWiFiNetworks();
         void handleHardScanWiFiNetworks();
-
-        void processBinaryMessage(const uint8_t* data, uint16_t length);
-        void resetCommandState();
-
-    private:
-        void updateMotorSpeeds(int16_t leftSpeed, int16_t rightSpeed);
-        void executeCommand(int16_t leftSpeed, int16_t rightSpeed);
 
         // Member variables with in-class initialization
         bool isExecutingCommand = false;
