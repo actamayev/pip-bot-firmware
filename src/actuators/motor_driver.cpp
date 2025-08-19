@@ -190,6 +190,7 @@ void MotorDriver::executeCommand(int16_t leftSpeed, int16_t rightSpeed) {
     currentRightSpeed = rightSpeed;
 
     // Get initial encoder counts directly
+    // TODO: Try without encoder stuff - optimize for turning rn
     startLeftCount = encoderManager._leftEncoder.getCount();
     startRightCount = encoderManager._rightEncoder.getCount();
 

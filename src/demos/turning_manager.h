@@ -43,7 +43,6 @@ class TurningManager : public Singleton<TurningManager> {
         // Motor control helpers
         void startTurnMotors();
         void setTurnSpeed(uint8_t speed);
-        void stopTurnMotors();
         
         // State variables
         TurningState currentState = TurningState::IDLE;
