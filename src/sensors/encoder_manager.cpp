@@ -51,7 +51,7 @@ void EncoderManager::update() {
 
 WheelRPMs EncoderManager::getBothWheelRPMs() {
     // Lock mutex before accessing data
-    if (xSemaphoreTake(encoderMutex, pdMS_TO_TICKS(10)) == pdTRUE) {
+    if (xSemaphoreTake(encoderMutex, pdMS_TO_TICKS(MUTEX_REFRESH_FREQUENCY_MS)) == pdTRUE) {
         update();  // Update once for both wheels
         
         WheelRPMs result = {
@@ -73,7 +73,7 @@ WheelRPMs EncoderManager::getBothWheelRPMs() {
 
 void EncoderManager::resetDistanceTracking() {
     // Lock mutex before accessing encoder counts
-    if (xSemaphoreTake(encoderMutex, pdMS_TO_TICKS(10)) != pdTRUE) return;
+    if (xSemaphoreTake(encoderMutex, pdMS_TO_TICKS(MUTEX_REFRESH_FREQUENCY_MS)) != pdTRUE) return;
     // Store current encoder counts as starting point
     _leftEncoderStartCount = _leftEncoder.getCount();
     _rightEncoderStartCount = _rightEncoder.getCount();
@@ -84,7 +84,7 @@ void EncoderManager::resetDistanceTracking() {
 
 float EncoderManager::getDistanceTraveledCm() {
     // Lock mutex before accessing encoder counts
-    if (xSemaphoreTake(encoderMutex, pdMS_TO_TICKS(10)) == pdTRUE) {
+    if (xSemaphoreTake(encoderMutex, pdMS_TO_TICKS(MUTEX_REFRESH_FREQUENCY_MS)) == pdTRUE) {
         // Get current encoder counts
         int64_t leftEncoderCurrentCount = _leftEncoder.getCount();
         int64_t rightEncoderCurrentCount = _rightEncoder.getCount();

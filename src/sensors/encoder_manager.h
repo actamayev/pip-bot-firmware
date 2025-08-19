@@ -4,13 +4,16 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/semphr.h>  // ADD this for mutex
 #include "utils/structs.h"
-#include "actuators/motor_driver.h"
 #include "networking/wifi_manager.h"
+
+// Forward declarations
+class MotorDriver;
 // #include "wifi_selection/wifi_selection_manager.h"
 // #include "wifi_selection/haptic_feedback_manager.h"
 
 class EncoderManager {
     friend class MessageProcessor;  // Allows MessageProcessor to access private members
+    friend class MotorDriver;       // Allows MotorDriver to access private members
     // friend class WifiSelectionManager;  // Allows WifiSelectionManager to access private members
 
     public:
@@ -47,6 +50,7 @@ class EncoderManager {
         // Wheel physical properties
         static constexpr float WHEEL_DIAMETER_CM = 3.9; // Replace with actual wheel diameter
         static constexpr float WHEEL_CIRCUMFERENCE_CM = WHEEL_DIAMETER_CM * PI;
+        static constexpr int MUTEX_REFRESH_FREQUENCY_MS = 5; // Replace with actual wheel diameter
 
         SemaphoreHandle_t encoderMutex = nullptr;
 };
