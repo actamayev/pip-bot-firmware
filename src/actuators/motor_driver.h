@@ -30,13 +30,9 @@ class MotorDriver {
         void left_motor_forward(uint8_t speed = MAX_MOTOR_SPEED);
         void left_motor_backward(uint8_t speed = MAX_MOTOR_SPEED);
 
-        void release_left_brake();
-        void release_right_brake();
         void brake_right_motor();
         void brake_left_motor();
 
-        bool _leftMotorBraking = false;
-        bool _rightMotorBraking = false;
         static constexpr float MOTOR_STOPPED_THRESHOLD = 0.5; // RPM threshold for considering motor stopped
 };
 
