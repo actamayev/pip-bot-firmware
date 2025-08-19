@@ -19,9 +19,6 @@ class BatteryMonitor : public Singleton<BatteryMonitor> {
         // Main update method (call this periodically from task)
         void update();
         
-        // Update battery readings (call this periodically)
-        void updateBatteryState();
-        
         // Get current battery state
         const BatteryState& getBatteryState() const { return batteryState; }
 
@@ -34,6 +31,9 @@ class BatteryMonitor : public Singleton<BatteryMonitor> {
     private:
         BatteryMonitor() = default;
         ~BatteryMonitor() = default;
+
+        // Update battery readings (call this periodically)
+        void updateBatteryState();
 
         // Configuration constants
         static constexpr unsigned int DEFAULT_BATTERY_CAPACITY = 1800; // mAh

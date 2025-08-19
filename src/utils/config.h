@@ -17,12 +17,12 @@ constexpr uint32_t I2C_CLOCK_SPEED = 100 * 1000; // 100 kHz (works best for IMU)
 constexpr uint8_t LEFT_MOTOR_PIN_IN_1 = 40;
 constexpr uint8_t LEFT_MOTOR_PIN_IN_2 = 39;
 constexpr uint8_t LEFT_MOTOR_ENCODER_A = 47;
-constexpr uint8_t LEFT_MOTOR_ENCODER_B = 49;
+constexpr uint8_t LEFT_MOTOR_ENCODER_B = 48;
 
-constexpr uint8_t RIGHT_MOTOR_PIN_IN_1 = 42;
-constexpr uint8_t RIGHT_MOTOR_PIN_IN_2 = 41;
-constexpr uint8_t RIGHT_MOTOR_ENCODER_A = 2;
-constexpr uint8_t RIGHT_MOTOR_ENCODER_B = 1;
+constexpr uint8_t RIGHT_MOTOR_PIN_IN_1 = 41;
+constexpr uint8_t RIGHT_MOTOR_PIN_IN_2 = 42;
+constexpr uint8_t RIGHT_MOTOR_ENCODER_A = 1;
+constexpr uint8_t RIGHT_MOTOR_ENCODER_B = 2;
 
 constexpr uint8_t MAX_MOTOR_SPEED = 255;
 
@@ -77,7 +77,7 @@ inline const char* getEnvironment() {
 inline const char* getServerFirmwareEndpoint() {
     std::string env = getEnvironment();
     if (env == "local") {
-        return "http://10.202.102.40:8080/pip/firmware-update";
+        return "http://10.159.114.40:8080/pip/firmware-update";
     } else if (env == "staging") {
         return "https://staging-api.bluedotrobots.com/pip/firmware-update";
     }
@@ -87,7 +87,7 @@ inline const char* getServerFirmwareEndpoint() {
 inline const char* getWsServerUrl() {
     std::string env = getEnvironment();
     if (env == "local") {
-        return "ws://10.202.102.40:8080/esp32";
+        return "ws://10.159.114.40:8080/esp32";
     } else if (env == "staging") {
         return "wss://staging-api.bluedotrobots.com/esp32";
     }

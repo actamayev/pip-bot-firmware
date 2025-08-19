@@ -271,6 +271,7 @@ void TurningManager::startTurnMotors() {
     setTurnSpeed(speed);
 }
 
+// TODO 8/18/25: Consider setting the speeds directly (don't go through the _targetLeftSpeed/_targetRightSpeed)
 void TurningManager::setTurnSpeed(uint8_t speed) {
     if (currentDirection == TurningDirection::CLOCKWISE) {
         motorDriver.set_motor_speeds(speed, -speed); // Right turn
@@ -279,16 +280,11 @@ void TurningManager::setTurnSpeed(uint8_t speed) {
     }
 }
 
-void TurningManager::stopTurnMotors() {
-    motorDriver.brake_both_motors();
-    currentDirection = TurningDirection::NONE;
-}
-
-void TurningManager::completeNavigation(bool shouldBrake) {
-    if (shouldBrake) {
+void TurningManager::completeNavigation(bool absoluteBrake) {
+    if (absoluteBrake) {
         motorDriver.brake_both_motors();
     } else {
-        stopTurnMotors();
+        motorDriver.brake_if_moving();
     }
     currentDirection = TurningDirection::NONE;
     targetDirection = TurningDirection::NONE;

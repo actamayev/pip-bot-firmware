@@ -77,20 +77,20 @@ void TaskManager::sensorInitTask(void* parameter) {
 
     // Keep trying until ALL sensors are initialized
     while (!initializer.areAllSensorsInitialized()) {
-        if (!initializer.isSensorInitialized(SensorInitializer::SIDE_TOFS)) {
-            SerialQueueManager::getInstance().queueMessage("Trying to init Multizone TOF...");
-            initializer.tryInitializeSideTofs();
-        }
+        // if (!initializer.isSensorInitialized(SensorInitializer::SIDE_TOFS)) {
+        //     SerialQueueManager::getInstance().queueMessage("Trying to init Side TOFs...");
+        //     initializer.tryInitializeSideTofs();
+        // }
         if (!initializer.isSensorInitialized(SensorInitializer::IMU)) {
             SerialQueueManager::getInstance().queueMessage("Trying to init IMU...");
             initializer.tryInitializeIMU();
         }
-        if (!initializer.isSensorInitialized(SensorInitializer::MULTIZONE_TOF)) {
-            SerialQueueManager::getInstance().queueMessage("Trying to init Multizone TOF...");
-            initializer.tryInitializeMultizoneTof();
-        }
+        // if (!initializer.isSensorInitialized(SensorInitializer::MULTIZONE_TOF)) {
+        //     SerialQueueManager::getInstance().queueMessage("Trying to init Multizone TOF...");
+        //     initializer.tryInitializeMultizoneTof();
+        // }
         // if (!initializer.isSensorInitialized(SensorInitializer::COLOR_SENSOR)) {
-            //     SerialQueueManager::getInstance().queueMessage("Trying to init IR sensors...");
+        //         SerialQueueManager::getInstance().queueMessage("Trying to init IR sensors...");
         //     initializer.tryInitializeColorSensor();
         // }
         // if (!initializer.isSensorInitialized(SensorInitializer::IR_SENSORS)) {
@@ -235,20 +235,20 @@ void TaskManager::speakerTask(void* parameter) {
 void TaskManager::displayInitTask(void* parameter) {    
     SerialQueueManager::getInstance().queueMessage("Starting display initialization...");
     
-    if (!DisplayScreen::getInstance().init(true)) {
-        SerialQueueManager::getInstance().queueMessage("ERROR: Failed to init Display!");
-    } else {
-        // Yield before creating display task
-        vTaskDelay(pdMS_TO_TICKS(5));
+    // if (!DisplayScreen::getInstance().init(true)) {
+    //     SerialQueueManager::getInstance().queueMessage("ERROR: Failed to init Display!");
+    // } else {
+    //     // Yield before creating display task
+    //     vTaskDelay(pdMS_TO_TICKS(5));
         
-        // Create the display task now that init is complete
-        bool displayTaskCreated = createDisplayTask();
-        if (displayTaskCreated) {
-            SerialQueueManager::getInstance().queueMessage("Display task created successfully");
-        } else {
-            SerialQueueManager::getInstance().queueMessage("ERROR: Failed to create Display task!");
-        }
-    }
+    //     // Create the display task now that init is complete
+    //     bool displayTaskCreated = createDisplayTask();
+    //     if (displayTaskCreated) {
+    //         SerialQueueManager::getInstance().queueMessage("Display task created successfully");
+    //     } else {
+    //         SerialQueueManager::getInstance().queueMessage("ERROR: Failed to create Display task!");
+    //     }
+    // }
     
     // Self-delete - our job is done
     SerialQueueManager::getInstance().queueMessage("DisplayInit task self-deleting");

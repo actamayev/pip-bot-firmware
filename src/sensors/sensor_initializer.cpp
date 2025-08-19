@@ -6,9 +6,9 @@ SensorInitializer::SensorInitializer() {
     for (int i = 0; i < SENSOR_COUNT; i++) {
         sensorInitialized[i] = false;
     }
-    initializeSideTofs();      // Added side TOF initialization
+    // initializeSideTofs();      // Added side TOF initialization
     initializeIMU();
-    initializeMultizoneTof();
+    // initializeMultizoneTof();
     // initializeColorSensor();  // Added color sensor initialization
     // initializeIRSensors();  // Uncomment this line
 }

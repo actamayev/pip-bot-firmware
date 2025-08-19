@@ -1,54 +1,54 @@
-// #pragma once
-// #include <Arduino.h>
-// #include <ESP32Encoder.h>
-// #include <freertos/FreeRTOS.h>
-// #include <freertos/semphr.h>  // ADD this for mutex
-// #include "utils/structs.h"
-// #include "actuators/motor_driver.h"
-// #include "networking/wifi_manager.h"
+#pragma once
+#include <Arduino.h>
+#include <ESP32Encoder.h>
+#include <freertos/FreeRTOS.h>
+#include <freertos/semphr.h>  // ADD this for mutex
+#include "utils/structs.h"
+#include "actuators/motor_driver.h"
+#include "networking/wifi_manager.h"
 // #include "wifi_selection/wifi_selection_manager.h"
 // #include "wifi_selection/haptic_feedback_manager.h"
 
-// class EncoderManager {
-//     friend class MessageProcessor;  // Allows MessageProcessor to access private members
-//     friend class WifiSelectionManager;  // Allows WifiSelectionManager to access private members
+class EncoderManager {
+    friend class MessageProcessor;  // Allows MessageProcessor to access private members
+    // friend class WifiSelectionManager;  // Allows WifiSelectionManager to access private members
 
-//     public:
-//         // Constructor
-//         EncoderManager();
+    public:
+        // Constructor
+        EncoderManager();
 
-//         WheelRPMs getBothWheelRPMs();
+        WheelRPMs getBothWheelRPMs();
 
-//         void resetDistanceTracking();
-//         float getDistanceTraveledCm();
+        void resetDistanceTracking();
+        float getDistanceTraveledCm();
 
-//     private:
-//         // ESP32Encoder objects
-//         ESP32Encoder _leftEncoder;
-//         ESP32Encoder _rightEncoder;
+    private:
+        // ESP32Encoder objects
+        ESP32Encoder _leftEncoder;
+        ESP32Encoder _rightEncoder;
         
-//         float _leftWheelRPM;
-//         float _rightWheelRPM;
+        float _leftWheelRPM;
+        float _rightWheelRPM;
 
-//         // Timing
-//         unsigned long _lastUpdateTime;
+        // Timing
+        unsigned long _lastUpdateTime;
 
-//         // Constants for calculations
-//         static constexpr float GEAR_RATIO = 297.924;
-//         static constexpr uint8_t ENCODER_CPR = 3;
-//         static constexpr unsigned long RPM_CALC_INTERVAL = 20; // ms
+        // Constants for calculations
+        static constexpr float GEAR_RATIO = 297.924;
+        static constexpr uint8_t ENCODER_CPR = 3;
+        static constexpr unsigned long RPM_CALC_INTERVAL = 20; // ms
 
-//         // Update speed calculations - call this periodically
-//         void update();
+        // Update speed calculations - call this periodically
+        void update();
 
-//         int64_t _leftEncoderStartCount;
-//         int64_t _rightEncoderStartCount;
+        int64_t _leftEncoderStartCount;
+        int64_t _rightEncoderStartCount;
         
-//         // Wheel physical properties
-//         static constexpr float WHEEL_DIAMETER_CM = 3.9; // Replace with actual wheel diameter
-//         static constexpr float WHEEL_CIRCUMFERENCE_CM = WHEEL_DIAMETER_CM * PI;
+        // Wheel physical properties
+        static constexpr float WHEEL_DIAMETER_CM = 3.9; // Replace with actual wheel diameter
+        static constexpr float WHEEL_CIRCUMFERENCE_CM = WHEEL_DIAMETER_CM * PI;
 
-//         SemaphoreHandle_t encoderMutex = nullptr;
-// };
+        SemaphoreHandle_t encoderMutex = nullptr;
+};
 
-// extern EncoderManager encoderManager;
+extern EncoderManager encoderManager;

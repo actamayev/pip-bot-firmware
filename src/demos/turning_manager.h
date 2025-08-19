@@ -21,7 +21,7 @@ class TurningManager : public Singleton<TurningManager> {
         // Main interface
         bool startTurn(float degrees);
         void update();
-        void completeNavigation(bool shouldBrake);
+        void completeNavigation(bool absoluteBrake);
         const bool isActive() { return currentState == TurningState::TURNING; };
 
     private:
@@ -81,7 +81,7 @@ class TurningManager : public Singleton<TurningManager> {
         uint8_t safetyDefaultMaxPWM = 45;
         
         // Constants
-        static constexpr float DEAD_ZONE = 10.0f; // TODO: Change to 1.0f
+        static constexpr float DEAD_ZONE = 1.0f;
         static constexpr unsigned long COMPLETION_CONFIRMATION_TIME = 100; // ms
         static constexpr unsigned long SAFETY_PAUSE_DURATION = 20; // ms
         static constexpr uint8_t MAX_DIRECTION_CHANGES = 3;

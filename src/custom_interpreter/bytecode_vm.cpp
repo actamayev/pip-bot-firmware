@@ -582,7 +582,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             uint8_t motorSpeed = map(throttlePercent, 0, 100, 0, MAX_MOTOR_SPEED);
             
             // Reset distance tracking in encoder manager
-            // encoderManager.resetDistanceTracking();
+            encoderManager.resetDistanceTracking();
             
             // Set up distance movement
             distanceMovementInProgress = true;
@@ -613,7 +613,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             uint8_t motorSpeed = map(throttlePercent, 0, 100, 0, MAX_MOTOR_SPEED);
             
             // Reset distance tracking in encoder manager
-            // encoderManager.resetDistanceTracking();
+            encoderManager.resetDistanceTracking();
             
             // Set up distance movement
             distanceMovementInProgress = true;
@@ -652,10 +652,10 @@ void BytecodeVM::updateTimedMotorMovement() {
 
 void BytecodeVM::updateDistanceMovement() {
     // Get distance traveled from the encoder manager
-    // float currentDistance = encoderManager.getDistanceTraveledCm();
+    float currentDistance = encoderManager.getDistanceTraveledCm();
     
     // // Check if we've reached or exceeded the target distance
-    // if (currentDistance < targetDistanceCm) return;
+    if (currentDistance < targetDistanceCm) return;
     // Distance reached - brake motors
     motorDriver.brake_both_motors();
     
@@ -671,7 +671,7 @@ void BytecodeVM::stopProgram() {
 
     Speaker::getInstance().setMuted(true);
     rgbLed.turn_all_leds_off();
-    // motorDriver.brake_if_moving();
+    motorDriver.brake_if_moving();
     return;
 }
 
