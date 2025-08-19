@@ -14,9 +14,9 @@ class SensorInitializer : public Singleton<SensorInitializer> {
 
     public:
         enum SensorType {
-            MULTIZONE_TOF,
+            // MULTIZONE_TOF,
             IMU,
-            SIDE_TOFS,        // Added side TOF support
+            // SIDE_TOFS,        // Added side TOF support
             // IR_SENSORS,
             // COLOR_SENSOR,
             // Add more sensors as needed
