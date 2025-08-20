@@ -1,4 +1,5 @@
 #include "task_manager.h"
+#include "sensors/sensor_initializer.h"
 
 TaskHandle_t TaskManager::buttonTaskHandle = NULL;
 TaskHandle_t TaskManager::serialInputTaskHandle = NULL;
@@ -74,12 +75,11 @@ void TaskManager::displayTask(void* parameter) {
 void TaskManager::imuSensorTask(void* parameter) {
     SerialQueueManager::getInstance().queueMessage("IMU sensor task started");
     
-    // Initialize IMU directly
-    while (!ImuSensor::getInstance().initialize()) {
-        SerialQueueManager::getInstance().queueMessage("IMU initialization failed, retrying in 100ms");
-        vTaskDelay(pdMS_TO_TICKS(100));
+    // Wait for centralized initialization to complete
+    while (!SensorInitializer::getInstance().isSensorInitialized(SensorInitializer::IMU)) {
+        vTaskDelay(pdMS_TO_TICKS(50));  // Check every 50ms
     }
-    SerialQueueManager::getInstance().queueMessage("IMU initialized successfully");
+    SerialQueueManager::getInstance().queueMessage("IMU centralized initialization complete, starting polling");
     
     // Main polling loop
     for(;;) {
@@ -93,12 +93,11 @@ void TaskManager::imuSensorTask(void* parameter) {
 void TaskManager::encoderSensorTask(void* parameter) {
     SerialQueueManager::getInstance().queueMessage("Encoder sensor task started");
     
-    // Initialize encoders directly
-    while (!encoderManager.initialize()) {
-        SerialQueueManager::getInstance().queueMessage("Encoder initialization failed, retrying in 100ms");
-        vTaskDelay(pdMS_TO_TICKS(100));
+    // Wait for centralized initialization to complete
+    while (!SensorInitializer::getInstance().isSensorInitialized(SensorInitializer::ENCODER)) {
+        vTaskDelay(pdMS_TO_TICKS(50));  // Check every 50ms
     }
-    SerialQueueManager::getInstance().queueMessage("Encoders initialized successfully");
+    SerialQueueManager::getInstance().queueMessage("Encoder centralized initialization complete, starting polling");
     
     // Main polling loop
     for(;;) {
@@ -112,12 +111,11 @@ void TaskManager::encoderSensorTask(void* parameter) {
 void TaskManager::multizoneTofSensorTask(void* parameter) {
     SerialQueueManager::getInstance().queueMessage("Multizone TOF sensor task started");
     
-    // Initialize Multizone TOF directly
-    while (!MultizoneTofSensor::getInstance().initialize()) {
-        SerialQueueManager::getInstance().queueMessage("Multizone TOF initialization failed, retrying in 100ms");
-        vTaskDelay(pdMS_TO_TICKS(100));
+    // Wait for centralized initialization to complete
+    while (!SensorInitializer::getInstance().isSensorInitialized(SensorInitializer::MULTIZONE_TOF)) {
+        vTaskDelay(pdMS_TO_TICKS(50));  // Check every 50ms
     }
-    SerialQueueManager::getInstance().queueMessage("Multizone TOF initialized successfully");
+    SerialQueueManager::getInstance().queueMessage("Multizone TOF centralized initialization complete, starting polling");
     
     // Main polling loop
     for(;;) {

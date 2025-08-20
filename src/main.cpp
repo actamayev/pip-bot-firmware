@@ -3,6 +3,7 @@
 #include "utils/hold_to_wake.h"
 #include "actuators/buttons.h"
 #include "sensors/battery_monitor.h"
+#include "sensors/sensor_initializer.h"
 #include "actuators/display_screen.h"
 
 void setup() {
@@ -13,7 +14,6 @@ void setup() {
     digitalWrite(PWR_EN, HIGH);
 
     // Init the Battery monitor I2C line first
-    Wire1.setPins(I2C_SDA_2, I2C_SCL_2);
     Wire1.begin(I2C_SDA_2, I2C_SCL_2, I2C_CLOCK_SPEED);
 
     TaskManager::createSerialQueueTask();
@@ -22,7 +22,6 @@ void setup() {
     BatteryMonitor::getInstance().initialize();
 
     // Initialize 
-    Wire.setPins(I2C_SDA_1, I2C_SCL_1);
     Wire.begin(I2C_SDA_1, I2C_SCL_1, I2C_CLOCK_SPEED);
 
     // Check hold-to-wake condition first (handles display init for deep sleep wake)
@@ -73,14 +72,16 @@ void setup() {
     rgbLed.turn_all_leds_off(); // Still turn off LEDs early for safety
     TaskManager::createLedTask();
     
-    // 9. Individual Sensor Tasks (each handles its own initialization)
+    // 9. Initialize all sensors centrally to avoid I2C conflicts
+    SensorInitializer::getInstance(); // This triggers centralized initialization
+    
+    // 10. Individual Sensor Tasks (wait for centralized init, then poll independently)
     TaskManager::createImuSensorTask();
     TaskManager::createEncoderSensorTask();
-    // Uncomment as needed:
-    // TaskManager::createMultizoneTofSensorTask();
-    // TaskManager::createSideTofSensorTask();
-    // TaskManager::createColorSensorTask();
-    // TaskManager::createIrSensorTask();
+    TaskManager::createMultizoneTofSensorTask();
+    TaskManager::createSideTofSensorTask();
+    TaskManager::createColorSensorTask();
+    TaskManager::createIrSensorTask();
     
     // 12. DemoManager (high priority for demos)
     TaskManager::createDemoManagerTask();

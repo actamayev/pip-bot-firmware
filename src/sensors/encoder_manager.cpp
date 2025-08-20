@@ -62,9 +62,6 @@ void EncoderManager::update() {
     _lastUpdateTime = currentTime;
 }
 
-
-
-
 // Standard sensor interface methods
 bool EncoderManager::shouldBePolling() const {
     if (!isInitialized) return false;

@@ -6,12 +6,19 @@ SensorInitializer::SensorInitializer() {
     for (int i = 0; i < SENSOR_COUNT; i++) {
         sensorInitialized[i] = false;
     }
-    // initializeSideTofs();      // Added side TOF initialization
+    
+    SerialQueueManager::getInstance().queueMessage("Starting centralized sensor initialization...");
+    
+    // Initialize sensors sequentially to avoid I2C conflicts
+    // Start with the heaviest I2C user first (multizone requires ~84KB data transfer)
+    initializeMultizoneTof();
+    initializeSideTofs();      
     initializeIMU();
-    // initializeMultizoneTof();
-    // initializeColorSensor();  // Added color sensor initialization
-    // initializeIRSensors();  // Uncomment this line
-    initializeEncoder();       // Added encoder initialization
+    initializeColorSensor();  
+    initializeIRSensors();  
+    initializeEncoder();       
+    
+    SerialQueueManager::getInstance().queueMessage("Centralized sensor initialization complete");
 }
 
 bool SensorInitializer::isSensorInitialized(SensorType sensor) const {
@@ -31,16 +38,16 @@ bool SensorInitializer::areAllSensorsInitialized() const {
     return true;
 }
 
-// void SensorInitializer::initializeMultizoneTof() {
-//     SerialQueueManager::getInstance().queueMessage("Initializing Multizone sensor...");
+void SensorInitializer::initializeMultizoneTof() {
+    SerialQueueManager::getInstance().queueMessage("Initializing Multizone sensor...");
 
-//     if (!MultizoneTofSensor::getInstance().initialize()) {
-//         SerialQueueManager::getInstance().queueMessage("Multizone sensor initialization failed");
-//         return;
-//     }
-//     SerialQueueManager::getInstance().queueMessage("Multizone sensor setup complete");
-//     sensorInitialized[MULTIZONE_TOF] = true;
-// }
+    if (!MultizoneTofSensor::getInstance().initialize()) {
+        SerialQueueManager::getInstance().queueMessage("Multizone sensor initialization failed");
+        return;
+    }
+    SerialQueueManager::getInstance().queueMessage("Multizone sensor setup complete");
+    sensorInitialized[MULTIZONE_TOF] = true;
+}
 
 void SensorInitializer::initializeIMU() {
     SerialQueueManager::getInstance().queueMessage("Initializing IMU...");
@@ -62,60 +69,60 @@ void SensorInitializer::initializeEncoder() {
     sensorInitialized[ENCODER] = true;
 }
 
-// void SensorInitializer::initializeColorSensor() {
-//     SerialQueueManager::getInstance().queueMessage("Initializing Color Sensor...");
+void SensorInitializer::initializeColorSensor() {
+    SerialQueueManager::getInstance().queueMessage("Initializing Color Sensor...");
 
-//     if (!ColorSensor::getInstance().initialize()) {
-//         SerialQueueManager::getInstance().queueMessage("Color Sensor initialization failed");
-//         return;
-//     }
-//     SerialQueueManager::getInstance().queueMessage("Color Sensor setup complete");
-//     // sensorInitialized[COLOR_SENSOR] = true;
-// }
+    if (!ColorSensor::getInstance().initialize()) {
+        SerialQueueManager::getInstance().queueMessage("Color Sensor initialization failed");
+        return;
+    }
+    SerialQueueManager::getInstance().queueMessage("Color Sensor setup complete");
+    sensorInitialized[COLOR_SENSOR] = true;
+}
 
-// void SensorInitializer::initializeSideTofs() {
-//     SerialQueueManager::getInstance().queueMessage("Initializing Side TOF sensors...");
+void SensorInitializer::initializeSideTofs() {
+    SerialQueueManager::getInstance().queueMessage("Initializing Side TOF sensors...");
 
-//     if (!SideTofManager::getInstance().initialize()) {
-//         SerialQueueManager::getInstance().queueMessage("Side TOF sensors initialization failed");
-//         return;
-//     }
-//     SerialQueueManager::getInstance().queueMessage("Side TOF sensors setup complete");
-//     sensorInitialized[SIDE_TOFS] = true;
-// }
+    if (!SideTofManager::getInstance().initialize()) {
+        SerialQueueManager::getInstance().queueMessage("Side TOF sensors initialization failed");
+        return;
+    }
+    SerialQueueManager::getInstance().queueMessage("Side TOF sensors setup complete");
+    sensorInitialized[SIDE_TOFS] = true;
+}
 
-// void SensorInitializer::initializeIRSensors() {
-//     SerialQueueManager::getInstance().queueMessage("Initializing IR sensors...");
-//     IrSensor::getInstance();  // Simple initialization - just creates instance
-//     SerialQueueManager::getInstance().queueMessage("IR sensors setup complete");
-//     sensorInitialized[IR_SENSORS] = true;  // Uncomment this line
-// }
+void SensorInitializer::initializeIRSensors() {
+    SerialQueueManager::getInstance().queueMessage("Initializing IR sensors...");
+    IrSensor::getInstance();  // Simple initialization - just creates instance
+    SerialQueueManager::getInstance().queueMessage("IR sensors setup complete");
+    sensorInitialized[IR_SENSORS] = true;
+}
 
-// bool SensorInitializer::tryInitializeMultizoneTof() {
-//     MultizoneTofSensor& mZoneSensor = MultizoneTofSensor::getInstance();
-//     if (!mZoneSensor.needsInitialization()) {
-//         sensorInitialized[MULTIZONE_TOF] = true;
-//         return true; // Already initialized
-//     }
+bool SensorInitializer::tryInitializeMultizoneTof() {
+    MultizoneTofSensor& mZoneSensor = MultizoneTofSensor::getInstance();
+    if (!mZoneSensor.needsInitialization()) {
+        sensorInitialized[MULTIZONE_TOF] = true;
+        return true; // Already initialized
+    }
     
-//     if (!mZoneSensor.canRetryInitialization()) {
-//         // Check if we've reached max retries
-//         if (mZoneSensor.getInitRetryCount() >= mZoneSensor.getMaxInitRetries()) {
-//             SerialQueueManager::getInstance().queueMessage("TOF sensor initialization failed after maximum retries. Sensor disabled.");
-//         }
-//         return false; // Can't retry yet
-//     }
+    if (!mZoneSensor.canRetryInitialization()) {
+        // Check if we've reached max retries
+        if (mZoneSensor.getInitRetryCount() >= mZoneSensor.getMaxInitRetries()) {
+            SerialQueueManager::getInstance().queueMessage("TOF sensor initialization failed after maximum retries. Sensor disabled.");
+        }
+        return false; // Can't retry yet
+    }
     
-//     SerialQueueManager::getInstance().queueMessage("Retrying TOF sensor initialization...");
-//     bool success = mZoneSensor.initialize();
+    SerialQueueManager::getInstance().queueMessage("Retrying TOF sensor initialization...");
+    bool success = mZoneSensor.initialize();
     
-//     if (success) {
-//         sensorInitialized[MULTIZONE_TOF] = true;
-//         SerialQueueManager::getInstance().queueMessage("TOF sensor retry initialization successful!");
-//     }
+    if (success) {
+        sensorInitialized[MULTIZONE_TOF] = true;
+        SerialQueueManager::getInstance().queueMessage("TOF sensor retry initialization successful!");
+    }
     
-//     return success;
-// }
+    return success;
+}
 
 bool SensorInitializer::tryInitializeIMU() {
     ImuSensor& imu = ImuSensor::getInstance();
@@ -165,56 +172,56 @@ bool SensorInitializer::tryInitializeEncoder() {
     return success;
 }
 
-// bool SensorInitializer::tryInitializeSideTofs() {
-//     SideTofManager& sideTofManager = SideTofManager::getInstance();
+bool SensorInitializer::tryInitializeSideTofs() {
+    SideTofManager& sideTofManager = SideTofManager::getInstance();
 
-//     if (!sideTofManager.needsInitialization()) {
-//         sensorInitialized[SIDE_TOFS] = true;
-//         return true; // Already initialized
-//     }
+    if (!sideTofManager.needsInitialization()) {
+        sensorInitialized[SIDE_TOFS] = true;
+        return true; // Already initialized
+    }
     
-//     if (!sideTofManager.canRetryInitialization()) {
-//         return false; // Can't retry yet
-//     }
+    if (!sideTofManager.canRetryInitialization()) {
+        return false; // Can't retry yet
+    }
     
-//     SerialQueueManager::getInstance().queueMessage("Retrying Side TOF sensors initialization...");
-//     bool success = sideTofManager.initialize();
+    SerialQueueManager::getInstance().queueMessage("Retrying Side TOF sensors initialization...");
+    bool success = sideTofManager.initialize();
     
-//     if (success) {
-//         SerialQueueManager::getInstance().queueMessage("Side TOF sensors retry initialization successful!");
-//         sensorInitialized[SIDE_TOFS] = true;
-//     }
+    if (success) {
+        SerialQueueManager::getInstance().queueMessage("Side TOF sensors retry initialization successful!");
+        sensorInitialized[SIDE_TOFS] = true;
+    }
     
-//     return success;
-// }
+    return success;
+}
 
-// bool SensorInitializer::tryInitializeColorSensor() {
-//     ColorSensor& colorSensor = ColorSensor::getInstance();
+bool SensorInitializer::tryInitializeColorSensor() {
+    ColorSensor& colorSensor = ColorSensor::getInstance();
 
-//     if (!colorSensor.needsInitialization()) {
-//         sensorInitialized[COLOR_SENSOR] = true;
-//         return true; // Already initialized
-//     }
+    if (!colorSensor.needsInitialization()) {
+        sensorInitialized[COLOR_SENSOR] = true;
+        return true; // Already initialized
+    }
     
-//     if (!colorSensor.canRetryInitialization()) {
-//         return false; // Can't retry yet
-//     }
+    if (!colorSensor.canRetryInitialization()) {
+        return false; // Can't retry yet
+    }
     
-//     SerialQueueManager::getInstance().queueMessage("Retrying Color sensor initialization...");
-//     bool success = colorSensor.initialize();
+    SerialQueueManager::getInstance().queueMessage("Retrying Color sensor initialization...");
+    bool success = colorSensor.initialize();
     
-//     if (success) {
-//         SerialQueueManager::getInstance().queueMessage("Color sensor retry initialization successful!");
-//         sensorInitialized[COLOR_SENSOR] = true;
-//     }
+    if (success) {
+        SerialQueueManager::getInstance().queueMessage("Color sensor retry initialization successful!");
+        sensorInitialized[COLOR_SENSOR] = true;
+    }
     
-//     return success;
-// }
+    return success;
+}
 
-// bool SensorInitializer::tryInitializeIrSensors() {
-//     // IR sensors don't need complex retry logic - just check if they exist
-//     if (!isSensorInitialized(IR_SENSORS)) {
-//         initializeIRSensors();
-//     }
-//     return isSensorInitialized(IR_SENSORS);
-// }
+bool SensorInitializer::tryInitializeIrSensors() {
+    // IR sensors don't need complex retry logic - just check if they exist
+    if (!isSensorInitialized(IR_SENSORS)) {
+        initializeIRSensors();
+    }
+    return isSensorInitialized(IR_SENSORS);
+}

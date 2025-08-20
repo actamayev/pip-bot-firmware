@@ -9,14 +9,11 @@
 
 // Forward declarations
 class MotorDriver;
-// #include "wifi_selection/wifi_selection_manager.h"
-// #include "wifi_selection/haptic_feedback_manager.h"
 
 class EncoderManager {
     friend class MessageProcessor;  // Allows MessageProcessor to access private members
     friend class MotorDriver;       // Allows MotorDriver to access private members
     friend class TaskManager;       // Allows TaskManager to access private methods
-    // friend class WifiSelectionManager;  // Allows WifiSelectionManager to access private members
 
     public:
         // Constructor
@@ -26,7 +23,6 @@ class EncoderManager {
         bool initialize();
         bool needsInitialization() const { return !isInitialized; }
         bool canRetryInitialization() const { return true; }  // Encoders can always retry
-
 
     private:
         // ESP32Encoder objects
