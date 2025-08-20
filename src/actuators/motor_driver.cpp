@@ -152,14 +152,6 @@ void MotorDriver::update() {
 
 void MotorDriver::force_reset_motors() {
     brake_if_moving();
-    // if (_leftMotorBraking) {
-    //     release_left_brake();
-    // }
-    // if (_rightMotorBraking) {
-    //     release_right_brake();
-    // }
-    // left_motor_stop();
-    // right_motor_stop();
 
     // Reset speed targets
     _targetLeftSpeed = 0;
@@ -208,6 +200,7 @@ void MotorDriver::executeCommand(int16_t leftSpeed, int16_t rightSpeed) {
     // }
 
     isExecutingCommand = true;
+    hasNextCommand = false;
 }
 
 void MotorDriver::processPendingCommands() {
@@ -218,7 +211,6 @@ void MotorDriver::processPendingCommands() {
         // If we have a next command, execute it
         if (hasNextCommand) {
             executeCommand(nextLeftSpeed, nextRightSpeed);
-            hasNextCommand = false;
         }
         return;
     }
@@ -230,7 +222,6 @@ void MotorDriver::processPendingCommands() {
         
         if (hasNextCommand) {
             executeCommand(nextLeftSpeed, nextRightSpeed);
-            hasNextCommand = false;
         }
         return;
     }
@@ -259,7 +250,6 @@ void MotorDriver::processPendingCommands() {
     }
     if (hasNextCommand) {
         executeCommand(nextLeftSpeed, nextRightSpeed);
-        hasNextCommand = false;
     }
 }
 
