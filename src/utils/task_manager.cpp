@@ -22,7 +22,7 @@ void TaskManager::buttonTask(void* parameter) {
 
     for(;;) {
         Buttons::getInstance().update();
-        vTaskDelay(pdMS_TO_TICKS(1));
+        vTaskDelay(pdMS_TO_TICKS(10));
     }
 }
 
@@ -271,7 +271,7 @@ void TaskManager::displayInitTask(void* parameter) {
 
 bool TaskManager::createButtonTask() {
     return createTask("Buttons", buttonTask, BUTTON_STACK_SIZE, 
-                     Priority::CRITICAL, Core::CORE_0, &buttonTaskHandle);
+                     Priority::SYSTEM_CONTROL, Core::CORE_0, &buttonTaskHandle);
 }
 
 bool TaskManager::createSerialInputTask() {

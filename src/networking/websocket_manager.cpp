@@ -152,13 +152,13 @@ void WebSocketManager::pollWebSocket() {
         
         SerialQueueManager::getInstance().queueMessage("Attempting to connect to WebSocket...");
         
-        if (wsClient.connect(getWsServerUrl())) {
+        if (!wsClient.connect(getWsServerUrl())) {
+            SerialQueueManager::getInstance().queueMessage("WebSocket connection failed. Will try again in 3 seconds");
+        } else {
             SerialQueueManager::getInstance().queueMessage("WebSocket connected successfully");
             wsConnected = true;
             sendInitialData();
             sendBatteryMonitorData();
-        } else {
-            SerialQueueManager::getInstance().queueMessage("WebSocket connection failed. Will try again in 3 seconds");
         }
         return;
     }
