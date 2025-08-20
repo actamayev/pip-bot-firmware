@@ -79,6 +79,8 @@ void MotorDriver::brake_if_moving() {
     }
 }
 
+// Use this to set speeds directly (without needing ramp up, or waiting for next command).
+// The next command is used to make sure the current command is fully complete (ie for micro-turns in the garage)
 void MotorDriver::set_motor_speeds(int16_t leftTarget, int16_t rightTarget, bool shouldRampUp) {
     // Store target speeds but don't change actual speeds immediately
     _targetLeftSpeed = constrain(leftTarget, -MAX_MOTOR_SPEED, MAX_MOTOR_SPEED);
@@ -189,7 +191,7 @@ void MotorDriver::executeCommand(int16_t leftSpeed, int16_t rightSpeed) {
     // Start the command timer
     commandStartTime = millis();
 
-    set_motor_speeds(leftSpeed, rightSpeed, true);
+    set_motor_speeds(leftSpeed, rightSpeed, true); // ramp is default true for commands that are executed in series (ie driving in the garage)
 
     // Enable straight driving correction for forward movement only. 
     // 4/12/25: Removing straight line drive for backward movement. need to bring back eventually
