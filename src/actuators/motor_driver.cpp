@@ -61,12 +61,11 @@ void MotorDriver::brake_both_motors() {
     brake_right_motor();
 }
 
+// TODO 8/19/25: Need to figure out how to take the motors out of braking after 1 second of being in brake without spinning them backwards when releasing from brake
 void MotorDriver::brake_if_moving() {
     // Get current wheel speeds from encoder manager
     WheelRPMs rpms = encoderManager.getBothWheelRPMs();
 
-    SerialQueueManager::getInstance().queueMessage("Left Wheel RPM" + String(rpms.leftWheelRPM));
-    SerialQueueManager::getInstance().queueMessage("Left Wheel RPM" + String(rpms.leftWheelRPM));
     // Check if left motor is moving
     if (abs(rpms.leftWheelRPM) > MOTOR_STOPPED_THRESHOLD) {
         // Left motor is moving, apply brake
