@@ -6,7 +6,6 @@
 #include "utils/sensor_loggers.h"
 #include "sensors/battery_monitor.h"
 #include "networking/serial_manager.h"
-#include "sensors/sensor_initializer.h"
 #include "actuators/led/led_animations.h"
 #include "custom_interpreter/bytecode_vm.h"
 #include "networking/serial_queue_manager.h"
@@ -20,8 +19,6 @@ class TaskManager {
         static bool createLedTask();
         static bool createBytecodeVMTask();
         static bool createStackMonitorTask();
-        static bool createSensorInitTask();
-        static bool createSensorPollingTask();  // Called by SensorInit when ready
         static bool createDisplayTask();
         static bool createDisplayInitTask();    // NEW: Separate display initialization
         static bool isDisplayInitialized();    // NEW: Check if display init is done or in progress
@@ -32,6 +29,14 @@ class TaskManager {
         static bool createSpeakerTask();
         static bool createMotorTask();
         static bool createDemoManagerTask();
+        
+        // Individual sensor task creation methods
+        static bool createImuSensorTask();
+        static bool createEncoderSensorTask();
+        static bool createMultizoneTofSensorTask();
+        static bool createSideTofSensorTask();
+        static bool createColorSensorTask();
+        static bool createIrSensorTask();
 
     private:
         static bool logTaskCreation(const char* name, bool success);
@@ -40,8 +45,15 @@ class TaskManager {
         static void ledTask(void* parameter);
         static void bytecodeVMTask(void* parameter);
         static void stackMonitorTask(void* parameter);
-        static void sensorInitTask(void* parameter);
-        static void sensorPollingTask(void* parameter);
+        
+        // Individual sensor polling tasks
+        static void imuSensorTask(void* parameter);
+        static void encoderSensorTask(void* parameter);
+        static void multizoneTofSensorTask(void* parameter);
+        static void sideTofSensorTask(void* parameter);
+        static void colorSensorTask(void* parameter);
+        static void irSensorTask(void* parameter);
+        
         static void displayTask(void* parameter);
         static void displayInitTask(void* parameter);        // NEW: Display init task
         static void networkManagementTask(void* parameter);
@@ -57,8 +69,16 @@ class TaskManager {
         static constexpr uint32_t LED_STACK_SIZE = 6144;
         static constexpr uint32_t BYTECODE_VM_STACK_SIZE = 16384;
         static constexpr uint32_t STACK_MONITOR_STACK_SIZE = 4096;  // Increased - printStackUsage needs more space
-        static constexpr uint32_t SENSOR_INIT_STACK_SIZE = 6144;    // For I2C init complexity
-        static constexpr uint32_t SENSOR_POLLING_STACK_SIZE = 10240; // Just polling
+        static constexpr uint32_t SENSOR_POLLING_STACK_SIZE = 10240; // Just polling (deprecated)
+        
+        // Individual sensor stack sizes
+        static constexpr uint32_t IMU_SENSOR_STACK_SIZE = 4096;      // Fast, lightweight
+        static constexpr uint32_t ENCODER_SENSOR_STACK_SIZE = 4096;  // Fast, lightweight  
+        static constexpr uint32_t MULTIZONE_TOF_STACK_SIZE = 8192;   // Heavy processing, 64 zones
+        static constexpr uint32_t SIDE_TOF_STACK_SIZE = 6144;        // Moderate processing
+        static constexpr uint32_t COLOR_SENSOR_STACK_SIZE = 4096;    // Light processing
+        static constexpr uint32_t IR_SENSOR_STACK_SIZE = 6144;       // Moderate processing (5 sensors)
+        
         static constexpr uint32_t DISPLAY_STACK_SIZE = 4096;  // I2C + display buffer operations
         static constexpr uint32_t DISPLAY_INIT_STACK_SIZE = 8192;     // Reduced from 30KB - should be sufficient with optimizations
         static constexpr uint32_t NETWORK_MANAGEMENT_STACK_SIZE = 8192;    // Heavy WiFi operations
@@ -100,8 +120,16 @@ class TaskManager {
         static TaskHandle_t ledTaskHandle;
         static TaskHandle_t bytecodeVMTaskHandle;
         static TaskHandle_t stackMonitorTaskHandle;
-        static TaskHandle_t sensorInitTaskHandle;
         static TaskHandle_t sensorPollingTaskHandle;
+        
+        // Individual sensor task handles
+        static TaskHandle_t imuSensorTaskHandle;
+        static TaskHandle_t encoderSensorTaskHandle;
+        static TaskHandle_t multizoneTofSensorTaskHandle;
+        static TaskHandle_t sideTofSensorTaskHandle;
+        static TaskHandle_t colorSensorTaskHandle;
+        static TaskHandle_t irSensorTaskHandle;
+        
         static TaskHandle_t displayTaskHandle;
         static TaskHandle_t displayInitTaskHandle;           // NEW: Display init task handle
         static TaskHandle_t networkManagementTaskHandle;

@@ -65,20 +65,26 @@ void setup() {
     
     // 11. Motor (high priority, fast updates)
     TaskManager::createMotorTask();
-    
-    // 12. DemoManager (high priority for demos)
-    TaskManager::createDemoManagerTask();
 
     // 7. Network (Management task creates Communication task)
     TaskManager::createNetworkManagementTask();
     
-    // 8. Sensors (Init task creates Polling task)
-    TaskManager::createSensorInitTask();
-    
-    // 9. LEDs (moved later in sequence)
+    // 8. LEDs (moved later in sequence)
     rgbLed.turn_all_leds_off(); // Still turn off LEDs early for safety
     TaskManager::createLedTask();
     
+    // 9. Individual Sensor Tasks (each handles its own initialization)
+    TaskManager::createImuSensorTask();
+    TaskManager::createEncoderSensorTask();
+    // Uncomment as needed:
+    // TaskManager::createMultizoneTofSensorTask();
+    // TaskManager::createSideTofSensorTask();
+    // TaskManager::createColorSensorTask();
+    // TaskManager::createIrSensorTask();
+    
+    // 12. DemoManager (high priority for demos)
+    TaskManager::createDemoManagerTask();
+
     // 10. BytecodeVM
     TaskManager::createBytecodeVMTask();
     

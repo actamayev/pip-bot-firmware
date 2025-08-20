@@ -5,8 +5,15 @@ TaskHandle_t TaskManager::serialInputTaskHandle = NULL;
 TaskHandle_t TaskManager::ledTaskHandle = NULL;
 TaskHandle_t TaskManager::bytecodeVMTaskHandle = NULL;
 TaskHandle_t TaskManager::stackMonitorTaskHandle = NULL;
-TaskHandle_t TaskManager::sensorInitTaskHandle = NULL;
 TaskHandle_t TaskManager::sensorPollingTaskHandle = NULL;
+
+// Individual sensor task handles
+TaskHandle_t TaskManager::imuSensorTaskHandle = NULL;
+TaskHandle_t TaskManager::encoderSensorTaskHandle = NULL;
+TaskHandle_t TaskManager::multizoneTofSensorTaskHandle = NULL;
+TaskHandle_t TaskManager::sideTofSensorTaskHandle = NULL;
+TaskHandle_t TaskManager::colorSensorTaskHandle = NULL;
+TaskHandle_t TaskManager::irSensorTaskHandle = NULL;
 TaskHandle_t TaskManager::displayTaskHandle = NULL;
 TaskHandle_t TaskManager::networkManagementTaskHandle = NULL;
 TaskHandle_t TaskManager::networkCommunicationTaskHandle = NULL;
@@ -63,77 +70,122 @@ void TaskManager::displayTask(void* parameter) {
     }
 }
 
-void TaskManager::sensorInitTask(void* parameter) {    
-    SerialQueueManager::getInstance().queueMessage("Starting sensor initialization on Core 0...");
-
-    // Get the sensor initializer
-    SensorInitializer& initializer = SensorInitializer::getInstance();
-
-    // Keep trying until ALL sensors are initialized
-    while (!initializer.areAllSensorsInitialized()) {
-        // if (!initializer.isSensorInitialized(SensorInitializer::SIDE_TOFS)) {
-        //     SerialQueueManager::getInstance().queueMessage("Trying to init Side TOFs...");
-        //     initializer.tryInitializeSideTofs();
-        // }
-        if (!initializer.isSensorInitialized(SensorInitializer::IMU)) {
-            SerialQueueManager::getInstance().queueMessage("Trying to init IMU...");
-            initializer.tryInitializeIMU();
-        }
-        // if (!initializer.isSensorInitialized(SensorInitializer::MULTIZONE_TOF)) {
-        //     SerialQueueManager::getInstance().queueMessage("Trying to init Multizone TOF...");
-        //     initializer.tryInitializeMultizoneTof();
-        // }
-        // if (!initializer.isSensorInitialized(SensorInitializer::COLOR_SENSOR)) {
-        //         SerialQueueManager::getInstance().queueMessage("Trying to init IR sensors...");
-        //     initializer.tryInitializeColorSensor();
-        // }
-        // if (!initializer.isSensorInitialized(SensorInitializer::IR_SENSORS)) {
-        //     SerialQueueManager::getInstance().queueMessage("Trying to init IR sensors...");
-        //     initializer.tryInitializeIrSensors();
-        // }
-
+// Individual Sensor Polling Tasks
+void TaskManager::imuSensorTask(void* parameter) {
+    SerialQueueManager::getInstance().queueMessage("IMU sensor task started");
+    
+    // Initialize IMU directly
+    while (!ImuSensor::getInstance().initialize()) {
+        SerialQueueManager::getInstance().queueMessage("IMU initialization failed, retrying in 100ms");
         vTaskDelay(pdMS_TO_TICKS(100));
     }
+    SerialQueueManager::getInstance().queueMessage("IMU initialized successfully");
     
-    SerialQueueManager::getInstance().queueMessage("All sensors initialized successfully!");
-    
-    // Create the sensor polling task now that init is complete
-    bool pollingTaskCreated = createSensorPollingTask();
-
-    if (pollingTaskCreated) {
-        SerialQueueManager::getInstance().queueMessage("All tasks created - sensor polling ready");
-    } else {
-        SerialQueueManager::getInstance().queueMessage("ERROR: Failed to create required tasks!");
-    }
-    
-    // Self-delete - our job is done
-    SerialQueueManager::getInstance().queueMessage("SensorInit task self-deleting");
-    sensorInitTaskHandle = NULL;
-    vTaskDelete(NULL);
-}
-
-// SensorPolling Task - handles ongoing sensor data collection
-void TaskManager::sensorPollingTask(void* parameter) {
-    SerialQueueManager::getInstance().queueMessage("Sensor polling task started");
-
+    // Main polling loop
     for(;;) {
         if (ImuSensor::getInstance().shouldBePolling()) {
             ImuSensor::getInstance().updateSensorData();
         }
-        // The MZ sensor update slows down the loop extensively. Consider breaking the sensor polling into multiple tasks
-        // if (MultizoneTofSensor::getInstance().shouldBePolling()) {
-        //     MultizoneTofSensor::getInstance().updateSensorData();
+        vTaskDelay(pdMS_TO_TICKS(2));  // 500Hz - critical for motion control
+    }
+}
+
+void TaskManager::encoderSensorTask(void* parameter) {
+    SerialQueueManager::getInstance().queueMessage("Encoder sensor task started");
+    
+    // Initialize encoders directly
+    while (!encoderManager.initialize()) {
+        SerialQueueManager::getInstance().queueMessage("Encoder initialization failed, retrying in 100ms");
+        vTaskDelay(pdMS_TO_TICKS(100));
+    }
+    SerialQueueManager::getInstance().queueMessage("Encoders initialized successfully");
+    
+    // Main polling loop
+    for(;;) {
+        if (encoderManager.shouldBePolling()) {
+            encoderManager.updateSensorData();
+        }
+        vTaskDelay(pdMS_TO_TICKS(20));  // 50Hz - good balance for encoder data
+    }
+}
+
+void TaskManager::multizoneTofSensorTask(void* parameter) {
+    SerialQueueManager::getInstance().queueMessage("Multizone TOF sensor task started");
+    
+    // Initialize Multizone TOF directly
+    while (!MultizoneTofSensor::getInstance().initialize()) {
+        SerialQueueManager::getInstance().queueMessage("Multizone TOF initialization failed, retrying in 100ms");
+        vTaskDelay(pdMS_TO_TICKS(100));
+    }
+    SerialQueueManager::getInstance().queueMessage("Multizone TOF initialized successfully");
+    
+    // Main polling loop
+    for(;;) {
+        if (MultizoneTofSensor::getInstance().shouldBePolling()) {
+            MultizoneTofSensor::getInstance().updateSensorData();
+        }
+        vTaskDelay(pdMS_TO_TICKS(50));  // 20Hz - heavy processing, slower rate
+    }
+}
+
+void TaskManager::sideTofSensorTask(void* parameter) {
+    SerialQueueManager::getInstance().queueMessage("Side TOF sensor task started");
+    
+    // Initialize Side TOF sensors directly
+    while (!SideTofManager::getInstance().initialize()) {
+        SerialQueueManager::getInstance().queueMessage("Side TOF initialization failed, retrying in 100ms");
+        vTaskDelay(pdMS_TO_TICKS(100));
+    }
+    SerialQueueManager::getInstance().queueMessage("Side TOF sensors initialized successfully");
+    
+    // Main polling loop
+    for(;;) {
+        if (SideTofManager::getInstance().shouldBePolling()) {
+            SideTofManager::getInstance().updateSensorData();
+        }
+        vTaskDelay(pdMS_TO_TICKS(10));  // 100Hz - moderate processing
+    }
+}
+
+void TaskManager::colorSensorTask(void* parameter) {
+    SerialQueueManager::getInstance().queueMessage("Color sensor task started");
+    
+    // Handle initialization if needed
+    for(;;) {
+        // Comment out initialization for now - not implemented
+        // if (ColorSensor::getInstance().needsInitialization()) {
+        //     if (!SensorInitializer::getInstance().tryInitializeColorSensor()) {
+        //         vTaskDelay(pdMS_TO_TICKS(100));  // Retry after 100ms
+        //         continue;
+        //     }
         // }
-        // if (SideTofManager::getInstance().shouldBePolling()) {
-        //     SideTofManager::getInstance().updateSensorData();
-        // }
+        
+        // Comment out until properly implemented
         // if (ColorSensor::getInstance().shouldBePolling()) {
         //     ColorSensor::getInstance().updateSensorData();
         // }
+        vTaskDelay(pdMS_TO_TICKS(20));  // 50Hz - light processing
+    }
+}
+
+void TaskManager::irSensorTask(void* parameter) {
+    SerialQueueManager::getInstance().queueMessage("IR sensor task started");
+    
+    // Handle initialization if needed
+    for(;;) {
+        // Comment out initialization for now - not implemented
+        // if (IrSensor::getInstance().needsInitialization()) {
+        //     if (!SensorInitializer::getInstance().tryInitializeIrSensors()) {
+        //         vTaskDelay(pdMS_TO_TICKS(100));  // Retry after 100ms
+        //         continue;
+        //     }
+        // }
+        
+        // Comment out until properly implemented
         // if (IrSensor::getInstance().shouldBePolling()) {
         //     IrSensor::getInstance().updateSensorData();
         // }
-        vTaskDelay(pdMS_TO_TICKS(5));  // Same timing as before
+        vTaskDelay(pdMS_TO_TICKS(10));  // 100Hz - moderate processing (5 sensors)
     }
 }
 
@@ -299,15 +351,9 @@ bool TaskManager::createDisplayTask() {
                      Priority::BACKGROUND, Core::CORE_1, &displayTaskHandle);
 }
 
-bool TaskManager::createSensorInitTask() {
-    return createTask("SensorInit", sensorInitTask, SENSOR_INIT_STACK_SIZE,
-                     Priority::SYSTEM_CONTROL, Core::CORE_0, &sensorInitTaskHandle);
-}
+// DEPRECATED: Removed centralized sensor initialization
 
-bool TaskManager::createSensorPollingTask() {
-    return createTask("SensorPolling", sensorPollingTask, SENSOR_POLLING_STACK_SIZE,
-                     Priority::CRITICAL, Core::CORE_0, &sensorPollingTaskHandle);
-}
+// DEPRECATED: Old centralized sensor polling task - replaced by individual sensor tasks
 
 bool TaskManager::createNetworkManagementTask() {
     return createTask("NetworkMgmt", networkManagementTask, NETWORK_MANAGEMENT_STACK_SIZE,
@@ -350,6 +396,37 @@ bool TaskManager::createDemoManagerTask() {
 bool TaskManager::createDisplayInitTask() {
     return createTask("DisplayInit", displayInitTask, DISPLAY_INIT_STACK_SIZE,
                      Priority::SYSTEM_CONTROL, Core::CORE_0, &displayInitTaskHandle);
+}
+
+// Individual sensor task creation methods
+bool TaskManager::createImuSensorTask() {
+    return createTask("IMUSensor", imuSensorTask, IMU_SENSOR_STACK_SIZE,
+                     Priority::CRITICAL, Core::CORE_0, &imuSensorTaskHandle);
+}
+
+bool TaskManager::createEncoderSensorTask() {
+    return createTask("EncoderSensor", encoderSensorTask, ENCODER_SENSOR_STACK_SIZE,
+                     Priority::CRITICAL, Core::CORE_0, &encoderSensorTaskHandle);
+}
+
+bool TaskManager::createMultizoneTofSensorTask() {
+    return createTask("MultizoneTOF", multizoneTofSensorTask, MULTIZONE_TOF_STACK_SIZE,
+                     Priority::SYSTEM_CONTROL, Core::CORE_0, &multizoneTofSensorTaskHandle);
+}
+
+bool TaskManager::createSideTofSensorTask() {
+    return createTask("SideTOF", sideTofSensorTask, SIDE_TOF_STACK_SIZE,
+                     Priority::SYSTEM_CONTROL, Core::CORE_0, &sideTofSensorTaskHandle);
+}
+
+bool TaskManager::createColorSensorTask() {
+    return createTask("ColorSensor", colorSensorTask, COLOR_SENSOR_STACK_SIZE,
+                     Priority::BACKGROUND, Core::CORE_0, &colorSensorTaskHandle);
+}
+
+bool TaskManager::createIrSensorTask() {
+    return createTask("IRSensor", irSensorTask, IR_SENSOR_STACK_SIZE,
+                     Priority::BACKGROUND, Core::CORE_0, &irSensorTaskHandle);
 }
 
 bool TaskManager::isDisplayInitialized() {
@@ -417,12 +494,18 @@ void TaskManager::printStackUsage() {
         {ledTaskHandle, "LED", LED_STACK_SIZE},
         {bytecodeVMTaskHandle, "BytecodeVM", BYTECODE_VM_STACK_SIZE},
         {stackMonitorTaskHandle, "StackMonitor", STACK_MONITOR_STACK_SIZE},        // May be NULL after self-delete
-        {sensorInitTaskHandle, "SensorInit", SENSOR_INIT_STACK_SIZE},        // May be NULL after self-delete
-        {sensorPollingTaskHandle, "SensorPolling", SENSOR_POLLING_STACK_SIZE}, // May be NULL initially
-        {displayTaskHandle, "Display", DISPLAY_STACK_SIZE},  // Add this line
+        // Individual sensor tasks
+        {imuSensorTaskHandle, "IMUSensor", IMU_SENSOR_STACK_SIZE},
+        {encoderSensorTaskHandle, "EncoderSensor", ENCODER_SENSOR_STACK_SIZE},
+        {multizoneTofSensorTaskHandle, "MultizoneTOF", MULTIZONE_TOF_STACK_SIZE},
+        {sideTofSensorTaskHandle, "SideTOF", SIDE_TOF_STACK_SIZE},
+        {colorSensorTaskHandle, "ColorSensor", COLOR_SENSOR_STACK_SIZE},
+        {irSensorTaskHandle, "IRSensor", IR_SENSOR_STACK_SIZE},
+        // Other tasks
+        {displayTaskHandle, "Display", DISPLAY_STACK_SIZE},
         {networkManagementTaskHandle, "NetworkMgmt", NETWORK_MANAGEMENT_STACK_SIZE},
         {networkCommunicationTaskHandle, "NetworkComm", NETWORK_COMMUNICATION_STACK_SIZE},
-        {serialQueueTaskHandle, "SerialQueue", SERIAL_QUEUE_STACK_SIZE}, // ADD THIS LINE
+        {serialQueueTaskHandle, "SerialQueue", SERIAL_QUEUE_STACK_SIZE},
         {batteryMonitorTaskHandle, "BatteryMonitor", BATTERY_MONITOR_STACK_SIZE},
         {speakerTaskHandle, "Speaker", SPEAKER_STACK_SIZE},
         {motorTaskHandle, "Motor", MOTOR_STACK_SIZE},
