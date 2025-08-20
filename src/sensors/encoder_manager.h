@@ -5,6 +5,7 @@
 #include <freertos/semphr.h>  // ADD this for mutex
 #include "utils/structs.h"
 #include "networking/wifi_manager.h"
+#include "sensor_data_buffer.h"
 
 // Forward declarations
 class MotorDriver;
@@ -14,16 +15,18 @@ class MotorDriver;
 class EncoderManager {
     friend class MessageProcessor;  // Allows MessageProcessor to access private members
     friend class MotorDriver;       // Allows MotorDriver to access private members
+    friend class TaskManager;       // Allows TaskManager to access private methods
     // friend class WifiSelectionManager;  // Allows WifiSelectionManager to access private members
 
     public:
         // Constructor
         EncoderManager();
 
-        WheelRPMs getBothWheelRPMs();
+        // Standard sensor interface methods
+        bool initialize();
+        bool needsInitialization() const { return !isInitialized; }
+        bool canRetryInitialization() const { return true; }  // Encoders can always retry
 
-        void resetDistanceTracking();
-        float getDistanceTraveledCm();
 
     private:
         // ESP32Encoder objects
@@ -32,16 +35,21 @@ class EncoderManager {
         
         float _leftWheelRPM;
         float _rightWheelRPM;
+        bool isInitialized = false;
 
         // Timing
         unsigned long _lastUpdateTime;
+        
+        // Standard sensor interface methods (for TaskManager)
+        void updateSensorData();  // Single read, write to buffer
+        bool shouldBePolling() const;
 
         // Constants for calculations
         static constexpr float GEAR_RATIO = 297.924;
         static constexpr uint8_t ENCODER_CPR = 3;
         static constexpr unsigned long RPM_CALC_INTERVAL = 20; // ms
 
-        // Update speed calculations - call this periodically
+        // Internal update method (now private - called by updateSensorData)
         void update();
 
         int64_t _leftEncoderStartCount;

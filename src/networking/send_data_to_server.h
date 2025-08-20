@@ -7,7 +7,7 @@
 #include "sensors/ir_sensor.h"
 #include "sensors/ir_sensor.h"
 #include "sensors/color_sensor.h"
-#include "sensors/encoder_manager.h"
+#include "sensors/sensor_data_buffer.h"
 #include "networking/websocket_manager.h"
 
 class SendDataToServer : public Singleton<SendDataToServer> {

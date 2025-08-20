@@ -72,6 +72,27 @@ struct IrData {
     }
 };
 
+// Encoder data structure  
+struct EncoderData {
+    float leftWheelRPM;
+    float rightWheelRPM;
+    float distanceTraveledCm;
+    int64_t leftEncoderCount;    // Raw encoder count from _leftEncoder.getCount()
+    int64_t rightEncoderCount;   // Raw encoder count from _rightEncoder.getCount()
+    bool isValid;
+    uint32_t timestamp;
+    
+    EncoderData() {
+        leftWheelRPM = 0.0f;
+        rightWheelRPM = 0.0f;
+        distanceTraveledCm = 0.0f;
+        leftEncoderCount = 0;
+        rightEncoderCount = 0;
+        isValid = false;
+        timestamp = 0;
+    }
+};
+
 // Combined sensor data structure
 struct ImuSample {
     EulerAngles eulerAngles;
@@ -120,6 +141,7 @@ struct ReportTimeouts {
     std::atomic<uint32_t> side_tof_last_request{0};
     std::atomic<uint32_t> color_last_request{0};  // Add color sensor timeout tracking
     std::atomic<uint32_t> ir_last_request{0};  // Add IR sensor timeout tracking
+    std::atomic<uint32_t> encoder_last_request{0};  // Add encoder timeout tracking
 
     static constexpr uint32_t TIMEOUT_MS = 60000; // 1 minute
     
@@ -154,6 +176,10 @@ struct ReportTimeouts {
     bool shouldEnableIr() const {
         return (millis() - ir_last_request.load()) < TIMEOUT_MS;
     }
+    
+    bool shouldEnableEncoder() const {
+        return (millis() - encoder_last_request.load()) < TIMEOUT_MS;
+    }
 };
 
 class SensorDataBuffer : public Singleton<SensorDataBuffer> {
@@ -163,6 +189,7 @@ class SensorDataBuffer : public Singleton<SensorDataBuffer> {
     friend class SideTofManager;
     friend class ColorSensor;  // Add color sensor as friend
     friend class IrSensor;  // Add IR sensor as friend
+    friend class EncoderManager;  // Add EncoderManager as friend
 
     public:        
         // IMU Read methods (called from any core, resets timeouts)
@@ -196,6 +223,19 @@ class SensorDataBuffer : public Singleton<SensorDataBuffer> {
         float getLatestIrSensorReading(uint8_t index);  // index 0-4
         float* getLatestIrSensorReadings();  // Returns array of all 5
         bool isIrDataValid();
+        
+        // Encoder Read methods (called from any core, resets timeouts)
+        EncoderData getLatestEncoderData();
+        WheelRPMs getLatestWheelRPMs();  // Returns legacy WheelRPMs struct for compatibility
+        float getLatestLeftWheelRPM();
+        float getLatestRightWheelRPM();
+        float getLatestDistanceTraveledCm();
+        bool isEncoderDataValid();
+        
+        // Raw encoder count access (for motor driver)
+        int64_t getLatestLeftEncoderCount();
+        int64_t getLatestRightEncoderCount();
+        std::pair<int64_t, int64_t> getLatestEncoderCounts(); // Both counts atomically
 
         // Convenience methods for individual values
         float getLatestPitch();
@@ -233,6 +273,7 @@ class SensorDataBuffer : public Singleton<SensorDataBuffer> {
         void updateSideTofData(const SideTofData& sideTof);
         void updateColorData(const ColorData& color);  // Add color sensor update method
         void updateIrData(const IrData& ir);  // Add IR sensor update method
+        void updateEncoderData(const EncoderData& encoder);  // Add encoder update method
 
         // Thread-safe data storage
         ImuSample currentSample;
@@ -240,12 +281,14 @@ class SensorDataBuffer : public Singleton<SensorDataBuffer> {
         SideTofData currentSideTofData;
         ColorData currentColorData;  // Add color sensor data storage
         IrData currentIrData;  // Add IR sensor data storage
+        EncoderData currentEncoderData;  // Add encoder data storage
 
         std::atomic<uint32_t> lastUpdateTime{0};
         std::atomic<uint32_t> lastTofUpdateTime{0};
         std::atomic<uint32_t> lastSideTofUpdateTime{0};
         std::atomic<uint32_t> lastColorUpdateTime{0};  // Separate timestamp for color sensor
         std::atomic<uint32_t> lastIrUpdateTime{0};  // Separate timestamp for IR
+        std::atomic<uint32_t> lastEncoderUpdateTime{0};  // Separate timestamp for encoders
 
         // Timeout tracking for each report type
         ReportTimeouts timeouts;
@@ -256,4 +299,5 @@ class SensorDataBuffer : public Singleton<SensorDataBuffer> {
         void markSideTofDataUpdated();
         void markColorDataUpdated();  // Separate method for color sensor timestamp
         void markIrDataUpdated();  // Separate method for IR timestamp
+        void markEncoderDataUpdated();  // Separate method for encoder timestamp
 };

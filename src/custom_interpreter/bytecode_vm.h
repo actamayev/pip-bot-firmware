@@ -82,6 +82,7 @@ class BytecodeVM : public Singleton<BytecodeVM> {
 
         bool distanceMovementInProgress = false;
         float targetDistanceCm = 0.0f;
+        float startingDistanceCm = 0.0f;
         
         // Helper method for distance-based motor operations
         void updateDistanceMovement();

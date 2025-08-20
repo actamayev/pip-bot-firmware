@@ -577,8 +577,8 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             // Convert percentage to motor speed
             uint8_t motorSpeed = map(throttlePercent, 0, 100, 0, MAX_MOTOR_SPEED);
             
-            // Reset distance tracking in encoder manager
-            encoderManager.resetDistanceTracking();
+            // Reset distance tracking - store current distance as starting point
+            startingDistanceCm = SensorDataBuffer::getInstance().getLatestDistanceTraveledCm();
             
             // Set up distance movement
             distanceMovementInProgress = true;
@@ -607,8 +607,8 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             // Convert percentage to motor speed
             uint8_t motorSpeed = map(throttlePercent, 0, 100, 0, MAX_MOTOR_SPEED);
             
-            // Reset distance tracking in encoder manager
-            encoderManager.resetDistanceTracking();
+            // Reset distance tracking - store current distance as starting point
+            startingDistanceCm = SensorDataBuffer::getInstance().getLatestDistanceTraveledCm();
             
             // Set up distance movement
             distanceMovementInProgress = true;
@@ -645,8 +645,9 @@ void BytecodeVM::updateTimedMotorMovement() {
 }
 
 void BytecodeVM::updateDistanceMovement() {
-    // Get distance traveled from the encoder manager
-    float currentDistance = encoderManager.getDistanceTraveledCm();
+    // Get distance traveled from sensor data buffer (relative to starting point)
+    float totalDistance = SensorDataBuffer::getInstance().getLatestDistanceTraveledCm();
+    float currentDistance = totalDistance - startingDistanceCm;
     
     // // Check if we've reached or exceeded the target distance
     if (currentDistance < targetDistanceCm) return;

@@ -116,7 +116,7 @@ void log_motor_rpm() {
     
     if (millis() - lastPrintTime < PRINT_INTERVAL) return;
 
-    auto rpms = encoderManager.getBothWheelRPMs();
+    auto rpms = SensorDataBuffer::getInstance().getLatestWheelRPMs();
 
     char buffer[128];
     snprintf(buffer, sizeof(buffer), "Motor RPM - Left: %.2f || Right: %.2f", 

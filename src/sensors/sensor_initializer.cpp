@@ -11,6 +11,7 @@ SensorInitializer::SensorInitializer() {
     // initializeMultizoneTof();
     // initializeColorSensor();  // Added color sensor initialization
     // initializeIRSensors();  // Uncomment this line
+    initializeEncoder();       // Added encoder initialization
 }
 
 bool SensorInitializer::isSensorInitialized(SensorType sensor) const {
@@ -50,6 +51,15 @@ void SensorInitializer::initializeIMU() {
     }
     SerialQueueManager::getInstance().queueMessage("IMU setup complete");
     sensorInitialized[IMU] = true;
+}
+
+void SensorInitializer::initializeEncoder() {
+    if (!encoderManager.initialize()) {
+        SerialQueueManager::getInstance().queueMessage("Encoder Manager initialization failed");
+        return;
+    }
+    SerialQueueManager::getInstance().queueMessage("Encoder Manager setup complete");
+    sensorInitialized[ENCODER] = true;
 }
 
 // void SensorInitializer::initializeColorSensor() {
@@ -129,6 +139,27 @@ bool SensorInitializer::tryInitializeIMU() {
     if (success) {
         SerialQueueManager::getInstance().queueMessage("IMU retry initialization successful!");
         sensorInitialized[IMU] = true;
+    }
+    
+    return success;
+}
+
+bool SensorInitializer::tryInitializeEncoder() {
+    if (!encoderManager.needsInitialization()) {
+        sensorInitialized[ENCODER] = true;
+        return true; // Already initialized
+    }
+    
+    if (!encoderManager.canRetryInitialization()) {
+        return false; // Can't retry yet (though encoders always can retry)
+    }
+    
+    SerialQueueManager::getInstance().queueMessage("Retrying Encoder Manager initialization...");
+    bool success = encoderManager.initialize();
+    
+    if (success) {
+        SerialQueueManager::getInstance().queueMessage("Encoder Manager retry initialization successful!");
+        sensorInitialized[ENCODER] = true;
     }
     
     return success;

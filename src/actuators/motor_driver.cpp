@@ -63,8 +63,8 @@ void MotorDriver::brake_both_motors() {
 
 // TODO 8/19/25: Need to figure out how to take the motors out of braking after 1 second of being in brake without spinning them backwards when releasing from brake
 void MotorDriver::brake_if_moving() {
-    // Get current wheel speeds from encoder manager
-    WheelRPMs rpms = encoderManager.getBothWheelRPMs();
+    // Get current wheel speeds from sensor data buffer
+    WheelRPMs rpms = SensorDataBuffer::getInstance().getLatestWheelRPMs();
 
     // Check if left motor is moving
     if (abs(rpms.leftWheelRPM) > MOTOR_STOPPED_THRESHOLD) {
@@ -182,10 +182,10 @@ void MotorDriver::executeCommand(int16_t leftSpeed, int16_t rightSpeed) {
     currentLeftSpeed = leftSpeed;
     currentRightSpeed = rightSpeed;
 
-    // Get initial encoder counts directly
-    // TODO: Try without encoder stuff - optimize for turning rn
-    startLeftCount = encoderManager._leftEncoder.getCount();
-    startRightCount = encoderManager._rightEncoder.getCount();
+    // Get initial encoder counts from sensor data buffer
+    auto startingCounts = SensorDataBuffer::getInstance().getLatestEncoderCounts();
+    startLeftCount = startingCounts.first;
+    startRightCount = startingCounts.second;
 
     // Start the command timer
     commandStartTime = millis();
@@ -227,9 +227,10 @@ void MotorDriver::processPendingCommands() {
         return;
     }
 
-    // Get current encoder counts
-    int64_t currentLeftCount = encoderManager._leftEncoder.getCount();
-    int64_t currentRightCount = encoderManager._rightEncoder.getCount();
+    // Get current encoder counts from sensor data buffer
+    auto currentCounts = SensorDataBuffer::getInstance().getLatestEncoderCounts();
+    int64_t currentLeftCount = currentCounts.first;
+    int64_t currentRightCount = currentCounts.second;
     
     // Calculate absolute change in encoder counts
     int64_t leftDelta = abs(currentLeftCount - startLeftCount);

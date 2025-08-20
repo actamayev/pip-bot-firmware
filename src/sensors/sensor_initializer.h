@@ -7,6 +7,7 @@
 #include "multizone_tof_sensor.h"
 #include "side_time_of_flight_sensor.h"
 #include "ir_sensor.h"
+#include "encoder_manager.h"
 #include "networking/serial_queue_manager.h"
 
 class SensorInitializer : public Singleton<SensorInitializer> {
@@ -19,6 +20,7 @@ class SensorInitializer : public Singleton<SensorInitializer> {
             // SIDE_TOFS,        // Added side TOF support
             // IR_SENSORS,
             // COLOR_SENSOR,
+            ENCODER,              // Added encoder support
             // Add more sensors as needed
             SENSOR_COUNT
         };
@@ -28,6 +30,7 @@ class SensorInitializer : public Singleton<SensorInitializer> {
         bool tryInitializeSideTofs();      // Added side TOF method
         // bool tryInitializeColorSensor();  // Added color sensor method
         // bool tryInitializeIrSensors();  // Add this method
+        bool tryInitializeEncoder();       // Added encoder method
 
         bool isSensorInitialized(SensorType sensor) const;
         bool areAllSensorsInitialized() const;
@@ -40,6 +43,7 @@ class SensorInitializer : public Singleton<SensorInitializer> {
         void initializeSideTofs();         // Added side TOF initialization
         // void initializeColorSensor();
         // void initializeIRSensors();
+        void initializeEncoder();          // Added encoder initialization
         
         bool sensorInitialized[SENSOR_COUNT];
 };

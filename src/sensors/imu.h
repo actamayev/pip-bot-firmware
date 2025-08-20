@@ -11,7 +11,6 @@ class ImuSensor : public Singleton<ImuSensor> {
     friend class TaskManager;
 
     public:
-
         bool initialize();
 
         bool needsInitialization() const { return !isInitialized; }

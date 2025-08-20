@@ -8,8 +8,15 @@ EncoderManager::EncoderManager() {
     _leftWheelRPM = 0;
     _rightWheelRPM = 0;
     _lastUpdateTime = 0;
+    isInitialized = false;  // Will be set to true in initialize()
     SerialQueueManager::getInstance().queueMessage("Creating encoder manager");
+}
 
+bool EncoderManager::initialize() {
+    if (isInitialized) return true;
+    
+    SerialQueueManager::getInstance().queueMessage("Initializing Encoder Manager...");
+    
     // Initialize ESP32Encoder library
     ESP32Encoder::useInternalWeakPullResistors = puType::up;
     
@@ -22,6 +29,12 @@ EncoderManager::EncoderManager() {
     _rightEncoder.clearCount();
     
     _lastUpdateTime = millis();
+    _leftEncoderStartCount = 0;
+    _rightEncoderStartCount = 0;
+    
+    isInitialized = true;
+    SerialQueueManager::getInstance().queueMessage("Encoder Manager initialized successfully");
+    return true;
 }
 
 void EncoderManager::update() {
@@ -49,47 +62,38 @@ void EncoderManager::update() {
     _lastUpdateTime = currentTime;
 }
 
-WheelRPMs EncoderManager::getBothWheelRPMs() {
-    // Lock mutex before accessing data
-    if (xSemaphoreTake(encoderMutex, pdMS_TO_TICKS(MUTEX_REFRESH_FREQUENCY_MS)) == pdTRUE) {
-        update();  // Update once for both wheels
-        
-        WheelRPMs result = {
-            leftWheelRPM: _leftWheelRPM,
-            rightWheelRPM: _rightWheelRPM
-        };
-        
-        // Unlock mutex
-        xSemaphoreGive(encoderMutex);
-        return result;
-    }
 
-    // If mutex timeout, return last known values
-    return {
-        leftWheelRPM: _leftWheelRPM,
-        rightWheelRPM: _rightWheelRPM
-    };
-}
 
-void EncoderManager::resetDistanceTracking() {
-    // Lock mutex before accessing encoder counts
-    if (xSemaphoreTake(encoderMutex, pdMS_TO_TICKS(MUTEX_REFRESH_FREQUENCY_MS)) != pdTRUE) return;
-    // Store current encoder counts as starting point
-    _leftEncoderStartCount = _leftEncoder.getCount();
-    _rightEncoderStartCount = _rightEncoder.getCount();
+
+// Standard sensor interface methods
+bool EncoderManager::shouldBePolling() const {
+    if (!isInitialized) return false;
     
-    // Unlock mutex
-    xSemaphoreGive(encoderMutex);
+    ReportTimeouts& timeouts = SensorDataBuffer::getInstance().getReportTimeouts();
+    return timeouts.shouldEnableEncoder();
 }
 
-float EncoderManager::getDistanceTraveledCm() {
-    // Lock mutex before accessing encoder counts
+void EncoderManager::updateSensorData() {
+    if (!isInitialized) return;
+    
+    // Call internal update method to calculate RPMs
+    update();
+    
+    // Calculate distance traveled inline and capture raw counts
+    float distanceTraveled = 0.0f;
+    int64_t leftCount = 0;
+    int64_t rightCount = 0;
+    
     if (xSemaphoreTake(encoderMutex, pdMS_TO_TICKS(MUTEX_REFRESH_FREQUENCY_MS)) == pdTRUE) {
-        // Get current encoder counts
+        // Get current encoder counts (both for distance calculation and raw storage)
         int64_t leftEncoderCurrentCount = _leftEncoder.getCount();
         int64_t rightEncoderCurrentCount = _rightEncoder.getCount();
         
-        // Calculate change in encoder counts
+        // Store raw counts for motor driver
+        leftCount = leftEncoderCurrentCount;
+        rightCount = rightEncoderCurrentCount;
+        
+        // Calculate change in encoder counts for distance
         int64_t leftEncoderDelta = abs(leftEncoderCurrentCount - _leftEncoderStartCount);
         int64_t rightEncoderDelta = abs(rightEncoderCurrentCount - _rightEncoderStartCount);
         
@@ -106,11 +110,19 @@ float EncoderManager::getDistanceTraveledCm() {
         float wheelRevolutionsAfterGearing = wheelRevolutions / GEAR_RATIO;
         
         // Convert wheel revolutions to distance traveled
-        float distanceCm = wheelRevolutionsAfterGearing * WHEEL_CIRCUMFERENCE_CM;
-        
-        return distanceCm;
+        distanceTraveled = wheelRevolutionsAfterGearing * WHEEL_CIRCUMFERENCE_CM;
     }
     
-    // If mutex timeout, return 0
-    return 0.0f;
+    // Create encoder data struct with both calculated and raw values
+    EncoderData encoderData;
+    encoderData.leftWheelRPM = _leftWheelRPM;
+    encoderData.rightWheelRPM = _rightWheelRPM;
+    encoderData.distanceTraveledCm = distanceTraveled;
+    encoderData.leftEncoderCount = leftCount;    // Raw counts for motor driver
+    encoderData.rightEncoderCount = rightCount;  // Raw counts for motor driver
+    encoderData.isValid = true;
+    encoderData.timestamp = millis();
+    
+    // Write to sensor data buffer
+    SensorDataBuffer::getInstance().updateEncoderData(encoderData);
 }
