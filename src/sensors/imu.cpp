@@ -1,24 +1,6 @@
 #include "imu.h"
 
-bool ImuSensor::canRetryInitialization() const {
-    if (isInitialized) return false;
-
-    unsigned long currentTime = millis();
-    if (currentTime - lastInitAttempt < INIT_RETRY_INTERVAL) {
-        return false; // Too soon to retry
-    }
-
-    if (initRetryCount >= MAX_INIT_RETRIES) {
-        return false; // Too many retries
-    }
-
-    return true;
-}
-
 bool ImuSensor::initialize() {
-    lastInitAttempt = millis();
-    initRetryCount++;
-    
     // Add a delay before trying to initialize
     vTaskDelay(pdMS_TO_TICKS(50));
     

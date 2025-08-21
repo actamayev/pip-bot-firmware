@@ -69,7 +69,6 @@ void WebSocketManager::connectToWebSocket() {
                 this->lastPingTime = millis(); // Initialize ping time
                 rgbLed.set_led_blue();
                 ledAnimations.stopAnimation();
-                SensorDataBuffer::getInstance().startPollingAllSensors();
                 break;
             case WebsocketsEvent::ConnectionClosed:
                 SerialQueueManager::getInstance().queueMessage("WebSocket disconnected");
@@ -152,13 +151,13 @@ void WebSocketManager::pollWebSocket() {
         
         SerialQueueManager::getInstance().queueMessage("Attempting to connect to WebSocket...");
         
-        if (wsClient.connect(getWsServerUrl())) {
+        if (!wsClient.connect(getWsServerUrl())) {
+            SerialQueueManager::getInstance().queueMessage("WebSocket connection failed. Will try again in 3 seconds");
+        } else {
             SerialQueueManager::getInstance().queueMessage("WebSocket connected successfully");
             wsConnected = true;
             sendInitialData();
             sendBatteryMonitorData();
-        } else {
-            SerialQueueManager::getInstance().queueMessage("WebSocket connection failed. Will try again in 3 seconds");
         }
         return;
     }
@@ -178,6 +177,7 @@ void WebSocketManager::killWiFiProcesses() {
     // This method activates when the ESP has been disconnected from WS.
     // Should only run once.
     if (hasKilledWiFiProcesses) return;
+    SensorDataBuffer::getInstance().stopPollingAllSensors();
     motorDriver.brake_if_moving();
     rgbLed.set_led_red();
     ledAnimations.startBreathing();

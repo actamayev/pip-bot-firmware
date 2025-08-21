@@ -1,4 +1,4 @@
-#include "network_state_mangager.h"
+#include "network_state_manager.h"
 
 NetworkMode NetworkStateManager::getCurrentMode() {
     if (_isInAddPipMode) {

@@ -55,6 +55,12 @@ void SensorDataBuffer::updateIrData(const IrData& ir) {
     markIrDataUpdated();
 }
 
+// NEW: Encoder update method
+void SensorDataBuffer::updateEncoderData(const EncoderData& encoder) {
+    currentEncoderData = encoder;
+    markEncoderDataUpdated();
+}
+
 // IMU Read methods - reset timeouts when called (existing)
 EulerAngles SensorDataBuffer::getLatestEulerAngles() {
     timeouts.quaternion_last_request.store(millis());
@@ -173,6 +179,56 @@ bool SensorDataBuffer::isIrDataValid() {
     return currentIrData.isValid;
 }
 
+// NEW: Encoder Read methods - reset timeouts when called
+EncoderData SensorDataBuffer::getLatestEncoderData() {
+    timeouts.encoder_last_request.store(millis());
+    return currentEncoderData;
+}
+
+WheelRPMs SensorDataBuffer::getLatestWheelRPMs() {
+    timeouts.encoder_last_request.store(millis());
+    WheelRPMs rpms;
+    rpms.leftWheelRPM = currentEncoderData.leftWheelRPM;
+    rpms.rightWheelRPM = currentEncoderData.rightWheelRPM;
+    return rpms;
+}
+
+float SensorDataBuffer::getLatestLeftWheelRPM() {
+    timeouts.encoder_last_request.store(millis());
+    return currentEncoderData.leftWheelRPM;
+}
+
+float SensorDataBuffer::getLatestRightWheelRPM() {
+    timeouts.encoder_last_request.store(millis());
+    return currentEncoderData.rightWheelRPM;
+}
+
+float SensorDataBuffer::getLatestDistanceTraveledCm() {
+    timeouts.encoder_last_request.store(millis());
+    return currentEncoderData.distanceTraveledCm;
+}
+
+bool SensorDataBuffer::isEncoderDataValid() {
+    timeouts.encoder_last_request.store(millis());
+    return currentEncoderData.isValid;
+}
+
+// Raw encoder count access methods (for motor driver)
+int64_t SensorDataBuffer::getLatestLeftEncoderCount() {
+    timeouts.encoder_last_request.store(millis());
+    return currentEncoderData.leftEncoderCount;
+}
+
+int64_t SensorDataBuffer::getLatestRightEncoderCount() {
+    timeouts.encoder_last_request.store(millis());
+    return currentEncoderData.rightEncoderCount;
+}
+
+std::pair<int64_t, int64_t> SensorDataBuffer::getLatestEncoderCounts() {
+    timeouts.encoder_last_request.store(millis());
+    return std::make_pair(currentEncoderData.leftEncoderCount, currentEncoderData.rightEncoderCount);
+}
+
 // Convenience methods for individual values (existing)
 float SensorDataBuffer::getLatestPitch() {
     return getLatestEulerAngles().roll;  // Note: roll maps to pitch in your system
@@ -237,22 +293,21 @@ ImuSample SensorDataBuffer::getLatestImuSample() {
     return currentSample;
 }
 
-// Helper methods for bulk polling control
-void SensorDataBuffer::startPollingAllSensors() {
-    uint32_t currentTime = millis();
-    timeouts.quaternion_last_request.store(currentTime);
-    timeouts.accelerometer_last_request.store(currentTime);
-    timeouts.gyroscope_last_request.store(currentTime);
-    timeouts.magnetometer_last_request.store(currentTime);
-    timeouts.tof_last_request.store(currentTime);
-    timeouts.side_tof_last_request.store(currentTime);
-    timeouts.color_last_request.store(currentTime);  // Include color sensor
-    timeouts.ir_last_request.store(currentTime);  // Include IR sensor
+void SensorDataBuffer::stopPollingAllSensors() {
+    // Reset all timeout timestamps to 0 to disable all sensors
+    timeouts.quaternion_last_request.store(0);
+    timeouts.accelerometer_last_request.store(0);
+    timeouts.gyroscope_last_request.store(0);
+    timeouts.magnetometer_last_request.store(0);
+    timeouts.tof_last_request.store(0);
+    timeouts.side_tof_last_request.store(0);
+    timeouts.color_last_request.store(0);
+    timeouts.ir_last_request.store(0);
+    timeouts.encoder_last_request.store(0);
 }
 
-
 void SensorDataBuffer::markDataUpdated() {
-    lastUpdateTime.store(millis());
+    lastImuUpdateTime.store(millis());
 }
 
 void SensorDataBuffer::markTofDataUpdated() {
@@ -269,4 +324,8 @@ void SensorDataBuffer::markColorDataUpdated() {
 
 void SensorDataBuffer::markIrDataUpdated() {
     lastIrUpdateTime.store(millis());
+}
+
+void SensorDataBuffer::markEncoderDataUpdated() {
+    lastEncoderUpdateTime.store(millis());
 }

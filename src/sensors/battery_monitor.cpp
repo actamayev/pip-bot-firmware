@@ -68,10 +68,10 @@ void BatteryMonitor::calculateTimeEstimates() {
     batteryState.estimatedTimeToEmpty = 0.0f;
     batteryState.estimatedTimeToFull = 0.0f;
     
-    if (batteryState.isDischarging && batteryState.current > 0 && batteryState.remainingCapacity > 0) {
+    if (batteryState.isDischarging && batteryState.current < 0 && batteryState.remainingCapacity > 0) {
         // Calculate time to empty
         batteryState.estimatedTimeToEmpty = (float)batteryState.remainingCapacity / batteryState.current;
-    } else if (batteryState.isCharging && batteryState.current < 0) {
+    } else if (batteryState.isCharging && batteryState.current > 0) {
         // Calculate time to full
         int chargingCurrent = abs(batteryState.current);
         int remainingToFull = batteryState.fullCapacity - batteryState.remainingCapacity;

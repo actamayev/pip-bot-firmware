@@ -24,6 +24,12 @@ class PreferencesManager : public Singleton<PreferencesManager> {
         std::vector<WiFiCredentials> getAllStoredWiFiNetworks();
         bool hasStoredWiFiNetworks();  // Add this new method
 
+        // Side TOF calibration methods
+        bool hasSideTofCalibration(uint8_t sensorAddress);
+        void storeSideTofCalibration(uint8_t sensorAddress, uint16_t baseline, bool useHardwareCalibration);
+        uint16_t getSideTofBaseline(uint8_t sensorAddress);
+        bool getSideTofUseHardwareCalibration(uint8_t sensorAddress);
+
     private:
         PreferencesManager() = default;
         ~PreferencesManager();
@@ -41,6 +47,7 @@ class PreferencesManager : public Singleton<PreferencesManager> {
         static constexpr const char* NS_PIP_ID = "pip_id";
         static constexpr const char* NS_FIRMWARE = "firmware";
         static constexpr const char* NS_WIFI = "wifi";
+        static constexpr const char* NS_SIDE_TOF = "side_tof";
         
         // Key constants (akin to files in those folders)
         static constexpr const char* KEY_PIP_ID = "id";

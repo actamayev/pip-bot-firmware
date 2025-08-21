@@ -81,7 +81,7 @@ void BalanceController::update() {
     if (abs(safetyAverage - TARGET_ANGLE) > MAX_SAFE_ANGLE_DEVIATION) {
         disable();
         return;
-    } 
+    }
 
     // PID calculation
     float error = TARGET_ANGLE - currentAngle;
@@ -118,8 +118,7 @@ void BalanceController::update() {
     }
 
     // Apply motor power
-    motorDriver.set_motor_speeds(adjustedPWM, adjustedPWM);
-    motorDriver.update_motor_speeds(false);
+    motorDriver.set_motor_speeds(adjustedPWM, adjustedPWM, false);
 
     // Store error for next iteration
     _lastError = error;

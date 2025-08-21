@@ -1,5 +1,16 @@
 #include "bytecode_vm.h"
 
+// Static mapping of opcodes to required sensors
+const std::map<BytecodeOpCode, std::vector<BytecodeVM::SensorType>> BytecodeVM::opcodeToSensors = {
+    // This map is to control what sensors need to be polled for various OpCodes
+    // Ie: For motor turn, we need to poll encoders, and quaternion
+    {OP_MOTOR_FORWARD_TIME, {SENSOR_ENCODER, SENSOR_QUATERNION}},
+    {OP_MOTOR_BACKWARD_TIME, {SENSOR_ENCODER, SENSOR_QUATERNION}},
+    {OP_MOTOR_FORWARD_DISTANCE, {SENSOR_ENCODER, SENSOR_QUATERNION}},
+    {OP_MOTOR_BACKWARD_DISTANCE, {SENSOR_ENCODER, SENSOR_QUATERNION}},
+    {OP_MOTOR_TURN, {SENSOR_ENCODER, SENSOR_QUATERNION}}
+};
+
 BytecodeVM::~BytecodeVM() {
     resetStateVariables(true);
 }
@@ -7,7 +18,7 @@ BytecodeVM::~BytecodeVM() {
 bool BytecodeVM::loadProgram(const uint8_t* byteCode, uint16_t size) {
     // Free any existing program
     stopProgram();
-    MessageProcessor::getInstance().resetCommandState();
+    motorDriver.resetCommandState();
 
     // Validate bytecode size (must be multiple of 20 now)
     if (size % INSTRUCTION_SIZE != 0 || size / INSTRUCTION_SIZE > MAX_PROGRAM_SIZE) {
@@ -46,6 +57,7 @@ bool BytecodeVM::loadProgram(const uint8_t* byteCode, uint16_t size) {
     }
 
     scanProgramForMotors();
+    activateSensorsForProgram(); // Activate sensors needed by the program
     stoppedDueToUsbSafety = false; // Reset safety flag on new program load
 
     return true;
@@ -53,10 +65,6 @@ bool BytecodeVM::loadProgram(const uint8_t* byteCode, uint16_t size) {
 
 void BytecodeVM::update() {
     checkUsbSafetyConditions();
-    if (program && pc < programSize && isPaused == RUNNING) {
-        SensorDataBuffer::getInstance().startPollingAllSensors();
-    }
-
     if (!program || pc >= programSize || isPaused == PauseState::PAUSED) {
         return;
     }
@@ -75,8 +83,8 @@ void BytecodeVM::update() {
     }
 
     // Handle turning operation if in progress
-    if (turningInProgress) {
-        updateTurning();
+    if (TurningManager::getInstance().isActive()) {
+        TurningManager::getInstance().update();
         return; // Don't execute next instruction until turn is complete
     }
 
@@ -171,7 +179,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
 
         case OP_SET_LED: {
             // Set specific LED to color
-            uint8_t ledId = static_cast<uint8_t>(instr.operand1); // Cast to ensure range
+            BytecodeLedID ledId = static_cast<BytecodeLedID>(instr.operand1); // Cast to ensure range
             uint8_t r = static_cast<uint8_t>(instr.operand2);     // Cast to uint8_t for
             uint8_t g = static_cast<uint8_t>(instr.operand3);     // RGB values (0-255)
             uint8_t b = static_cast<uint8_t>(instr.operand4);        
@@ -207,7 +215,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
         }
 
         case OP_READ_SENSOR: {
-            uint8_t sensorType = static_cast<uint8_t>(instr.operand1);  // Which sensor to read
+            BytecodeSensorType sensorType = static_cast<BytecodeSensorType>(instr.operand1);  // Which sensor to read
             uint16_t regId = instr.operand2;       // Register to store result
             
             if (regId < MAX_REGISTERS) {
@@ -474,8 +482,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             uint8_t motorSpeed = map(throttlePercent, 0, 100, 0, MAX_MOTOR_SPEED);
             
             // Set both motors to forward at calculated speed
-            motorDriver.set_motor_speeds(motorSpeed, motorSpeed);
-            motorDriver.update_motor_speeds(true); // Optional: enable ramping
+            motorDriver.updateMotorSpeeds(motorSpeed, motorSpeed);
             break;
         }
         
@@ -485,8 +492,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             uint8_t motorSpeed = map(throttlePercent, 0, 100, 0, MAX_MOTOR_SPEED);
             
             // Set both motors to backward (negative speed)
-            motorDriver.set_motor_speeds(-motorSpeed, -motorSpeed);
-            motorDriver.update_motor_speeds(true); // Optional: enable ramping
+            motorDriver.updateMotorSpeeds(-motorSpeed, -motorSpeed);
             break;
         }
         
@@ -502,18 +508,10 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             bool clockwise = (instr.operand1 > 0);
             float degrees = instr.operand2;
             
-            // Initialize turning state
-            turningInProgress = true;
-            targetTurnDegrees = degrees;
-            initialTurnYaw = SensorDataBuffer::getInstance().getLatestYaw();
-            turnClockwise = clockwise;
-            turnStartTime = millis();
-
-            // Set motors for turning
-            if (clockwise) {
-                motorDriver.set_motor_speeds(100, -100); // Right turn
-            } else {
-                motorDriver.set_motor_speeds(-100, 100); // Left turn
+            // Use TurningManager for precise turning
+            float signedDegrees = clockwise ? degrees : -degrees;
+            if (!TurningManager::getInstance().startTurn(signedDegrees)) {
+                SerialQueueManager::getInstance().queueMessage("Failed to start turn - turn already in progress");
             }
             
             // The actual turn progress will be monitored in update()
@@ -538,8 +536,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             uint8_t motorSpeed = map(throttlePercent, 0, 100, 0, MAX_MOTOR_SPEED);
             
             // Set motors to forward motion
-            motorDriver.set_motor_speeds(motorSpeed, motorSpeed);
-            motorDriver.update_motor_speeds(true);  // Enable ramping
+            motorDriver.updateMotorSpeeds(motorSpeed, motorSpeed);
             
             // Set up timed movement
             timedMotorMovementInProgress = true;
@@ -566,8 +563,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             uint8_t motorSpeed = map(throttlePercent, 0, 100, 0, MAX_MOTOR_SPEED);
             
             // Set motors to backward motion
-            motorDriver.set_motor_speeds(-motorSpeed, -motorSpeed);
-            motorDriver.update_motor_speeds(true);  // Enable ramping
+            motorDriver.updateMotorSpeeds(-motorSpeed, -motorSpeed);
             
             break;
         }
@@ -589,16 +585,15 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             // Convert percentage to motor speed
             uint8_t motorSpeed = map(throttlePercent, 0, 100, 0, MAX_MOTOR_SPEED);
             
-            // Reset distance tracking in encoder manager
-            // encoderManager.resetDistanceTracking();
+            // Reset distance tracking - store current distance as starting point
+            startingDistanceCm = SensorDataBuffer::getInstance().getLatestDistanceTraveledCm();
             
             // Set up distance movement
             distanceMovementInProgress = true;
             targetDistanceCm = distanceCm;
             
             // Set motors to forward motion
-            motorDriver.set_motor_speeds(motorSpeed, motorSpeed);
-            motorDriver.update_motor_speeds(true);  // Enable ramping
+            motorDriver.updateMotorSpeeds(motorSpeed, motorSpeed);
             
             break;
         }
@@ -620,16 +615,15 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             // Convert percentage to motor speed
             uint8_t motorSpeed = map(throttlePercent, 0, 100, 0, MAX_MOTOR_SPEED);
             
-            // Reset distance tracking in encoder manager
-            // encoderManager.resetDistanceTracking();
+            // Reset distance tracking - store current distance as starting point
+            startingDistanceCm = SensorDataBuffer::getInstance().getLatestDistanceTraveledCm();
             
             // Set up distance movement
             distanceMovementInProgress = true;
             targetDistanceCm = distanceCm;
             
             // Set motors to backward motion
-            motorDriver.set_motor_speeds(-motorSpeed, -motorSpeed);
-            motorDriver.update_motor_speeds(true);  // Enable ramping
+            motorDriver.updateMotorSpeeds(-motorSpeed, -motorSpeed);
             
             break;
         }
@@ -648,33 +642,6 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
     }
 }
 
-void BytecodeVM::updateTurning() {
-    // Get current yaw
-    float currentYaw = SensorDataBuffer::getInstance().getLatestYaw();
-    
-    // Calculate rotation delta with wraparound handling
-    float rotationDelta;
-    
-    if (turnClockwise) {
-        rotationDelta = initialTurnYaw - currentYaw;
-        if (rotationDelta < 0) rotationDelta += 360;
-    } else {
-        rotationDelta = currentYaw - initialTurnYaw;
-        if (rotationDelta < 0) rotationDelta += 360;
-    }
-    
-    // Check for timeout (safety feature)
-    unsigned long elapsed = millis() - turnStartTime;
-    bool timeout = elapsed > TURN_TIMEOUT; // 10 second timeout
-    
-    // Check if turn is complete
-    if (rotationDelta >= targetTurnDegrees || timeout) {
-        // Turn complete - stop motors
-        motorDriver.brake_both_motors();
-        turningInProgress = false;
-    }
-}
-
 void BytecodeVM::updateTimedMotorMovement() {
     // Check if the timed movement has completed
     if (millis() < motorMovementEndTime) return;
@@ -686,11 +653,12 @@ void BytecodeVM::updateTimedMotorMovement() {
 }
 
 void BytecodeVM::updateDistanceMovement() {
-    // Get distance traveled from the encoder manager
-    // float currentDistance = encoderManager.getDistanceTraveledCm();
+    // Get distance traveled from sensor data buffer (relative to starting point)
+    float totalDistance = SensorDataBuffer::getInstance().getLatestDistanceTraveledCm();
+    float currentDistance = totalDistance - startingDistanceCm;
     
     // // Check if we've reached or exceeded the target distance
-    // if (currentDistance < targetDistanceCm) return;
+    if (currentDistance < targetDistanceCm) return;
     // Distance reached - brake motors
     motorDriver.brake_both_motors();
     
@@ -700,13 +668,13 @@ void BytecodeVM::updateDistanceMovement() {
 
 void BytecodeVM::stopProgram() {
     resetStateVariables(true);
-    MessageProcessor::getInstance().resetCommandState();
+    motorDriver.resetCommandState();
 
     stoppedDueToUsbSafety = false; // Reset safety flag when manually stopping
 
     Speaker::getInstance().setMuted(true);
     rgbLed.turn_all_leds_off();
-    // motorDriver.brake_if_moving();
+    motorDriver.brake_if_moving();
     return;
 }
 
@@ -716,11 +684,8 @@ void BytecodeVM::resetStateVariables(bool isFullReset) {
     waitingForDelay = false;
     lastComparisonResult = false;
     
-    turningInProgress = false;
-    targetTurnDegrees = 0;
-    initialTurnYaw = 0;
-    turnClockwise = true;
-    turnStartTime = 0;
+    // Reset TurningManager state
+    TurningManager::getInstance().completeNavigation(false);
     
     timedMotorMovementInProgress = false;
     distanceMovementInProgress = false;
@@ -774,7 +739,7 @@ void BytecodeVM::pauseProgram() {
     if (!program || isPaused == PAUSED) return;
     
     resetStateVariables();
-    MessageProcessor::getInstance().resetCommandState();
+    motorDriver.resetCommandState();
 
     Speaker::getInstance().setMuted(true);
     rgbLed.turn_all_leds_off();     
@@ -800,6 +765,110 @@ void BytecodeVM::resumeProgram() {
     } else {
         SerialQueueManager::getInstance().queueMessage("Resuming program from beginning");
         pc = 0; // Start from the beginning for scripts without a start block
+    }
+}
+
+void BytecodeVM::activateSensorsForProgram() {
+    if (!program || programSize == 0) return;
+    
+    // Track which sensors are needed
+    bool needQuaternion = false;
+    bool needAccelerometer = false;  
+    bool needGyroscope = false;
+    bool needMagnetometer = false;
+    bool needTof = false;
+    bool needSideTof = false;
+    bool needEncoder = false;
+    
+    // Scan through the entire program
+    for (uint16_t i = 0; i < programSize; i++) {
+        const BytecodeInstruction& instr = program[i];
+        
+        // Handle OP_READ_SENSOR dynamically based on sensor type
+        if (instr.opcode == OP_READ_SENSOR) {
+            BytecodeSensorType sensorType = static_cast<BytecodeSensorType>(instr.operand1);
+            
+            switch (sensorType) {
+                case SENSOR_PITCH:
+                case SENSOR_ROLL: 
+                case SENSOR_YAW:
+                    needQuaternion = true;
+                    break;
+                case SENSOR_ACCEL_X:
+                case SENSOR_ACCEL_Y:
+                case SENSOR_ACCEL_Z:
+                case SENSOR_ACCEL_MAG:
+                    needAccelerometer = true;
+                    break;
+                case SENSOR_ROT_RATE_X:
+                case SENSOR_ROT_RATE_Y:
+                case SENSOR_ROT_RATE_Z:
+                    needGyroscope = true;
+                    break;
+                case SENSOR_MAG_FIELD_X:
+                case SENSOR_MAG_FIELD_Y:
+                case SENSOR_MAG_FIELD_Z:
+                    needMagnetometer = true;
+                    break;
+                case SENSOR_SIDE_LEFT_PROXIMITY:
+                case SENSOR_SIDE_RIGHT_PROXIMITY:
+                    needSideTof = true;
+                    break;
+                case SENSOR_FRONT_PROXIMITY:
+                    needTof = true;
+                    break;
+            }
+        } else {
+            // Handle other opcodes using the static mapping
+            auto it = opcodeToSensors.find(instr.opcode);
+            if (it != opcodeToSensors.end()) {
+                for (SensorType sensorType : it->second) {
+                    switch (sensorType) {
+                        case SENSOR_QUATERNION: needQuaternion = true; break;
+                        case SENSOR_ACCELEROMETER: needAccelerometer = true; break;
+                        case SENSOR_GYROSCOPE: needGyroscope = true; break;
+                        case SENSOR_MAGNETOMETER: needMagnetometer = true; break;
+                        case SENSOR_TOF: needTof = true; break;
+                        case SENSOR_SIDE_TOF: needSideTof = true; break;
+                        case SENSOR_ENCODER: needEncoder = true; break;
+                    }
+                }
+            }
+        }
+    }
+    
+    // Activate required sensors by setting their last_request timestamps
+    SensorDataBuffer& buffer = SensorDataBuffer::getInstance();
+    ReportTimeouts& timeouts = buffer.getReportTimeouts();
+    uint32_t currentTime = millis();
+    
+    if (needQuaternion) {
+        timeouts.quaternion_last_request.store(currentTime);
+        SerialQueueManager::getInstance().queueMessage("Activated quaternion sensor for program");
+    }
+    if (needAccelerometer) {
+        timeouts.accelerometer_last_request.store(currentTime);
+        SerialQueueManager::getInstance().queueMessage("Activated accelerometer for program");
+    }
+    if (needGyroscope) {
+        timeouts.gyroscope_last_request.store(currentTime);
+        SerialQueueManager::getInstance().queueMessage("Activated gyroscope for program");
+    }
+    if (needMagnetometer) {
+        timeouts.magnetometer_last_request.store(currentTime);
+        SerialQueueManager::getInstance().queueMessage("Activated magnetometer for program");
+    }
+    if (needTof) {
+        timeouts.tof_last_request.store(currentTime);
+        SerialQueueManager::getInstance().queueMessage("Activated multizone TOF for program");
+    }
+    if (needSideTof) {
+        timeouts.side_tof_last_request.store(currentTime);
+        SerialQueueManager::getInstance().queueMessage("Activated side TOF for program");
+    }
+    if (needEncoder) {
+        timeouts.encoder_last_request.store(currentTime);
+        SerialQueueManager::getInstance().queueMessage("Activated encoder for program");
     }
 }
 

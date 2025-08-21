@@ -5,105 +5,7 @@ void MessageProcessor::handleMotorControl(const uint8_t* data) {
     int16_t leftSpeed = static_cast<int16_t>(data[1] | (data[2] << 8));
     int16_t rightSpeed = static_cast<int16_t>(data[3] | (data[4] << 8));
     
-    updateMotorSpeeds(leftSpeed, rightSpeed);
-}
-
-void MessageProcessor::updateMotorSpeeds(int16_t leftSpeed, int16_t rightSpeed) {
-    // Constrain speeds
-    leftSpeed = constrain(leftSpeed, -MAX_MOTOR_SPEED, MAX_MOTOR_SPEED);
-    rightSpeed = constrain(rightSpeed, -MAX_MOTOR_SPEED, MAX_MOTOR_SPEED);
-    
-    // If we're not executing a command, start this one immediately
-    if (!isExecutingCommand) {
-        executeCommand(leftSpeed, rightSpeed);
-    } else {
-        // Store as next command
-        hasNextCommand = true;
-        nextLeftSpeed = leftSpeed;
-        nextRightSpeed = rightSpeed;
-    }
-}
-
-void MessageProcessor::executeCommand(int16_t leftSpeed, int16_t rightSpeed) {
-    // Save command details
-    // currentLeftSpeed = leftSpeed;
-    // currentRightSpeed = rightSpeed;
-
-    // Get initial encoder counts directly
-    // startLeftCount = encoderManager._leftEncoder.getCount();
-    // startRightCount = encoderManager._rightEncoder.getCount();
-
-    // Start the command timer
-    commandStartTime = millis();
-
-    motorDriver.set_motor_speeds(leftSpeed, rightSpeed);
-
-    // Enable straight driving correction for forward movement only. 
-    // 4/12/25: Removing straight line drive for backward movement. need to bring back eventually
-    // if ((leftSpeed > 0 && rightSpeed > 0) && (leftSpeed == rightSpeed)) {
-    //     StraightLineDrive::getInstance().enable();
-    // } else {
-    //     StraightLineDrive::getInstance().disable();
-    // }
-
-    isExecutingCommand = true;
-}
-
-void MessageProcessor::processPendingCommands() {
-    DemoManager::getInstance().update();
-
-    // If a demo is running, don't process motor commands
-    if (DemoManager::getInstance().isAnyDemoActive()) return;
-
-    motorDriver.update_motor_speeds(true);
-    if (!isExecutingCommand) {
-        // If we have a next command, execute it
-        if (hasNextCommand) {
-            executeCommand(nextLeftSpeed, nextRightSpeed);
-            hasNextCommand = false;
-        }
-        return;
-    }
-
-    bool isMovementCommand = (currentLeftSpeed != 0 || currentRightSpeed != 0);
-
-    if (!isMovementCommand) {
-        isExecutingCommand = false;
-        
-        if (hasNextCommand) {
-            executeCommand(nextLeftSpeed, nextRightSpeed);
-            hasNextCommand = false;
-        }
-        return;
-    }
-
-    // Get current encoder counts
-    // int64_t currentLeftCount = encoderManager._leftEncoder.getCount();
-    // int64_t currentRightCount = encoderManager._rightEncoder.getCount();
-    
-    // Calculate absolute change in encoder counts
-    // int64_t leftDelta = abs(currentLeftCount - startLeftCount);
-    // int64_t rightDelta = abs(currentRightCount - startRightCount);
-    
-    // Check for command completion conditions:
-    // bool encoderThresholdMet = (leftDelta >= MIN_ENCODER_PULSES || rightDelta >= MIN_ENCODER_PULSES);
-    // bool commandTimedOut = (millis() - commandStartTime) >= COMMAND_TIMEOUT_MS;
-    
-    // if (encoderThresholdMet || commandTimedOut) {
-    //     if (commandTimedOut) {
-    //         SerialQueueManager::getInstance().queueMessage("Command timed out after 1 second - possible motor stall");
-    //     } else {
-    //         // SerialQueueManager::getInstance().queueMessage("Command completed with pulses - Left: %lld, Right: %lld\n", 
-    //         //             leftDelta, rightDelta);
-    //     }
-        
-    //     isExecutingCommand = false;
-        
-    // }
-    if (hasNextCommand) {
-        executeCommand(nextLeftSpeed, nextRightSpeed);
-        hasNextCommand = false;
-    }
+    motorDriver.updateMotorSpeeds(leftSpeed, rightSpeed);
 }
 
 void MessageProcessor::handleBalanceCommand(BalanceStatus status) {
@@ -306,14 +208,7 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             uint16_t bytecodeLength = length - 1;
 
             // Execute the bytecode
-            bool success = BytecodeVM::getInstance().loadProgram(bytecodeData, bytecodeLength);
-
-            // Send response
-            if (success) {
-                SendDataToServer::getInstance().sendBytecodeMessage("Bytecode successfully loaded");
-            } else {
-                SendDataToServer::getInstance().sendBytecodeMessage("Error loading bytecode: invalid format!");
-            }
+            BytecodeVM::getInstance().loadProgram(bytecodeData, bytecodeLength);
             break;
         }
         case DataMessageType::STOP_SANDBOX_CODE: {
@@ -324,6 +219,16 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             }
             break;
         }
+
+        case DataMessageType::STOP_SENSOR_POLLING: {
+            if (length != 1) {
+                SerialQueueManager::getInstance().queueMessage("Invalid stop sandbox code message length");
+            } else {
+                SensorDataBuffer::getInstance().stopPollingAllSensors();
+            }
+            break;
+        }
+
         case DataMessageType::OBSTACLE_AVOIDANCE: {
             if (length != 2) {
                 SerialQueueManager::getInstance().queueMessage("Invalid obstacle avoidance command");
@@ -341,7 +246,6 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             SerialManager::getInstance().isConnected = true;
             SerialManager::getInstance().lastActivityTime = millis();
             SerialManager::getInstance().sendHandshakeConfirmation();
-            SensorDataBuffer::getInstance().startPollingAllSensors();
 
             // Send initial battery data on handshake
             const BatteryState& batteryState = BatteryMonitor::getInstance().getBatteryState();
@@ -358,7 +262,7 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
         case DataMessageType::SERIAL_END: {
             rgbLed.turn_all_leds_off();
             SerialManager::getInstance().isConnected = false;
-            // Don't stop polling here. Users will frequently connect and disconnect
+            SensorDataBuffer::getInstance().stopPollingAllSensors();
             break;
         }
         case DataMessageType::UPDATE_HEADLIGHTS: {
@@ -372,10 +276,6 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
                     rgbLed.turn_headlights_off();
                 }
             }
-            break;
-        }
-        case DataMessageType::START_SENSOR_POLLING: {
-            SensorDataBuffer::getInstance().startPollingAllSensors();
             break;
         }
         case DataMessageType::WIFI_CREDENTIALS: {
@@ -490,16 +390,4 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
         default:
             break;
     }
-}
-
-void MessageProcessor::resetCommandState() {
-    isExecutingCommand = false;
-    hasNextCommand = false;
-    currentLeftSpeed = 0;
-    currentRightSpeed = 0;
-    nextLeftSpeed = 0;
-    nextRightSpeed = 0;
-    startLeftCount = 0;
-    startRightCount = 0;
-    commandStartTime = 0;
 }

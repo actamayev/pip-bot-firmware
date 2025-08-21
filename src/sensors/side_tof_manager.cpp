@@ -1,11 +1,5 @@
 #include "side_tof_manager.h"
 
-bool SideTofManager::canRetryInitialization() const {
-    // Check if either sensor needs initialization and can be retried
-    return (leftSideTofSensor.needsInitialization() && leftSideTofSensor.canRetryInitialization()) ||
-           (rightSideTofSensor.needsInitialization() && rightSideTofSensor.canRetryInitialization());
-}
-
 bool SideTofManager::initialize() {
     bool leftSuccess = false;
     bool rightSuccess = false;
@@ -99,10 +93,6 @@ void SideTofManager::disableSideTofSensors() {
     
     sensorsEnabled = false;
     SerialQueueManager::getInstance().queueMessage("Side TOF sensors disabled due to timeout");
-}
-
-bool SideTofManager::needsInitialization() const {
-    return !isInitialized;
 }
 
 void SideTofManager::turnOffSideTofs() {

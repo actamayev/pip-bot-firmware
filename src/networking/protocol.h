@@ -26,7 +26,8 @@ enum class DataMessageType : uint8_t {
     SPEAKER_VOLUME = 22,
     STOP_SOUND = 23, // For stopping ongoing sounds (e.g. horn sound)
     REQUEST_BATTERY_MONITOR_DATA = 24,
-    UPDATE_DISPLAY = 25
+    UPDATE_DISPLAY = 25,
+    STOP_SENSOR_POLLING = 26
 };
 
 // Sound types

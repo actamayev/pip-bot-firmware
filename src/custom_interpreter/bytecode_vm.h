@@ -3,9 +3,12 @@
 #include "sensors/imu.h"
 #include "utils/singleton.h"
 #include "bytecode_structs.h"
+#include <map>
+#include <vector>
 #include "actuators/buttons.h"
 #include "actuators/led/rgb_led.h"
 #include "actuators/motor_driver.h"
+#include "demos/turning_manager.h"
 #include "sensors/multizone_tof_sensor.h"
 #include "networking/serial_queue_manager.h"
 #include "networking/serial_manager.h"
@@ -14,31 +17,16 @@
 class BytecodeVM : public Singleton<BytecodeVM> {
     friend class Singleton<BytecodeVM>;
     friend class Buttons;
+    friend class TaskManager;
 
     public:
-        BytecodeVM() = default;
-        ~BytecodeVM();
-
         // Load bytecode program into the VM
         bool loadProgram(const uint8_t* byteCode, uint16_t size);
         void stopProgram();
 
-        // Update VM - call this regularly from main loop
-        void update();
-
-        enum PauseState {
-            PROGRAM_NOT_STARTED,
-            PAUSED,
-            RUNNING
-        };
-
-        PauseState isPaused = PauseState::PROGRAM_NOT_STARTED;
-
-        void togglePause();
-        bool waitingForButtonPressToStart = false;
-        bool canStartProgram();
-
     private:
+        BytecodeVM() = default;
+        ~BytecodeVM();
         // Constants:
         static const uint16_t MAX_REGISTERS = 512; // Changed from uint8_t to uint16_t
                                         // to handle values > 255
@@ -68,20 +56,26 @@ class BytecodeVM : public Singleton<BytecodeVM> {
         BytecodeVarType registerTypes[MAX_REGISTERS];
         bool registerInitialized[MAX_REGISTERS] = {false};
         
+        // Update VM - call this regularly from main loop
+        void update();
+
+        enum PauseState {
+            PROGRAM_NOT_STARTED,
+            PAUSED,
+            RUNNING
+        };
+
+        PauseState isPaused = PauseState::PROGRAM_NOT_STARTED;
+
+        void togglePause();
+        bool waitingForButtonPressToStart = false;
+        bool canStartProgram();
+
         // Execute instruction implementation
         void executeInstruction(const BytecodeInstruction& instr);
         
         // Helper method for comparisons
         bool compareValues(ComparisonOp op, float leftOperand, float rightValue);
-
-        bool turningInProgress = false;
-        float targetTurnDegrees = 0;
-        float initialTurnYaw = 0;
-        bool turnClockwise = true;
-        unsigned long turnStartTime = 0;
-        
-        // Helper method for turn operations
-        void updateTurning();
 
         bool timedMotorMovementInProgress = false;
         unsigned long motorMovementEndTime = 0;
@@ -91,6 +85,7 @@ class BytecodeVM : public Singleton<BytecodeVM> {
 
         bool distanceMovementInProgress = false;
         float targetDistanceCm = 0.0f;
+        float startingDistanceCm = 0.0f;
         
         // Helper method for distance-based motor operations
         void updateDistanceMovement();
@@ -107,6 +102,20 @@ class BytecodeVM : public Singleton<BytecodeVM> {
         bool programContainsMotors = false;
         bool stoppedDueToUsbSafety = false;
         bool lastUsbState = false;
+        
+        // Sensor Activation System
+        enum SensorType {
+            SENSOR_QUATERNION,
+            SENSOR_ACCELEROMETER, 
+            SENSOR_GYROSCOPE,
+            SENSOR_MAGNETOMETER,
+            SENSOR_TOF,
+            SENSOR_SIDE_TOF,
+            SENSOR_ENCODER
+        };
+        
+        void activateSensorsForProgram();
+        static const std::map<BytecodeOpCode, std::vector<SensorType>> opcodeToSensors;
         
         // USB Safety Methods
         void scanProgramForMotors();

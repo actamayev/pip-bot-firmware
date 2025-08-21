@@ -1,24 +1,6 @@
 #include "side_time_of_flight_sensor.h"
 
-bool SideTimeOfFlightSensor::canRetryInitialization() const {
-    if (isInitialized) return false;
-
-    unsigned long currentTime = millis();
-    if (currentTime - lastInitAttempt < INIT_RETRY_INTERVAL) {
-        return false; // Too soon to retry
-    }
-
-    if (initRetryCount >= MAX_INIT_RETRIES) {
-        return false; // Too many retries
-    }
-
-    return true;
-}
-
 bool SideTimeOfFlightSensor::initialize(const uint8_t TOF_ADDRESS) {
-    lastInitAttempt = millis();
-    initRetryCount++;
-    
     // Save the sensor address to the class member variable
     sensorAddress = TOF_ADDRESS;
     
@@ -33,12 +15,20 @@ bool SideTimeOfFlightSensor::initialize(const uint8_t TOF_ADDRESS) {
         // Initialize the sensor in auto mode
         Basic_Initialization_Auto_Mode();
         
-        // Try to read data to verify initialization
-        uint16_t testValue = Read_Proximity_Data();
+        // Try to read data to verify initialization (use raw reading since calibration not loaded yet)
+        uint16_t testValue = VCNL36828P_GET_PS_DATA(sensorAddress);
         
         // Check if the reading seems valid (this may need to be adjusted based on your sensor)
         if (testValue != 0xFFFF && testValue != 0) {  // Adjust these values based on what indicates failure
             isInitialized = true;
+            
+            // Load existing calibration or perform new calibration
+            loadCalibrationFromPreferences();
+            if (!isCalibrated) {
+                SerialQueueManager::getInstance().queueMessage("No calibration found - performing auto-calibration");
+                performCalibration();
+            }
+            
             return true;
         }
         
@@ -116,4 +106,104 @@ void SideTimeOfFlightSensor::Basic_Initialization_Auto_Mode() {
     
     //Delay needs to be changed depending on the API of the µ-controller
     vTaskDelay(pdMS_TO_TICKS(100));
+}
+
+void SideTimeOfFlightSensor::loadCalibrationFromPreferences() {
+    PreferencesManager& prefs = PreferencesManager::getInstance();
+    
+    if (prefs.hasSideTofCalibration(sensorAddress)) {
+        baselineValue = prefs.getSideTofBaseline(sensorAddress);
+        useHardwareCalibration = prefs.getSideTofUseHardwareCalibration(sensorAddress);
+        isCalibrated = true;
+        
+        char logMessage[128];
+        snprintf(logMessage, sizeof(logMessage), 
+                "Loaded calibration for sensor 0x%02X: baseline=%u, hw_calib=%s", 
+                sensorAddress, baselineValue, useHardwareCalibration ? "true" : "false");
+        SerialQueueManager::getInstance().queueMessage(logMessage);
+        
+        if (useHardwareCalibration) {
+            applyHardwareCalibration(baselineValue);
+        }
+    } else {
+        isCalibrated = false;
+        char logMessage[128];
+        snprintf(logMessage, sizeof(logMessage), 
+                "No stored calibration found for sensor 0x%02X", sensorAddress);
+        SerialQueueManager::getInstance().queueMessage(logMessage);
+    }
+}
+
+bool SideTimeOfFlightSensor::performCalibration() {
+    char logMessage[128];
+    snprintf(logMessage, sizeof(logMessage), "Calibrating sensor 0x%02X...", sensorAddress);
+    SerialQueueManager::getInstance().queueMessage(logMessage);
+    
+    SerialQueueManager::getInstance().queueMessage("Make sure no obstacles are in front of the sensors!");
+    vTaskDelay(pdMS_TO_TICKS(3000)); // Give time to clear obstacles
+    
+    uint16_t baseline = captureBaselineReading();
+    
+    snprintf(logMessage, sizeof(logMessage), "Baseline reading: %u", baseline);
+    SerialQueueManager::getInstance().queueMessage(logMessage);
+    
+    baselineValue = baseline;
+    
+    // Use hardware cancellation if baseline is within valid range (0-4095)
+    if (baseline <= 4095) {
+        useHardwareCalibration = true;
+        applyHardwareCalibration(baseline);
+        SerialQueueManager::getInstance().queueMessage("Using hardware calibration");
+    } else {
+        useHardwareCalibration = false;
+        VCNL36828P_SET_PS_CANC(sensorAddress, 0);  // Clear hardware cancellation
+        SerialQueueManager::getInstance().queueMessage("Using software calibration (baseline too high for hardware)");
+    }
+    
+    // Store calibration in NVS
+    PreferencesManager& prefs = PreferencesManager::getInstance();
+    prefs.storeSideTofCalibration(sensorAddress, baselineValue, useHardwareCalibration);
+    
+    isCalibrated = true;
+    
+    snprintf(logMessage, sizeof(logMessage), 
+            "Sensor 0x%02X calibrated successfully - baseline: %u", sensorAddress, baselineValue);
+    SerialQueueManager::getInstance().queueMessage(logMessage);
+    
+    return true;
+}
+
+uint16_t SideTimeOfFlightSensor::captureBaselineReading() {
+    const int numSamples = 10;
+    uint32_t sum = 0;
+    
+    // Take multiple readings and average them for better accuracy
+    for (int i = 0; i < numSamples; i++) {
+        uint16_t reading = VCNL36828P_GET_PS_DATA(sensorAddress);
+        sum += reading;
+        vTaskDelay(pdMS_TO_TICKS(100)); // Small delay between readings
+    }
+
+    return (uint16_t)(sum / numSamples);
+}
+
+void SideTimeOfFlightSensor::applyHardwareCalibration(uint16_t baseline) {
+    VCNL36828P_SET_PS_CANC(sensorAddress, baseline);
+}
+
+uint16_t SideTimeOfFlightSensor::applyCalibration(uint16_t rawReading) {
+    if (!isCalibrated) return rawReading; // Return raw reading if not calibrated
+    
+    // If using hardware calibration, the reading is already calibrated
+    if (useHardwareCalibration) {
+        return rawReading;
+    }
+    
+    // Apply software calibration (subtract baseline)
+    int32_t calibratedReading = (int32_t)rawReading - (int32_t)baselineValue;
+    if (calibratedReading < 0) {
+        calibratedReading = 0;
+    }
+    
+    return (uint16_t)calibratedReading;
 }

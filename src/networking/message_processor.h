@@ -17,15 +17,16 @@
 #include "sensors/sensor_data_buffer.h"
 #include "actuators/led/led_animations.h"
 #include "networking/serial_queue_manager.h"
-#include "networking/network_state_mangager.h"
+#include "networking/network_state_manager.h"
 
 class MessageProcessor : public Singleton<MessageProcessor> {
     friend class Singleton<MessageProcessor>;
 
     public:
-        void processPendingCommands();
-        MessageProcessor() = default; // Keep the constructor for any additional initialization
+        void processBinaryMessage(const uint8_t* data, uint16_t length);
 
+    private:
+        MessageProcessor() = default;
         // Method declarations
         void handleMotorControl(const uint8_t* data);
         void handleBalanceCommand(BalanceStatus enableBalancing);
@@ -35,29 +36,4 @@ class MessageProcessor : public Singleton<MessageProcessor> {
         void handleGetSavedWiFiNetworks();
         void handleSoftScanWiFiNetworks();
         void handleHardScanWiFiNetworks();
-
-        void processBinaryMessage(const uint8_t* data, uint16_t length);
-        void resetCommandState();
-
-    private:
-        void updateMotorSpeeds(int16_t leftSpeed, int16_t rightSpeed);
-        void executeCommand(int16_t leftSpeed, int16_t rightSpeed);
-
-        // Member variables with in-class initialization
-        bool isExecutingCommand = false;
-        int16_t currentLeftSpeed = 0;
-        int16_t currentRightSpeed = 0;
-        int64_t startLeftCount = 0;
-        int64_t startRightCount = 0;
-
-        unsigned long commandStartTime = 0;
-        static constexpr unsigned long COMMAND_TIMEOUT_MS = 1000; // 1 second timeout
-    
-        // Next command (if any)
-        bool hasNextCommand = false;
-        int16_t nextLeftSpeed = 0;
-        int16_t nextRightSpeed = 0;
-
-        // Constants
-        static constexpr uint8_t MIN_ENCODER_PULSES = 10;
 };

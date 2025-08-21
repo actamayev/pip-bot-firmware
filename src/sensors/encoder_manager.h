@@ -1,54 +1,56 @@
-// #pragma once
-// #include <Arduino.h>
-// #include <ESP32Encoder.h>
-// #include <freertos/FreeRTOS.h>
-// #include <freertos/semphr.h>  // ADD this for mutex
-// #include "utils/structs.h"
-// #include "actuators/motor_driver.h"
-// #include "networking/wifi_manager.h"
-// #include "wifi_selection/wifi_selection_manager.h"
-// #include "wifi_selection/haptic_feedback_manager.h"
+#pragma once
+#include <Arduino.h>
+#include <ESP32Encoder.h>
+#include <freertos/FreeRTOS.h>
+#include <freertos/semphr.h>  // ADD this for mutex
+#include "utils/structs.h"
+#include "networking/wifi_manager.h"
+#include "sensor_data_buffer.h"
 
-// class EncoderManager {
-//     friend class MessageProcessor;  // Allows MessageProcessor to access private members
-//     friend class WifiSelectionManager;  // Allows WifiSelectionManager to access private members
+// Forward declarations
+class MotorDriver;
 
-//     public:
-//         // Constructor
-//         EncoderManager();
+class EncoderManager : public Singleton<EncoderManager> {
+    friend class Singleton<EncoderManager>;
+    friend class MessageProcessor;  // Allows MessageProcessor to access private members
+    friend class MotorDriver;       // Allows MotorDriver to access private members
+    friend class TaskManager;       // Allows TaskManager to access private methods
+    friend class SensorInitializer;       // Allows TaskManager to access private methods
+    
+    private:
+        // Constructor
+        EncoderManager();
 
-//         WheelRPMs getBothWheelRPMs();
-
-//         void resetDistanceTracking();
-//         float getDistanceTraveledCm();
-
-//     private:
-//         // ESP32Encoder objects
-//         ESP32Encoder _leftEncoder;
-//         ESP32Encoder _rightEncoder;
+        // Standard sensor interface methods
+        bool initialize();
+        // ESP32Encoder objects
+        ESP32Encoder _leftEncoder;
+        ESP32Encoder _rightEncoder;
         
-//         float _leftWheelRPM;
-//         float _rightWheelRPM;
+        float _leftWheelRPM;
+        float _rightWheelRPM;
+        bool isInitialized = false;
 
-//         // Timing
-//         unsigned long _lastUpdateTime;
-
-//         // Constants for calculations
-//         static constexpr float GEAR_RATIO = 297.924;
-//         static constexpr uint8_t ENCODER_CPR = 3;
-//         static constexpr unsigned long RPM_CALC_INTERVAL = 20; // ms
-
-//         // Update speed calculations - call this periodically
-//         void update();
-
-//         int64_t _leftEncoderStartCount;
-//         int64_t _rightEncoderStartCount;
+        // Timing
+        unsigned long _lastUpdateTime;
         
-//         // Wheel physical properties
-//         static constexpr float WHEEL_DIAMETER_CM = 3.9; // Replace with actual wheel diameter
-//         static constexpr float WHEEL_CIRCUMFERENCE_CM = WHEEL_DIAMETER_CM * PI;
+        // Standard sensor interface methods (for TaskManager)
+        void updateSensorData();  // Single read, write to buffer
+        bool shouldBePolling() const;
 
-//         SemaphoreHandle_t encoderMutex = nullptr;
-// };
+        // Constants for calculations
+        static constexpr float GEAR_RATIO = 297.924;
+        static constexpr uint8_t ENCODER_CPR = 3;
+        static constexpr unsigned long RPM_CALC_INTERVAL = 20; // ms
 
-// extern EncoderManager encoderManager;
+        // Internal update method (now private - called by updateSensorData)
+        void update();
+
+        int64_t _leftEncoderStartCount;
+        int64_t _rightEncoderStartCount;
+        
+        // Wheel physical properties
+        static constexpr float WHEEL_DIAMETER_CM = 3.9; // Replace with actual wheel diameter
+        static constexpr float WHEEL_CIRCUMFERENCE_CM = WHEEL_DIAMETER_CM * PI;
+        static constexpr int MUTEX_REFRESH_FREQUENCY_MS = 5; // Replace with actual wheel diameter
+};

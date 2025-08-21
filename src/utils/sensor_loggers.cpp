@@ -110,18 +110,18 @@ void setupButtonLoggers() {
     });
 }
 
-// void log_motor_rpm() {
-//     static unsigned long lastPrintTime = 0;
-//     const unsigned long PRINT_INTERVAL = 500;
+void log_motor_rpm() {
+    static unsigned long lastPrintTime = 0;
+    const unsigned long PRINT_INTERVAL = 500;
     
-//     if (millis() - lastPrintTime < PRINT_INTERVAL) return;
+    if (millis() - lastPrintTime < PRINT_INTERVAL) return;
 
-//     auto rpms = encoderManager.getBothWheelRPMs();
+    auto rpms = SensorDataBuffer::getInstance().getLatestWheelRPMs();
 
-//     char buffer[128];
-//     snprintf(buffer, sizeof(buffer), "Motor RPM - Left: %.2f || Right: %.2f", 
-//              rpms.leftWheelRPM, rpms.rightWheelRPM);
-//     SerialQueueManager::getInstance().queueMessage(buffer);
+    char buffer[128];
+    snprintf(buffer, sizeof(buffer), "Motor RPM - Left: %.2f || Right: %.2f", 
+             rpms.leftWheelRPM, rpms.rightWheelRPM);
+    SerialQueueManager::getInstance().queueMessage(buffer);
     
-//     lastPrintTime = millis();
-// }
+    lastPrintTime = millis();
+}

@@ -1,24 +1,6 @@
 #include "multizone_tof_sensor.h"
 
-bool MultizoneTofSensor::canRetryInitialization() const {
-    if (isInitialized) return false;
-
-    unsigned long currentTime = millis();
-    if (currentTime - lastInitAttempt < INIT_RETRY_INTERVAL) {
-        return false; // Too soon to retry
-    }
-
-    if (initRetryCount >= MAX_INIT_RETRIES) {
-        return false; // Too many retries
-    }
-
-    return true;
-}
-
-bool MultizoneTofSensor::initialize() {
-    lastInitAttempt = millis();
-    initRetryCount++;
-    
+bool MultizoneTofSensor::initialize() {    
     // Add a delay before trying to initialize
     vTaskDelay(pdMS_TO_TICKS(50));
     
@@ -50,7 +32,9 @@ bool MultizoneTofSensor::shouldBePolling() const {
     if (!isInitialized) return false;
     
     ReportTimeouts& timeouts = SensorDataBuffer::getInstance().getReportTimeouts();
-    return timeouts.shouldEnableTof();
+    // Continue polling if we should be enabled OR if sensor is currently enabled
+    // (to allow proper cleanup when timeout expires)
+    return timeouts.shouldEnableTof() || sensorEnabled;
 }
 
 void MultizoneTofSensor::updateSensorData() {
@@ -293,8 +277,6 @@ void MultizoneTofSensor::turnOffSensor() {
     sensorActive = false;
     sensorEnabled = false;
     isInitialized = false;
-    initRetryCount = 0;
-    lastInitAttempt = 0;
     
     initializePointHistories();
 }
