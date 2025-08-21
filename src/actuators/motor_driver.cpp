@@ -246,22 +246,25 @@ void MotorDriver::processPendingCommands() {
 }
 
 void MotorDriver::resetCommandState(bool absoluteBrake) {
+    // Clear all command state first to prevent any queued commands from executing
+    _targetLeftPwm = 0;
+    _targetRightPwm = 0;
+    _actualLeftPwm = 0;
+    _actualRightPwm = 0;
+    isExecutingCommand = false;
+    _commandLeftPwm = 0;
+    _commandRightPwm = 0;
+    startLeftCount = 0;
+    startRightCount = 0;
+    commandStartTime = 0;
+    hasNextCommand = false;
+    nextLeftPwm = 0;
+    nextRightPwm = 0;
+    
+    // Apply brakes after clearing state
     if (absoluteBrake) {
         motorDriver.brake_both_motors();
     } else {
         motorDriver.brake_if_moving();
     }
-    isExecutingCommand = false;
-    hasNextCommand = false;
-    _commandLeftPwm = 0;
-    _commandRightPwm = 0;
-    _targetLeftPwm = 0;
-    _targetRightPwm = 0;
-    _actualLeftPwm = 0;
-    _actualRightPwm = 0;
-    nextLeftPwm = 0;
-    nextRightPwm = 0;
-    startLeftCount = 0;
-    startRightCount = 0;
-    commandStartTime = 0;
 }

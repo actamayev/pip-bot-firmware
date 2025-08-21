@@ -496,7 +496,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
         }
         
         case OP_MOTOR_STOP: {
-            motorDriver.resetCommandState();
+            motorDriver.resetCommandState(true);
             break;
         }
         
@@ -646,7 +646,7 @@ void BytecodeVM::updateTimedMotorMovement() {
     // Check if the timed movement has completed
     if (millis() < motorMovementEndTime) return;
     // Movement complete - brake motors
-    motorDriver.brake_both_motors();
+    motorDriver.resetCommandState(true);
 
     // Reset timed movement state
     timedMotorMovementInProgress = false;
@@ -660,7 +660,7 @@ void BytecodeVM::updateDistanceMovement() {
     // // Check if we've reached or exceeded the target distance
     if (currentDistance < targetDistanceCm) return;
     // Distance reached - brake motors
-    motorDriver.brake_both_motors();
+    motorDriver.resetCommandState(true);
     
     // Reset distance movement state
     distanceMovementInProgress = false;
@@ -668,9 +668,6 @@ void BytecodeVM::updateDistanceMovement() {
 
 void BytecodeVM::stopProgram() {
     resetStateVariables(true);
-    motorDriver.resetCommandState();
-
-    stoppedDueToUsbSafety = false; // Reset safety flag when manually stopping
 
     Speaker::getInstance().setMuted(true);
     rgbLed.turn_all_leds_off();
@@ -697,7 +694,7 @@ void BytecodeVM::resetStateVariables(bool isFullReset) {
     // Note: Don't reset programContainsMotors or lastUsbState here as they persist across pause/resume
 
     // Force reset motor driver state completely
-    motorDriver.resetCommandState();
+    motorDriver.resetCommandState(false);
 
     // Reset registers
     for (uint16_t i = 0; i < MAX_REGISTERS; i++) {
@@ -724,21 +721,10 @@ void BytecodeVM::resetStateVariables(bool isFullReset) {
     }
 }
 
-void BytecodeVM::togglePause() {
-    if (!program || isPaused == PROGRAM_NOT_STARTED) {
-        SerialQueueManager::getInstance().queueMessage("togglePause: No program loaded");
-        return;
-    }
-    
-    if (isPaused == PAUSED) resumeProgram();
-    else pauseProgram();
-}
-
 void BytecodeVM::pauseProgram() {
     if (!program || isPaused == PAUSED) return;
-    
+
     resetStateVariables();
-    motorDriver.resetCommandState();
 
     Speaker::getInstance().setMuted(true);
     rgbLed.turn_all_leds_off();     
@@ -751,7 +737,7 @@ void BytecodeVM::resumeProgram() {
         SerialQueueManager::getInstance().queueMessage("resumeProgram: Not paused or no program");
         return;
     }
-    // canStartProgram() already logs the reason
+
     if (!canStartProgram()) return;
 
     isPaused = RUNNING;
