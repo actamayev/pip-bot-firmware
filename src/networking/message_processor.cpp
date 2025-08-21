@@ -259,7 +259,7 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
         case DataMessageType::SERIAL_END: {
             rgbLed.turn_all_leds_off();
             SerialManager::getInstance().isConnected = false;
-            // Don't stop polling here. Users will frequently connect and disconnect
+            SensorDataBuffer::getInstance().stopPollingAllSensors();
             break;
         }
         case DataMessageType::UPDATE_HEADLIGHTS: {
@@ -273,10 +273,6 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
                     rgbLed.turn_headlights_off();
                 }
             }
-            break;
-        }
-        case DataMessageType::START_SENSOR_POLLING: {
-            SensorDataBuffer::getInstance().startPollingAllSensors();
             break;
         }
         case DataMessageType::WIFI_CREDENTIALS: {

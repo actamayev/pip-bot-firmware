@@ -54,13 +54,15 @@ bool ColorSensor::shouldBePolling() const {
     if (!isInitialized) return false;
     
     ReportTimeouts& timeouts = SensorDataBuffer::getInstance().getReportTimeouts();
-    return timeouts.shouldEnableColor();
+    // Continue polling if we should be enabled OR if sensor is currently enabled
+    // (to allow proper cleanup when timeout expires)
+    return timeouts.shouldEnableColor() || sensorEnabled;
 }
 
 void ColorSensor::updateSensorData() {
     if (!isInitialized) return;
 
-    // Check if we should enable/disable the sensor based on timeouts
+    // Check if we should enable/disable the sensor based on timeouts (ALWAYS check this first)
     ReportTimeouts& timeouts = SensorDataBuffer::getInstance().getReportTimeouts();
     bool shouldEnable = timeouts.shouldEnableColor();
     
@@ -73,7 +75,7 @@ void ColorSensor::updateSensorData() {
     
     if (!sensorEnabled || !sensorConnected) return; // Skip if sensor not enabled or connected
     
-    // Rate limiting - only read if enough time has passed
+    // Rate limiting - only read if enough time has passed (but timeout check happens above)
     unsigned long currentTime = millis();
     if (currentTime - lastUpdateTime < DELAY_BETWEEN_READINGS) {
         return;
@@ -112,7 +114,7 @@ void ColorSensor::disableColorSensor() {
     analogWrite(COLOR_SENSOR_LED_PIN, 0);
     
     sensorEnabled = false;
-    SerialQueueManager::getInstance().queueMessage("Color sensor disabled due to timeout");
+    SerialQueueManager::getInstance().queueMessage("Color sensor LED turned OFF - disabled due to timeout");
 }
 
 void ColorSensor::precompute_inverse_matrix() {
