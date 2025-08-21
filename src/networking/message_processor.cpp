@@ -208,14 +208,7 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             uint16_t bytecodeLength = length - 1;
 
             // Execute the bytecode
-            bool success = BytecodeVM::getInstance().loadProgram(bytecodeData, bytecodeLength);
-
-            // Send response
-            if (success) {
-                SendDataToServer::getInstance().sendBytecodeMessage("Bytecode successfully loaded");
-            } else {
-                SendDataToServer::getInstance().sendBytecodeMessage("Error loading bytecode: invalid format!");
-            }
+            BytecodeVM::getInstance().loadProgram(bytecodeData, bytecodeLength);
             break;
         }
         case DataMessageType::STOP_SANDBOX_CODE: {

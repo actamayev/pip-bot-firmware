@@ -97,20 +97,3 @@ void SendDataToServer::sendSensorDataToServer() {
 
     lastSendTime = currentTime;
 }
-
-void SendDataToServer::sendBytecodeMessage(String message) {
-    StaticJsonDocument<256> doc;
-
-    // Add routing information
-    doc["route"] = routeToString(RouteType::BYTECODE_STATUS);
-
-    JsonObject payload = doc.createNestedObject("payload");
-
-    payload["message"] = message;
-    // Serialize and send
-    String jsonString;
-    serializeJson(doc, jsonString);
-
-    // Send the JSON string to the WebSocket
-    WebSocketManager::getInstance().wsClient.send(jsonString);
-}

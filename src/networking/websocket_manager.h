@@ -16,12 +16,11 @@ using namespace websockets;
 
 class WebSocketManager : public Singleton<WebSocketManager> {
     friend class Singleton<WebSocketManager>;
+    friend class SendDataToServer;
 
     public:
         void connectToWebSocket();
         void pollWebSocket();
-
-        websockets::WebsocketsClient wsClient;
 
         bool isConnected() const { return wsConnected; }
         void sendBatteryMonitorData();
@@ -31,6 +30,7 @@ class WebSocketManager : public Singleton<WebSocketManager> {
         // Make constructor private for singleton
         WebSocketManager();
 
+        websockets::WebsocketsClient wsClient;
         void handleBinaryMessage(WebsocketsMessage message);
         void sendInitialData();
 

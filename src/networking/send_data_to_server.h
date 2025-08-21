@@ -12,10 +12,7 @@
 
 class SendDataToServer : public Singleton<SendDataToServer> {
     friend class Singleton<SendDataToServer>;
-
-    public:
-        void sendSensorDataToServer();
-        void sendBytecodeMessage(String message);
+    friend class TaskManager;
 
     private:
         SendDataToServer() = default;
@@ -24,6 +21,7 @@ class SendDataToServer : public Singleton<SendDataToServer> {
         void attachIRData(JsonObject& payload);
         void attachColorSensorData(JsonObject& payload);
         void attachImuData(JsonObject& payload);
+        void sendSensorDataToServer();
 
         unsigned long lastSendTime = 0;
         const unsigned long SEND_INTERVAL = 50; // Poll every 50ms for more responsive data
