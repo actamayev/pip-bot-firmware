@@ -37,7 +37,6 @@ bool ColorSensor::initialize() {
             Veml3328.setIntTime(time_50);
             Veml3328.setGain(gain_x1);
             Veml3328.setSensitivity(false);
-            analogWrite(COLOR_SENSOR_LED_PIN, 155);
             
             sensorConnected = true;
             isInitialized = true;
@@ -99,12 +98,18 @@ void ColorSensor::updateSensorData() {
 void ColorSensor::enableColorSensor() {
     if (!isInitialized || sensorEnabled) return;
     
+    // Turn on LED for color sensor readings
+    analogWrite(COLOR_SENSOR_LED_PIN, 155);
+    
     sensorEnabled = true;
     SerialQueueManager::getInstance().queueMessage("Color sensor enabled");
 }
 
 void ColorSensor::disableColorSensor() {
     if (!sensorEnabled) return;
+    
+    // Turn off LED to save power
+    analogWrite(COLOR_SENSOR_LED_PIN, 0);
     
     sensorEnabled = false;
     SerialQueueManager::getInstance().queueMessage("Color sensor disabled due to timeout");

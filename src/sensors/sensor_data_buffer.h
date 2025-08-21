@@ -143,7 +143,7 @@ struct ReportTimeouts {
     std::atomic<uint32_t> ir_last_request{0};  // Add IR sensor timeout tracking
     std::atomic<uint32_t> encoder_last_request{0};  // Add encoder timeout tracking
 
-    static constexpr uint32_t TIMEOUT_MS = 60000; // 1 minute
+    static constexpr uint32_t TIMEOUT_MS = 10000; // 1 minute
     
     bool shouldEnableQuaternion() const {
         return (millis() - quaternion_last_request.load()) < TIMEOUT_MS;

@@ -11,9 +11,8 @@ IrSensor::IrSensor() {
     pinMode(PIN_MUX_OUT, INPUT);
     analogReadResolution(12);
     
-    // Configure and enable IR sensor
+    // Configure IR sensor enable pin
     pinMode(PIN_IR_EN, OUTPUT);
-    analogWrite(PIN_IR_EN, 200); // 51/255 = 20% duty cycle
 }
 
 void IrSensor::read_ir_sensor() {
@@ -78,12 +77,18 @@ void IrSensor::updateSensorData() {
 void IrSensor::enableIrSensor() {
     if (sensorEnabled) return;
     
+    // Turn on IR LEDs for readings
+    analogWrite(PIN_IR_EN, 200); // 200/255 ≈ 78% duty cycle
+    
     sensorEnabled = true;
     SerialQueueManager::getInstance().queueMessage("IR sensors enabled");
 }
 
 void IrSensor::disableIrSensor() {
     if (!sensorEnabled) return;
+    
+    // Turn off IR LEDs to save power
+    analogWrite(PIN_IR_EN, 0);
     
     sensorEnabled = false;
     SerialQueueManager::getInstance().queueMessage("IR sensors disabled due to timeout");

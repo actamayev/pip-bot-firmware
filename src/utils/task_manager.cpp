@@ -86,7 +86,7 @@ void TaskManager::imuSensorTask(void* parameter) {
         if (ImuSensor::getInstance().shouldBePolling()) {
             ImuSensor::getInstance().updateSensorData();
         }
-        vTaskDelay(pdMS_TO_TICKS(5));  // 500Hz - critical for motion control
+        vTaskDelay(pdMS_TO_TICKS(5));  // 200Hz - critical for motion control
     }
 }
 
@@ -137,7 +137,7 @@ void TaskManager::sideTofSensorTask(void* parameter) {
         if (SideTofManager::getInstance().shouldBePolling()) {
             SideTofManager::getInstance().updateSensorData();
         }
-        vTaskDelay(pdMS_TO_TICKS(10));  // 100Hz - moderate processing
+        vTaskDelay(pdMS_TO_TICKS(25));  // 40Hz - moderate processing
     }
 }
 
@@ -158,7 +158,7 @@ void TaskManager::colorSensorTask(void* parameter) {
         if (ColorSensor::getInstance().shouldBePolling()) {
             ColorSensor::getInstance().updateSensorData();
         }
-        vTaskDelay(pdMS_TO_TICKS(20));  // 50Hz - light processing
+        vTaskDelay(pdMS_TO_TICKS(25));  // 50Hz - light processing
     }
 }
 
@@ -174,7 +174,7 @@ void TaskManager::irSensorTask(void* parameter) {
         if (IrSensor::getInstance().shouldBePolling()) {
             IrSensor::getInstance().updateSensorData();
         }
-        vTaskDelay(pdMS_TO_TICKS(10));  // 100Hz - moderate processing (5 sensors)
+        vTaskDelay(pdMS_TO_TICKS(25));  // 100Hz - moderate processing (5 sensors)
     }
 }
 
