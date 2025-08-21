@@ -10,32 +10,23 @@
 
 class SensorInitializer : public Singleton<SensorInitializer> {
     friend class Singleton<SensorInitializer>;
+    friend class TaskManager;
 
-    public:
+    private:
+        SensorInitializer();
+    
         enum SensorType {
             MULTIZONE_TOF,
             IMU,
-            SIDE_TOFS,        // Added side TOF support
             COLOR_SENSOR,
             // Add more sensors as needed
             SENSOR_COUNT
         };
 
-        bool tryInitializeMultizoneTof();
-        bool tryInitializeIMU();
-        bool tryInitializeSideTofs();      // Added side TOF method
-        bool tryInitializeColorSensor();  // Added color sensor method
-
         bool isSensorInitialized(SensorType sensor) const;
-        bool areAllSensorsInitialized() const;
-
-    private:
-        SensorInitializer();
-        
         void initializeMultizoneTof();
         void initializeIMU();
-        void initializeSideTofs();         // Added side TOF initialization
         void initializeColorSensor();
-        
+
         bool sensorInitialized[SENSOR_COUNT];
 };

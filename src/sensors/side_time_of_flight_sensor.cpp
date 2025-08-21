@@ -1,24 +1,6 @@
 #include "side_time_of_flight_sensor.h"
 
-bool SideTimeOfFlightSensor::canRetryInitialization() const {
-    if (isInitialized) return false;
-
-    unsigned long currentTime = millis();
-    if (currentTime - lastInitAttempt < INIT_RETRY_INTERVAL) {
-        return false; // Too soon to retry
-    }
-
-    if (initRetryCount >= MAX_INIT_RETRIES) {
-        return false; // Too many retries
-    }
-
-    return true;
-}
-
 bool SideTimeOfFlightSensor::initialize(const uint8_t TOF_ADDRESS) {
-    lastInitAttempt = millis();
-    initRetryCount++;
-    
     // Save the sensor address to the class member variable
     sensorAddress = TOF_ADDRESS;
     

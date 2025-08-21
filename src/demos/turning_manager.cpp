@@ -271,7 +271,6 @@ void TurningManager::startTurnMotors() {
     setTurnSpeed(speed);
 }
 
-// TODO 8/18/25: Consider setting the speeds directly (don't go through the _targetLeftSpeed/_targetRightSpeed)
 void TurningManager::setTurnSpeed(uint8_t speed) {
     if (currentDirection == TurningDirection::CLOCKWISE) {
         motorDriver.set_motor_speeds(speed, -speed, false); // Right turn

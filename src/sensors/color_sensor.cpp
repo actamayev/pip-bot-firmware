@@ -1,25 +1,8 @@
 #include "utils/config.h"
 #include "color_sensor.h"
 
-bool ColorSensor::canRetryInitialization() const {
-    if (isInitialized) return false;
-
-    unsigned long currentTime = millis();
-    if (currentTime - lastInitAttempt < INIT_RETRY_INTERVAL) {
-        return false; // Too soon to retry
-    }
-
-    if (initRetryCount >= MAX_INIT_RETRIES) {
-        return false; // Too many retries
-    }
-
-    return true;
-}
-
 bool ColorSensor::initialize() {
     precompute_inverse_matrix();
-    lastInitAttempt = millis();
-    initRetryCount++;
     
     pinMode(COLOR_SENSOR_LED_PIN, OUTPUT);
     

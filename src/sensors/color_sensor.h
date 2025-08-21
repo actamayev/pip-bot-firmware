@@ -13,8 +13,6 @@ class ColorSensor : public Singleton<ColorSensor> {
     private:
         ColorSensor() = default;
         bool initialize();
-        bool canRetryInitialization() const;
-        bool needsInitialization() const { return !isInitialized; }
         void read_color_sensor();
         void precompute_inverse_matrix();
         void enableColorSensor();
@@ -23,12 +21,6 @@ class ColorSensor : public Singleton<ColorSensor> {
         bool isInitialized = false;
         bool sensorConnected = false;
         bool sensorEnabled = false;  // Track if sensor is actively enabled
-        
-        // Initialization retry variables
-        unsigned long lastInitAttempt = 0;
-        unsigned int initRetryCount = 0;
-        static const unsigned int MAX_INIT_RETRIES = 5;
-        static const unsigned long INIT_RETRY_INTERVAL = 1000; // 1 second between retries
 
         bool isCalibrated = true;
         const float scaleFactor = 128.0;

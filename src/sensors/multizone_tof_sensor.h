@@ -22,11 +22,7 @@ class MultizoneTofSensor : public Singleton<MultizoneTofSensor> {
             : sensor(&Wire, -1, -1) {}
 
         bool initialize();
-        bool canRetryInitialization() const;
 
-        unsigned int getInitRetryCount() const { return initRetryCount; }
-        unsigned int getMaxInitRetries() const { return MAX_INIT_RETRIES; }
-        bool needsInitialization() const { return !isInitialized; }
         void turnOffSensor();
         VL53L7CX sensor;
         bool configureSensor();
@@ -40,10 +36,6 @@ class MultizoneTofSensor : public Singleton<MultizoneTofSensor> {
         
         bool isInitialized = false;
         bool sensorEnabled = false;  // Track if sensor is actively enabled
-        unsigned long lastInitAttempt = 0;
-        unsigned int initRetryCount = 0;
-        static const unsigned int MAX_INIT_RETRIES = 5;
-        static const unsigned long INIT_RETRY_INTERVAL = 1000; // 1 second between retries
 
         // Point history tracking for obstacle detection
         void initializePointHistories();

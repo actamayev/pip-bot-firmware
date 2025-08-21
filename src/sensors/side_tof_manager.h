@@ -16,8 +16,6 @@ class SideTofManager : public Singleton<SideTofManager> {
 
         // Following the established buffer pattern
         bool initialize();
-        bool canRetryInitialization() const;
-        bool needsInitialization() const;
         
         void turnOffSideTofs();
         SideTofManager() = default;

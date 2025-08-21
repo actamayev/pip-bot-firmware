@@ -23,8 +23,6 @@ class EncoderManager : public Singleton<EncoderManager> {
 
         // Standard sensor interface methods
         bool initialize();
-        bool needsInitialization() const { return !isInitialized; }
-        bool canRetryInitialization() const { return true; }  // Encoders can always retry
         // ESP32Encoder objects
         ESP32Encoder _leftEncoder;
         ESP32Encoder _rightEncoder;
