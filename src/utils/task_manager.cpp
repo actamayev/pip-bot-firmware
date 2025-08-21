@@ -101,8 +101,8 @@ void TaskManager::encoderSensorTask(void* parameter) {
     
     // Main polling loop
     for(;;) {
-        if (encoderManager.shouldBePolling()) {
-            encoderManager.updateSensorData();
+        if (EncoderManager::getInstance().shouldBePolling()) {
+            EncoderManager::getInstance().updateSensorData();
         }
         vTaskDelay(pdMS_TO_TICKS(20));  // 50Hz - good balance for encoder data
     }

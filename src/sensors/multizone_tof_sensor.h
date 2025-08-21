@@ -14,8 +14,9 @@
 class MultizoneTofSensor : public Singleton<MultizoneTofSensor> {
     friend class Singleton<MultizoneTofSensor>;
     friend class TaskManager;
-
-    public:
+    friend class SensorInitializer;
+    
+    private:
         // Constructor that takes TwoWire instance and optional pin parameters
         MultizoneTofSensor() 
             : sensor(&Wire, -1, -1) {}
@@ -27,8 +28,6 @@ class MultizoneTofSensor : public Singleton<MultizoneTofSensor> {
         unsigned int getMaxInitRetries() const { return MAX_INIT_RETRIES; }
         bool needsInitialization() const { return !isInitialized; }
         void turnOffSensor();
-
-    private:
         VL53L7CX sensor;
         bool configureSensor();
         bool resetSensor();

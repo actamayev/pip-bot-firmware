@@ -10,12 +10,14 @@
 // Forward declarations
 class MotorDriver;
 
-class EncoderManager {
+class EncoderManager : public Singleton<EncoderManager> {
+    friend class Singleton<EncoderManager>;
     friend class MessageProcessor;  // Allows MessageProcessor to access private members
     friend class MotorDriver;       // Allows MotorDriver to access private members
     friend class TaskManager;       // Allows TaskManager to access private methods
-
-    public:
+    friend class SensorInitializer;       // Allows TaskManager to access private methods
+    
+    private:
         // Constructor
         EncoderManager();
 
@@ -23,8 +25,6 @@ class EncoderManager {
         bool initialize();
         bool needsInitialization() const { return !isInitialized; }
         bool canRetryInitialization() const { return true; }  // Encoders can always retry
-
-    private:
         // ESP32Encoder objects
         ESP32Encoder _leftEncoder;
         ESP32Encoder _rightEncoder;
@@ -58,5 +58,3 @@ class EncoderManager {
 
         SemaphoreHandle_t encoderMutex = nullptr;
 };
-
-extern EncoderManager encoderManager;

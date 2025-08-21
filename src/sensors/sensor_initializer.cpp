@@ -61,7 +61,7 @@ void SensorInitializer::initializeIMU() {
 }
 
 void SensorInitializer::initializeEncoder() {
-    if (!encoderManager.initialize()) {
+    if (!EncoderManager::getInstance().initialize()) {
         SerialQueueManager::getInstance().queueMessage("Encoder Manager initialization failed");
         return;
     }
@@ -152,17 +152,17 @@ bool SensorInitializer::tryInitializeIMU() {
 }
 
 bool SensorInitializer::tryInitializeEncoder() {
-    if (!encoderManager.needsInitialization()) {
+    if (!EncoderManager::getInstance().needsInitialization()) {
         sensorInitialized[ENCODER] = true;
         return true; // Already initialized
     }
     
-    if (!encoderManager.canRetryInitialization()) {
+    if (!EncoderManager::getInstance().canRetryInitialization()) {
         return false; // Can't retry yet (though encoders always can retry)
     }
     
     SerialQueueManager::getInstance().queueMessage("Retrying Encoder Manager initialization...");
-    bool success = encoderManager.initialize();
+    bool success = EncoderManager::getInstance().initialize();
     
     if (success) {
         SerialQueueManager::getInstance().queueMessage("Encoder Manager retry initialization successful!");

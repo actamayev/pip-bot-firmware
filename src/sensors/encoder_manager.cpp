@@ -1,8 +1,6 @@
 #include "utils/config.h"
 #include "encoder_manager.h"
 
-EncoderManager encoderManager;
-
 EncoderManager::EncoderManager() {
     encoderMutex = xSemaphoreCreateMutex();
     _leftWheelRPM = 0;

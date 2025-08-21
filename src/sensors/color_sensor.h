@@ -8,13 +8,12 @@
 class ColorSensor : public Singleton<ColorSensor> {
     friend class Singleton<ColorSensor>;
     friend class TaskManager;
-
-    public:
+    friend class SensorInitializer;
+    
+    private:
         bool initialize();
         bool canRetryInitialization() const;
         bool needsInitialization() const { return !isInitialized; }
-
-    private:
         ColorSensor() = default;
         void read_color_sensor();
         void precompute_inverse_matrix();

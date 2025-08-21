@@ -9,8 +9,10 @@
 class ImuSensor : public Singleton<ImuSensor> {
     friend class Singleton<ImuSensor>;
     friend class TaskManager;
+    friend class SensorInitializer;
 
-    public:
+    private:
+        ImuSensor() = default;
         bool initialize();
 
         bool needsInitialization() const { return !isInitialized; }
@@ -19,9 +21,6 @@ class ImuSensor : public Singleton<ImuSensor> {
         uint8_t getInitRetryCount() const { return initRetryCount; }
         uint8_t getMaxInitRetries() const { return MAX_INIT_RETRIES; }
         void turnOff();
-
-    private:
-        ImuSensor() = default;
         Adafruit_BNO08x imu;
         sh2_SensorValue_t sensorValue;
         bool isInitialized = false;

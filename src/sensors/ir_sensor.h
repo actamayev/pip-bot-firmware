@@ -8,10 +8,8 @@ class IrSensor : public Singleton<IrSensor> {
     friend class Singleton<IrSensor>;
     friend class TaskManager;
 
-    public:
-        IrSensor();
-
     private:
+        IrSensor();
         void read_ir_sensor();
         void setMuxChannel(bool A0, bool A1, bool A2);
 
