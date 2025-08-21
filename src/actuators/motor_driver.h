@@ -22,7 +22,7 @@ class MotorDriver {
 
         // Motor command processing functions
         void updateMotorPwm(int16_t leftPwm, int16_t rightPwm);
-        void resetCommandState();
+        void resetCommandState(bool absoluteBrake);
 
     private:
         int16_t _targetLeftPwm = 0;

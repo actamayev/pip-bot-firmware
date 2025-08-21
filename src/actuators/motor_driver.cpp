@@ -245,8 +245,12 @@ void MotorDriver::processPendingCommands() {
     }
 }
 
-void MotorDriver::resetCommandState() {
-    brake_if_moving();
+void MotorDriver::resetCommandState(bool absoluteBrake) {
+    if (absoluteBrake) {
+        motorDriver.brake_both_motors();
+    } else {
+        motorDriver.brake_if_moving();
+    }
     isExecutingCommand = false;
     hasNextCommand = false;
     _commandLeftPwm = 0;
