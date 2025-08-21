@@ -12,22 +12,23 @@
 
 class Speaker : public Singleton<Speaker> {
     friend class Singleton<Speaker>;
-    
+    friend class MessageProcessor;
+    friend class TaskManager;
+
     public:
-        bool initialize();
         void setMuted(bool muted);
-        bool isMuted() const { return muted; }
+
+    private:
+        Speaker() = default;
+        ~Speaker();
+    
+        bool initialize();
         
         // New methods for flexibility
         void playFile(SoundType file);
         void setVolume(float volume); // 0.0 to 4.0
 
         void update(); // Call this periodically to keep audio playing
-
-    private:
-        Speaker() = default;
-        ~Speaker();
-        
         bool muted = false;
         bool initialized = false;
         float currentVolume = 3.9f;

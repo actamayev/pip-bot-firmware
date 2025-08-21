@@ -9,7 +9,7 @@
 #include "websocket_manager.h"
 #include "serial_queue_manager.h"
 #include "actuators/led/rgb_led.h"
-#include "network_state_mangager.h"
+#include "network_state_manager.h"
 #include "sensors/encoder_manager.h"
 #include "wifi_selection/wifi_selection_manager.h"
 

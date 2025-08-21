@@ -8,19 +8,16 @@
 class SideTofManager : public Singleton<SideTofManager> {
     friend class Singleton<SideTofManager>;
     friend class TaskManager;
-
-    public:
+    friend class SensorInitializer;
+    
+    private:
         SideTimeOfFlightSensor leftSideTofSensor;
         SideTimeOfFlightSensor rightSideTofSensor;
 
         // Following the established buffer pattern
         bool initialize();
-        bool canRetryInitialization() const;
-        bool needsInitialization() const;
         
         void turnOffSideTofs();
-
-    private:
         SideTofManager() = default;
         
         bool isInitialized = false;

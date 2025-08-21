@@ -49,16 +49,11 @@ void MotorDriver::right_motor_stop() {
 void MotorDriver::brake_left_motor() {
     analogWrite(LEFT_MOTOR_PIN_IN_1, 255);
     analogWrite(LEFT_MOTOR_PIN_IN_2, 255);
-    _leftMotorBraking = true;
-    // TODO: 8/18/25: Remove this, and check brake timers when we get encoders
-    _leftBrakeStartTime = millis(); // Start the timer
 }
 
 void MotorDriver::brake_right_motor() {
     analogWrite(RIGHT_MOTOR_PIN_IN_1, 255);
     analogWrite(RIGHT_MOTOR_PIN_IN_2, 255);
-    _rightMotorBraking = true;
-    _rightBrakeStartTime = millis(); // Start the timer
 }
 
 void MotorDriver::brake_both_motors() {
@@ -66,76 +61,36 @@ void MotorDriver::brake_both_motors() {
     brake_right_motor();
 }
 
-void MotorDriver::release_left_brake() {
-    left_motor_stop();
-    _leftMotorBraking = false;
-    _leftBrakeStartTime = 0; // Reset timer
-}
-
-void MotorDriver::release_right_brake() {
-    right_motor_stop();
-    _rightMotorBraking = false;
-    _rightBrakeStartTime = 0; // Reset timer
-}
-
-void MotorDriver::check_brake_timers() {
-    unsigned long currentTime = millis();
-    
-    // Check left motor brake timer
-    if (_leftMotorBraking && _leftBrakeStartTime > 0) {
-        if (currentTime - _leftBrakeStartTime >= BRAKE_HOLD_TIME_MS) {
-            release_left_brake();
-        }
-    }
-    
-    // Check right motor brake timer
-    if (_rightMotorBraking && _rightBrakeStartTime > 0) {
-        if (currentTime - _rightBrakeStartTime >= BRAKE_HOLD_TIME_MS) {
-            release_right_brake();
-        }
-    }
-}
-
+// TODO 8/19/25: Need to figure out how to take the motors out of braking after 1 second of being in brake without spinning them backwards when releasing from brake
 void MotorDriver::brake_if_moving() {
-    brake_both_motors();
-    // Get current wheel speeds from encoder manager
-    // WheelRPMs rpms = encoderManager.getBothWheelRPMs();
-    
-    // // Check if left motor is moving
-    // if (abs(rpms.leftWheelRPM) > MOTOR_STOPPED_THRESHOLD) {
-    //     // Left motor is moving, apply brake
-    //     brake_left_motor();
-    // } else
-    // if (_leftMotorBraking) {
-    //     // Left motor already stopped but brake still applied, release it
-    //     release_left_brake();
-    // }
-    
-    // // // Check if right motor is moving
-    // // if (abs(rpms.rightWheelRPM) > MOTOR_STOPPED_THRESHOLD) {
-    // //     // Right motor is moving, apply brake
-    // //     brake_right_motor();
-    // // } else
-    // if (_rightMotorBraking) {
-    //     // Right motor already stopped but brake still applied, release it
-    //     release_right_brake();
-    // }
+    // Get current wheel speeds from sensor data buffer
+    WheelRPMs rpms = SensorDataBuffer::getInstance().getLatestWheelRPMs();
+
+    // Check if left motor is moving
+    if (abs(rpms.leftWheelRPM) > MOTOR_STOPPED_THRESHOLD) {
+        // Left motor is moving, apply brake
+        brake_left_motor();
+    }
+    // // Check if right motor is moving
+    if (abs(rpms.rightWheelRPM) > MOTOR_STOPPED_THRESHOLD) {
+        // Right motor is moving, apply brake
+        brake_right_motor();
+    }
 }
 
-void MotorDriver::set_motor_speeds(int16_t leftTarget, int16_t rightTarget) {
+// Use this to set speeds directly (without needing ramp up, or waiting for next command).
+// The next command is used to make sure the current command is fully complete (ie for micro-turns in the garage)
+void MotorDriver::set_motor_speeds(int16_t leftTarget, int16_t rightTarget, bool shouldRampUp) {
     // Store target speeds but don't change actual speeds immediately
-    // The speeds aren't clamped at 255 because they crash at 255
     _targetLeftSpeed = constrain(leftTarget, -MAX_MOTOR_SPEED, MAX_MOTOR_SPEED);
     _targetRightSpeed = constrain(rightTarget, -MAX_MOTOR_SPEED, MAX_MOTOR_SPEED);
+    _shouldRampUp = shouldRampUp;
 }
 
-void MotorDriver::update_motor_speeds(bool should_ramp_up) {
+void MotorDriver::update() {
     bool speedsChanged = false;
 
-    // Check brake timers first
-    check_brake_timers();
-
-    if (should_ramp_up) {
+    if (_shouldRampUp) {
         // Gradually ramp left motor speed toward target
         if (_currentLeftSpeed < _targetLeftSpeed) {
             _currentLeftSpeed = min(static_cast<int16_t>(_currentLeftSpeed + SPEED_RAMP_STEP), _targetLeftSpeed);
@@ -174,35 +129,23 @@ void MotorDriver::update_motor_speeds(bool should_ramp_up) {
     // }
 
     // Only update motor controls if speeds have changed
-    // TODO: Bring this back after SLD works
+    // TODO 8/18/25: Bring this back after SLD works
     // if (speedsChanged || StraightLineDrive::getInstance().isEnabled()) {
     if (speedsChanged) {
         // Apply the current speeds
         if (leftAdjusted == 0) {
-            if (!_leftMotorBraking) {
-                brake_left_motor();
-            }
+            brake_left_motor();
         } else if (leftAdjusted > 0) {
-            _leftMotorBraking = false;
-            _leftBrakeStartTime = 0; // Reset timer when motor starts moving
             left_motor_forward(leftAdjusted);
         } else {
-            _leftMotorBraking = false;
-            _leftBrakeStartTime = 0; // Reset timer when motor starts moving
             left_motor_backward(-leftAdjusted);
         }
 
         if (rightAdjusted == 0) {
-            if (!_rightMotorBraking) {
-                brake_right_motor();
-            }
+            brake_right_motor();
         } else if (rightAdjusted > 0) {
-            _rightMotorBraking = false;
-            _rightBrakeStartTime = 0; // Reset timer when motor starts moving
             right_motor_forward(rightAdjusted);
         } else {
-            _rightMotorBraking = false;
-            _rightBrakeStartTime = 0; // Reset timer when motor starts moving
             right_motor_backward(-rightAdjusted);
         }
     }
@@ -216,4 +159,110 @@ void MotorDriver::force_reset_motors() {
     _targetRightSpeed = 0;
     _currentLeftSpeed = 0;
     _currentRightSpeed = 0;
+}
+
+void MotorDriver::updateMotorSpeeds(int16_t leftSpeed, int16_t rightSpeed) {
+    // Constrain speeds
+    leftSpeed = constrain(leftSpeed, -MAX_MOTOR_SPEED, MAX_MOTOR_SPEED);
+    rightSpeed = constrain(rightSpeed, -MAX_MOTOR_SPEED, MAX_MOTOR_SPEED);
+    
+    // If we're not executing a command, start this one immediately
+    if (!isExecutingCommand) {
+        executeCommand(leftSpeed, rightSpeed);
+    } else {
+        // Store as next command
+        hasNextCommand = true;
+        nextLeftSpeed = leftSpeed;
+        nextRightSpeed = rightSpeed;
+    }
+}
+
+void MotorDriver::executeCommand(int16_t leftSpeed, int16_t rightSpeed) {
+    // Save command details
+    currentLeftSpeed = leftSpeed;
+    currentRightSpeed = rightSpeed;
+
+    // Get initial encoder counts from sensor data buffer
+    auto startingCounts = SensorDataBuffer::getInstance().getLatestEncoderCounts();
+    startLeftCount = startingCounts.first;
+    startRightCount = startingCounts.second;
+
+    // Start the command timer
+    commandStartTime = millis();
+
+    set_motor_speeds(leftSpeed, rightSpeed, true); // ramp is default true for commands that are executed in series (ie driving in the garage)
+
+    // Enable straight driving correction for forward movement only. 
+    // 4/12/25: Removing straight line drive for backward movement. need to bring back eventually
+    // if ((leftSpeed > 0 && rightSpeed > 0) && (leftSpeed == rightSpeed)) {
+    //     StraightLineDrive::getInstance().enable();
+    // } else {
+    //     StraightLineDrive::getInstance().disable();
+    // }
+
+    isExecutingCommand = true;
+    hasNextCommand = false;
+}
+
+void MotorDriver::processPendingCommands() {
+    // If a demo is running, don't process motor commands
+    if (DemoManager::getInstance().isAnyDemoActive()) return;
+
+    if (!isExecutingCommand) {
+        // If we have a next command, execute it
+        if (hasNextCommand) {
+            executeCommand(nextLeftSpeed, nextRightSpeed);
+        }
+        return;
+    }
+
+    bool isMovementCommand = (currentLeftSpeed != 0 || currentRightSpeed != 0);
+
+    if (!isMovementCommand) {
+        isExecutingCommand = false;
+        
+        if (hasNextCommand) {
+            executeCommand(nextLeftSpeed, nextRightSpeed);
+        }
+        return;
+    }
+
+    // Get current encoder counts from sensor data buffer
+    auto currentCounts = SensorDataBuffer::getInstance().getLatestEncoderCounts();
+    int64_t currentLeftCount = currentCounts.first;
+    int64_t currentRightCount = currentCounts.second;
+    
+    // Calculate absolute change in encoder counts
+    int64_t leftDelta = abs(currentLeftCount - startLeftCount);
+    int64_t rightDelta = abs(currentRightCount - startRightCount);
+    
+    // Check for command completion conditions:
+    bool encoderThresholdMet = (leftDelta >= MIN_ENCODER_PULSES || rightDelta >= MIN_ENCODER_PULSES);
+    bool commandTimedOut = (millis() - commandStartTime) >= COMMAND_TIMEOUT_MS;
+    
+    if (encoderThresholdMet || commandTimedOut) {
+        if (commandTimedOut) {
+            SerialQueueManager::getInstance().queueMessage("Command timed out after 1 second - possible motor stall");
+        } else {
+            // SerialQueueManager::getInstance().queueMessage("Command completed with pulses - Left: %lld, Right: %lld\n", 
+            //             leftDelta, rightDelta);
+        }
+        
+        isExecutingCommand = false;
+    }
+    if (hasNextCommand) {
+        executeCommand(nextLeftSpeed, nextRightSpeed);
+    }
+}
+
+void MotorDriver::resetCommandState() {
+    isExecutingCommand = false;
+    hasNextCommand = false;
+    currentLeftSpeed = 0;
+    currentRightSpeed = 0;
+    nextLeftSpeed = 0;
+    nextRightSpeed = 0;
+    startLeftCount = 0;
+    startRightCount = 0;
+    commandStartTime = 0;
 }

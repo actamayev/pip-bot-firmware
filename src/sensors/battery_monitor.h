@@ -10,30 +10,27 @@
 
 class BatteryMonitor : public Singleton<BatteryMonitor> {
     friend class Singleton<BatteryMonitor>;
+    friend class MessageProcessor;
+    friend class TaskManager;
 
     public:
-        // Initialization
         bool initialize();
-        bool isInitialized() const { return batteryState.isInitialized; }
-        
-        // Main update method (call this periodically from task)
-        void update();
-        
-        // Update battery readings (call this periodically)
-        void updateBatteryState();
-        
-        // Get current battery state
         const BatteryState& getBatteryState() const { return batteryState; }
 
         // Status checks
         bool isCriticalBattery() const { return batteryState.isCriticalBattery; }
+    
+    private:        
+        // Main update method (call this periodically from task)
+        void update();
 
         unsigned long lastBatteryLogTime = 0;
         void sendBatteryMonitorDataOverWebSocket();
-
-    private:
         BatteryMonitor() = default;
         ~BatteryMonitor() = default;
+
+        // Update battery readings (call this periodically)
+        void updateBatteryState();
 
         // Configuration constants
         static constexpr unsigned int DEFAULT_BATTERY_CAPACITY = 1800; // mAh

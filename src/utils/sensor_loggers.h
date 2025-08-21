@@ -1,7 +1,7 @@
 #pragma once
 #include "utils.h"
 #include "actuators/buttons.h"
-#include "sensors/encoder_manager.h"
+#include "sensors/sensor_data_buffer.h"
 #include "actuators/display_screen.h"
 #include "sensors/multizone_tof_sensor.h"
 #include "sensors/imu.h"

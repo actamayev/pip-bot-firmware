@@ -12,13 +12,13 @@
 
 //     public:
 //         // Constructor
-//         WifiSelectionManager() = default;
 
 //         void initNetworkSelection();
 //         void updateNetworkSelection();
 //         void processNetworkSelection();
 
 //     private:
+//         WifiSelectionManager() = default;
 //         // For network selection scrolling
 //         int32_t _lastRightEncoderValue = 0;
 //         int _scrollSensitivity = 5; // Adjust this to change scrolling sensitivity

@@ -141,3 +141,42 @@ std::vector<WiFiCredentials> PreferencesManager::getAllStoredWiFiNetworks() {
     
     return networks;
 }
+
+// Side TOF calibration methods
+bool PreferencesManager::hasSideTofCalibration(uint8_t sensorAddress) {
+    if (!beginNamespace(NS_SIDE_TOF)) return false;
+    
+    char baselineKey[32];
+    sprintf(baselineKey, "baseline_%02X", sensorAddress);
+    
+    return preferences.isKey(baselineKey);
+}
+
+void PreferencesManager::storeSideTofCalibration(uint8_t sensorAddress, uint16_t baseline, bool useHardwareCalibration) {
+    if (!beginNamespace(NS_SIDE_TOF)) return;
+    
+    char baselineKey[32], hwCalibKey[32];
+    sprintf(baselineKey, "baseline_%02X", sensorAddress);
+    sprintf(hwCalibKey, "hw_calib_%02X", sensorAddress);
+    
+    preferences.putUShort(baselineKey, baseline);
+    preferences.putBool(hwCalibKey, useHardwareCalibration);
+}
+
+uint16_t PreferencesManager::getSideTofBaseline(uint8_t sensorAddress) {
+    if (!beginNamespace(NS_SIDE_TOF)) return 0;
+    
+    char baselineKey[32];
+    sprintf(baselineKey, "baseline_%02X", sensorAddress);
+    
+    return preferences.getUShort(baselineKey, 0);
+}
+
+bool PreferencesManager::getSideTofUseHardwareCalibration(uint8_t sensorAddress) {
+    if (!beginNamespace(NS_SIDE_TOF)) return false;
+    
+    char hwCalibKey[32];
+    sprintf(hwCalibKey, "hw_calib_%02X", sensorAddress);
+    
+    return preferences.getBool(hwCalibKey, false);
+}

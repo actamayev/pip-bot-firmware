@@ -24,10 +24,6 @@ class SerialManager : public Singleton<SerialManager> {
         void sendScanResultsResponse(const std::vector<WiFiNetworkInfo>& networks);
         void sendScanStartedMessage();
         void sendBatteryMonitorData();
-        void sendBatteryDataItem(const String& key, int value);
-        void sendBatteryDataItem(const String& key, unsigned int value);
-        void sendBatteryDataItem(const String& key, float value);
-        void sendBatteryDataItem(const String& key, bool value);
 
     private:
         SerialManager() = default;  // Make constructor private and implement it
@@ -45,7 +41,12 @@ class SerialManager : public Singleton<SerialManager> {
         uint16_t bufferPosition = 0;
         uint16_t expectedPayloadLength = 0;
         bool useLongFormat = false;
-
+        
         const unsigned long SERIAL_CONNECTION_TIMEOUT = 400;
         bool isConnected = false;
+        
+        void sendBatteryDataItem(const String& key, int value);
+        void sendBatteryDataItem(const String& key, unsigned int value);
+        void sendBatteryDataItem(const String& key, float value);
+        void sendBatteryDataItem(const String& key, bool value);
 };

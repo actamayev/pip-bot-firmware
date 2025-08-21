@@ -3,7 +3,7 @@
 
 // void WifiSelectionManager::initNetworkSelection() {
 //     // Reset encoder position
-//     encoderManager._rightEncoder.clearCount();
+//     EncoderManager::getInstance()._rightEncoder.clearCount();
 //     _lastRightEncoderValue = 0;
 //     _networkSelectionActive = true;
 //     SerialQueueManager::getInstance().queueMessage("Network selection mode activated");
@@ -25,13 +25,13 @@
 //         } 
 //         _scrollingEnabled = true;
 //         // Reset encoder position once cooldown is complete
-//         encoderManager._rightEncoder.clearCount();
+//         EncoderManager::getInstance()._rightEncoder.clearCount();
 //         _lastRightEncoderValue = 0;
 //         SerialQueueManager::getInstance().queueMessage("Scrolling re-enabled after cooldown");
 //     }
 
 //     // Get current encoder value
-//     int32_t currentValue = encoderManager._rightEncoder.getCount();
+//     int32_t currentValue = EncoderManager::getInstance()._rightEncoder.getCount();
     
 //     // Calculate delta (how much the encoder has moved)
 //     int32_t encoderDelta = currentValue - _lastRightEncoderValue;
