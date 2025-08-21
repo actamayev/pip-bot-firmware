@@ -17,26 +17,12 @@
 class BytecodeVM : public Singleton<BytecodeVM> {
     friend class Singleton<BytecodeVM>;
     friend class Buttons;
+    friend class TaskManager;
 
     public:
         // Load bytecode program into the VM
         bool loadProgram(const uint8_t* byteCode, uint16_t size);
         void stopProgram();
-
-        // Update VM - call this regularly from main loop
-        void update();
-
-        enum PauseState {
-            PROGRAM_NOT_STARTED,
-            PAUSED,
-            RUNNING
-        };
-
-        PauseState isPaused = PauseState::PROGRAM_NOT_STARTED;
-
-        void togglePause();
-        bool waitingForButtonPressToStart = false;
-        bool canStartProgram();
 
     private:
         BytecodeVM() = default;
@@ -70,6 +56,21 @@ class BytecodeVM : public Singleton<BytecodeVM> {
         BytecodeVarType registerTypes[MAX_REGISTERS];
         bool registerInitialized[MAX_REGISTERS] = {false};
         
+        // Update VM - call this regularly from main loop
+        void update();
+
+        enum PauseState {
+            PROGRAM_NOT_STARTED,
+            PAUSED,
+            RUNNING
+        };
+
+        PauseState isPaused = PauseState::PROGRAM_NOT_STARTED;
+
+        void togglePause();
+        bool waitingForButtonPressToStart = false;
+        bool canStartProgram();
+
         // Execute instruction implementation
         void executeInstruction(const BytecodeInstruction& instr);
         

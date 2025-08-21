@@ -6,19 +6,14 @@
 #include "demos/demo_manager.h"
 #include "networking/serial_queue_manager.h"
 
-// Forward declarations for friend classes
-class TurningManager;
-class BalanceController;
-
 class MotorDriver {
     friend class TurningManager;
     friend class BalanceController;
+    friend class TaskManager;
     
     public:
         MotorDriver();  // Constructor to initialize pins
         void stop_both_motors();
-        void right_motor_forward(uint8_t speed = MAX_MOTOR_SPEED);
-        void right_motor_backward(uint8_t speed = MAX_MOTOR_SPEED);
 
         void update();
 
@@ -28,7 +23,6 @@ class MotorDriver {
 
         // Motor command processing functions
         void updateMotorSpeeds(int16_t leftSpeed, int16_t rightSpeed);
-        void processPendingCommands();
         void resetCommandState();
 
     private:
@@ -41,6 +35,8 @@ class MotorDriver {
 
         void left_motor_forward(uint8_t speed = MAX_MOTOR_SPEED);
         void left_motor_backward(uint8_t speed = MAX_MOTOR_SPEED);
+        void right_motor_forward(uint8_t speed = MAX_MOTOR_SPEED);
+        void right_motor_backward(uint8_t speed = MAX_MOTOR_SPEED);
 
         void left_motor_stop();
         void right_motor_stop();
@@ -51,6 +47,8 @@ class MotorDriver {
         
         // Private method for immediate motor control (used by friend classes)
         void set_motor_speeds(int16_t leftTarget, int16_t rightTarget, bool shouldRampUp);
+
+        void processPendingCommands();
 
         static constexpr float MOTOR_STOPPED_THRESHOLD = 0.5; // RPM threshold for considering motor stopped
 
