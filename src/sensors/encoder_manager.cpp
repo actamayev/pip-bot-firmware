@@ -2,7 +2,6 @@
 #include "encoder_manager.h"
 
 EncoderManager::EncoderManager() {
-    encoderMutex = xSemaphoreCreateMutex();
     _leftWheelRPM = 0;
     _rightWheelRPM = 0;
     _lastUpdateTime = 0;
@@ -85,34 +84,29 @@ void EncoderManager::updateSensorData() {
     int64_t leftCount = 0;
     int64_t rightCount = 0;
     
-    if (xSemaphoreTake(encoderMutex, pdMS_TO_TICKS(MUTEX_REFRESH_FREQUENCY_MS)) == pdTRUE) {
-        // Get current encoder counts (both for distance calculation and raw storage)
-        int64_t leftEncoderCurrentCount = _leftEncoder.getCount();
-        int64_t rightEncoderCurrentCount = _rightEncoder.getCount();
-        
-        // Store raw counts for motor driver
-        leftCount = leftEncoderCurrentCount;
-        rightCount = rightEncoderCurrentCount;
-        
-        // Calculate change in encoder counts for distance
-        int64_t leftEncoderDelta = abs(leftEncoderCurrentCount - _leftEncoderStartCount);
-        int64_t rightEncoderDelta = abs(rightEncoderCurrentCount - _rightEncoderStartCount);
-        
-        // Unlock mutex
-        xSemaphoreGive(encoderMutex);
-        
-        // Average the two encoders to account for slight differences in wheel speeds
-        float avgEncoderDelta = (leftEncoderDelta + rightEncoderDelta) / 2.0f;
-        
-        // Convert encoder counts to revolutions
-        float wheelRevolutions = avgEncoderDelta / static_cast<float>(ENCODER_CPR);
-        
-        // Compensate for gear ratio
-        float wheelRevolutionsAfterGearing = wheelRevolutions / GEAR_RATIO;
-        
-        // Convert wheel revolutions to distance traveled
-        distanceTraveled = wheelRevolutionsAfterGearing * WHEEL_CIRCUMFERENCE_CM;
-    }
+    // Get current encoder counts (both for distance calculation and raw storage)
+    int64_t leftEncoderCurrentCount = _leftEncoder.getCount();
+    int64_t rightEncoderCurrentCount = _rightEncoder.getCount();
+    
+    // Store raw counts for motor driver
+    leftCount = leftEncoderCurrentCount;
+    rightCount = rightEncoderCurrentCount;
+    
+    // Calculate change in encoder counts for distance
+    int64_t leftEncoderDelta = abs(leftEncoderCurrentCount - _leftEncoderStartCount);
+    int64_t rightEncoderDelta = abs(rightEncoderCurrentCount - _rightEncoderStartCount);
+    
+    // Average the two encoders to account for slight differences in wheel speeds
+    float avgEncoderDelta = (leftEncoderDelta + rightEncoderDelta) / 2.0f;
+    
+    // Convert encoder counts to revolutions
+    float wheelRevolutions = avgEncoderDelta / static_cast<float>(ENCODER_CPR);
+    
+    // Compensate for gear ratio
+    float wheelRevolutionsAfterGearing = wheelRevolutions / GEAR_RATIO;
+    
+    // Convert wheel revolutions to distance traveled
+    distanceTraveled = wheelRevolutionsAfterGearing * WHEEL_CIRCUMFERENCE_CM;
     
     // Create encoder data struct with both calculated and raw values
     EncoderData encoderData;

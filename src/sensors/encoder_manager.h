@@ -53,6 +53,4 @@ class EncoderManager : public Singleton<EncoderManager> {
         static constexpr float WHEEL_DIAMETER_CM = 3.9; // Replace with actual wheel diameter
         static constexpr float WHEEL_CIRCUMFERENCE_CM = WHEEL_DIAMETER_CM * PI;
         static constexpr int MUTEX_REFRESH_FREQUENCY_MS = 5; // Replace with actual wheel diameter
-
-        SemaphoreHandle_t encoderMutex = nullptr;
 };
