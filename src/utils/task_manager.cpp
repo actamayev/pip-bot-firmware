@@ -67,7 +67,7 @@ void TaskManager::displayTask(void* parameter) {
     
     for(;;) {
         DisplayScreen::getInstance().update();
-        vTaskDelay(pdMS_TO_TICKS(20));  // 50Hz update rate, smooth for animations
+        vTaskDelay(pdMS_TO_TICKS(50));  // 20Hz update rate, smooth for animations
     }
 }
 
@@ -144,21 +144,18 @@ void TaskManager::sideTofSensorTask(void* parameter) {
 void TaskManager::colorSensorTask(void* parameter) {
     SerialQueueManager::getInstance().queueMessage("Color sensor task started");
     
-    // Handle initialization if needed
+    // Wait for centralized initialization to complete
+    while (!SensorInitializer::getInstance().isSensorInitialized(SensorInitializer::COLOR_SENSOR)) {
+        vTaskDelay(pdMS_TO_TICKS(50));  // Check every 50ms
+    }
+    SerialQueueManager::getInstance().queueMessage("Color sensor centralized initialization complete, starting polling");
+    
+    // Main polling loop
     for(;;) {
-        // Comment out initialization for now - not implemented
-        if (ColorSensor::getInstance().needsInitialization()) {
-            if (!SensorInitializer::getInstance().tryInitializeColorSensor()) {
-                vTaskDelay(pdMS_TO_TICKS(100));  // Retry after 100ms
-                continue;
-            }
-        }
-        
-        // Comment out until properly implemented
         if (ColorSensor::getInstance().shouldBePolling()) {
             ColorSensor::getInstance().updateSensorData();
         }
-        vTaskDelay(pdMS_TO_TICKS(25));  // 50Hz - light processing
+        vTaskDelay(pdMS_TO_TICKS(25));  // 40Hz - light processing
     }
 }
 
@@ -174,7 +171,7 @@ void TaskManager::irSensorTask(void* parameter) {
         if (IrSensor::getInstance().shouldBePolling()) {
             IrSensor::getInstance().updateSensorData();
         }
-        vTaskDelay(pdMS_TO_TICKS(25));  // 100Hz - moderate processing (5 sensors)
+        vTaskDelay(pdMS_TO_TICKS(25));  // 40Hz - moderate processing (5 sensors)
     }
 }
 
@@ -339,10 +336,6 @@ bool TaskManager::createDisplayTask() {
     return createTask("Display", displayTask, DISPLAY_STACK_SIZE,
                      Priority::BACKGROUND, Core::CORE_1, &displayTaskHandle);
 }
-
-// DEPRECATED: Removed centralized sensor initialization
-
-// DEPRECATED: Old centralized sensor polling task - replaced by individual sensor tasks
 
 bool TaskManager::createNetworkManagementTask() {
     return createTask("NetworkMgmt", networkManagementTask, NETWORK_MANAGEMENT_STACK_SIZE,

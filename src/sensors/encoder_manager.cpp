@@ -71,6 +71,12 @@ bool EncoderManager::shouldBePolling() const {
 void EncoderManager::updateSensorData() {
     if (!isInitialized) return;
     
+    // Check if we should enable/disable the sensor based on timeouts
+    ReportTimeouts& timeouts = SensorDataBuffer::getInstance().getReportTimeouts();
+    bool shouldEnable = timeouts.shouldEnableEncoder();
+    
+    if (!shouldEnable) return; // Don't update encoder data if not requested recently
+
     // Call internal update method to calculate RPMs
     update();
     

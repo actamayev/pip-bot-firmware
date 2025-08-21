@@ -146,39 +146,48 @@ struct ReportTimeouts {
     static constexpr uint32_t TIMEOUT_MS = 10000; // 1 minute
     
     bool shouldEnableQuaternion() const {
-        return (millis() - quaternion_last_request.load()) < TIMEOUT_MS;
+        uint32_t lastRequest = quaternion_last_request.load();
+        return lastRequest > 0 && (millis() - lastRequest) < TIMEOUT_MS;
     }
     
     bool shouldEnableAccelerometer() const {
-        return (millis() - accelerometer_last_request.load()) < TIMEOUT_MS;
+        uint32_t lastRequest = accelerometer_last_request.load();
+        return lastRequest > 0 && (millis() - lastRequest) < TIMEOUT_MS;
     }
     
     bool shouldEnableGyroscope() const {
-        return (millis() - gyroscope_last_request.load()) < TIMEOUT_MS;
+        uint32_t lastRequest = gyroscope_last_request.load();
+        return lastRequest > 0 && (millis() - lastRequest) < TIMEOUT_MS;
     }
     
     bool shouldEnableMagnetometer() const {
-        return (millis() - magnetometer_last_request.load()) < TIMEOUT_MS;
+        uint32_t lastRequest = magnetometer_last_request.load();
+        return lastRequest > 0 && (millis() - lastRequest) < TIMEOUT_MS;
     }
     
     bool shouldEnableTof() const {
-        return (millis() - tof_last_request.load()) < TIMEOUT_MS;
+        uint32_t lastRequest = tof_last_request.load();
+        return lastRequest > 0 && (millis() - lastRequest) < TIMEOUT_MS;
     }
     
     bool shouldEnableSideTof() const {
-        return (millis() - side_tof_last_request.load()) < TIMEOUT_MS;
+        uint32_t lastRequest = side_tof_last_request.load();
+        return lastRequest > 0 && (millis() - lastRequest) < TIMEOUT_MS;
     }
     
     bool shouldEnableColor() const {
-        return (millis() - color_last_request.load()) < TIMEOUT_MS;
+        uint32_t lastRequest = color_last_request.load();
+        return lastRequest > 0 && (millis() - lastRequest) < TIMEOUT_MS;
     }
 
     bool shouldEnableIr() const {
-        return (millis() - ir_last_request.load()) < TIMEOUT_MS;
+        uint32_t lastRequest = ir_last_request.load();
+        return lastRequest > 0 && (millis() - lastRequest) < TIMEOUT_MS;
     }
     
     bool shouldEnableEncoder() const {
-        return (millis() - encoder_last_request.load()) < TIMEOUT_MS;
+        uint32_t lastRequest = encoder_last_request.load();
+        return lastRequest > 0 && (millis() - lastRequest) < TIMEOUT_MS;
     }
 };
 

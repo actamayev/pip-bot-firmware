@@ -53,9 +53,8 @@ bool BytecodeVM::loadProgram(const uint8_t* byteCode, uint16_t size) {
 
 void BytecodeVM::update() {
     checkUsbSafetyConditions();
-    if (program && pc < programSize && isPaused == RUNNING) {
-        SensorDataBuffer::getInstance().startPollingAllSensors();
-    }
+    // Note: Removed startPollingAllSensors() call here to allow sensor timeouts to work
+    // Sensors will be enabled when actually accessed through SensorDataBuffer getter methods
 
     if (!program || pc >= programSize || isPaused == PauseState::PAUSED) {
         return;

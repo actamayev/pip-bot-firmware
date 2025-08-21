@@ -65,7 +65,7 @@ class TaskManager {
         static void demoManagerTask(void* parameter);
 
         static constexpr uint32_t BUTTON_STACK_SIZE = 4096;
-        static constexpr uint32_t SERIAL_INPUT_STACK_SIZE = 8192;
+        static constexpr uint32_t SERIAL_INPUT_STACK_SIZE = 10240;
         static constexpr uint32_t LED_STACK_SIZE = 6144;
         static constexpr uint32_t BYTECODE_VM_STACK_SIZE = 16384;
         static constexpr uint32_t STACK_MONITOR_STACK_SIZE = 4096;  // Increased - printStackUsage needs more space
