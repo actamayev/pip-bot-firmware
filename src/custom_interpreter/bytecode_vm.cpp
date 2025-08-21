@@ -1,5 +1,16 @@
 #include "bytecode_vm.h"
 
+// Static mapping of opcodes to required sensors
+const std::map<BytecodeOpCode, std::vector<BytecodeVM::SensorType>> BytecodeVM::opcodeToSensors = {
+    // This map is to control what sensors need to be polled for various OpCodes
+    // Ie: For motor turn, we need to poll encoders, and quaternion
+    {OP_MOTOR_FORWARD_TIME, {SENSOR_ENCODER, SENSOR_QUATERNION}},
+    {OP_MOTOR_BACKWARD_TIME, {SENSOR_ENCODER, SENSOR_QUATERNION}},
+    {OP_MOTOR_FORWARD_DISTANCE, {SENSOR_ENCODER, SENSOR_QUATERNION}},
+    {OP_MOTOR_BACKWARD_DISTANCE, {SENSOR_ENCODER, SENSOR_QUATERNION}},
+    {OP_MOTOR_TURN, {SENSOR_ENCODER, SENSOR_QUATERNION}}
+};
+
 BytecodeVM::~BytecodeVM() {
     resetStateVariables(true);
 }
@@ -46,6 +57,7 @@ bool BytecodeVM::loadProgram(const uint8_t* byteCode, uint16_t size) {
     }
 
     scanProgramForMotors();
+    activateSensorsForProgram(); // Activate sensors needed by the program
     stoppedDueToUsbSafety = false; // Reset safety flag on new program load
 
     return true;
@@ -53,9 +65,6 @@ bool BytecodeVM::loadProgram(const uint8_t* byteCode, uint16_t size) {
 
 void BytecodeVM::update() {
     checkUsbSafetyConditions();
-    // Note: Removed startPollingAllSensors() call here to allow sensor timeouts to work
-    // Sensors will be enabled when actually accessed through SensorDataBuffer getter methods
-
     if (!program || pc >= programSize || isPaused == PauseState::PAUSED) {
         return;
     }
@@ -170,7 +179,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
 
         case OP_SET_LED: {
             // Set specific LED to color
-            uint8_t ledId = static_cast<uint8_t>(instr.operand1); // Cast to ensure range
+            BytecodeLedID ledId = static_cast<BytecodeLedID>(instr.operand1); // Cast to ensure range
             uint8_t r = static_cast<uint8_t>(instr.operand2);     // Cast to uint8_t for
             uint8_t g = static_cast<uint8_t>(instr.operand3);     // RGB values (0-255)
             uint8_t b = static_cast<uint8_t>(instr.operand4);        
@@ -756,6 +765,110 @@ void BytecodeVM::resumeProgram() {
     } else {
         SerialQueueManager::getInstance().queueMessage("Resuming program from beginning");
         pc = 0; // Start from the beginning for scripts without a start block
+    }
+}
+
+void BytecodeVM::activateSensorsForProgram() {
+    if (!program || programSize == 0) return;
+    
+    // Track which sensors are needed
+    bool needQuaternion = false;
+    bool needAccelerometer = false;  
+    bool needGyroscope = false;
+    bool needMagnetometer = false;
+    bool needTof = false;
+    bool needSideTof = false;
+    bool needEncoder = false;
+    
+    // Scan through the entire program
+    for (uint16_t i = 0; i < programSize; i++) {
+        const BytecodeInstruction& instr = program[i];
+        
+        // Handle OP_READ_SENSOR dynamically based on sensor type
+        if (instr.opcode == OP_READ_SENSOR) {
+            BytecodeSensorType sensorType = static_cast<BytecodeSensorType>(instr.operand1);
+            
+            switch (sensorType) {
+                case SENSOR_PITCH:
+                case SENSOR_ROLL: 
+                case SENSOR_YAW:
+                    needQuaternion = true;
+                    break;
+                case SENSOR_ACCEL_X:
+                case SENSOR_ACCEL_Y:
+                case SENSOR_ACCEL_Z:
+                case SENSOR_ACCEL_MAG:
+                    needAccelerometer = true;
+                    break;
+                case SENSOR_ROT_RATE_X:
+                case SENSOR_ROT_RATE_Y:
+                case SENSOR_ROT_RATE_Z:
+                    needGyroscope = true;
+                    break;
+                case SENSOR_MAG_FIELD_X:
+                case SENSOR_MAG_FIELD_Y:
+                case SENSOR_MAG_FIELD_Z:
+                    needMagnetometer = true;
+                    break;
+                case SENSOR_SIDE_LEFT_PROXIMITY:
+                case SENSOR_SIDE_RIGHT_PROXIMITY:
+                    needSideTof = true;
+                    break;
+                case SENSOR_FRONT_PROXIMITY:
+                    needTof = true;
+                    break;
+            }
+        } else {
+            // Handle other opcodes using the static mapping
+            auto it = opcodeToSensors.find(instr.opcode);
+            if (it != opcodeToSensors.end()) {
+                for (SensorType sensorType : it->second) {
+                    switch (sensorType) {
+                        case SENSOR_QUATERNION: needQuaternion = true; break;
+                        case SENSOR_ACCELEROMETER: needAccelerometer = true; break;
+                        case SENSOR_GYROSCOPE: needGyroscope = true; break;
+                        case SENSOR_MAGNETOMETER: needMagnetometer = true; break;
+                        case SENSOR_TOF: needTof = true; break;
+                        case SENSOR_SIDE_TOF: needSideTof = true; break;
+                        case SENSOR_ENCODER: needEncoder = true; break;
+                    }
+                }
+            }
+        }
+    }
+    
+    // Activate required sensors by setting their last_request timestamps
+    SensorDataBuffer& buffer = SensorDataBuffer::getInstance();
+    ReportTimeouts& timeouts = buffer.getReportTimeouts();
+    uint32_t currentTime = millis();
+    
+    if (needQuaternion) {
+        timeouts.quaternion_last_request.store(currentTime);
+        SerialQueueManager::getInstance().queueMessage("Activated quaternion sensor for program");
+    }
+    if (needAccelerometer) {
+        timeouts.accelerometer_last_request.store(currentTime);
+        SerialQueueManager::getInstance().queueMessage("Activated accelerometer for program");
+    }
+    if (needGyroscope) {
+        timeouts.gyroscope_last_request.store(currentTime);
+        SerialQueueManager::getInstance().queueMessage("Activated gyroscope for program");
+    }
+    if (needMagnetometer) {
+        timeouts.magnetometer_last_request.store(currentTime);
+        SerialQueueManager::getInstance().queueMessage("Activated magnetometer for program");
+    }
+    if (needTof) {
+        timeouts.tof_last_request.store(currentTime);
+        SerialQueueManager::getInstance().queueMessage("Activated multizone TOF for program");
+    }
+    if (needSideTof) {
+        timeouts.side_tof_last_request.store(currentTime);
+        SerialQueueManager::getInstance().queueMessage("Activated side TOF for program");
+    }
+    if (needEncoder) {
+        timeouts.encoder_last_request.store(currentTime);
+        SerialQueueManager::getInstance().queueMessage("Activated encoder for program");
     }
 }
 

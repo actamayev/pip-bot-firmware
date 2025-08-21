@@ -292,7 +292,7 @@ class SensorDataBuffer : public Singleton<SensorDataBuffer> {
         IrData currentIrData;  // Add IR sensor data storage
         EncoderData currentEncoderData;  // Add encoder data storage
 
-        std::atomic<uint32_t> lastUpdateTime{0};
+        std::atomic<uint32_t> lastImuUpdateTime{0};
         std::atomic<uint32_t> lastTofUpdateTime{0};
         std::atomic<uint32_t> lastSideTofUpdateTime{0};
         std::atomic<uint32_t> lastColorUpdateTime{0};  // Separate timestamp for color sensor

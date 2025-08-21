@@ -307,9 +307,8 @@ void SensorDataBuffer::startPollingAllSensors() {
     timeouts.encoder_last_request.store(currentTime);  // Include encoder
 }
 
-
 void SensorDataBuffer::markDataUpdated() {
-    lastUpdateTime.store(millis());
+    lastImuUpdateTime.store(millis());
 }
 
 void SensorDataBuffer::markTofDataUpdated() {

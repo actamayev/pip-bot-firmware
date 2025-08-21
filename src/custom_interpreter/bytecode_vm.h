@@ -3,6 +3,8 @@
 #include "sensors/imu.h"
 #include "utils/singleton.h"
 #include "bytecode_structs.h"
+#include <map>
+#include <vector>
 #include "actuators/buttons.h"
 #include "actuators/led/rgb_led.h"
 #include "actuators/motor_driver.h"
@@ -99,6 +101,20 @@ class BytecodeVM : public Singleton<BytecodeVM> {
         bool programContainsMotors = false;
         bool stoppedDueToUsbSafety = false;
         bool lastUsbState = false;
+        
+        // Sensor Activation System
+        enum SensorType {
+            SENSOR_QUATERNION,
+            SENSOR_ACCELEROMETER, 
+            SENSOR_GYROSCOPE,
+            SENSOR_MAGNETOMETER,
+            SENSOR_TOF,
+            SENSOR_SIDE_TOF,
+            SENSOR_ENCODER
+        };
+        
+        void activateSensorsForProgram();
+        static const std::map<BytecodeOpCode, std::vector<SensorType>> opcodeToSensors;
         
         // USB Safety Methods
         void scanProgramForMotors();
