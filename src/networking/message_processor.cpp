@@ -226,6 +226,16 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             }
             break;
         }
+
+        case DataMessageType::STOP_SENSOR_POLLING: {
+            if (length != 1) {
+                SerialQueueManager::getInstance().queueMessage("Invalid stop sandbox code message length");
+            } else {
+                SensorDataBuffer::getInstance().stopPollingAllSensors();
+            }
+            break;
+        }
+
         case DataMessageType::OBSTACLE_AVOIDANCE: {
             if (length != 2) {
                 SerialQueueManager::getInstance().queueMessage("Invalid obstacle avoidance command");

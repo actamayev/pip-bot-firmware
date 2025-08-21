@@ -177,6 +177,7 @@ void WebSocketManager::killWiFiProcesses() {
     // This method activates when the ESP has been disconnected from WS.
     // Should only run once.
     if (hasKilledWiFiProcesses) return;
+    SensorDataBuffer::getInstance().stopPollingAllSensors();
     motorDriver.brake_if_moving();
     rgbLed.set_led_red();
     ledAnimations.startBreathing();

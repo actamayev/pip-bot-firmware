@@ -35,7 +35,9 @@ void IrSensor::setMuxChannel(bool A0, bool A1, bool A2) {
 
 bool IrSensor::shouldBePolling() const {
     ReportTimeouts& timeouts = SensorDataBuffer::getInstance().getReportTimeouts();
-    return timeouts.shouldEnableIr();
+    // Continue polling if we should be enabled OR if sensor is currently enabled
+    // (to allow proper cleanup when timeout expires)
+    return timeouts.shouldEnableIr() || sensorEnabled;
 }
 
 void IrSensor::updateSensorData() {
