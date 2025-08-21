@@ -30,7 +30,8 @@ uint8_t VEMLClass::begin(const uint8_t address,
     this->device_address = address;
 
     // this->wire->swap(pin_swap);
-    this->wire->begin();
+    // Don't call this->wire->begin() - assume Wire is already initialized
+    // this->wire->begin();
 
     return wake();
 }

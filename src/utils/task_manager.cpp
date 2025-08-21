@@ -86,18 +86,14 @@ void TaskManager::imuSensorTask(void* parameter) {
         if (ImuSensor::getInstance().shouldBePolling()) {
             ImuSensor::getInstance().updateSensorData();
         }
-        vTaskDelay(pdMS_TO_TICKS(2));  // 500Hz - critical for motion control
+        vTaskDelay(pdMS_TO_TICKS(5));  // 500Hz - critical for motion control
     }
 }
 
 void TaskManager::encoderSensorTask(void* parameter) {
     SerialQueueManager::getInstance().queueMessage("Encoder sensor task started");
-    
-    // Wait for centralized initialization to complete
-    while (!SensorInitializer::getInstance().isSensorInitialized(SensorInitializer::ENCODER)) {
-        vTaskDelay(pdMS_TO_TICKS(50));  // Check every 50ms
-    }
-    SerialQueueManager::getInstance().queueMessage("Encoder centralized initialization complete, starting polling");
+    EncoderManager::getInstance().initialize();
+    SerialQueueManager::getInstance().queueMessage("Encoders initialized successfully");
     
     // Main polling loop
     for(;;) {
@@ -151,17 +147,17 @@ void TaskManager::colorSensorTask(void* parameter) {
     // Handle initialization if needed
     for(;;) {
         // Comment out initialization for now - not implemented
-        // if (ColorSensor::getInstance().needsInitialization()) {
-        //     if (!SensorInitializer::getInstance().tryInitializeColorSensor()) {
-        //         vTaskDelay(pdMS_TO_TICKS(100));  // Retry after 100ms
-        //         continue;
-        //     }
-        // }
+        if (ColorSensor::getInstance().needsInitialization()) {
+            if (!SensorInitializer::getInstance().tryInitializeColorSensor()) {
+                vTaskDelay(pdMS_TO_TICKS(100));  // Retry after 100ms
+                continue;
+            }
+        }
         
         // Comment out until properly implemented
-        // if (ColorSensor::getInstance().shouldBePolling()) {
-        //     ColorSensor::getInstance().updateSensorData();
-        // }
+        if (ColorSensor::getInstance().shouldBePolling()) {
+            ColorSensor::getInstance().updateSensorData();
+        }
         vTaskDelay(pdMS_TO_TICKS(20));  // 50Hz - light processing
     }
 }
@@ -169,20 +165,15 @@ void TaskManager::colorSensorTask(void* parameter) {
 void TaskManager::irSensorTask(void* parameter) {
     SerialQueueManager::getInstance().queueMessage("IR sensor task started");
     
-    // Handle initialization if needed
+    // Initialize IR sensors directly (not I2C, no conflicts)
+    IrSensor::getInstance();  // Simple initialization - just creates instance
+    SerialQueueManager::getInstance().queueMessage("IR sensors initialized successfully");
+    
+    // Main polling loop
     for(;;) {
-        // Comment out initialization for now - not implemented
-        // if (IrSensor::getInstance().needsInitialization()) {
-        //     if (!SensorInitializer::getInstance().tryInitializeIrSensors()) {
-        //         vTaskDelay(pdMS_TO_TICKS(100));  // Retry after 100ms
-        //         continue;
-        //     }
-        // }
-        
-        // Comment out until properly implemented
-        // if (IrSensor::getInstance().shouldBePolling()) {
-        //     IrSensor::getInstance().updateSensorData();
-        // }
+        if (IrSensor::getInstance().shouldBePolling()) {
+            IrSensor::getInstance().updateSensorData();
+        }
         vTaskDelay(pdMS_TO_TICKS(10));  // 100Hz - moderate processing (5 sensors)
     }
 }

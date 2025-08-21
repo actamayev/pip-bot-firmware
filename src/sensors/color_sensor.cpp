@@ -17,6 +17,7 @@ bool ColorSensor::canRetryInitialization() const {
 }
 
 bool ColorSensor::initialize() {
+    precompute_inverse_matrix();
     lastInitAttempt = millis();
     initRetryCount++;
     
@@ -29,14 +30,14 @@ bool ColorSensor::initialize() {
     
     // Try a few times with short delays in between
     for (int attempt = 0; attempt < 3; attempt++) {
-        // Try to initialize the sensor
-        if (Veml3328.begin()) {
+        // Try to initialize the sensor with explicit I2C address and wire instance
+        // Use 0x10 address explicitly and pass the already initialized Wire object
+        if (Veml3328.begin(0x10, &Wire) == 0) {
             // Configure sensor
             Veml3328.setIntTime(time_50);
             Veml3328.setGain(gain_x1);
             Veml3328.setSensitivity(false);
             analogWrite(COLOR_SENSOR_LED_PIN, 155);
-            precompute_inverse_matrix();
             
             sensorConnected = true;
             isInitialized = true;
@@ -110,6 +111,7 @@ void ColorSensor::disableColorSensor() {
 }
 
 void ColorSensor::precompute_inverse_matrix() {
+    if (wasInverseMatrixPrecomputed) return;
     // Pre-compute the inverse matrix
     float matrix[3][3] = {
         {calibrationValues.redRedValue, calibrationValues.greenRedValue, calibrationValues.blueRedValue},
@@ -137,6 +139,7 @@ void ColorSensor::precompute_inverse_matrix() {
     invMatrix[2][0] = (matrix[1][0] * matrix[2][1] - matrix[1][1] * matrix[2][0]) * invDet;
     invMatrix[2][1] = (matrix[0][1] * matrix[2][0] - matrix[0][0] * matrix[2][1]) * invDet;
     invMatrix[2][2] = (matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0]) * invDet;
+    wasInverseMatrixPrecomputed = true;
 }
 
 void ColorSensor::read_color_sensor() {

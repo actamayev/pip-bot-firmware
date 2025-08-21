@@ -11,10 +11,10 @@ class ColorSensor : public Singleton<ColorSensor> {
     friend class SensorInitializer;
     
     private:
+        ColorSensor() = default;
         bool initialize();
         bool canRetryInitialization() const;
         bool needsInitialization() const { return !isInitialized; }
-        ColorSensor() = default;
         void read_color_sensor();
         void precompute_inverse_matrix();
         void enableColorSensor();
@@ -52,4 +52,5 @@ class ColorSensor : public Singleton<ColorSensor> {
         void updateSensorData();  // Single read, write to buffer
         bool shouldBePolling() const;
         const uint8_t COLOR_SENSOR_LED_PIN = 5;
+        bool wasInverseMatrixPrecomputed = false;
 };
