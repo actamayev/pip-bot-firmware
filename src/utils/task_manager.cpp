@@ -266,7 +266,7 @@ void TaskManager::speakerTask(void* parameter) {
 
 void TaskManager::motorTask(void* parameter) {
     SerialQueueManager::getInstance().queueMessage("Motor task started");
-
+    
     for(;;) {
         motorDriver.update();
         motorDriver.processPendingCommands();

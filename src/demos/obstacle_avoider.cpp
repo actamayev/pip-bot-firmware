@@ -10,7 +10,7 @@ void ObstacleAvoider::enable() {
 void ObstacleAvoider::disable() {
     if (_avoidanceEnabled == ObstacleAvoidanceStatus::STOP_AVOIDANCE) return;
     _avoidanceEnabled = ObstacleAvoidanceStatus::STOP_AVOIDANCE;
-    motorDriver.brake_if_moving();
+    motorDriver.resetCommandState();
 }
 
 void ObstacleAvoider::update() {

@@ -82,8 +82,8 @@ void MotorDriver::brake_if_moving() {
 // The next command is used to make sure the current command is fully complete (ie for micro-turns in the garage)
 void MotorDriver::set_motor_speeds(int16_t leftTarget, int16_t rightTarget, bool shouldRampUp) {
     // Store target speeds but don't change actual speeds immediately
-    _targetLeftSpeed = constrain(leftTarget, -MAX_MOTOR_SPEED, MAX_MOTOR_SPEED);
-    _targetRightSpeed = constrain(rightTarget, -MAX_MOTOR_SPEED, MAX_MOTOR_SPEED);
+    _targetLeftPwm = constrain(leftTarget, -MAX_MOTOR_SPEED, MAX_MOTOR_SPEED);
+    _targetRightPwm = constrain(rightTarget, -MAX_MOTOR_SPEED, MAX_MOTOR_SPEED);
     _shouldRampUp = shouldRampUp;
 }
 
@@ -92,37 +92,37 @@ void MotorDriver::update() {
 
     if (_shouldRampUp) {
         // Gradually ramp left motor speed toward target
-        if (_currentLeftSpeed < _targetLeftSpeed) {
-            _currentLeftSpeed = min(static_cast<int16_t>(_currentLeftSpeed + SPEED_RAMP_STEP), _targetLeftSpeed);
+        if (_actualLeftPwm < _targetLeftPwm) {
+            _actualLeftPwm = min(static_cast<int16_t>(_actualLeftPwm + SPEED_RAMP_STEP), _targetLeftPwm);
             speedsChanged = true;
-        } else if (_currentLeftSpeed > _targetLeftSpeed) {
-            _currentLeftSpeed = max(static_cast<int16_t>(_currentLeftSpeed - SPEED_RAMP_STEP), _targetLeftSpeed);
+        } else if (_actualLeftPwm > _targetLeftPwm) {
+            _actualLeftPwm = max(static_cast<int16_t>(_actualLeftPwm - SPEED_RAMP_STEP), _targetLeftPwm);
             speedsChanged = true;
         }
 
         // Gradually ramp right motor speed toward target
-        if (_currentRightSpeed < _targetRightSpeed) {
-            _currentRightSpeed = min(static_cast<int16_t>(_currentRightSpeed + SPEED_RAMP_STEP), _targetRightSpeed);
+        if (_actualRightPwm < _targetRightPwm) {
+            _actualRightPwm = min(static_cast<int16_t>(_actualRightPwm + SPEED_RAMP_STEP), _targetRightPwm);
             speedsChanged = true;
-        } else if (_currentRightSpeed > _targetRightSpeed) {
-            _currentRightSpeed = max(static_cast<int16_t>(_currentRightSpeed - SPEED_RAMP_STEP), _targetRightSpeed);
+        } else if (_actualRightPwm > _targetRightPwm) {
+            _actualRightPwm = max(static_cast<int16_t>(_actualRightPwm - SPEED_RAMP_STEP), _targetRightPwm);
             speedsChanged = true;
         }
     } else {
         // Skip ramping and set speeds immediately
-        if (_currentLeftSpeed != _targetLeftSpeed) {
-            _currentLeftSpeed = _targetLeftSpeed;
+        if (_actualLeftPwm != _targetLeftPwm) {
+            _actualLeftPwm = _targetLeftPwm;
             speedsChanged = true;
         }
         
-        if (_currentRightSpeed != _targetRightSpeed) {
-            _currentRightSpeed = _targetRightSpeed;
+        if (_actualRightPwm != _targetRightPwm) {
+            _actualRightPwm = _targetRightPwm;
             speedsChanged = true;
         }
     }
 
-    int16_t leftAdjusted = _currentLeftSpeed;
-    int16_t rightAdjusted = _currentRightSpeed;
+    int16_t leftAdjusted = _actualLeftPwm;
+    int16_t rightAdjusted = _actualRightPwm;
 
     // if (StraightLineDrive::getInstance().isEnabled()) {
     //     StraightLineDrive::getInstance().update(leftAdjusted, rightAdjusted);
@@ -151,36 +151,26 @@ void MotorDriver::update() {
     }
 }
 
-void MotorDriver::force_reset_motors() {
-    brake_if_moving();
-
-    // Reset speed targets
-    _targetLeftSpeed = 0;
-    _targetRightSpeed = 0;
-    _currentLeftSpeed = 0;
-    _currentRightSpeed = 0;
-}
-
-void MotorDriver::updateMotorSpeeds(int16_t leftSpeed, int16_t rightSpeed) {
+void MotorDriver::updateMotorPwm(int16_t leftPwm, int16_t rightPwm) {
     // Constrain speeds
-    leftSpeed = constrain(leftSpeed, -MAX_MOTOR_SPEED, MAX_MOTOR_SPEED);
-    rightSpeed = constrain(rightSpeed, -MAX_MOTOR_SPEED, MAX_MOTOR_SPEED);
+    leftPwm = constrain(leftPwm, -MAX_MOTOR_SPEED, MAX_MOTOR_SPEED);
+    rightPwm = constrain(rightPwm, -MAX_MOTOR_SPEED, MAX_MOTOR_SPEED);
     
     // If we're not executing a command, start this one immediately
     if (!isExecutingCommand) {
-        executeCommand(leftSpeed, rightSpeed);
+        executeCommand(leftPwm, rightPwm);
     } else {
         // Store as next command
         hasNextCommand = true;
-        nextLeftSpeed = leftSpeed;
-        nextRightSpeed = rightSpeed;
+        nextLeftPwm = leftPwm;
+        nextRightPwm = rightPwm;
     }
 }
 
-void MotorDriver::executeCommand(int16_t leftSpeed, int16_t rightSpeed) {
+void MotorDriver::executeCommand(int16_t leftPwm, int16_t rightPwm) {
     // Save command details
-    currentLeftSpeed = leftSpeed;
-    currentRightSpeed = rightSpeed;
+    _commandLeftPwm = leftPwm;
+    _commandRightPwm = rightPwm;
 
     // Get initial encoder counts from sensor data buffer
     auto startingCounts = SensorDataBuffer::getInstance().getLatestEncoderCounts();
@@ -190,7 +180,7 @@ void MotorDriver::executeCommand(int16_t leftSpeed, int16_t rightSpeed) {
     // Start the command timer
     commandStartTime = millis();
 
-    set_motor_speeds(leftSpeed, rightSpeed, true); // ramp is default true for commands that are executed in series (ie driving in the garage)
+    set_motor_speeds(leftPwm, rightPwm, true); // ramp is default true for commands that are executed in series (ie driving in the garage)
 
     // Enable straight driving correction for forward movement only. 
     // 4/12/25: Removing straight line drive for backward movement. need to bring back eventually
@@ -211,18 +201,18 @@ void MotorDriver::processPendingCommands() {
     if (!isExecutingCommand) {
         // If we have a next command, execute it
         if (hasNextCommand) {
-            executeCommand(nextLeftSpeed, nextRightSpeed);
+            executeCommand(nextLeftPwm, nextRightPwm);
         }
         return;
     }
 
-    bool isMovementCommand = (currentLeftSpeed != 0 || currentRightSpeed != 0);
+    bool isMovementCommand = (_commandLeftPwm != 0 || _commandRightPwm != 0);
 
     if (!isMovementCommand) {
         isExecutingCommand = false;
         
         if (hasNextCommand) {
-            executeCommand(nextLeftSpeed, nextRightSpeed);
+            executeCommand(nextLeftPwm, nextRightPwm);
         }
         return;
     }
@@ -251,17 +241,22 @@ void MotorDriver::processPendingCommands() {
         isExecutingCommand = false;
     }
     if (hasNextCommand) {
-        executeCommand(nextLeftSpeed, nextRightSpeed);
+        executeCommand(nextLeftPwm, nextRightPwm);
     }
 }
 
 void MotorDriver::resetCommandState() {
+    brake_if_moving();
     isExecutingCommand = false;
     hasNextCommand = false;
-    currentLeftSpeed = 0;
-    currentRightSpeed = 0;
-    nextLeftSpeed = 0;
-    nextRightSpeed = 0;
+    _commandLeftPwm = 0;
+    _commandRightPwm = 0;
+    _targetLeftPwm = 0;
+    _targetRightPwm = 0;
+    _actualLeftPwm = 0;
+    _actualRightPwm = 0;
+    nextLeftPwm = 0;
+    nextRightPwm = 0;
     startLeftCount = 0;
     startRightCount = 0;
     commandStartTime = 0;

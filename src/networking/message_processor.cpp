@@ -5,7 +5,7 @@ void MessageProcessor::handleMotorControl(const uint8_t* data) {
     int16_t leftSpeed = static_cast<int16_t>(data[1] | (data[2] << 8));
     int16_t rightSpeed = static_cast<int16_t>(data[3] | (data[4] << 8));
     
-    motorDriver.updateMotorSpeeds(leftSpeed, rightSpeed);
+    motorDriver.updateMotorPwm(leftSpeed, rightSpeed);
 }
 
 void MessageProcessor::handleBalanceCommand(BalanceStatus status) {
