@@ -143,7 +143,7 @@ struct ReportTimeouts {
     std::atomic<uint32_t> ir_last_request{0};  // Add IR sensor timeout tracking
     std::atomic<uint32_t> encoder_last_request{0};  // Add encoder timeout tracking
 
-    static constexpr uint32_t TIMEOUT_MS = 10000; // 1 minute
+    static constexpr uint32_t TIMEOUT_MS = 5000; // 1 minute
     
     bool shouldEnableQuaternion() const {
         uint32_t lastRequest = quaternion_last_request.load();
@@ -265,7 +265,7 @@ class SensorDataBuffer : public Singleton<SensorDataBuffer> {
         ReportTimeouts& getReportTimeouts() { return timeouts; }
         
         // Helper methods for bulk polling control
-        void startPollingAllSensors();
+        void stopPollingAllSensors();
         
         // Get complete samples (for debugging/logging)
         ImuSample getLatestImuSample();

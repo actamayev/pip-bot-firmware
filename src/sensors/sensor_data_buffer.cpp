@@ -293,18 +293,17 @@ ImuSample SensorDataBuffer::getLatestImuSample() {
     return currentSample;
 }
 
-// Helper methods for bulk polling control
-void SensorDataBuffer::startPollingAllSensors() {
-    uint32_t currentTime = millis();
-    timeouts.quaternion_last_request.store(currentTime);
-    timeouts.accelerometer_last_request.store(currentTime);
-    timeouts.gyroscope_last_request.store(currentTime);
-    timeouts.magnetometer_last_request.store(currentTime);
-    timeouts.tof_last_request.store(currentTime);
-    timeouts.side_tof_last_request.store(currentTime);
-    timeouts.color_last_request.store(currentTime);  // Include color sensor
-    timeouts.ir_last_request.store(currentTime);  // Include IR sensor
-    timeouts.encoder_last_request.store(currentTime);  // Include encoder
+void SensorDataBuffer::stopPollingAllSensors() {
+    // Reset all timeout timestamps to 0 to disable all sensors
+    timeouts.quaternion_last_request.store(0);
+    timeouts.accelerometer_last_request.store(0);
+    timeouts.gyroscope_last_request.store(0);
+    timeouts.magnetometer_last_request.store(0);
+    timeouts.tof_last_request.store(0);
+    timeouts.side_tof_last_request.store(0);
+    timeouts.color_last_request.store(0);
+    timeouts.ir_last_request.store(0);
+    timeouts.encoder_last_request.store(0);
 }
 
 void SensorDataBuffer::markDataUpdated() {

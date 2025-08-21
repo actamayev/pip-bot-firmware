@@ -675,6 +675,7 @@ void BytecodeVM::stopProgram() {
     Speaker::getInstance().setMuted(true);
     rgbLed.turn_all_leds_off();
     motorDriver.brake_if_moving();
+    SensorDataBuffer::getInstance().stopPollingAllSensors();
     return;
 }
 

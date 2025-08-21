@@ -6,6 +6,7 @@
 #include "utils/singleton.h"
 #include "actuators/led/rgb_led.h"
 #include "utils/preferences_manager.h"
+#include "sensors/sensor_data_buffer.h"
 #include "networking/serial_queue_manager.h"
 
 class FirmwareVersionTracker : public Singleton<FirmwareVersionTracker> {

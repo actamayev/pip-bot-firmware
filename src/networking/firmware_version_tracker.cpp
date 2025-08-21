@@ -40,6 +40,7 @@ void FirmwareVersionTracker::retrieveLatestFirmwareFromServer(uint16_t newVersio
 
     // Get endpoint
     String url = getServerFirmwareEndpoint();
+    SensorDataBuffer::getInstance().stopPollingAllSensors(); // Don't need sensors when updating
 
     // Perform the update
     t_httpUpdate_return result = httpUpdate.update(*httpClient, url);
