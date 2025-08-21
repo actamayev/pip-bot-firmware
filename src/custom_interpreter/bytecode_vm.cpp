@@ -206,7 +206,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
         }
 
         case OP_READ_SENSOR: {
-            uint8_t sensorType = static_cast<uint8_t>(instr.operand1);  // Which sensor to read
+            BytecodeSensorType sensorType = static_cast<BytecodeSensorType>(instr.operand1);  // Which sensor to read
             uint16_t regId = instr.operand2;       // Register to store result
             
             if (regId < MAX_REGISTERS) {
