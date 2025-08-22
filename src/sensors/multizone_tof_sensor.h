@@ -51,7 +51,7 @@ class MultizoneTofSensor : public Singleton<MultizoneTofSensor> {
         uint8_t RANGING_FREQUENCY = 5; // Ranging frequency in Hz
         uint16_t OBSTACLE_DISTANCE_THRESHOLD = 200; // Distance threshold to consider obstacle (mm)
         uint16_t X_TALK_MARGIN = 120;         // Xtalk margin for noise filtering
-        uint8_t SHARPENER_PERCENT = 1;      // Sharpener percentage (0-99)
+        uint8_t SHARPENER_PERCENT = 100;      // Sharpener percentage (0-99)
         uint32_t INTEGRATION_TIME_MS = 20;   // Integration time in milliseconds
 
         // Temporal tracking variables for weighted average
