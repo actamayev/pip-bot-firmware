@@ -1,5 +1,5 @@
 #pragma once
-#include "veml3328/veml3328.h"
+#include "../lib/veml3328/veml3328.h"
 #include "utils/structs.h"
 #include "utils/singleton.h"
 #include "sensor_data_buffer.h"
