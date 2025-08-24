@@ -1,24 +1,157 @@
-This is an embedded systems project, using PlatformIO, Arduino Framework
+# Educational Robot Firmware - ESP32-S3
 
-The MCU is an ESP32 S3. I use both cores. I use both of my ESP's I2C lines
+This is an embedded systems project using PlatformIO with Arduino Framework for an educational robot with dual-core ESP32-S3 MCU.
 
-The first I2C line: is connected to pins: 18 (SDA), and 8 (SCL), and has the following devices:
-1. Left Side Tof: 0x51
-2. Right Side Tof: 0x60
-3. Multizone: 0x29
-4. IMU: 0x4A
-5. Display: 0x3C
-6. Color Sensor: 0x10
+## Hardware Configuration
 
-The second I2C line is connected to pins: 9 (SDA), and 10 (SCL), and has the following devices:
-1. Battery monitor 0x55
+### MCU & Core Usage
+- **MCU**: ESP32-S3 (240MHz, dual-core)
+- **Core 0**: Hardware/real-time tasks (sensors, motors)
+- **Core 1**: Communication/application tasks (networking, display)
+- **Memory**: 16MB flash (8MB PSRAM) with custom partitions for OTA updates
 
-Other sensors not connected to I2C include:
-- 2 Buttons: Pins 1 & 12
-- Encoders for each motor (47 & 48 for Left motor) and (2 and 1 for Right motor)
-- Speaker on pins 13, 14, and 21 (DOUT, BCLK, LRC, respectively)
-- A string of 5 IR sensors using a multiplexer (A0: 17, A1: 16, A2: 15, MUX_OUT: 7, IR_EN: 6)
-- A visible, downward-facing LED for the color sensor on pin 5
-- 8 LEDS using NeoPixel library, on pin 4.
+### I2C Configuration
+**Primary I2C Bus** (SDA: 18, SCL: 8, 100kHz):
+- Left Side ToF: 0x51
+- Right Side ToF: 0x60  
+- Multizone ToF: 0x29
+- IMU (BNO08x): 0x4A
+- Display (SSD1306): 0x3C
+- Color Sensor (VEML3328): 0x10
 
-After editing my code, do not build my project.
+**Secondary I2C Bus** (SDA: 9, SCL: 10):
+- Battery Monitor (BQ27441): 0x55
+
+### Pin Mappings
+```cpp
+// Motors & Encoders
+LEFT_MOTOR: IN1=40, IN2=39, ENC_A=47, ENC_B=48
+RIGHT_MOTOR: IN1=42, IN2=41, ENC_A=2, ENC_B=1
+
+// Audio (I2S)
+SPEAKER: DOUT=13, BCLK=14, LRC=21
+
+// IR Sensors (5 sensors via multiplexer)
+IR_MUX: A0=17, A1=16, A2=15, OUT=7, EN=6
+
+// LEDs & Lighting
+NEOPIXEL_STRIP=4 (8 LEDs), COLOR_LED=5
+
+// Controls
+BUTTONS: LEFT=11, RIGHT=12
+POWER_EN=38
+```
+
+## Architecture
+
+### Task System (FreeRTOS)
+**Core 0 - Hardware/Real-time**:
+- Motor control, sensor polling, LED animations
+- High-priority tasks with fast response times
+
+**Core 1 - Communication/Application**:  
+- WiFi/WebSocket, serial communication, display updates
+- Demo management, bytecode interpreter
+
+### Key Design Patterns
+- **Singleton pattern**: All managers use `::getInstance()`
+- **Task-based architecture**: 15+ specialized FreeRTOS tasks
+- **Centralized initialization**: `SensorInitializer` prevents I2C conflicts
+- **Rate limiting**: All sensors have configurable update intervals
+- **Data buffering**: Thread-safe sensor data sharing
+
+## Build System
+
+### Environments
+```bash
+# Development (full debugging)
+pio run -e local
+
+# Staging (reduced logging)  
+pio run -e staging
+
+# Production (minimal logging)
+pio run -e production
+```
+
+### Upload & Monitor
+```bash
+pio run -t upload -t monitor -e local --upload-port /dev/cu.usbmodem101
+```
+
+### Key Dependencies
+- ArduinoWebsockets, ArduinoJson
+- Adafruit NeoPixel, BNO08x, SSD1306
+- ESP32Encoder, Button2
+- ESP8266Audio (MP3 playback)
+
+## Major Subsystems
+
+### 1. Sensor System
+- **IMU**: Quaternion, Euler angles, accelerometer data
+- **ToF Sensors**: Side (proximity) + multizone (64-zone mapping)
+- **Color Sensor**: RGB detection with calibration matrix
+- **IR Sensors**: 5-sensor array for line following
+- **Battery Monitor**: Voltage, current, health tracking
+
+### 2. Demo System
+- **Balance Controller**: Self-balancing with PID control
+- **Obstacle Avoider**: Navigation using ToF sensors
+- **Demo Manager**: Coordinates between different behaviors
+
+### 3. Communication
+- **Serial Protocol**: 30+ message types with START/END markers
+- **WebSocket**: Real-time bidirectional communication
+- **WiFi Management**: Auto-connect with credential storage
+
+### 4. Custom Interpreter
+- **Bytecode VM**: Executes user programs up to 8KB
+- **Sandboxed execution**: Safe user code execution
+- **Program management**: Upload, pause, stop functionality
+
+### 5. Audio System
+- **MP3 Playback**: Files stored in SPIFFS
+- **Sound Library**: 12 different sound effects
+- **Volume Control**: Software-controlled audio levels
+
+## Development Guidelines
+
+### Code Conventions
+- Use `constexpr` for constants (not `#define`)
+- Rate-limit all sensor readings with timeouts
+- Handle I2C failures gracefully with retry logic  
+- Use structured data types from `utils/structs.h`
+- Follow task priority guidelines (0-4, higher = more critical)
+
+### Memory Management
+- **Stack Sizes**: Carefully tuned per task (4KB-16KB)
+- **Serial Buffers**: Enlarged to 8KB for bytecode uploads
+- **Partition Layout**: Custom CSV for OTA + SPIFFS storage
+
+### Networking
+- **Environment URLs**: Local/staging/production endpoints
+- **Certificate Pinning**: Embedded root CA for HTTPS
+- **Connection States**: WiFi-only vs full WebSocket connectivity
+
+## Troubleshooting
+
+### Common Issues
+- **Build Errors**: Run "Full Clean" if linking fails
+- **I2C Conflicts**: Check sensor initialization order
+- **Memory**: Monitor stack usage with StackMonitor task
+
+### Debug Features
+- **Stack Monitor**: Real-time task stack usage
+- **Sensor Logging**: Individual sensor debug output
+
+## Important Notes
+- **No auto-build**: After editing code, do not build the project automatically
+- **Deep Sleep**: Hold-to-wake functionality on button press
+- **Battery Safety**: Automatic shutdown on critical battery levels
+- **OTA Updates**: Dual partition system for safe firmware updates
+
+## Environment Variables
+Each build environment has unique:
+- `DEFAULT_PIP_ID`: Robot identification
+- `CORE_DEBUG_LEVEL`: Logging verbosity
+- API endpoints for staging/production deployment
