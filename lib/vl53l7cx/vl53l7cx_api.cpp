@@ -59,7 +59,15 @@ uint8_t VL53L7CX::_vl53l7cx_poll_for_answer(
   do {
     status |= RdMulti(&(p_dev->platform), address,
                       p_dev->temp_buffer, size);
-    status |= WaitMs(&(p_dev->platform), 10);
+    
+    // Exit early if condition is already met (no wait needed)
+    if ((p_dev->temp_buffer[pos] & mask) == expected_value) {
+      break;
+    }
+    
+    // Use shorter delays in non-blocking mode for better responsiveness
+    uint8_t wait_time = p_dev->platform.initialization_mode ? 10 : 1;
+    status |= WaitMs(&(p_dev->platform), wait_time);
 
     if (timeout >= (uint8_t)200) { /* 2s timeout */
       status |= (uint8_t)VL53L7CX_STATUS_TIMEOUT_ERROR;

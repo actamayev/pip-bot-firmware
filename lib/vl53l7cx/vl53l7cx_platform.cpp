@@ -170,8 +170,27 @@ uint8_t VL53L7CX::WaitMs(
   VL53L7CX_Platform *p_platform,
   uint32_t TimeMs)
 {
-  (void)p_platform;
-  delay(TimeMs);
-
-  return 0;
+  // During initialization, use blocking delays for reliability
+  if (p_platform->initialization_mode) {
+    delay(TimeMs);
+    return 0;
+  }
+  
+  // Non-blocking delay implementation for runtime operation
+  if (!p_platform->wait_active) {
+    // Start new wait period
+    p_platform->wait_start_time = millis();
+    p_platform->wait_duration = TimeMs;
+    p_platform->wait_active = true;
+    return 1; // Still waiting
+  }
+  
+  // Check if wait period has elapsed
+  if (millis() - p_platform->wait_start_time >= p_platform->wait_duration) {
+    // Wait complete
+    p_platform->wait_active = false;
+    return 0; // Success
+  }
+  
+  return 1; // Still waiting
 }

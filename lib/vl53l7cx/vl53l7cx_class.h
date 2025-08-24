@@ -67,6 +67,13 @@ class VL53L7CX {
       _dev.platform.dev_i2c = i2c;
       _dev.platform.lpn_pin = lpn_pin;
       _dev.platform.i2c_rst_pin = i2c_rst_pin;
+      
+      // Initialize non-blocking timing state
+      _dev.platform.wait_start_time = 0;
+      _dev.platform.wait_duration = 0;
+      _dev.platform.wait_active = false;
+      _dev.platform.initialization_mode = true; // Start in blocking mode for init
+      
       p_dev = &_dev;
     }
 
@@ -112,7 +119,7 @@ class VL53L7CX {
       if (_dev.platform.lpn_pin >= 0) {
         digitalWrite(_dev.platform.lpn_pin, HIGH);
       }
-      delay(10);
+      WaitMs(&_dev.platform, 10);
     }
 
     /**
@@ -124,7 +131,7 @@ class VL53L7CX {
       if (_dev.platform.lpn_pin >= 0) {
         digitalWrite(_dev.platform.lpn_pin, LOW);
       }
-      delay(10);
+      WaitMs(&_dev.platform, 10);
     }
 
     /**
@@ -135,7 +142,7 @@ class VL53L7CX {
     {
       if (_dev.platform.i2c_rst_pin >= 0) {
         digitalWrite(_dev.platform.i2c_rst_pin, LOW);
-        delay(10);
+        WaitMs(&_dev.platform, 10);
         digitalWrite(_dev.platform.i2c_rst_pin, HIGH);
         delay(10);
         digitalWrite(_dev.platform.i2c_rst_pin, LOW);
@@ -241,6 +248,13 @@ class VL53L7CX {
      */
 
     uint8_t vl53l7cx_start_ranging();
+    
+    /**
+     * @brief Enable non-blocking mode after initialization
+     */
+    void vl53l7cx_enable_non_blocking_mode() {
+      _dev.platform.initialization_mode = false;
+    }
 
     /**
      * @brief This function stops the ranging session. It must be used when the

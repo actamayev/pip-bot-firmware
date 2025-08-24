@@ -76,6 +76,12 @@ typedef struct {
 
   int i2c_rst_pin;
 
+  // Non-blocking timing support
+  unsigned long wait_start_time;
+  unsigned long wait_duration;
+  bool wait_active;
+  bool initialization_mode;
+
 } VL53L7CX_Platform;
 
 #endif  // _VL53L7CX_PLATFORM_H_
