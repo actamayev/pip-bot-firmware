@@ -9,9 +9,10 @@ constexpr uint8_t MAX_LED_BRIGHTNESS = 75;
 // I2C Configuration
 constexpr uint8_t I2C_SDA_1 = 18;
 constexpr uint8_t I2C_SCL_1 = 8;
+constexpr uint32_t I2C_1_CLOCK_SPEED = 800 * 1000; // 100 kHz (works best for IMU)
 constexpr uint8_t I2C_SDA_2 = 9; // Battery monitor
 constexpr uint8_t I2C_SCL_2 = 10; // Battery monitor
-constexpr uint32_t I2C_CLOCK_SPEED = 100 * 1000; // 100 kHz (works best for IMU)
+constexpr uint32_t I2C_2_CLOCK_SPEED = 100 * 1000; // 100 kHz (works best for IMU)
 
 // Motors + Encoders
 constexpr uint8_t LEFT_MOTOR_PIN_IN_1 = 40;
