@@ -38,7 +38,7 @@ class ColorSensor : public Singleton<ColorSensor> {
         ColorSensorData colorSensorData;
         float invMatrix[3][3]; // Store pre-computed inverse matrix
         unsigned long lastUpdateTime = 0;
-        static constexpr unsigned long DELAY_BETWEEN_READINGS = 50; // ms - rate limiting
+        static constexpr unsigned long DELAY_BETWEEN_READINGS = 1; // ms - minimal delay like performance test
 
         // New buffer-based methods following the established pattern
         void updateSensorData();  // Single read, write to buffer

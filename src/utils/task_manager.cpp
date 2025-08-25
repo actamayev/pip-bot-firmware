@@ -156,7 +156,7 @@ void TaskManager::colorSensorTask(void* parameter) {
         if (ColorSensor::getInstance().shouldBePolling()) {
             ColorSensor::getInstance().updateSensorData();
         }
-        vTaskDelay(pdMS_TO_TICKS(25));  // 40Hz - light processing
+        vTaskDelay(pdMS_TO_TICKS(1));  // Allow frequent polling like performance test
     }
 }
 
@@ -184,8 +184,8 @@ void TaskManager::sensorLoggerTask(void* parameter) {
         // Call each frequency logger function
         // imuLogger();
         // multizoneTofLogger();
-        sideTofLogger();
-        // colorSensorLogger();
+        // sideTofLogger();
+        colorSensorLogger();
         // log_motor_rpm();  // Keep this commented for now since it's not frequency-based
         
         // Small delay between logger cycles - loggers have their own internal timing

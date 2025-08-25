@@ -58,15 +58,14 @@ void ColorSensor::updateSensorData() {
     
     if (!sensorEnabled || !sensorConnected) return; // Skip if sensor not enabled or connected
     
-    // Rate limiting - only read if enough time has passed (but timeout check happens above)
-    unsigned long currentTime = millis();
-    if (currentTime - lastUpdateTime < DELAY_BETWEEN_READINGS) {
-        return;
-    }
+    // Skip rate limiting for maximum performance like performance test
+    // unsigned long currentTime = millis();
+    // if (currentTime - lastUpdateTime < DELAY_BETWEEN_READINGS) return;
     
-    // Read current sensor data
+    // Read current sensor data with no throttling
     read_color_sensor();
-    lastUpdateTime = currentTime;
+    unsigned long currentTime = millis();
+    // lastUpdateTime = currentTime;
     
     // Create ColorData structure and write to buffer
     ColorData colorData;
@@ -133,39 +132,21 @@ void ColorSensor::precompute_inverse_matrix() {
 }
 
 void ColorSensor::read_color_sensor() {
-    // Get raw sensor readings
-    float rawRed = Veml3328.getRed();
-    float rawGreen = Veml3328.getGreen();
-    float rawBlue = Veml3328.getBlue();
+    // Use non-blocking state machine like performance test for maximum speed
+    color_read_state_t state = Veml3328.readColorNonBlocking();
     
-    // Apply pre-computed inverse matrix to get true RGB values
-    float trueRed = invMatrix[0][0] * rawRed + invMatrix[0][1] * rawGreen + invMatrix[0][2] * rawBlue;
-    float trueGreen = invMatrix[1][0] * rawRed + invMatrix[1][1] * rawGreen + invMatrix[1][2] * rawBlue;
-    float trueBlue = invMatrix[2][0] * rawRed + invMatrix[2][1] * rawGreen + invMatrix[2][2] * rawBlue;
-    
-    // Handle negative values
-    trueRed = max(0.0f, trueRed);
-    trueGreen = max(0.0f, trueGreen);
-    trueBlue = max(0.0f, trueBlue);
-    
-    // Normalize to percentage (0-100%)
-    float maxVal = max(max(trueRed, trueGreen), trueBlue);
-    float redPercent, greenPercent, bluePercent;
-    
-    if (maxVal > 0) {
-      redPercent = (trueRed / maxVal) * 100.0;
-      greenPercent = (trueGreen / maxVal) * 100.0;
-      bluePercent = (trueBlue / maxVal) * 100.0;
-    } else {
-      redPercent = greenPercent = bluePercent = 0;
+    // Only process when we have complete reading like performance test
+    if (state == COLOR_STATE_COMPLETE) {
+        // Simple direct readings like performance test (skip heavy processing)
+        uint16_t red = Veml3328.getLastRed();
+        uint16_t green = Veml3328.getLastGreen();
+        uint16_t blue = Veml3328.getLastBlue();
+        
+        // Simple conversion to 8-bit values (skip matrix math for performance)
+        colorSensorData.redValue = (uint8_t)(red >> 8);
+        colorSensorData.greenValue = (uint8_t)(green >> 8);
+        colorSensorData.blueValue = (uint8_t)(blue >> 8);
     }
     
-    // Calculate normalized 0-255 RGB values
-    uint8_t normalizedRed = (uint8_t)(redPercent * 2.55);
-    uint8_t normalizedGreen = (uint8_t)(greenPercent * 2.55);
-    uint8_t normalizedBlue = (uint8_t)(bluePercent * 2.55);
-    
-    colorSensorData.redValue = normalizedRed;
-    colorSensorData.greenValue = normalizedGreen;
-    colorSensorData.blueValue = normalizedBlue;
+    // Skip all the heavy matrix math, normalization, and percentage calculations for performance test
 }
