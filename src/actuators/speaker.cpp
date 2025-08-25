@@ -9,8 +9,8 @@ bool Speaker::initialize() {
     
     SerialQueueManager::getInstance().queueMessage("Initializing Speaker...");
     
-    if (!initializeSPIFFS()) {
-        SerialQueueManager::getInstance().queueMessage("✗ Speaker: SPIFFS init failed");
+    if (!initializeLittleFS()) {
+        SerialQueueManager::getInstance().queueMessage("✗ Speaker: LittleFS init failed");
         return false;
     }
     
@@ -25,9 +25,9 @@ bool Speaker::initialize() {
     return true;
 }
 
-bool Speaker::initializeSPIFFS() {
-    if (!SPIFFS.begin(true)) return false;
-    SerialQueueManager::getInstance().queueMessage("✓ SPIFFS mounted");
+bool Speaker::initializeLittleFS() {
+    if (!LittleFS.begin(true)) return false;
+    SerialQueueManager::getInstance().queueMessage("✓ LittleFS mounted");
     return true;
 }
 
@@ -36,9 +36,9 @@ bool Speaker::initializeAudio() {
     cleanup();
     
     // Create audio objects with error checking
-    audioFile = new (std::nothrow) AudioFileSourceSPIFFS();
+    audioFile = new (std::nothrow) AudioFileSourceLittleFS();
     if (!audioFile) {
-        SerialQueueManager::getInstance().queueMessage("✗ Failed to create AudioFileSourceSPIFFS");
+        SerialQueueManager::getInstance().queueMessage("✗ Failed to create AudioFileSourceLittleFS");
         cleanup();
         return false;
     }
