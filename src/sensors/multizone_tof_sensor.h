@@ -52,7 +52,7 @@ class MultizoneTofSensor : public Singleton<MultizoneTofSensor> {
         uint16_t OBSTACLE_DISTANCE_THRESHOLD = 200; // Distance threshold to consider obstacle (mm)
         uint16_t X_TALK_MARGIN = 120;         // Xtalk margin for noise filtering
         uint8_t SHARPENER_PERCENT = 100;      // Sharpener percentage (0-99)
-        uint32_t INTEGRATION_TIME_MS = 10;   // Integration time in milliseconds
+        uint32_t INTEGRATION_TIME_MS = 5;   // Integration time in milliseconds
 
         // Temporal tracking variables for weighted average
         static const uint8_t HISTORY_SIZE = 2;
@@ -73,4 +73,6 @@ class MultizoneTofSensor : public Singleton<MultizoneTofSensor> {
         // New buffer-based methods following IMU pattern
         void updateSensorData();  // Single read, write to buffer
         bool shouldBePolling() const;
+
+        static const uint16_t CHECK_SENSOR_TIME = 20; //ms
 };

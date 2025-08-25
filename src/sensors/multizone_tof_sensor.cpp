@@ -40,6 +40,14 @@ bool MultizoneTofSensor::shouldBePolling() const {
 void MultizoneTofSensor::updateSensorData() {
     if (!isInitialized) return;
 
+    // Throttle VL53L7CX checks to 50Hz max (every 20ms) to reduce I2C load
+    static unsigned long lastCheckTime = 0;
+    unsigned long currentTime = millis();
+    
+    if (currentTime - lastCheckTime < CHECK_SENSOR_TIME) return;
+
+    lastCheckTime = currentTime;
+
     // Check if we should enable/disable the sensor based on timeouts
     ReportTimeouts& timeouts = SensorDataBuffer::getInstance().getReportTimeouts();
     bool shouldEnable = timeouts.shouldEnableTof();
@@ -76,7 +84,9 @@ void MultizoneTofSensor::updateSensorData() {
     lastValidDataTime = millis();
     
     // Process obstacle detection with the raw data
-    bool obstacleDetected = processObstacleDetection(rawData);
+    // TODO: Bring this back, but conditionally (might be a heavy operation)
+    // bool obstacleDetected = processObstacleDetection(rawData);
+    bool obstacleDetected = false;
     
     // Create TofData structure and write to buffer
     TofData tofData;

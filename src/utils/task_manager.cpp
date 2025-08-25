@@ -119,7 +119,7 @@ void TaskManager::multizoneTofSensorTask(void* parameter) {
         if (MultizoneTofSensor::getInstance().shouldBePolling()) {
             MultizoneTofSensor::getInstance().updateSensorData();
         }
-        vTaskDelay(pdMS_TO_TICKS(50));  // 20Hz - heavy processing, slower rate
+        vTaskDelay(pdMS_TO_TICKS(5));  // Allow frequent polling, throttling handled in updateSensorData()
     }
 }
 
