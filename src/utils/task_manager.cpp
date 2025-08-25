@@ -138,7 +138,7 @@ void TaskManager::sideTofSensorTask(void* parameter) {
         if (SideTofManager::getInstance().shouldBePolling()) {
             SideTofManager::getInstance().updateSensorData();
         }
-        vTaskDelay(pdMS_TO_TICKS(1));  // Allow frequent polling like performance test
+        vTaskDelay(pdMS_TO_TICKS(50));  // 20Hz target rate
     }
 }
 
@@ -156,7 +156,7 @@ void TaskManager::colorSensorTask(void* parameter) {
         if (ColorSensor::getInstance().shouldBePolling()) {
             ColorSensor::getInstance().updateSensorData();
         }
-        vTaskDelay(pdMS_TO_TICKS(1));  // Allow frequent polling like performance test
+        vTaskDelay(pdMS_TO_TICKS(50));  // 20Hz target rate
     }
 }
 
@@ -183,8 +183,8 @@ void TaskManager::sensorLoggerTask(void* parameter) {
     for(;;) {
         // Call each frequency logger function
         // imuLogger();
-        // multizoneTofLogger();
-        // sideTofLogger();
+        multizoneTofLogger();
+        sideTofLogger();
         colorSensorLogger();
         // log_motor_rpm();  // Keep this commented for now since it's not frequency-based
         
@@ -411,7 +411,7 @@ bool TaskManager::createEncoderSensorTask() {
 
 bool TaskManager::createMultizoneTofSensorTask() {
     return createTask("MultizoneTOF", multizoneTofSensorTask, MULTIZONE_TOF_STACK_SIZE,
-                     Priority::SYSTEM_CONTROL, Core::CORE_0, &multizoneTofSensorTaskHandle);
+                     Priority::COMMUNICATION, Core::CORE_0, &multizoneTofSensorTaskHandle);
 }
 
 bool TaskManager::createSideTofSensorTask() {
@@ -421,7 +421,7 @@ bool TaskManager::createSideTofSensorTask() {
 
 bool TaskManager::createColorSensorTask() {
     return createTask("ColorSensor", colorSensorTask, COLOR_SENSOR_STACK_SIZE,
-                     Priority::BACKGROUND, Core::CORE_0, &colorSensorTaskHandle);
+                     Priority::SYSTEM_CONTROL, Core::CORE_0, &colorSensorTaskHandle);
 }
 
 bool TaskManager::createIrSensorTask() {
