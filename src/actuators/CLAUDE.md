@@ -20,7 +20,7 @@ This directory contains all output devices and user interface components for the
 
 ### Audio (`speaker.h/cpp`)
 - **I2S audio output** (DOUT=13, BCLK=14, LRC=21)
-- **MP3 playback** from SPIFFS storage
+- **MP3 playback** from SPIFFS (LittleFS) storage
 - **12 sound effects**: chime, chirp, fart, elephant, etc.
 - **Volume control** (0.0-4.0 range)
 - **Mute functionality** for quiet operation
@@ -104,7 +104,7 @@ Speaker::getInstance().setVolume(2.0); // 0.0-4.0 range
 
 ### Audio Troubles
 - Ensure I2S pins are correctly configured
-- Check SPIFFS for sound file presence
+- Check SPIFFS (LittleFS) for sound file presence
 - Monitor serial output for initialization errors
 
 ## Integration Notes
