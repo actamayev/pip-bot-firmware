@@ -37,7 +37,8 @@ class SideTimeOfFlightSensor {
         // Read proximity data from the sensor (with calibration applied)
         uint16_t Read_Proximity_Data() {
             uint16_t rawReading = VCNL36828P_GET_PS_DATA(sensorAddress);
-            return applyCalibration(rawReading);
+            return rawReading; // Skip calibration for max performance like performance test
+            // return applyCalibration(rawReading); // Re-enable when not performance testing
         }
 
         void Basic_Initialization_Auto_Mode();
@@ -51,7 +52,7 @@ class SideTimeOfFlightSensor {
 
         // For rate limiting reads
         unsigned long _lastUpdateTime = 0;
-        static constexpr unsigned long DELAY_BETWEEN_READINGS = 10; //ms
+        static constexpr unsigned long DELAY_BETWEEN_READINGS = 1; //ms - minimal delay like performance test
 
         // New buffer-based methods following the established pattern
         void updateSensorData();  // Read sensor and return data (don't store locally)

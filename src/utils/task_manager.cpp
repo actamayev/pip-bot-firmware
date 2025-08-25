@@ -138,7 +138,7 @@ void TaskManager::sideTofSensorTask(void* parameter) {
         if (SideTofManager::getInstance().shouldBePolling()) {
             SideTofManager::getInstance().updateSensorData();
         }
-        vTaskDelay(pdMS_TO_TICKS(25));  // 40Hz - moderate processing
+        vTaskDelay(pdMS_TO_TICKS(1));  // Allow frequent polling like performance test
     }
 }
 
@@ -183,8 +183,8 @@ void TaskManager::sensorLoggerTask(void* parameter) {
     for(;;) {
         // Call each frequency logger function
         // imuLogger();
-        multizoneTofLogger();
-        // sideTofLogger();
+        // multizoneTofLogger();
+        sideTofLogger();
         // colorSensorLogger();
         // log_motor_rpm();  // Keep this commented for now since it's not frequency-based
         
