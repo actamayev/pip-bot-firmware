@@ -16,7 +16,7 @@ SensorInitializer::SensorInitializer() {
     // Start with the heaviest I2C user first (multizone requires ~84KB data transfer)
     // initializeMultizoneTof();
     // initializeIMU();
-    initializeColorSensor();
+    // initializeColorSensor();
     
     SerialQueueManager::getInstance().queueMessage("Centralized sensor initialization complete");
 }
