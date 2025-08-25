@@ -172,7 +172,7 @@ void TaskManager::irSensorTask(void* parameter) {
         if (IrSensor::getInstance().shouldBePolling()) {
             IrSensor::getInstance().updateSensorData();
         }
-        vTaskDelay(pdMS_TO_TICKS(25));  // 40Hz - moderate processing (5 sensors)
+        vTaskDelay(pdMS_TO_TICKS(20));  // 50Hz target rate
     }
 }
 
@@ -186,6 +186,7 @@ void TaskManager::sensorLoggerTask(void* parameter) {
         multizoneTofLogger();
         sideTofLogger();
         colorSensorLogger();
+        irSensorLogger();
         // log_motor_rpm();  // Keep this commented for now since it's not frequency-based
         
         // Small delay between logger cycles - loggers have their own internal timing

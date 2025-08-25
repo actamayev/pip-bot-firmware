@@ -66,7 +66,7 @@ void setup() {
     TaskManager::createMotorTask();
 
     // 7. Network (Management task creates Communication task)
-    // TaskManager::createNetworkManagementTask();
+    TaskManager::createNetworkManagementTask();
     
     // 8. LEDs (moved later in sequence)
     rgbLed.turn_all_leds_off(); // Still turn off LEDs early for safety
@@ -81,7 +81,7 @@ void setup() {
     TaskManager::createMultizoneTofSensorTask();
     TaskManager::createSideTofSensorTask();
     TaskManager::createColorSensorTask();
-    // TaskManager::createIrSensorTask();
+    TaskManager::createIrSensorTask();
     
     // 12. DemoManager (high priority for demos)
     TaskManager::createDemoManagerTask();
