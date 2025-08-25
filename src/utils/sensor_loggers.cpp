@@ -120,8 +120,8 @@ void multizoneTofLogger() {
     TofData tofData = SensorDataBuffer::getInstance().getLatestTofData();
     
     char buffer[128];
-    snprintf(buffer, sizeof(buffer), "Multizone ToF Frequency: %.1f Hz, Data Valid: %s", 
-             frequency, tofData.isValid ? "YES" : "NO");
+    snprintf(buffer, sizeof(buffer), "Multizone ToF Frequency: %.1f Hz, Data Valid: %s, Object Detected: %s", 
+             frequency, tofData.isValid ? "YES" : "NO", tofData.isObjectDetected ? "Object Detected" : "Object not detected");
     SerialQueueManager::getInstance().queueMessage(buffer);
     
     lastPrintTime = millis();

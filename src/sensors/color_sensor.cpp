@@ -57,15 +57,13 @@ void ColorSensor::updateSensorData() {
     }
     
     if (!sensorEnabled || !sensorConnected) return; // Skip if sensor not enabled or connected
-    
-    // Skip rate limiting for maximum performance like performance test
-    // unsigned long currentTime = millis();
-    // if (currentTime - lastUpdateTime < DELAY_BETWEEN_READINGS) return;
-    
-    // Read current sensor data with no throttling
-    read_color_sensor();
+
     unsigned long currentTime = millis();
-    // lastUpdateTime = currentTime;
+    if (currentTime - lastUpdateTime < DELAY_BETWEEN_READINGS) return;
+    
+    // Read current sensor data (rate controlled by 50ms task delay ~20Hz)
+    read_color_sensor();
+    lastUpdateTime = currentTime;
     
     // Create ColorData structure and write to buffer
     ColorData colorData;

@@ -84,9 +84,7 @@ void MultizoneTofSensor::updateSensorData() {
     lastValidDataTime = millis();
     
     // Process obstacle detection with the raw data
-    // TODO: Bring this back, but conditionally (might be a heavy operation)
-    // bool obstacleDetected = processObstacleDetection(rawData);
-    bool obstacleDetected = false;
+    bool obstacleDetected = processObstacleDetection(rawData);
     
     // Create TofData structure and write to buffer
     TofData tofData;
