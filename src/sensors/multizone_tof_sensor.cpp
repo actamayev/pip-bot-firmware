@@ -208,13 +208,13 @@ bool MultizoneTofSensor::configureSensor() {
     
     sensor.vl53l7cx_set_ranging_frequency_hz(RANGING_FREQUENCY);
     // Set target order to closest (better for obstacle avoidance)
-    sensor.vl53l7cx_set_target_order(VL53L7CX_TARGET_ORDER_CLOSEST);
+    // sensor.vl53l7cx_set_target_order(VL53L7CX_TARGET_ORDER_CLOSEST);
     
     // Apply the optimized filtering parameters
-    sensor.vl53l7cx_set_xtalk_margin(X_TALK_MARGIN);
-    sensor.vl53l7cx_set_sharpener_percent(SHARPENER_PERCENT);
+    // sensor.vl53l7cx_set_xtalk_margin(X_TALK_MARGIN);
+    // sensor.vl53l7cx_set_sharpener_percent(SHARPENER_PERCENT);
     sensor.vl53l7cx_set_integration_time_ms(INTEGRATION_TIME_MS);
-    sensor.vl53l7cx_set_ranging_mode(VL53L7CX_RANGING_MODE_CONTINUOUS);
+    sensor.vl53l7cx_enable_non_blocking_mode();
 
     return true;
 }

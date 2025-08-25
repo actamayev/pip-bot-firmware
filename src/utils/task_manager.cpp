@@ -15,6 +15,7 @@ TaskHandle_t TaskManager::multizoneTofSensorTaskHandle = NULL;
 TaskHandle_t TaskManager::sideTofSensorTaskHandle = NULL;
 TaskHandle_t TaskManager::colorSensorTaskHandle = NULL;
 TaskHandle_t TaskManager::irSensorTaskHandle = NULL;
+TaskHandle_t TaskManager::sensorLoggerTaskHandle = NULL;
 TaskHandle_t TaskManager::displayTaskHandle = NULL;
 TaskHandle_t TaskManager::networkManagementTaskHandle = NULL;
 TaskHandle_t TaskManager::networkCommunicationTaskHandle = NULL;
@@ -172,6 +173,23 @@ void TaskManager::irSensorTask(void* parameter) {
             IrSensor::getInstance().updateSensorData();
         }
         vTaskDelay(pdMS_TO_TICKS(25));  // 40Hz - moderate processing (5 sensors)
+    }
+}
+
+void TaskManager::sensorLoggerTask(void* parameter) {
+    SerialQueueManager::getInstance().queueMessage("Sensor logger task started");
+    
+    // Main logging loop
+    for(;;) {
+        // Call each frequency logger function
+        // imuLogger();
+        multizoneTofLogger();
+        // sideTofLogger();
+        // colorSensorLogger();
+        // log_motor_rpm();  // Keep this commented for now since it's not frequency-based
+        
+        // Small delay between logger cycles - loggers have their own internal timing
+        vTaskDelay(pdMS_TO_TICKS(10));  // 100Hz - fast polling, loggers handle their own rate limiting
     }
 }
 
@@ -409,6 +427,11 @@ bool TaskManager::createColorSensorTask() {
 bool TaskManager::createIrSensorTask() {
     return createTask("IRSensor", irSensorTask, IR_SENSOR_STACK_SIZE,
                      Priority::BACKGROUND, Core::CORE_0, &irSensorTaskHandle);
+}
+
+bool TaskManager::createSensorLoggerTask() {
+    return createTask("SensorLogger", sensorLoggerTask, SENSOR_LOGGER_STACK_SIZE,
+                     Priority::BACKGROUND, Core::CORE_1, &sensorLoggerTaskHandle);
 }
 
 bool TaskManager::isDisplayInitialized() {
