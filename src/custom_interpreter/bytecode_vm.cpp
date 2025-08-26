@@ -661,16 +661,13 @@ void BytecodeVM::updateDistanceMovement() {
     if (currentDistance < targetDistanceCm) return;
     // Distance reached - brake motors
     motorDriver.resetCommandState(true);
-    
+
     // Reset distance movement state
     distanceMovementInProgress = false;
 }
 
 void BytecodeVM::stopProgram() {
     resetStateVariables(true);
-
-    Speaker::getInstance().setMuted(true);
-    rgbLed.turn_all_leds_off();
     return;
 }
 
@@ -719,16 +716,14 @@ void BytecodeVM::resetStateVariables(bool isFullReset) {
         programContainsMotors = false;
         lastUsbState = false;
     }
+    Speaker::getInstance().setMuted(true);
+    rgbLed.turn_all_leds_off();
 }
 
 void BytecodeVM::pauseProgram() {
     if (!program || isPaused == PAUSED) return;
 
-    resetStateVariables();
-
-    Speaker::getInstance().setMuted(true);
-    rgbLed.turn_all_leds_off();     
-    
+    resetStateVariables();    
     isPaused = PAUSED;
 }
 
