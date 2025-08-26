@@ -2,8 +2,6 @@
 #include "color_sensor.h"
 
 bool ColorSensor::initialize() {
-    precompute_inverse_matrix();
-    
     pinMode(COLOR_SENSOR_LED_PIN, OUTPUT);
     
     sensorConnected = false;  // Assume not connected initially
@@ -97,54 +95,100 @@ void ColorSensor::disableColorSensor() {
     SerialQueueManager::getInstance().queueMessage("Color sensor LED turned OFF - disabled due to timeout");
 }
 
-void ColorSensor::precompute_inverse_matrix() {
-    if (wasInverseMatrixPrecomputed) return;
-    // Pre-compute the inverse matrix
-    float matrix[3][3] = {
-        {calibrationValues.redRedValue, calibrationValues.greenRedValue, calibrationValues.blueRedValue},
-        {calibrationValues.redGreenValue, calibrationValues.greenGreenValue, calibrationValues.blueGreenValue},
-        {calibrationValues.redBlueValue, calibrationValues.greenBlueValue, calibrationValues.blueBlueValue}
-    };
-      
-    // Calculate the determinant of the matrix
-    float det = 
-    matrix[0][0] * (matrix[1][1] * matrix[2][2] - matrix[1][2] * matrix[2][1]) -
-    matrix[0][1] * (matrix[1][0] * matrix[2][2] - matrix[1][2] * matrix[2][0]) +
-    matrix[0][2] * (matrix[1][0] * matrix[2][1] - matrix[1][1] * matrix[2][0]);
+void ColorSensor::printCalibrationValues() {
+    SerialQueueManager::getInstance().queueMessage("Calibration Values:");
+    SerialQueueManager::getInstance().queueMessage("Black point:");
+    String blackMsg = "R: " + String(calibration.blackRed) + ", G: " + String(calibration.blackGreen) + ", B: " + String(calibration.blackBlue);
+    SerialQueueManager::getInstance().queueMessage(blackMsg.c_str());
     
-    // Calculate the inverse matrix
-    float invDet = 1.0 / det;
-
-    invMatrix[0][0] = (matrix[1][1] * matrix[2][2] - matrix[1][2] * matrix[2][1]) * invDet;
-    invMatrix[0][1] = (matrix[0][2] * matrix[2][1] - matrix[0][1] * matrix[2][2]) * invDet;
-    invMatrix[0][2] = (matrix[0][1] * matrix[1][2] - matrix[0][2] * matrix[1][1]) * invDet;
-    
-    invMatrix[1][0] = (matrix[1][2] * matrix[2][0] - matrix[1][0] * matrix[2][2]) * invDet;
-    invMatrix[1][1] = (matrix[0][0] * matrix[2][2] - matrix[0][2] * matrix[2][0]) * invDet;
-    invMatrix[1][2] = (matrix[0][2] * matrix[1][0] - matrix[0][0] * matrix[1][2]) * invDet;
-    
-    invMatrix[2][0] = (matrix[1][0] * matrix[2][1] - matrix[1][1] * matrix[2][0]) * invDet;
-    invMatrix[2][1] = (matrix[0][1] * matrix[2][0] - matrix[0][0] * matrix[2][1]) * invDet;
-    invMatrix[2][2] = (matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0]) * invDet;
-    wasInverseMatrixPrecomputed = true;
+    SerialQueueManager::getInstance().queueMessage("White point:");
+    String whiteMsg = "R: " + String(calibration.whiteRed) + ", G: " + String(calibration.whiteGreen) + ", B: " + String(calibration.whiteBlue);
+    SerialQueueManager::getInstance().queueMessage(whiteMsg.c_str());
 }
 
+void ColorSensor::calibrateBlackPoint() {
+    if (!isInitialized || !sensorConnected) return;
+    
+    SerialQueueManager::getInstance().queueMessage("Calibrating black point - ensure dark surface...");
+    
+    analogWrite(COLOR_SENSOR_LED_PIN, 255);
+    vTaskDelay(pdMS_TO_TICKS(500)); // Wait for sensor to stabilize
+
+    // Take multiple readings and average them
+    const int numReadings = 5;
+    uint32_t sumRed = 0, sumGreen = 0, sumBlue = 0;
+    
+    for (int i = 0; i < numReadings; i++) {
+        sumRed += Veml3328.getRed();
+        sumGreen += Veml3328.getGreen();
+        sumBlue += Veml3328.getBlue();
+        vTaskDelay(pdMS_TO_TICKS(100));
+    }
+    
+    calibration.blackRed = sumRed / numReadings;
+    calibration.blackGreen = sumGreen / numReadings;
+    calibration.blackBlue = sumBlue / numReadings;
+    
+    SerialQueueManager::getInstance().queueMessage("Black point calibrated!");
+    printCalibrationValues();
+    analogWrite(COLOR_SENSOR_LED_PIN, 0);
+}
+
+void ColorSensor::calibrateWhitePoint() {
+    if (!isInitialized || !sensorConnected) return;
+    
+    SerialQueueManager::getInstance().queueMessage("Calibrating white point - ensure white surface...");
+    
+    analogWrite(COLOR_SENSOR_LED_PIN, 255);
+    vTaskDelay(pdMS_TO_TICKS(500)); // Wait for sensor to stabilize
+    
+    // Take multiple readings and average them
+    const int numReadings = 5;
+    uint32_t sumRed = 0, sumGreen = 0, sumBlue = 0;
+    
+    for (int i = 0; i < numReadings; i++) {
+        sumRed += Veml3328.getRed();
+        sumGreen += Veml3328.getGreen();
+        sumBlue += Veml3328.getBlue();
+        vTaskDelay(pdMS_TO_TICKS(100));
+    }
+    
+    calibration.whiteRed = sumRed / numReadings;
+    calibration.whiteGreen = sumGreen / numReadings;
+    calibration.whiteBlue = sumBlue / numReadings;
+    
+    SerialQueueManager::getInstance().queueMessage("White point calibrated!");
+    printCalibrationValues();
+    isCalibrated = true;
+    analogWrite(COLOR_SENSOR_LED_PIN, 0);
+}
+
+
 void ColorSensor::read_color_sensor() {
-    // Use non-blocking state machine like performance test for maximum speed
+    // Use non-blocking state machine for maximum speed
     color_read_state_t state = Veml3328.readColorNonBlocking();
     
-    // Only process when we have complete reading like performance test
-    if (state == COLOR_STATE_COMPLETE) {
-        // Simple direct readings like performance test (skip heavy processing)
-        uint16_t red = Veml3328.getLastRed();
-        uint16_t green = Veml3328.getLastGreen();
-        uint16_t blue = Veml3328.getLastBlue();
+    // Only process when we have complete reading
+    if (state != COLOR_STATE_COMPLETE) return;
+    uint16_t red = Veml3328.getLastRed();
+    uint16_t green = Veml3328.getLastGreen();
+    uint16_t blue = Veml3328.getLastBlue();
+    
+    if (isCalibrated) {
+        // Use calibrated normalization
+        auto safeNormalize = [](uint16_t value, uint16_t black, uint16_t white) -> uint8_t {
+            if (white <= black) return 0; // Invalid calibration
+            int32_t normalized = ((int32_t)(value - black) * 255L) / (white - black);
+            return (uint8_t)constrain(normalized, 0, 255);
+        };
         
-        // Simple conversion to 8-bit values (skip matrix math for performance)
+        colorSensorData.redValue = safeNormalize(red, calibration.blackRed, calibration.whiteRed);
+        colorSensorData.greenValue = safeNormalize(green, calibration.blackGreen, calibration.whiteGreen);
+        colorSensorData.blueValue = safeNormalize(blue, calibration.blackBlue, calibration.whiteBlue);
+    } else {
+        // Fallback to simple 8-bit conversion if not calibrated
         colorSensorData.redValue = (uint8_t)(red >> 8);
         colorSensorData.greenValue = (uint8_t)(green >> 8);
         colorSensorData.blueValue = (uint8_t)(blue >> 8);
     }
-    
-    // Skip all the heavy matrix math, normalization, and percentage calculations for performance test
 }

@@ -14,7 +14,9 @@ class ColorSensor : public Singleton<ColorSensor> {
         ColorSensor() = default;
         bool initialize();
         void read_color_sensor();
-        void precompute_inverse_matrix();
+        void calibrateBlackPoint();
+        void calibrateWhitePoint();
+        void printCalibrationValues();
         void enableColorSensor();
         void disableColorSensor();
         
@@ -22,21 +24,17 @@ class ColorSensor : public Singleton<ColorSensor> {
         bool sensorConnected = false;
         bool sensorEnabled = false;  // Track if sensor is actively enabled
 
-        bool isCalibrated = true;
-        const float scaleFactor = 128.0;
-
-        CalibrationValues calibrationValues = {
-            // RED LED readings (R, G, B)
-            195 * scaleFactor, 42 * scaleFactor, 5 * scaleFactor,
-            
-            // GREEN LED readings (R, G, B)
-            29 * scaleFactor, 371 * scaleFactor, 146 * scaleFactor,
-            
-            // BLUE LED readings (R, G, B)
-            26 * scaleFactor, 103 * scaleFactor, 511 * scaleFactor
-        };
+        struct CalibrationValues {
+            uint16_t blackRed;
+            uint16_t blackGreen;
+            uint16_t blackBlue;
+            uint16_t whiteRed;
+            uint16_t whiteGreen;
+            uint16_t whiteBlue;
+        } calibration;
+        
+        bool isCalibrated = false;
         ColorSensorData colorSensorData;
-        float invMatrix[3][3]; // Store pre-computed inverse matrix
         unsigned long lastUpdateTime = 0;
         static constexpr unsigned long DELAY_BETWEEN_READINGS = 20; // ms - minimal delay like performance test
 
@@ -44,5 +42,4 @@ class ColorSensor : public Singleton<ColorSensor> {
         void updateSensorData();  // Single read, write to buffer
         bool shouldBePolling() const;
         const uint8_t COLOR_SENSOR_LED_PIN = 5;
-        bool wasInverseMatrixPrecomputed = false;
 };
