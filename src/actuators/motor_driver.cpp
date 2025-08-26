@@ -63,19 +63,22 @@ void MotorDriver::brake_both_motors() {
 
 // TODO 8/19/25: Need to figure out how to take the motors out of braking after 1 second of being in brake without spinning them backwards when releasing from brake
 void MotorDriver::brake_if_moving() {
+    // TODO: Re-implement logic when we have encoders:
+    brake_both_motors();
+    return;
     // Get current wheel speeds from sensor data buffer
-    WheelRPMs rpms = SensorDataBuffer::getInstance().getLatestWheelRPMs();
+    // WheelRPMs rpms = SensorDataBuffer::getInstance().getLatestWheelRPMs();
 
-    // Check if left motor is moving
-    if (abs(rpms.leftWheelRPM) > MOTOR_STOPPED_THRESHOLD) {
-        // Left motor is moving, apply brake
-        brake_left_motor();
-    }
-    // // Check if right motor is moving
-    if (abs(rpms.rightWheelRPM) > MOTOR_STOPPED_THRESHOLD) {
-        // Right motor is moving, apply brake
-        brake_right_motor();
-    }
+    // // Check if left motor is moving
+    // if (abs(rpms.leftWheelRPM) > MOTOR_STOPPED_THRESHOLD) {
+    //     // Left motor is moving, apply brake
+    //     brake_left_motor();
+    // }
+    // // // Check if right motor is moving
+    // if (abs(rpms.rightWheelRPM) > MOTOR_STOPPED_THRESHOLD) {
+    //     // Right motor is moving, apply brake
+    //     brake_right_motor();
+    // }
 }
 
 // Use this to set speeds directly (without needing ramp up, or waiting for next command).
