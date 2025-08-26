@@ -44,13 +44,13 @@ void SideTimeOfFlightSensor::updateSensorData() {
     if (!isInitialized) return;
     
     // Skip rate limiting entirely for maximum performance like performance test
-    // unsigned long currentTime = millis();
-    // unsigned long elapsedTime = currentTime - _lastUpdateTime;
-    // if (elapsedTime < DELAY_BETWEEN_READINGS) return;
+    unsigned long currentTime = millis();
+    unsigned long elapsedTime = currentTime - _lastUpdateTime;
+    if (elapsedTime < DELAY_BETWEEN_READINGS) return;
     
     // Read current sensor data with no throttling
     uint16_t counts = Read_Proximity_Data();
-    // _lastUpdateTime = currentTime;
+    _lastUpdateTime = currentTime;
     
     // Note: This method is called by SideTofManager which will combine
     // both left and right readings and write to buffer
