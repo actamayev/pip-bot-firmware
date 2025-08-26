@@ -37,8 +37,7 @@ class SideTimeOfFlightSensor {
         // Read proximity data from the sensor (with calibration applied)
         uint16_t Read_Proximity_Data() {
             uint16_t rawReading = VCNL36828P_GET_PS_DATA(sensorAddress);
-            return rawReading; // Skip calibration for max performance like performance test
-            // return applyCalibration(rawReading); // Re-enable when not performance testing
+            return applyCalibration(rawReading);
         }
 
         void Basic_Initialization_Auto_Mode();

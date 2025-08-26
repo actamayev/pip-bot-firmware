@@ -49,20 +49,25 @@ struct AccelerometerData { float aX, aY, aZ; bool isValid; };
 
 ### Color Sensor (`color_sensor.h/cpp`)
 - **Sensor**: VEML3328 (I2C 0x10)
-- **RGB detection**: Calibrated color recognition
-- **Illumination**: Downward LED (pin 5) for consistent lighting
-- **Calibration matrix**: Compensates for sensor characteristics
+- **RGB detection**: Black/white point calibrated color recognition
+- **Illumination**: Downward LED (pin 5) with variable brightness (0-255)
+- **Power management**: Automatic enable/disable based on usage timeouts
+- **Calibration system**: Black and white point normalization for accurate readings
 - **Applications**: Surface color detection, line following
 
-#### Calibration System
+#### Black/White Point Calibration System
 ```cpp
 struct CalibrationValues {
-    // 3x3 matrix for RGB correction
-    float redRedValue, greenRedValue, blueRedValue;
-    float redGreenValue, greenGreenValue, blueGreenValue;  
-    float redBlueValue, greenBlueValue, blueBlueValue;
+    uint16_t blackRed, blackGreen, blackBlue;    // Dark reference values
+    uint16_t whiteRed, whiteGreen, whiteBlue;    // Bright reference values
 };
 ```
+
+#### Calibration Features
+- **Two-point calibration**: Black and white reference points for linear normalization
+- **Averaged readings**: 5 samples per calibration point for stability
+- **Safe normalization**: Constrained 0-255 output with overflow protection
+- **Fallback mode**: Simple 8-bit conversion when uncalibrated
 
 ### IR Sensor Array (`ir_sensor.h/cpp`)
 - **Configuration**: 5 sensors via 74HC4051 multiplexer
@@ -147,7 +152,7 @@ BATTERY_MONITOR_STACK_SIZE = 6144;      // I2C + calculations
 
 ### Sensor Calibration
 - **IMU calibration**: Automatic gyroscope and magnetometer cal
-- **Color sensor**: RGB matrix calibration for surface types
+- **Color sensor**: Black/white point calibration with averaged readings
 - **Encoder calibration**: Wheel diameter and gear ratio tuning
 - **ToF sensors**: Distance offset and noise filtering
 
@@ -178,9 +183,20 @@ if (battery.isCriticalBattery) {
 ```cpp
 // Verify sensor initialization
 if (ColorSensor::getInstance().isInitialized()) {
-    ColorSensorData rgb = readColorSensor();
-    // Process color information
+    ColorData colorData = SensorDataBuffer::getInstance().getColorData();
+    if (colorData.isValid) {
+        // Process RGB values: colorData.redValue, greenValue, blueValue
+    }
 }
+```
+
+### Color Sensor Calibration
+```cpp
+// Perform black point calibration (on dark surface)
+ColorSensor::getInstance().calibrateBlackPoint();
+
+// Perform white point calibration (on white surface)  
+ColorSensor::getInstance().calibrateWhitePoint();
 ```
 
 ## Troubleshooting
