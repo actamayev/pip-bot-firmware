@@ -60,20 +60,20 @@
 
 void imuLogger() {
     static unsigned long lastImuPrintTime = 0;
-    const unsigned long IMU_PRINT_INTERVAL = 50; // Print every 500ms
+    const unsigned long IMU_PRINT_INTERVAL = 1000; // Print frequency every 1 second
     
+    // Print frequency report every second
     if (millis() - lastImuPrintTime < IMU_PRINT_INTERVAL) return;
-    EulerAngles eulerAngles = SensorDataBuffer::getInstance().getLatestEulerAngles();
     
-    if (!eulerAngles.isValid) {
-        SerialQueueManager::getInstance().queueMessage("Failed to get IMU data");
-    } else {
-        char buffer[128];
-        snprintf(buffer, sizeof(buffer), "Orientation - Yaw: %.1f° Pitch: %.1f° Roll: %.1f°", 
-                eulerAngles.yaw, eulerAngles.roll, eulerAngles.pitch);
-        SerialQueueManager::getInstance().queueMessage(buffer);
-    }
-
+    // Debug: Check if we're getting IMU data at all
+    EulerAngles eulerAngles = SensorDataBuffer::getInstance().getLatestEulerAngles();
+    float frequency = SensorDataBuffer::getInstance().getImuFrequency();
+    
+    char buffer[128];
+    snprintf(buffer, sizeof(buffer), "IMU Frequency: %.1f Hz, Data Valid: %s, Yaw: %.1f, Pitch: %.1f, Roll: %.1f", 
+             frequency, eulerAngles.isValid ? "YES" : "NO", eulerAngles.yaw, eulerAngles.pitch, eulerAngles.roll);
+    SerialQueueManager::getInstance().queueMessage(buffer);
+    
     lastImuPrintTime = millis();
 }
 
@@ -110,6 +110,57 @@ void setupButtonLoggers() {
     });
 }
 
+void multizoneTofLogger() {
+    static unsigned long lastPrintTime = 0;
+    const unsigned long PRINT_INTERVAL = 1000; // Print frequency every 1 second
+    
+    if (millis() - lastPrintTime < PRINT_INTERVAL) return;
+    
+    float frequency = SensorDataBuffer::getInstance().getMultizoneTofFrequency();
+    TofData tofData = SensorDataBuffer::getInstance().getLatestTofData();
+    
+    char buffer[128];
+    snprintf(buffer, sizeof(buffer), "Multizone ToF Frequency: %.1f Hz, Data Valid: %s, Object Detected: %s", 
+             frequency, tofData.isValid ? "YES" : "NO", tofData.isObjectDetected ? "Object Detected" : "Object not detected");
+    SerialQueueManager::getInstance().queueMessage(buffer);
+    
+    lastPrintTime = millis();
+}
+
+void sideTofLogger() {
+    static unsigned long lastPrintTime = 0;
+    const unsigned long PRINT_INTERVAL = 1000; // Print frequency every 1 second
+    
+    if (millis() - lastPrintTime < PRINT_INTERVAL) return;
+    
+    float frequency = SensorDataBuffer::getInstance().getSideTofFrequency();
+    SideTofData tofData = SensorDataBuffer::getInstance().getLatestSideTofData();
+    
+    char buffer[128];
+    snprintf(buffer, sizeof(buffer), "Side ToF Frequency: %.1f Hz, Left: %u, Right: %u", 
+             frequency, tofData.leftCounts, tofData.rightCounts);
+    SerialQueueManager::getInstance().queueMessage(buffer);
+    
+    lastPrintTime = millis();
+}
+
+void colorSensorLogger() {
+    static unsigned long lastPrintTime = 0;
+    const unsigned long PRINT_INTERVAL = 1000; // Print frequency every 1 second
+    
+    if (millis() - lastPrintTime < PRINT_INTERVAL) return;
+    
+    float frequency = SensorDataBuffer::getInstance().getColorSensorFrequency();
+    ColorData colorData = SensorDataBuffer::getInstance().getLatestColorData();
+    
+    char buffer[128];
+    snprintf(buffer, sizeof(buffer), "Color Sensor Frequency: %.1f Hz, RGB: (%u,%u,%u)", 
+             frequency, colorData.redValue, colorData.greenValue, colorData.blueValue);
+    SerialQueueManager::getInstance().queueMessage(buffer);
+    
+    lastPrintTime = millis();
+}
+
 void log_motor_rpm() {
     static unsigned long lastPrintTime = 0;
     const unsigned long PRINT_INTERVAL = 500;
@@ -123,5 +174,31 @@ void log_motor_rpm() {
              rpms.leftWheelRPM, rpms.rightWheelRPM);
     SerialQueueManager::getInstance().queueMessage(buffer);
     
+    lastPrintTime = millis();
+}
+
+void irSensorLogger() {
+    static unsigned long lastPrintTime = 0;
+    static unsigned long readingCount = 0;
+    static unsigned long lastResetTime = millis();
+    const unsigned long PRINT_INTERVAL = 1000; // Print frequency every 1 second
+    
+    // Count this as a reading attempt
+    readingCount++;
+    
+    if (millis() - lastPrintTime < PRINT_INTERVAL) return;
+    
+    // Calculate frequency
+    unsigned long timeElapsed = millis() - lastResetTime;
+    float readingsPerSecond = (float)readingCount * 1000.0 / (float)timeElapsed;
+    
+    char buffer[64];
+    snprintf(buffer, sizeof(buffer), "IR_SENSOR: %.2f Hz (%lu readings)", 
+             readingsPerSecond, readingCount);
+    SerialQueueManager::getInstance().queueMessage(buffer);
+    
+    // Reset counters for next measurement period
+    readingCount = 0;
+    lastResetTime = millis();
     lastPrintTime = millis();
 }

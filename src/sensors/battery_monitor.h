@@ -6,7 +6,7 @@
 #include "utils/singleton.h"
 #include "networking/serial_manager.h"
 #include "networking/websocket_manager.h"
-#include "sensors/bq27441_monitor/SparkFunBQ27441.h"
+#include "../lib/bq27441_monitor/SparkFunBQ27441.h"
 
 class BatteryMonitor : public Singleton<BatteryMonitor> {
     friend class Singleton<BatteryMonitor>;

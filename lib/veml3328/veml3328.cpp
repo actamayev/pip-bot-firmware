@@ -107,12 +107,18 @@ uint16_t VEMLClass::read(const uint8_t register_address) {
     wire->requestFrom((uint8_t)device_address, (uint8_t)2);
 
     for (uint8_t i = 0; i < 2; i++) {
-        // Wait some for the result
-        vTaskDelay(pdMS_TO_TICKS(10));
+        // Optimized: Remove blocking delay for better performance
+        // The I2C transaction should complete within microseconds at 100kHz+
+        // vTaskDelay(pdMS_TO_TICKS(10));  // REMOVED - this was causing 20ms delay per read
 
-        // We don't busy wait here to prevent dead lock. We rather want a wrong
-        // result here than the device hanging here if we use a loop to check
-        // the result here
+        // Small busy wait with timeout to ensure data is available
+        uint32_t timeout = 1000; // microseconds
+        uint32_t start_time = micros();
+        while (!wire->available() && (micros() - start_time) < timeout) {
+            // Busy wait for a short time instead of blocking task delay
+            delayMicroseconds(1);
+        }
+
         if (!wire->available()) {
             break;
         }
@@ -152,4 +158,62 @@ uint8_t VEMLClass::writeConfirm(const uint8_t register_address,
     write(register_address, mask, data, shift);
 
     return (((read(register_address) & mask) >> shift) != data) ? 1 : 0;
+}
+
+uint16_t VEMLClass::readFast(const uint8_t register_address) {
+
+    if (wire == nullptr) {
+        return 0;
+    }
+
+    unsigned char data[2] = {0};
+
+    wire->beginTransmission(device_address);
+    wire->write(register_address);
+    wire->endTransmission(false);
+    wire->requestFrom((uint8_t)device_address, (uint8_t)2);
+
+    // Fast read without delays - just check if data is immediately available
+    for (uint8_t i = 0; i < 2; i++) {
+        if (wire->available()) {
+            data[i] = wire->read();
+        } else {
+            // If data not immediately available, return previous value or 0
+            break;
+        }
+    }
+
+    return (((uint16_t)data[1]) << 8) | data[0];
+}
+
+color_read_state_t VEMLClass::readColorNonBlocking() {
+    switch (color_state) {
+        case COLOR_STATE_IDLE:
+            color_state = COLOR_STATE_READ_RED;
+            return color_state;
+            
+        case COLOR_STATE_READ_RED:
+            last_red = readFast(RED_REGISTER_ADDRESS);
+            color_state = COLOR_STATE_READ_GREEN;
+            return color_state;
+            
+        case COLOR_STATE_READ_GREEN:
+            last_green = readFast(GREEN_REGISTER_ADDRESS);
+            color_state = COLOR_STATE_READ_BLUE;
+            return color_state;
+            
+        case COLOR_STATE_READ_BLUE:
+            last_blue = readFast(BLUE_REGISTER_ADDRESS);
+            color_state = COLOR_STATE_COMPLETE;
+            return color_state;
+            
+        case COLOR_STATE_COMPLETE:
+            // Reading cycle complete, reset for next cycle
+            color_state = COLOR_STATE_IDLE;
+            return COLOR_STATE_COMPLETE;
+            
+        default:
+            color_state = COLOR_STATE_IDLE;
+            return color_state;
+    }
 }

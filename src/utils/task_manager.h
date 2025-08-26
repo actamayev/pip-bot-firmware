@@ -37,6 +37,7 @@ class TaskManager {
         static bool createSideTofSensorTask();
         static bool createColorSensorTask();
         static bool createIrSensorTask();
+        static bool createSensorLoggerTask();
 
     private:
         static bool logTaskCreation(const char* name, bool success);
@@ -53,6 +54,7 @@ class TaskManager {
         static void sideTofSensorTask(void* parameter);
         static void colorSensorTask(void* parameter);
         static void irSensorTask(void* parameter);
+        static void sensorLoggerTask(void* parameter);
         
         static void displayTask(void* parameter);
         static void displayInitTask(void* parameter);        // NEW: Display init task
@@ -78,6 +80,7 @@ class TaskManager {
         static constexpr uint32_t SIDE_TOF_STACK_SIZE = 6144;        // Moderate processing
         static constexpr uint32_t COLOR_SENSOR_STACK_SIZE = 4096;    // Light processing
         static constexpr uint32_t IR_SENSOR_STACK_SIZE = 6144;       // Moderate processing (5 sensors)
+        static constexpr uint32_t SENSOR_LOGGER_STACK_SIZE = 4096;   // Light processing - just calling logger functions
         
         static constexpr uint32_t DISPLAY_STACK_SIZE = 4096;  // I2C + display buffer operations
         static constexpr uint32_t DISPLAY_INIT_STACK_SIZE = 8192;     // Reduced from 30KB - should be sufficient with optimizations
@@ -129,6 +132,7 @@ class TaskManager {
         static TaskHandle_t sideTofSensorTaskHandle;
         static TaskHandle_t colorSensorTaskHandle;
         static TaskHandle_t irSensorTaskHandle;
+        static TaskHandle_t sensorLoggerTaskHandle;
         
         static TaskHandle_t displayTaskHandle;
         static TaskHandle_t displayInitTaskHandle;           // NEW: Display init task handle

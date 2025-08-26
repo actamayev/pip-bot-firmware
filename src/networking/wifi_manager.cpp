@@ -88,6 +88,9 @@ bool WiFiManager::attemptNewWifiConnection(WiFiCredentials wifiCredentials) {
     unsigned long lastCheckTime = startAttemptTime;
 
     while (WiFi.status() != WL_CONNECTED && (millis() - startAttemptTime < CONNECT_TO_SINGLE_NETWORK_TIMEOUT)) {
+        // Give other tasks time to run - CRITICAL for sensor performance
+        vTaskDelay(pdMS_TO_TICKS(250)); // 250ms delay reduces sensor impact
+        
         // Non-blocking print of dots
         unsigned long currentTime = millis();
         if (currentTime - lastPrintTime >= printInterval) {
@@ -276,7 +279,7 @@ bool WiFiManager::testConnectionOnly(const String& ssid, const String& password)
             lastStatusLog = millis();
         }
         
-        vTaskDelay(pdMS_TO_TICKS(100));
+        vTaskDelay(pdMS_TO_TICKS(500)); // Increased delay - less aggressive polling for better sensor performance
         
         if (NetworkStateManager::getInstance().shouldStopWiFiOperations()) {
             SerialQueueManager::getInstance().queueMessage("Serial connection detected - aborting WiFi test");

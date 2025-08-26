@@ -15,6 +15,7 @@ TaskHandle_t TaskManager::multizoneTofSensorTaskHandle = NULL;
 TaskHandle_t TaskManager::sideTofSensorTaskHandle = NULL;
 TaskHandle_t TaskManager::colorSensorTaskHandle = NULL;
 TaskHandle_t TaskManager::irSensorTaskHandle = NULL;
+TaskHandle_t TaskManager::sensorLoggerTaskHandle = NULL;
 TaskHandle_t TaskManager::displayTaskHandle = NULL;
 TaskHandle_t TaskManager::networkManagementTaskHandle = NULL;
 TaskHandle_t TaskManager::networkCommunicationTaskHandle = NULL;
@@ -118,7 +119,7 @@ void TaskManager::multizoneTofSensorTask(void* parameter) {
         if (MultizoneTofSensor::getInstance().shouldBePolling()) {
             MultizoneTofSensor::getInstance().updateSensorData();
         }
-        vTaskDelay(pdMS_TO_TICKS(50));  // 20Hz - heavy processing, slower rate
+        vTaskDelay(pdMS_TO_TICKS(5));  // Allow frequent polling, throttling handled in updateSensorData()
     }
 }
 
@@ -137,7 +138,7 @@ void TaskManager::sideTofSensorTask(void* parameter) {
         if (SideTofManager::getInstance().shouldBePolling()) {
             SideTofManager::getInstance().updateSensorData();
         }
-        vTaskDelay(pdMS_TO_TICKS(25));  // 40Hz - moderate processing
+        vTaskDelay(pdMS_TO_TICKS(50));  // 20Hz target rate
     }
 }
 
@@ -155,7 +156,7 @@ void TaskManager::colorSensorTask(void* parameter) {
         if (ColorSensor::getInstance().shouldBePolling()) {
             ColorSensor::getInstance().updateSensorData();
         }
-        vTaskDelay(pdMS_TO_TICKS(25));  // 40Hz - light processing
+        vTaskDelay(pdMS_TO_TICKS(50));  // 20Hz target rate
     }
 }
 
@@ -171,7 +172,25 @@ void TaskManager::irSensorTask(void* parameter) {
         if (IrSensor::getInstance().shouldBePolling()) {
             IrSensor::getInstance().updateSensorData();
         }
-        vTaskDelay(pdMS_TO_TICKS(25));  // 40Hz - moderate processing (5 sensors)
+        vTaskDelay(pdMS_TO_TICKS(20));  // 50Hz target rate
+    }
+}
+
+void TaskManager::sensorLoggerTask(void* parameter) {
+    SerialQueueManager::getInstance().queueMessage("Sensor logger task started");
+    
+    // Main logging loop
+    for(;;) {
+        // Call each frequency logger function
+        // imuLogger();
+        // multizoneTofLogger();
+        sideTofLogger();
+        // colorSensorLogger();
+        // irSensorLogger();
+        // log_motor_rpm();  // Keep this commented for now since it's not frequency-based
+        
+        // Small delay between logger cycles - loggers have their own internal timing
+        vTaskDelay(pdMS_TO_TICKS(10));  // 100Hz - fast polling, loggers handle their own rate limiting
     }
 }
 
@@ -266,7 +285,7 @@ void TaskManager::speakerTask(void* parameter) {
 
 void TaskManager::motorTask(void* parameter) {
     SerialQueueManager::getInstance().queueMessage("Motor task started");
-
+    
     for(;;) {
         motorDriver.update();
         motorDriver.processPendingCommands();
@@ -393,7 +412,7 @@ bool TaskManager::createEncoderSensorTask() {
 
 bool TaskManager::createMultizoneTofSensorTask() {
     return createTask("MultizoneTOF", multizoneTofSensorTask, MULTIZONE_TOF_STACK_SIZE,
-                     Priority::SYSTEM_CONTROL, Core::CORE_0, &multizoneTofSensorTaskHandle);
+                     Priority::COMMUNICATION, Core::CORE_0, &multizoneTofSensorTaskHandle);
 }
 
 bool TaskManager::createSideTofSensorTask() {
@@ -403,12 +422,17 @@ bool TaskManager::createSideTofSensorTask() {
 
 bool TaskManager::createColorSensorTask() {
     return createTask("ColorSensor", colorSensorTask, COLOR_SENSOR_STACK_SIZE,
-                     Priority::BACKGROUND, Core::CORE_0, &colorSensorTaskHandle);
+                     Priority::SYSTEM_CONTROL, Core::CORE_0, &colorSensorTaskHandle);
 }
 
 bool TaskManager::createIrSensorTask() {
     return createTask("IRSensor", irSensorTask, IR_SENSOR_STACK_SIZE,
                      Priority::BACKGROUND, Core::CORE_0, &irSensorTaskHandle);
+}
+
+bool TaskManager::createSensorLoggerTask() {
+    return createTask("SensorLogger", sensorLoggerTask, SENSOR_LOGGER_STACK_SIZE,
+                     Priority::BACKGROUND, Core::CORE_1, &sensorLoggerTaskHandle);
 }
 
 bool TaskManager::isDisplayInitialized() {

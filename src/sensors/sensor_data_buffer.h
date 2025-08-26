@@ -269,6 +269,12 @@ class SensorDataBuffer : public Singleton<SensorDataBuffer> {
         
         // Get complete samples (for debugging/logging)
         ImuSample getLatestImuSample();
+        
+        // Frequency tracking methods
+        float getImuFrequency();
+        float getMultizoneTofFrequency();
+        float getSideTofFrequency();
+        float getColorSensorFrequency();
 
     private:
         SensorDataBuffer() = default;
@@ -301,9 +307,19 @@ class SensorDataBuffer : public Singleton<SensorDataBuffer> {
 
         // Timeout tracking for each report type
         ReportTimeouts timeouts;
+        
+        // Frequency tracking for sensors
+        std::atomic<uint32_t> imuUpdateCount{0};
+        std::atomic<uint32_t> lastImuFrequencyCalcTime{0};
+        std::atomic<uint32_t> multizoneTofUpdateCount{0};
+        std::atomic<uint32_t> lastMultizoneTofFrequencyCalcTime{0};
+        std::atomic<uint32_t> sideTofUpdateCount{0};
+        std::atomic<uint32_t> lastSideTofFrequencyCalcTime{0};
+        std::atomic<uint32_t> colorSensorUpdateCount{0};
+        std::atomic<uint32_t> lastColorSensorFrequencyCalcTime{0};
 
         // Helper to update timestamp
-        void markDataUpdated();
+        void markImuDataUpdated();
         void markTofDataUpdated();
         void markSideTofDataUpdated();
         void markColorDataUpdated();  // Separate method for color sensor timestamp
