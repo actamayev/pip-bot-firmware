@@ -184,8 +184,8 @@ void TaskManager::sensorLoggerTask(void* parameter) {
         // Call each frequency logger function
         // imuLogger();
         // multizoneTofLogger();
-        // sideTofLogger();
-        colorSensorLogger();
+        sideTofLogger();
+        // colorSensorLogger();
         // irSensorLogger();
         // log_motor_rpm();  // Keep this commented for now since it's not frequency-based
         
