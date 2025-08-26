@@ -34,8 +34,8 @@ constexpr int8_t OLED_RESET = -1;  // Reset pin (-1 if sharing Arduino reset pin
 constexpr uint8_t SCREEN_ADDRESS = 0x3C;
 
 // Buttons
-constexpr uint8_t BUTTON_PIN_1 = 11; // Left
-constexpr uint8_t BUTTON_PIN_2 = 12; // Right
+constexpr uint8_t LEFT_BUTTON_PIN = 11; // Left
+constexpr uint8_t RIGHT_BUTTON_PIN = 12; // Right
 
 // Assign Stack sizes for the two cores
 constexpr uint16_t MAX_PROGRAM_SIZE = 8192;

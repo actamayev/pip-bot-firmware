@@ -93,19 +93,19 @@ void sideTofsLogger() {
 }
 
 void setupButtonLoggers() {
-    Buttons::getInstance().setButton1ClickHandler([](Button2& btn) {
+    Buttons::getInstance().setLeftButtonClickHandler([](Button2& btn) {
         SerialQueueManager::getInstance().queueMessage("Button 1 clicked!");
     });
     
-    Buttons::getInstance().setButton2ClickHandler([](Button2& btn) {
+    Buttons::getInstance().setRightButtonClickHandler([](Button2& btn) {
         SerialQueueManager::getInstance().queueMessage("Button 2 clicked!");
     });
     
-    Buttons::getInstance().setButton1LongPressHandler([](Button2& btn) {
+    Buttons::getInstance().setLeftButtonLongPressHandler([](Button2& btn) {
         SerialQueueManager::getInstance().queueMessage("Button 1 long pressed for " + String(btn.wasPressedFor()) + " ms");
     });
     
-    Buttons::getInstance().setButton2LongPressHandler([](Button2& btn) {
+    Buttons::getInstance().setRightButtonLongPressHandler([](Button2& btn) {
         SerialQueueManager::getInstance().queueMessage("Button 2 long pressed for " + String(btn.wasPressedFor()) + " ms");
     });
 }
