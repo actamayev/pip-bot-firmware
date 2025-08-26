@@ -64,10 +64,8 @@ bool BytecodeVM::loadProgram(const uint8_t* byteCode, uint16_t size) {
 
 void BytecodeVM::update() {
     checkUsbSafetyConditions();
-    if (!program || isPaused == PauseState::PAUSED) {
-        return;
-    }
-    
+    if (!program || isPaused == PauseState::PAUSED) return;
+
     // Check if program has naturally completed (pc reached or exceeded program size)
     if (pc >= programSize) {
         if (isPaused != PROGRAM_FINISHED) {
