@@ -154,6 +154,29 @@ void MotorDriver::update() {
     }
 }
 
+void MotorDriver::set_motor_speeds_immediate(int16_t leftTarget, int16_t rightTarget) {
+    // Constrain speeds
+    int16_t leftConstrained = constrain(leftTarget, -MAX_MOTOR_SPEED, MAX_MOTOR_SPEED);
+    int16_t rightConstrained = constrain(rightTarget, -MAX_MOTOR_SPEED, MAX_MOTOR_SPEED);
+    
+    // Apply immediately without any ramping or state management
+    if (leftConstrained == 0) {
+        brake_left_motor();
+    } else if (leftConstrained > 0) {
+        left_motor_forward(leftConstrained);
+    } else {
+        left_motor_backward(-leftConstrained);
+    }
+
+    if (rightConstrained == 0) {
+        brake_right_motor();
+    } else if (rightConstrained > 0) {
+        right_motor_forward(rightConstrained);
+    } else {
+        right_motor_backward(-rightConstrained);
+    }
+}
+
 void MotorDriver::updateMotorPwm(int16_t leftPwm, int16_t rightPwm) {
     // Constrain speeds
     leftPwm = constrain(leftPwm, -MAX_MOTOR_SPEED, MAX_MOTOR_SPEED);

@@ -46,6 +46,7 @@ class MotorDriver {
         
         // Private method for immediate motor control (used by friend classes)
         void set_motor_speeds(int16_t leftTarget, int16_t rightTarget, bool shouldRampUp);
+        void set_motor_speeds_immediate(int16_t leftTarget, int16_t rightTarget);
 
         void processPendingCommands();
 

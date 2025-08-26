@@ -78,9 +78,9 @@ void TurningManager::update() {
             turnCompletionStartTime = currentTime;
         }
         
-        // Check if we've been in dead zone for confirmation time
+        // Check if we've been in dead zone for confirmation time AND velocity has settled
         if (currentTime - turnCompletionStartTime >= COMPLETION_CONFIRMATION_TIME) {
-            if (!turnCompletionConfirmed) {
+            if (!turnCompletionConfirmed && abs(currentVelocity) < 20.0f) {
                 turnCompletionConfirmed = true;
                 completeNavigation(true);
                 SerialQueueManager::getInstance().queueMessage("Turn completed");
@@ -272,10 +272,25 @@ void TurningManager::startTurnMotors() {
 }
 
 void TurningManager::setTurnSpeed(uint8_t speed) {
-    if (currentDirection == TurningDirection::CLOCKWISE) {
-        motorDriver.set_motor_speeds(speed, -speed, false); // Right turn
-    } else if (currentDirection == TurningDirection::COUNTER_CLOCKWISE) {
-        motorDriver.set_motor_speeds(-speed, speed, false); // Left turn
+    // Check if we're in final approach where stiction is problematic
+    bool inFinalApproach = (abs(currentError) > DEAD_ZONE && abs(currentError) < 8.0f);
+    bool needsStictionFighting = inFinalApproach && abs(currentVelocity) < 10.0f; // Very low velocity indicates stiction
+    
+    if (needsStictionFighting) {
+        // Use immediate control with boosted minimum PWM to fight stiction
+        uint8_t stictionSpeed = max(speed, static_cast<uint8_t>(currentMinPWM + 10));
+        if (currentDirection == TurningDirection::CLOCKWISE) {
+            motorDriver.set_motor_speeds_immediate(stictionSpeed, -stictionSpeed);
+        } else if (currentDirection == TurningDirection::COUNTER_CLOCKWISE) {
+            motorDriver.set_motor_speeds_immediate(-stictionSpeed, stictionSpeed);
+        }
+    } else {
+        // Use immediate control for all turning - no ramping needed for turns
+        if (currentDirection == TurningDirection::CLOCKWISE) {
+            motorDriver.set_motor_speeds_immediate(speed, -speed);
+        } else if (currentDirection == TurningDirection::COUNTER_CLOCKWISE) {
+            motorDriver.set_motor_speeds_immediate(-speed, speed);
+        }
     }
 }
 

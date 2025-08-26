@@ -118,7 +118,7 @@ void BalanceController::update() {
     }
 
     // Apply motor power
-    motorDriver.set_motor_speeds(adjustedPWM, adjustedPWM, false);
+    motorDriver.set_motor_speeds_immediate(adjustedPWM, adjustedPWM);
 
     // Store error for next iteration
     _lastError = error;
