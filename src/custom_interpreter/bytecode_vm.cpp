@@ -104,7 +104,10 @@ bool BytecodeVM::compareValues(ComparisonOp op, float leftOperand, float rightOp
     float rightValue;
     
     // Process left operand - check if high bit is set, indicating a register
-    if (leftOperand >= 32768.0f) {
+    if (leftOperand < 32768.0f) {
+        // Direct value
+        leftValue = leftOperand;
+    } else {
         uint16_t regId = static_cast<uint16_t>(leftOperand) & 0x7FFF;
         
         if (regId < MAX_REGISTERS && registerInitialized[regId]) {
@@ -119,13 +122,13 @@ bool BytecodeVM::compareValues(ComparisonOp op, float leftOperand, float rightOp
         } else {
             return false;  // Invalid register
         }
-    } else {
-        // Direct value
-        leftValue = leftOperand;
     }
     
     // Process right operand - check if high bit is set, indicating a register
-    if (rightOperand >= 32768.0f) {
+    if (rightOperand < 32768.0f) {
+        // Direct value
+        rightValue = rightOperand;
+    } else {
         uint16_t regId = static_cast<uint16_t>(rightOperand) & 0x7FFF;
         
         if (regId < MAX_REGISTERS && registerInitialized[regId]) {
@@ -140,11 +143,8 @@ bool BytecodeVM::compareValues(ComparisonOp op, float leftOperand, float rightOp
         } else {
             return false;  // Invalid register
         }
-    } else {
-        // Direct value
-        rightValue = rightOperand;
     }
-    
+
     // Perform comparison with retrieved values
     switch (op) {
         case OP_EQUAL: return abs(leftValue - rightValue) < 0.0001f;
