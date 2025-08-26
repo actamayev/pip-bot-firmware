@@ -97,6 +97,12 @@ void Buttons::setButton1ClickHandler(std::function<void(Button2&)> callback) {
             vm.resumeProgram();
             return;
         }
+        
+        // Handle restart for finished programs
+        if (vm.isPaused == BytecodeVM::PROGRAM_FINISHED) {
+            vm.resumeProgram(); // This will restart from beginning
+            return;
+        }
 
         // If no program is running and we're not waiting to start, use original callback
         if (vm.isPaused == BytecodeVM::PROGRAM_NOT_STARTED) {

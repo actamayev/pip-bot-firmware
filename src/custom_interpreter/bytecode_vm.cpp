@@ -64,7 +64,15 @@ bool BytecodeVM::loadProgram(const uint8_t* byteCode, uint16_t size) {
 
 void BytecodeVM::update() {
     checkUsbSafetyConditions();
-    if (!program || pc >= programSize || isPaused == PauseState::PAUSED) {
+    if (!program || isPaused == PauseState::PAUSED) {
+        return;
+    }
+    
+    // Check if program has naturally completed (pc reached or exceeded program size)
+    if (pc >= programSize) {
+        if (isPaused != PROGRAM_FINISHED) {
+            isPaused = PROGRAM_FINISHED;
+        }
         return;
     }
 
@@ -166,6 +174,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
         case OP_END:
             // End program execution
             pc = programSize; // Set PC past the end to stop execution
+            isPaused = PROGRAM_FINISHED;
             break;
 
         case OP_DELAY: {
@@ -734,6 +743,11 @@ void BytecodeVM::resumeProgram() {
     }
 
     if (!canStartProgram()) return;
+
+    // Reset state variables for finished programs to start fresh
+    if (isPaused == PROGRAM_FINISHED) {
+        resetStateVariables();
+    }
 
     isPaused = RUNNING;
     
