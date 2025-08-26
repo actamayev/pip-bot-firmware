@@ -15,8 +15,8 @@ constexpr uint8_t I2C_SCL_2 = 10; // Battery monitor
 constexpr uint32_t I2C_2_CLOCK_SPEED = 100 * 1000; // 100 kHz (works best for IMU)
 
 // Motors + Encoders
-constexpr uint8_t LEFT_MOTOR_PIN_IN_1 = 40;
-constexpr uint8_t LEFT_MOTOR_PIN_IN_2 = 39;
+constexpr uint8_t LEFT_MOTOR_PIN_IN_1 = 39;
+constexpr uint8_t LEFT_MOTOR_PIN_IN_2 = 40;
 constexpr uint8_t LEFT_MOTOR_ENCODER_A = 47;
 constexpr uint8_t LEFT_MOTOR_ENCODER_B = 48;
 
@@ -78,7 +78,7 @@ inline const char* getEnvironment() {
 inline const char* getServerFirmwareEndpoint() {
     std::string env = getEnvironment();
     if (env == "local") {
-        return "http://10.62.248.40:8080/pip/firmware-update";
+        return "http://10.162.84.40:8080/pip/firmware-update";
     } else if (env == "staging") {
         return "https://staging-api.bluedotrobots.com/pip/firmware-update";
     }
@@ -88,7 +88,7 @@ inline const char* getServerFirmwareEndpoint() {
 inline const char* getWsServerUrl() {
     std::string env = getEnvironment();
     if (env == "local") {
-        return "ws://10.62.248.40:8080/esp32";
+        return "ws://10.162.84.40:8080/esp32";
     } else if (env == "staging") {
         return "wss://staging-api.bluedotrobots.com/esp32";
     }

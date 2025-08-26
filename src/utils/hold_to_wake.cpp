@@ -46,9 +46,9 @@ bool holdToWake() {
     }
     
     // HOLD DURATION REACHED - INITIALIZE DISPLAY IMMEDIATELY for deep sleep wake
-    // if (!TaskManager::isDisplayInitialized()) {
-    //     TaskManager::createDisplayInitTask();
-    // }
+    if (!TaskManager::isDisplayInitialized()) {
+        TaskManager::createDisplayInitTask();
+    }
     
     // Clear hold-to-wake mode (timestamp will be set to ignore immediate long clicks)
     Buttons::getInstance().setHoldToWakeMode(false);

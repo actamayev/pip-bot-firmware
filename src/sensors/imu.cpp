@@ -6,8 +6,8 @@ bool ImuSensor::initialize() {
     
     // Try a few times with short delays in between
     for (int attempt = 0; attempt < 3; attempt++) {
-        if (imu.begin_I2C(IMU_DEFAULT_ADDRESS)) {
-        // if (imu.begin_I2C(IMU_DEFAULT_ADDRESS, &Wire1)) {
+        // if (imu.begin_I2C(IMU_DEFAULT_ADDRESS)) {
+        if (imu.begin_I2C(IMU_DEFAULT_ADDRESS, &Wire1)) {
             SerialQueueManager::getInstance().queueMessage("BNO08x Found!");
             isInitialized = true;
             return true;
