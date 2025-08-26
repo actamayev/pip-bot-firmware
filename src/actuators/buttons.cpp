@@ -1,18 +1,18 @@
 #include "buttons.h"
 
 Buttons::Buttons() 
-    : button1(BUTTON_PIN_1), 
-      button2(BUTTON_PIN_2) {
+    : leftButton(LEFT_BUTTON_PIN), 
+      rightButton(RIGHT_BUTTON_PIN) {
     begin();
 }
 
 void Buttons::begin() {
     // Configure buttons for pull-down, active HIGH configuration
-    button1.begin(BUTTON_PIN_1, INPUT_PULLDOWN, false);
-    button2.begin(BUTTON_PIN_2, INPUT_PULLDOWN, false);
+    leftButton.begin(LEFT_BUTTON_PIN, INPUT_PULLDOWN, false);
+    rightButton.begin(RIGHT_BUTTON_PIN, INPUT_PULLDOWN, false);
     
-    button1.setDebounceTime(0);
-    button2.setDebounceTime(0);
+    leftButton.setDebounceTime(0);
+    rightButton.setDebounceTime(0);
     
     // Setup deep sleep functionality
     setupDeepSleep();
@@ -20,8 +20,8 @@ void Buttons::begin() {
 
 void Buttons::update() {
     // Must be called regularly to process button events
-    button1.loop();
-    button2.loop();
+    leftButton.loop();
+    rightButton.loop();
     // Handle sleep confirmation timeout
     if (waitingForSleepConfirmation && sleepConfirmationStartTime > 0) {
         if (millis() - sleepConfirmationStartTime > SLEEP_CONFIRMATION_TIMEOUT) {
@@ -32,32 +32,16 @@ void Buttons::update() {
     }
 }
 
-void Buttons::setButton1ClickHandler(std::function<void(Button2&)> callback) {
+void Buttons::setLeftButtonClickHandler(std::function<void(Button2&)> callback) {
     auto originalCallback = callback;
     
-    // Keep pressed handler for pause/resume functionality only
-    button1.setPressedHandler([this, originalCallback](Button2& btn) {
+    leftButton.setPressedHandler([this, originalCallback](Button2& btn) {
         // Reset timeout on any button activity
         TimeoutManager::getInstance().resetActivity();
-        
-        // Check if timeout manager is in confirmation state
-        if (TimeoutManager::getInstance().isInConfirmationState()) return;
-
-        // If we're waiting for confirmation, don't process other logic
-        if (this->waitingForSleepConfirmation) return;
-
-        BytecodeVM& vm = BytecodeVM::getInstance();
-
-        // Handle pause for running programs only
-        if (vm.isPaused == BytecodeVM::RUNNING) {
-            vm.pauseProgram();
-            this->justPausedOnPress = true;  // Set the flag
-            return;
-        }
     });
 
     // Move program start logic to release handler
-    button1.setReleasedHandler([this, originalCallback](Button2& btn) {
+    leftButton.setReleasedHandler([this, originalCallback](Button2& btn) {
         // Reset timeout on any button activity
         TimeoutManager::getInstance().resetActivity();
         
@@ -66,12 +50,6 @@ void Buttons::setButton1ClickHandler(std::function<void(Button2&)> callback) {
             this->longPressFlagForSleep = false;
             this->waitingForSleepConfirmation = true;
             this->sleepConfirmationStartTime = millis();
-            return;
-        }
-
-        // If we just paused on press, clear the flag and don't resume yet
-        if (this->justPausedOnPress) {
-            this->justPausedOnPress = false;
             return;
         }
 
@@ -97,6 +75,12 @@ void Buttons::setButton1ClickHandler(std::function<void(Button2&)> callback) {
             vm.resumeProgram();
             return;
         }
+        
+        // Handle restart for finished programs
+        if (vm.isPaused == BytecodeVM::PROGRAM_FINISHED) {
+            vm.resumeProgram(); // This will restart from beginning
+            return;
+        }
 
         // If no program is running and we're not waiting to start, use original callback
         if (vm.isPaused == BytecodeVM::PROGRAM_NOT_STARTED) {
@@ -107,7 +91,7 @@ void Buttons::setButton1ClickHandler(std::function<void(Button2&)> callback) {
     });
 
     // Keep click handler for sleep confirmation
-    button1.setClickHandler([this, originalCallback](Button2& btn) {
+    leftButton.setClickHandler([this, originalCallback](Button2& btn) {
         // Reset timeout on any button activity
         TimeoutManager::getInstance().resetActivity();
         
@@ -119,10 +103,10 @@ void Buttons::setButton1ClickHandler(std::function<void(Button2&)> callback) {
     });
 }
 
-void Buttons::setButton2ClickHandler(std::function<void(Button2&)> callback) {
+void Buttons::setRightButtonClickHandler(std::function<void(Button2&)> callback) {
     auto originalCallback = callback;
     
-    button2.setPressedHandler([this, originalCallback](Button2& btn) {
+    rightButton.setPressedHandler([this, originalCallback](Button2& btn) {
         // Reset timeout on any button activity
         TimeoutManager::getInstance().resetActivity();
         
@@ -137,6 +121,14 @@ void Buttons::setButton2ClickHandler(std::function<void(Button2&)> callback) {
             return; // Don't call the original callback in this case
         }
         
+        BytecodeVM& vm = BytecodeVM::getInstance();
+        
+        // Handle pause for running programs
+        if (vm.isPaused == BytecodeVM::RUNNING || vm.isPaused == BytecodeVM::PROGRAM_FINISHED) {
+            vm.pauseProgram();
+            return;
+        }
+        
         // Otherwise, proceed with normal click handling
         if (originalCallback) {
             originalCallback(btn);
@@ -144,28 +136,28 @@ void Buttons::setButton2ClickHandler(std::function<void(Button2&)> callback) {
     });
 }
 
-void Buttons::setButton1LongPressHandler(std::function<void(Button2&)> callback) {
+void Buttons::setLeftButtonLongPressHandler(std::function<void(Button2&)> callback) {
     auto wrappedCallback = [callback](Button2& btn) {
         // Reset timeout on any button activity
         TimeoutManager::getInstance().resetActivity();
         if (callback) callback(btn);
     };
-    button1.setLongClickHandler(wrappedCallback);
+    leftButton.setLongClickHandler(wrappedCallback);
 }
 
-void Buttons::setButton2LongPressHandler(std::function<void(Button2&)> callback) {
+void Buttons::setRightButtonLongPressHandler(std::function<void(Button2&)> callback) {
     auto wrappedCallback = [callback](Button2& btn) {
         // Reset timeout on any button activity
         TimeoutManager::getInstance().resetActivity();
         if (callback) callback(btn);
     };
-    button2.setLongClickHandler(wrappedCallback);
+    rightButton.setLongClickHandler(wrappedCallback);
 }
 
 void Buttons::setupDeepSleep() {
     // First, detect when long press threshold is reached
-    button1.setLongClickTime(DEEP_SLEEP_TIMEOUT);
-    button1.setLongClickDetectedHandler([this](Button2& btn) {
+    leftButton.setLongClickTime(DEEP_SLEEP_TIMEOUT);
+    leftButton.setLongClickDetectedHandler([this](Button2& btn) {
         if (this->inHoldToWakeMode) return;
         
         // Ignore long clicks that happen within 500ms of hold-to-wake completion
@@ -192,7 +184,7 @@ void Buttons::enterDeepSleep() {
 
     // Create bitmask for both button pins
     // Bit positions correspond to GPIO numbers
-    uint64_t wakeup_pin_mask = (1ULL << BUTTON_PIN_1) | (1ULL << BUTTON_PIN_2);
+    uint64_t wakeup_pin_mask = (1ULL << LEFT_BUTTON_PIN) | (1ULL << RIGHT_BUTTON_PIN);
     
     // Wake up when ANY of the pins goes HIGH (button pressed with pull-down)
     esp_sleep_enable_ext1_wakeup(wakeup_pin_mask, ESP_EXT1_WAKEUP_ANY_HIGH);
@@ -209,5 +201,5 @@ void Buttons::setHoldToWakeMode(bool enabled) {
 }
 
 bool Buttons::isEitherButtonPressed() {
-    return button1.isPressed() || button2.isPressed();
+    return leftButton.isPressed() || rightButton.isPressed();
 }

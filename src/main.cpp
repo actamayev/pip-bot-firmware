@@ -13,7 +13,7 @@ void setup() {
     pinMode(PWR_EN, OUTPUT);
     digitalWrite(PWR_EN, HIGH);
 
-    // Init the Battery monitor I2C line first
+    // Init the Battery monitor, IMU line I2C line first
     Wire1.begin(I2C_SDA_2, I2C_SCL_2, I2C_2_CLOCK_SPEED);
 
     TaskManager::createSerialQueueTask();
@@ -29,28 +29,28 @@ void setup() {
     if (!holdToWake()) return;
 
     // Handle low battery condition BEFORE normal display initialization
-    // if (BatteryMonitor::getInstance().isCriticalBattery()) {
-    //     // Initialize display directly without showing startup screen
-    //     DisplayScreen::getInstance().init(false);
-    //     DisplayScreen::getInstance().showLowBatteryScreen();
-    //     vTaskDelay(pdMS_TO_TICKS(3000)); // Show low battery message for 3 seconds
-    //     Buttons::getInstance().enterDeepSleep();
-    //     return; // Should never reach here, but just in case
-    // }
+    if (BatteryMonitor::getInstance().isCriticalBattery()) {
+        // Initialize display directly without showing startup screen
+        DisplayScreen::getInstance().init(false);
+        DisplayScreen::getInstance().showLowBatteryScreen();
+        vTaskDelay(pdMS_TO_TICKS(3000)); // Show low battery message for 3 seconds
+        Buttons::getInstance().enterDeepSleep();
+        return; // Should never reach here, but just in case
+    }
     
     // Initialize display normally after hold-to-wake check (only if battery is OK)
-    // if (esp_sleep_get_wakeup_cause() != ESP_SLEEP_WAKEUP_EXT1) {
-    //     TaskManager::createDisplayInitTask();
-    // } else {
-    //     // For deep sleep wake, display was already initialized in holdToWake()
-    // }
+    if (esp_sleep_get_wakeup_cause() != ESP_SLEEP_WAKEUP_EXT1) {
+        TaskManager::createDisplayInitTask();
+    } else {
+        // For deep sleep wake, display was already initialized in holdToWake()
+    }
 
     // INITIALIZATION ORDER:
     // 1. Display
     // - For normal startup: Display initialized immediately above
     // - For deep sleep wake: Display initialized after 1-second button hold in holdToWake()
     
-    // 3. SerialInput: To show user we're connected (in the UI)
+    // 3. SerialInput: To communicate with the user over Serial (in the BrowserUI)
     TaskManager::createSerialInputTask();
     
     // 4. Speaker: For the startup sound
@@ -76,22 +76,22 @@ void setup() {
     SensorInitializer::getInstance(); // This triggers centralized initialization
     
     // 10. Individual Sensor Tasks (wait for centralized init, then poll independently)
-    // TaskManager::createImuSensorTask();
+    TaskManager::createImuSensorTask();
     // TaskManager::createEncoderSensorTask();
     // TaskManager::createMultizoneTofSensorTask();
-    TaskManager::createSideTofSensorTask();
+    // TaskManager::createSideTofSensorTask();
     // TaskManager::createColorSensorTask();
     // TaskManager::createIrSensorTask();
     
     // 12. DemoManager (high priority for demos)
     TaskManager::createDemoManagerTask();
 
-    // 10. BytecodeVM
+    // 13. BytecodeVM
     TaskManager::createBytecodeVMTask();
     
     // Note: StackMonitor can be enabled for debugging
     // TaskManager::createStackMonitorTask();
-    TaskManager::createSensorLoggerTask();
+    // TaskManager::createSensorLoggerTask();
 }
 
 // Main loop runs on Core 1
