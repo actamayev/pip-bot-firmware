@@ -35,7 +35,7 @@ void Buttons::update() {
 void Buttons::setButton1ClickHandler(std::function<void(Button2&)> callback) {
     auto originalCallback = callback;
     
-    // Keep pressed handler for pause/resume functionality only
+    // Button1 no longer handles pause - only start/resume on release
     button1.setPressedHandler([this, originalCallback](Button2& btn) {
         // Reset timeout on any button activity
         TimeoutManager::getInstance().resetActivity();
@@ -46,14 +46,8 @@ void Buttons::setButton1ClickHandler(std::function<void(Button2&)> callback) {
         // If we're waiting for confirmation, don't process other logic
         if (this->waitingForSleepConfirmation) return;
 
-        BytecodeVM& vm = BytecodeVM::getInstance();
-
-        // Handle pause for running programs only
-        if (vm.isPaused == BytecodeVM::RUNNING) {
-            vm.pauseProgram();
-            this->justPausedOnPress = true;  // Set the flag
-            return;
-        }
+        // Button1 no longer pauses programs - that's button2's job now
+        // Keep this handler for potential future use or remove if not needed
     });
 
     // Move program start logic to release handler
@@ -69,11 +63,7 @@ void Buttons::setButton1ClickHandler(std::function<void(Button2&)> callback) {
             return;
         }
 
-        // If we just paused on press, clear the flag and don't resume yet
-        if (this->justPausedOnPress) {
-            this->justPausedOnPress = false;
-            return;
-        }
+        // Remove the justPausedOnPress logic since button1 no longer pauses
 
         // Check if timeout manager is in confirmation state
         if (TimeoutManager::getInstance().isInConfirmationState()) return;
@@ -141,6 +131,14 @@ void Buttons::setButton2ClickHandler(std::function<void(Button2&)> callback) {
             this->waitingForSleepConfirmation = false;
             this->sleepConfirmationStartTime = 0;
             return; // Don't call the original callback in this case
+        }
+        
+        BytecodeVM& vm = BytecodeVM::getInstance();
+        
+        // Handle pause for running programs
+        if (vm.isPaused == BytecodeVM::RUNNING || vm.isPaused == BytecodeVM::PROGRAM_FINISHED) {
+            vm.pauseProgram();
+            return;
         }
         
         // Otherwise, proceed with normal click handling
