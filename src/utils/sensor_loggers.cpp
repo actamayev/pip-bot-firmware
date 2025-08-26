@@ -70,8 +70,8 @@ void imuLogger() {
     float frequency = SensorDataBuffer::getInstance().getImuFrequency();
     
     char buffer[128];
-    snprintf(buffer, sizeof(buffer), "IMU Frequency: %.1f Hz, Data Valid: %s, Yaw: %.1f", 
-             frequency, eulerAngles.isValid ? "YES" : "NO", eulerAngles.yaw);
+    snprintf(buffer, sizeof(buffer), "IMU Frequency: %.1f Hz, Data Valid: %s, Yaw: %.1f, Pitch: %.1f, Roll: %.1f", 
+             frequency, eulerAngles.isValid ? "YES" : "NO", eulerAngles.yaw, eulerAngles.pitch, eulerAngles.roll);
     SerialQueueManager::getInstance().queueMessage(buffer);
     
     lastImuPrintTime = millis();

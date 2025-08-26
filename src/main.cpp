@@ -78,10 +78,10 @@ void setup() {
     // 10. Individual Sensor Tasks (wait for centralized init, then poll independently)
     // TaskManager::createImuSensorTask();
     // TaskManager::createEncoderSensorTask();
-    TaskManager::createMultizoneTofSensorTask();
-    TaskManager::createSideTofSensorTask();
+    // TaskManager::createMultizoneTofSensorTask();
+    // TaskManager::createSideTofSensorTask();
     TaskManager::createColorSensorTask();
-    TaskManager::createIrSensorTask();
+    // TaskManager::createIrSensorTask();
     
     // 12. DemoManager (high priority for demos)
     TaskManager::createDemoManagerTask();
@@ -91,7 +91,7 @@ void setup() {
     
     // Note: StackMonitor can be enabled for debugging
     // TaskManager::createStackMonitorTask();
-    // TaskManager::createSensorLoggerTask();
+    TaskManager::createSensorLoggerTask();
 }
 
 // Main loop runs on Core 1
