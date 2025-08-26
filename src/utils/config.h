@@ -15,8 +15,8 @@ constexpr uint8_t I2C_SCL_2 = 10; // Battery monitor
 constexpr uint32_t I2C_2_CLOCK_SPEED = 100 * 1000; // 100 kHz (works best for IMU)
 
 // Motors + Encoders
-constexpr uint8_t LEFT_MOTOR_PIN_IN_1 = 39;
-constexpr uint8_t LEFT_MOTOR_PIN_IN_2 = 40;
+constexpr uint8_t LEFT_MOTOR_PIN_IN_1 = 40;
+constexpr uint8_t LEFT_MOTOR_PIN_IN_2 = 39;
 constexpr uint8_t LEFT_MOTOR_ENCODER_A = 47;
 constexpr uint8_t LEFT_MOTOR_ENCODER_B = 48;
 
