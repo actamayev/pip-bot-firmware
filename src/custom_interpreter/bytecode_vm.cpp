@@ -64,7 +64,13 @@ bool BytecodeVM::loadProgram(const uint8_t* byteCode, uint16_t size) {
 
 void BytecodeVM::update() {
     checkUsbSafetyConditions();
-    if (!program || pc >= programSize || isPaused == PauseState::PAUSED) {
+    if (!program || isPaused == PauseState::PAUSED) return;
+
+    // Check if program has naturally completed (pc reached or exceeded program size)
+    if (pc >= programSize) {
+        if (isPaused != PROGRAM_FINISHED) {
+            isPaused = PROGRAM_FINISHED;
+        }
         return;
     }
 
@@ -104,7 +110,10 @@ bool BytecodeVM::compareValues(ComparisonOp op, float leftOperand, float rightOp
     float rightValue;
     
     // Process left operand - check if high bit is set, indicating a register
-    if (leftOperand >= 32768.0f) {
+    if (leftOperand < 32768.0f) {
+        // Direct value
+        leftValue = leftOperand;
+    } else {
         uint16_t regId = static_cast<uint16_t>(leftOperand) & 0x7FFF;
         
         if (regId < MAX_REGISTERS && registerInitialized[regId]) {
@@ -119,13 +128,13 @@ bool BytecodeVM::compareValues(ComparisonOp op, float leftOperand, float rightOp
         } else {
             return false;  // Invalid register
         }
-    } else {
-        // Direct value
-        leftValue = leftOperand;
     }
     
     // Process right operand - check if high bit is set, indicating a register
-    if (rightOperand >= 32768.0f) {
+    if (rightOperand < 32768.0f) {
+        // Direct value
+        rightValue = rightOperand;
+    } else {
         uint16_t regId = static_cast<uint16_t>(rightOperand) & 0x7FFF;
         
         if (regId < MAX_REGISTERS && registerInitialized[regId]) {
@@ -140,11 +149,8 @@ bool BytecodeVM::compareValues(ComparisonOp op, float leftOperand, float rightOp
         } else {
             return false;  // Invalid register
         }
-    } else {
-        // Direct value
-        rightValue = rightOperand;
     }
-    
+
     // Perform comparison with retrieved values
     switch (op) {
         case OP_EQUAL: return abs(leftValue - rightValue) < 0.0001f;
@@ -166,6 +172,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
         case OP_END:
             // End program execution
             pc = programSize; // Set PC past the end to stop execution
+            isPaused = PROGRAM_FINISHED;
             break;
 
         case OP_DELAY: {
@@ -661,16 +668,13 @@ void BytecodeVM::updateDistanceMovement() {
     if (currentDistance < targetDistanceCm) return;
     // Distance reached - brake motors
     motorDriver.resetCommandState(true);
-    
+
     // Reset distance movement state
     distanceMovementInProgress = false;
 }
 
 void BytecodeVM::stopProgram() {
     resetStateVariables(true);
-
-    Speaker::getInstance().setMuted(true);
-    rgbLed.turn_all_leds_off();
     return;
 }
 
@@ -719,16 +723,14 @@ void BytecodeVM::resetStateVariables(bool isFullReset) {
         programContainsMotors = false;
         lastUsbState = false;
     }
+    Speaker::getInstance().setMuted(true);
+    rgbLed.turn_all_leds_off();
 }
 
 void BytecodeVM::pauseProgram() {
     if (!program || isPaused == PAUSED) return;
 
-    resetStateVariables();
-
-    Speaker::getInstance().setMuted(true);
-    rgbLed.turn_all_leds_off();     
-    
+    resetStateVariables();    
     isPaused = PAUSED;
 }
 
@@ -739,6 +741,11 @@ void BytecodeVM::resumeProgram() {
     }
 
     if (!canStartProgram()) return;
+
+    // Reset state variables for finished programs to start fresh
+    if (isPaused == PROGRAM_FINISHED) {
+        resetStateVariables();
+    }
 
     isPaused = RUNNING;
     

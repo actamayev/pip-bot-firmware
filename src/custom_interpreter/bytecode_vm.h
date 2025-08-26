@@ -62,7 +62,8 @@ class BytecodeVM : public Singleton<BytecodeVM> {
         enum PauseState {
             PROGRAM_NOT_STARTED,
             PAUSED,
-            RUNNING
+            RUNNING,
+            PROGRAM_FINISHED
         };
 
         PauseState isPaused = PauseState::PROGRAM_NOT_STARTED;

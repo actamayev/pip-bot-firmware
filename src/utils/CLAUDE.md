@@ -24,7 +24,7 @@ MAX_MOTOR_SPEED = 255;
 
 // Display & UI
 SCREEN_WIDTH = 128, SCREEN_HEIGHT = 64;
-BUTTON_PIN_1 = 11, BUTTON_PIN_2 = 12;
+LEFT_BUTTON_PIN = 11, RIGHT_BUTTON_PIN = 12;
 ```
 
 ### Environment Management

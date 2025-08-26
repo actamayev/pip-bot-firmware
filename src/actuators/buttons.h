@@ -19,12 +19,12 @@ class Buttons: public Singleton<Buttons> {
         void update();
         
         // Set callbacks for different button events
-        void setButton1ClickHandler(std::function<void(Button2&)> callback);
-        void setButton2ClickHandler(std::function<void(Button2&)> callback);
+        void setLeftButtonClickHandler(std::function<void(Button2&)> callback);
+        void setRightButtonClickHandler(std::function<void(Button2&)> callback);
         
         // Add more event handlers as needed:
-        void setButton1LongPressHandler(std::function<void(Button2&)> callback);
-        void setButton2LongPressHandler(std::function<void(Button2&)> callback);
+        void setLeftButtonLongPressHandler(std::function<void(Button2&)> callback);
+        void setRightButtonLongPressHandler(std::function<void(Button2&)> callback);
         void enterDeepSleep();
         
         // Hold-to-wake mode control
@@ -34,8 +34,8 @@ class Buttons: public Singleton<Buttons> {
         bool isEitherButtonPressed();
 
     private:
-        Button2 button1;
-        Button2 button2;
+        Button2 leftButton;
+        Button2 rightButton;
 		bool longPressFlagForSleep = false;
         bool justPausedOnPress = false;
         bool waitingForSleepConfirmation = false; // New flag for confirmation stage

@@ -15,14 +15,14 @@ bool holdToWake() {
     }
     
     // Configure both button pins for reading (changed to INPUT_PULLDOWN)
-    pinMode(BUTTON_PIN_1, INPUT_PULLDOWN);
-    pinMode(BUTTON_PIN_2, INPUT_PULLDOWN);
+    pinMode(LEFT_BUTTON_PIN, INPUT_PULLDOWN);
+    pinMode(RIGHT_BUTTON_PIN, INPUT_PULLDOWN);
     
     // Check if any button is still pressed (HIGH due to INPUT_PULLDOWN)
-    bool button1Pressed = digitalRead(BUTTON_PIN_1) == HIGH;
-    bool button2Pressed = digitalRead(BUTTON_PIN_2) == HIGH;
+    bool leftButtonPressed = digitalRead(LEFT_BUTTON_PIN) == HIGH;
+    bool rightButtonPressed = digitalRead(RIGHT_BUTTON_PIN) == HIGH;
     
-    if (!button1Pressed && !button2Pressed) {
+    if (!leftButtonPressed && !rightButtonPressed) {
         Buttons::getInstance().enterDeepSleep();
         return false;
     }
@@ -33,11 +33,11 @@ bool holdToWake() {
     
     while ((millis() - startTime) < HOLD_DURATION_MS) {
         // Re-check button states
-        button1Pressed = digitalRead(BUTTON_PIN_1) == HIGH;
-        button2Pressed = digitalRead(BUTTON_PIN_2) == HIGH;
+        leftButtonPressed = digitalRead(LEFT_BUTTON_PIN) == HIGH;
+        rightButtonPressed = digitalRead(RIGHT_BUTTON_PIN) == HIGH;
         
         // If both buttons are released, go back to sleep
-        if (!button1Pressed && !button2Pressed) {
+        if (!leftButtonPressed && !rightButtonPressed) {
             uint32_t heldTime = millis() - startTime;
             Buttons::getInstance().enterDeepSleep();
             return false;
@@ -46,9 +46,9 @@ bool holdToWake() {
     }
     
     // HOLD DURATION REACHED - INITIALIZE DISPLAY IMMEDIATELY for deep sleep wake
-    // if (!TaskManager::isDisplayInitialized()) {
-    //     TaskManager::createDisplayInitTask();
-    // }
+    if (!TaskManager::isDisplayInitialized()) {
+        TaskManager::createDisplayInitTask();
+    }
     
     // Clear hold-to-wake mode (timestamp will be set to ignore immediate long clicks)
     Buttons::getInstance().setHoldToWakeMode(false);
