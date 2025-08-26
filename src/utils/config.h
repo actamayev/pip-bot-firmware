@@ -9,9 +9,10 @@ constexpr uint8_t MAX_LED_BRIGHTNESS = 75;
 // I2C Configuration
 constexpr uint8_t I2C_SDA_1 = 18;
 constexpr uint8_t I2C_SCL_1 = 8;
+constexpr uint32_t I2C_1_CLOCK_SPEED = 800 * 1000; // 100 kHz (works best for IMU)
 constexpr uint8_t I2C_SDA_2 = 9; // Battery monitor
 constexpr uint8_t I2C_SCL_2 = 10; // Battery monitor
-constexpr uint32_t I2C_CLOCK_SPEED = 100 * 1000; // 100 kHz (works best for IMU)
+constexpr uint32_t I2C_2_CLOCK_SPEED = 100 * 1000; // 100 kHz (works best for IMU)
 
 // Motors + Encoders
 constexpr uint8_t LEFT_MOTOR_PIN_IN_1 = 40;
@@ -77,7 +78,7 @@ inline const char* getEnvironment() {
 inline const char* getServerFirmwareEndpoint() {
     std::string env = getEnvironment();
     if (env == "local") {
-        return "http://10.76.59.40:8080/pip/firmware-update";
+        return "http://10.62.248.40:8080/pip/firmware-update";
     } else if (env == "staging") {
         return "https://staging-api.bluedotrobots.com/pip/firmware-update";
     }
@@ -87,7 +88,7 @@ inline const char* getServerFirmwareEndpoint() {
 inline const char* getWsServerUrl() {
     std::string env = getEnvironment();
     if (env == "local") {
-        return "ws://10.76.59.40:8080/esp32";
+        return "ws://10.62.248.40:8080/esp32";
     } else if (env == "staging") {
         return "wss://staging-api.bluedotrobots.com/esp32";
     }

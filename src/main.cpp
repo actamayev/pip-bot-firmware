@@ -14,36 +14,36 @@ void setup() {
     digitalWrite(PWR_EN, HIGH);
 
     // Init the Battery monitor I2C line first
-    Wire1.begin(I2C_SDA_2, I2C_SCL_2, I2C_CLOCK_SPEED);
+    Wire1.begin(I2C_SDA_2, I2C_SCL_2, I2C_2_CLOCK_SPEED);
 
     TaskManager::createSerialQueueTask();
     
     // Initialize battery monitor SYNCHRONOUSLY before display to check battery level
     BatteryMonitor::getInstance().initialize();
 
-    // Initialize 
-    Wire.begin(I2C_SDA_1, I2C_SCL_1, I2C_CLOCK_SPEED);
+    // Initialize
+    Wire.begin(I2C_SDA_1, I2C_SCL_1, I2C_1_CLOCK_SPEED);
 
     // Check hold-to-wake condition first (handles display init for deep sleep wake)
     // Function handles going back to sleep if conditions aren't met
     if (!holdToWake()) return;
 
     // Handle low battery condition BEFORE normal display initialization
-    if (BatteryMonitor::getInstance().isCriticalBattery()) {
-        // Initialize display directly without showing startup screen
-        DisplayScreen::getInstance().init(false);
-        DisplayScreen::getInstance().showLowBatteryScreen();
-        vTaskDelay(pdMS_TO_TICKS(3000)); // Show low battery message for 3 seconds
-        Buttons::getInstance().enterDeepSleep();
-        return; // Should never reach here, but just in case
-    }
+    // if (BatteryMonitor::getInstance().isCriticalBattery()) {
+    //     // Initialize display directly without showing startup screen
+    //     DisplayScreen::getInstance().init(false);
+    //     DisplayScreen::getInstance().showLowBatteryScreen();
+    //     vTaskDelay(pdMS_TO_TICKS(3000)); // Show low battery message for 3 seconds
+    //     Buttons::getInstance().enterDeepSleep();
+    //     return; // Should never reach here, but just in case
+    // }
     
     // Initialize display normally after hold-to-wake check (only if battery is OK)
-    if (esp_sleep_get_wakeup_cause() != ESP_SLEEP_WAKEUP_EXT1) {
-        TaskManager::createDisplayInitTask();
-    } else {
-        // For deep sleep wake, display was already initialized in holdToWake()
-    }
+    // if (esp_sleep_get_wakeup_cause() != ESP_SLEEP_WAKEUP_EXT1) {
+    //     TaskManager::createDisplayInitTask();
+    // } else {
+    //     // For deep sleep wake, display was already initialized in holdToWake()
+    // }
 
     // INITIALIZATION ORDER:
     // 1. Display
@@ -76,12 +76,12 @@ void setup() {
     SensorInitializer::getInstance(); // This triggers centralized initialization
     
     // 10. Individual Sensor Tasks (wait for centralized init, then poll independently)
-    TaskManager::createImuSensorTask();
-    TaskManager::createEncoderSensorTask();
-    TaskManager::createMultizoneTofSensorTask();
+    // TaskManager::createImuSensorTask();
+    // TaskManager::createEncoderSensorTask();
+    // TaskManager::createMultizoneTofSensorTask();
     TaskManager::createSideTofSensorTask();
-    TaskManager::createColorSensorTask();
-    TaskManager::createIrSensorTask();
+    // TaskManager::createColorSensorTask();
+    // TaskManager::createIrSensorTask();
     
     // 12. DemoManager (high priority for demos)
     TaskManager::createDemoManagerTask();
@@ -91,6 +91,7 @@ void setup() {
     
     // Note: StackMonitor can be enabled for debugging
     // TaskManager::createStackMonitorTask();
+    TaskManager::createSensorLoggerTask();
 }
 
 // Main loop runs on Core 1

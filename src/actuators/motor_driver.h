@@ -17,19 +17,18 @@ class MotorDriver {
 
         void update();
 
-        void force_reset_motors();
         void brake_both_motors();
         void brake_if_moving();
 
         // Motor command processing functions
-        void updateMotorSpeeds(int16_t leftSpeed, int16_t rightSpeed);
-        void resetCommandState();
+        void updateMotorPwm(int16_t leftPwm, int16_t rightPwm);
+        void resetCommandState(bool absoluteBrake);
 
     private:
-        int16_t _targetLeftSpeed = 0;
-        int16_t _targetRightSpeed = 0;
-        int16_t _currentLeftSpeed = 0;
-        int16_t _currentRightSpeed = 0;
+        int16_t _targetLeftPwm = 0;
+        int16_t _targetRightPwm = 0;
+        int16_t _actualLeftPwm = 0;
+        int16_t _actualRightPwm = 0;
         bool _shouldRampUp = true;
         static constexpr int16_t SPEED_RAMP_STEP = 50;
 
@@ -43,7 +42,7 @@ class MotorDriver {
 
         void brake_right_motor();
         void brake_left_motor();
-        void executeCommand(int16_t leftSpeed, int16_t rightSpeed);
+        void executeCommand(int16_t leftPwm, int16_t rightPwm);
         
         // Private method for immediate motor control (used by friend classes)
         void set_motor_speeds(int16_t leftTarget, int16_t rightTarget, bool shouldRampUp);
@@ -54,8 +53,8 @@ class MotorDriver {
 
         // Command execution state variables
         bool isExecutingCommand = false;
-        int16_t currentLeftSpeed = 0;
-        int16_t currentRightSpeed = 0;
+        int16_t _commandLeftPwm = 0;
+        int16_t _commandRightPwm = 0;
         int64_t startLeftCount = 0;
         int64_t startRightCount = 0;
 
@@ -64,8 +63,8 @@ class MotorDriver {
     
         // Next command (if any)
         bool hasNextCommand = false;
-        int16_t nextLeftSpeed = 0;
-        int16_t nextRightSpeed = 0;
+        int16_t nextLeftPwm = 0;
+        int16_t nextRightPwm = 0;
 
         // Constants
         static constexpr uint8_t MIN_ENCODER_PULSES = 10;

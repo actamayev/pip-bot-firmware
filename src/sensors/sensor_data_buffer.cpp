@@ -13,22 +13,22 @@ void SensorDataBuffer::updateQuaternion(const QuaternionData& quaternion) {
         );
         currentSample.eulerAngles.isValid = true;
     }
-    markDataUpdated();
+    markImuDataUpdated();
 }
 
 void SensorDataBuffer::updateAccelerometer(const AccelerometerData& accel) {
     currentSample.accelerometer = accel;
-    markDataUpdated();
+    markImuDataUpdated();
 }
 
 void SensorDataBuffer::updateGyroscope(const GyroscopeData& gyro) {
     currentSample.gyroscope = gyro;
-    markDataUpdated();
+    markImuDataUpdated();
 }
 
 void SensorDataBuffer::updateMagnetometer(const MagnetometerData& mag) {
     currentSample.magnetometer = mag;
-    markDataUpdated();
+    markImuDataUpdated();
 }
 
 // TOF update method (existing)
@@ -306,20 +306,24 @@ void SensorDataBuffer::stopPollingAllSensors() {
     timeouts.encoder_last_request.store(0);
 }
 
-void SensorDataBuffer::markDataUpdated() {
+void SensorDataBuffer::markImuDataUpdated() {
     lastImuUpdateTime.store(millis());
+    imuUpdateCount.fetch_add(1);  // Increment frequency counter
 }
 
 void SensorDataBuffer::markTofDataUpdated() {
     lastTofUpdateTime.store(millis());
+    multizoneTofUpdateCount.fetch_add(1);  // Increment frequency counter
 }
 
 void SensorDataBuffer::markSideTofDataUpdated() {
     lastSideTofUpdateTime.store(millis());
+    sideTofUpdateCount.fetch_add(1);  // Increment frequency counter
 }
 
 void SensorDataBuffer::markColorDataUpdated() {
     lastColorUpdateTime.store(millis());
+    colorSensorUpdateCount.fetch_add(1);  // Increment frequency counter
 }
 
 void SensorDataBuffer::markIrDataUpdated() {
@@ -328,4 +332,139 @@ void SensorDataBuffer::markIrDataUpdated() {
 
 void SensorDataBuffer::markEncoderDataUpdated() {
     lastEncoderUpdateTime.store(millis());
+}
+
+float SensorDataBuffer::getImuFrequency() {
+    static float lastFrequency = 0.0f;
+    static uint32_t lastUpdateCount = 0;
+    
+    uint32_t currentTime = millis();
+    uint32_t lastCalcTime = lastImuFrequencyCalcTime.load();
+    uint32_t currentUpdateCount = imuUpdateCount.load();
+    
+    // Initialize on first call
+    if (lastCalcTime == 0) {
+        lastImuFrequencyCalcTime.store(currentTime);
+        lastUpdateCount = currentUpdateCount;
+        return 0.0f;
+    }
+    
+    uint32_t timeDelta = currentTime - lastCalcTime;
+    
+    // Calculate frequency every second (1000ms)
+    if (timeDelta >= 1000) {
+        uint32_t updateDelta = currentUpdateCount - lastUpdateCount;
+        lastFrequency = (float)updateDelta * 1000.0f / (float)timeDelta;
+        
+        // Debug logging
+        char debugBuffer[128];
+        snprintf(debugBuffer, sizeof(debugBuffer), "DEBUG: updateDelta=%u, timeDelta=%u, freq=%.1f", 
+                 updateDelta, timeDelta, lastFrequency);
+        SerialQueueManager::getInstance().queueMessage(debugBuffer);
+        
+        // Update tracking variables
+        lastImuFrequencyCalcTime.store(currentTime);
+        lastUpdateCount = currentUpdateCount;
+        
+        return lastFrequency;
+    }
+    
+    // Return last calculated frequency if not time to update yet
+    return lastFrequency;
+}
+
+float SensorDataBuffer::getMultizoneTofFrequency() {
+    static float lastFrequency = 0.0f;
+    static uint32_t lastUpdateCount = 0;
+    
+    uint32_t currentTime = millis();
+    uint32_t lastCalcTime = lastMultizoneTofFrequencyCalcTime.load();
+    uint32_t currentUpdateCount = multizoneTofUpdateCount.load();
+    
+    // Initialize on first call
+    if (lastCalcTime == 0) {
+        lastMultizoneTofFrequencyCalcTime.store(currentTime);
+        lastUpdateCount = currentUpdateCount;
+        return 0.0f;
+    }
+    
+    uint32_t timeDelta = currentTime - lastCalcTime;
+    
+    // Calculate frequency every second (1000ms)
+    if (timeDelta >= 1000) {
+        uint32_t updateDelta = currentUpdateCount - lastUpdateCount;
+        lastFrequency = (float)updateDelta * 1000.0f / (float)timeDelta;
+        
+        // Update tracking variables
+        lastMultizoneTofFrequencyCalcTime.store(currentTime);
+        lastUpdateCount = currentUpdateCount;
+        
+        return lastFrequency;
+    }
+    
+    return lastFrequency;
+}
+
+float SensorDataBuffer::getSideTofFrequency() {
+    static float lastFrequency = 0.0f;
+    static uint32_t lastUpdateCount = 0;
+    
+    uint32_t currentTime = millis();
+    uint32_t lastCalcTime = lastSideTofFrequencyCalcTime.load();
+    uint32_t currentUpdateCount = sideTofUpdateCount.load();
+    
+    // Initialize on first call
+    if (lastCalcTime == 0) {
+        lastSideTofFrequencyCalcTime.store(currentTime);
+        lastUpdateCount = currentUpdateCount;
+        return 0.0f;
+    }
+    
+    uint32_t timeDelta = currentTime - lastCalcTime;
+    
+    // Calculate frequency every second (1000ms)
+    if (timeDelta >= 1000) {
+        uint32_t updateDelta = currentUpdateCount - lastUpdateCount;
+        lastFrequency = (float)updateDelta * 1000.0f / (float)timeDelta;
+        
+        // Update tracking variables
+        lastSideTofFrequencyCalcTime.store(currentTime);
+        lastUpdateCount = currentUpdateCount;
+        
+        return lastFrequency;
+    }
+    
+    return lastFrequency;
+}
+
+float SensorDataBuffer::getColorSensorFrequency() {
+    static float lastFrequency = 0.0f;
+    static uint32_t lastUpdateCount = 0;
+    
+    uint32_t currentTime = millis();
+    uint32_t lastCalcTime = lastColorSensorFrequencyCalcTime.load();
+    uint32_t currentUpdateCount = colorSensorUpdateCount.load();
+    
+    // Initialize on first call
+    if (lastCalcTime == 0) {
+        lastColorSensorFrequencyCalcTime.store(currentTime);
+        lastUpdateCount = currentUpdateCount;
+        return 0.0f;
+    }
+    
+    uint32_t timeDelta = currentTime - lastCalcTime;
+    
+    // Calculate frequency every second (1000ms)
+    if (timeDelta >= 1000) {
+        uint32_t updateDelta = currentUpdateCount - lastUpdateCount;
+        lastFrequency = (float)updateDelta * 1000.0f / (float)timeDelta;
+        
+        // Update tracking variables
+        lastColorSensorFrequencyCalcTime.store(currentTime);
+        lastUpdateCount = currentUpdateCount;
+        
+        return lastFrequency;
+    }
+    
+    return lastFrequency;
 }

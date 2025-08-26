@@ -1,5 +1,4 @@
 #include "serial_manager.h"
-#include <ArduinoJson.h>
 
 void SerialManager::pollSerial() {
     if (Serial.available() <= 0) {

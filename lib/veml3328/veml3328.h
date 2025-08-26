@@ -20,6 +20,15 @@ typedef enum {
     time_400 = 0x03
 } int_time_t;
 
+// Non-blocking state machine states
+typedef enum {
+    COLOR_STATE_IDLE,
+    COLOR_STATE_READ_RED,
+    COLOR_STATE_READ_GREEN, 
+    COLOR_STATE_READ_BLUE,
+    COLOR_STATE_COMPLETE
+} color_read_state_t;
+
 class VEMLClass {
 
   public:
@@ -134,6 +143,34 @@ class VEMLClass {
      */
     uint8_t setIntTime(const int_time_t integration_time);
 
+    /**
+     * @brief Non-blocking color read using state machine
+     * Call repeatedly until it returns COLOR_STATE_COMPLETE
+     * 
+     * @return Current state of the reading process
+     */
+    color_read_state_t readColorNonBlocking();
+
+    /**
+     * @brief Get the last read red value (from non-blocking read)
+     */
+    uint16_t getLastRed() const { return last_red; }
+
+    /**
+     * @brief Get the last read green value (from non-blocking read)  
+     */
+    uint16_t getLastGreen() const { return last_green; }
+
+    /**
+     * @brief Get the last read blue value (from non-blocking read)
+     */
+    uint16_t getLastBlue() const { return last_blue; }
+
+    /**
+     * @brief Reset the non-blocking state machine
+     */
+    void resetColorRead() { color_state = COLOR_STATE_IDLE; }
+
   private:
     /**
      * @brief Physical interface for the driver. Is swappable through begin().
@@ -144,6 +181,18 @@ class VEMLClass {
      * @brief The I2C address of the VEML3328 device.
      */
     uint8_t device_address;
+
+    /**
+     * @brief Non-blocking state machine state
+     */
+    color_read_state_t color_state = COLOR_STATE_IDLE;
+
+    /**
+     * @brief Last read color values for non-blocking operation
+     */
+    uint16_t last_red = 0;
+    uint16_t last_green = 0;
+    uint16_t last_blue = 0;
 
     /**
      * @brief Constructor is hidden to enforce a single instance of this class
@@ -159,6 +208,15 @@ class VEMLClass {
      * @return The data of the register.
      */
     uint16_t read(const uint8_t register_address);
+
+    /**
+     * @brief Fast non-blocking register read without delays
+     *
+     * @param register_address [in] The register address.
+     *
+     * @return The data of the register.
+     */
+    uint16_t readFast(const uint8_t register_address);
 
     /**
      * @brief Writes @p data masked with @p mask to @p register_address. Given a

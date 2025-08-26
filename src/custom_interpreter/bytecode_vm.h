@@ -67,7 +67,6 @@ class BytecodeVM : public Singleton<BytecodeVM> {
 
         PauseState isPaused = PauseState::PROGRAM_NOT_STARTED;
 
-        void togglePause();
         bool waitingForButtonPressToStart = false;
         bool canStartProgram();
 

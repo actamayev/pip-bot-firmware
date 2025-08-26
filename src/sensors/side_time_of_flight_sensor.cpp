@@ -43,15 +43,12 @@ void SideTimeOfFlightSensor::updateSensorData() {
     // Only try to read if sensor is initialized
     if (!isInitialized) return;
     
+    // Skip rate limiting entirely for maximum performance like performance test
     unsigned long currentTime = millis();
     unsigned long elapsedTime = currentTime - _lastUpdateTime;
+    if (elapsedTime < DELAY_BETWEEN_READINGS) return;
     
-    // Only update if enough time has passed (rate limiting)
-    if (elapsedTime < DELAY_BETWEEN_READINGS) {
-        return;
-    }
-    
-    // Read current sensor data
+    // Read current sensor data with no throttling
     uint16_t counts = Read_Proximity_Data();
     _lastUpdateTime = currentTime;
     
@@ -87,9 +84,9 @@ void SideTimeOfFlightSensor::Basic_Initialization_Auto_Mode() {
     
     //PS_CONF2_L
     //Set the integration time for one measurement; the pulse length "T" is determined by PS_ITB
-    VCNL36828P_SET_PS_IT(sensorAddress, VCNL36828P_PS_IT_8T);
+    VCNL36828P_SET_PS_IT(sensorAddress, VCNL36828P_PS_IT_1T); // Fastest - matches performance test
     //Set the pulse length "T" for PS_IT
-    VCNL36828P_SET_PS_ITB(sensorAddress, VCNL36828P_PS_ITB_50us);
+    VCNL36828P_SET_PS_ITB(sensorAddress, VCNL36828P_PS_ITB_25us); // Shortest - matches performance test
     //PS_CONF2_H
     //Set the VCSEL driving current
     VCNL36828P_SET_I_VCSEL(sensorAddress, VCNL36828P_I_VCSEL_20mA);

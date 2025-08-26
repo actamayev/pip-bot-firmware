@@ -18,7 +18,6 @@ BytecodeVM::~BytecodeVM() {
 bool BytecodeVM::loadProgram(const uint8_t* byteCode, uint16_t size) {
     // Free any existing program
     stopProgram();
-    motorDriver.resetCommandState();
 
     // Validate bytecode size (must be multiple of 20 now)
     if (size % INSTRUCTION_SIZE != 0 || size / INSTRUCTION_SIZE > MAX_PROGRAM_SIZE) {
@@ -482,7 +481,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             uint8_t motorSpeed = map(throttlePercent, 0, 100, 0, MAX_MOTOR_SPEED);
             
             // Set both motors to forward at calculated speed
-            motorDriver.updateMotorSpeeds(motorSpeed, motorSpeed);
+            motorDriver.updateMotorPwm(motorSpeed, motorSpeed);
             break;
         }
         
@@ -492,15 +491,12 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             uint8_t motorSpeed = map(throttlePercent, 0, 100, 0, MAX_MOTOR_SPEED);
             
             // Set both motors to backward (negative speed)
-            motorDriver.updateMotorSpeeds(-motorSpeed, -motorSpeed);
+            motorDriver.updateMotorPwm(-motorSpeed, -motorSpeed);
             break;
         }
         
         case OP_MOTOR_STOP: {
-            // Stop both motors
-            motorDriver.brake_both_motors();
-            // motorDriver.stop_both_motors();
-            motorDriver.force_reset_motors();
+            motorDriver.resetCommandState(true);
             break;
         }
         
@@ -536,7 +532,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             uint8_t motorSpeed = map(throttlePercent, 0, 100, 0, MAX_MOTOR_SPEED);
             
             // Set motors to forward motion
-            motorDriver.updateMotorSpeeds(motorSpeed, motorSpeed);
+            motorDriver.updateMotorPwm(motorSpeed, motorSpeed);
             
             // Set up timed movement
             timedMotorMovementInProgress = true;
@@ -563,7 +559,11 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             uint8_t motorSpeed = map(throttlePercent, 0, 100, 0, MAX_MOTOR_SPEED);
             
             // Set motors to backward motion
-            motorDriver.updateMotorSpeeds(-motorSpeed, -motorSpeed);
+            motorDriver.updateMotorPwm(-motorSpeed, -motorSpeed);
+            
+            // Set up timed movement
+            timedMotorMovementInProgress = true;
+            motorMovementEndTime = millis() + static_cast<unsigned long>(seconds * 1000.0f);
             
             break;
         }
@@ -593,7 +593,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             targetDistanceCm = distanceCm;
             
             // Set motors to forward motion
-            motorDriver.updateMotorSpeeds(motorSpeed, motorSpeed);
+            motorDriver.updateMotorPwm(motorSpeed, motorSpeed);
             
             break;
         }
@@ -623,7 +623,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             targetDistanceCm = distanceCm;
             
             // Set motors to backward motion
-            motorDriver.updateMotorSpeeds(-motorSpeed, -motorSpeed);
+            motorDriver.updateMotorPwm(-motorSpeed, -motorSpeed);
             
             break;
         }
@@ -646,7 +646,7 @@ void BytecodeVM::updateTimedMotorMovement() {
     // Check if the timed movement has completed
     if (millis() < motorMovementEndTime) return;
     // Movement complete - brake motors
-    motorDriver.brake_both_motors();
+    motorDriver.resetCommandState(true);
 
     // Reset timed movement state
     timedMotorMovementInProgress = false;
@@ -660,7 +660,7 @@ void BytecodeVM::updateDistanceMovement() {
     // // Check if we've reached or exceeded the target distance
     if (currentDistance < targetDistanceCm) return;
     // Distance reached - brake motors
-    motorDriver.brake_both_motors();
+    motorDriver.resetCommandState(true);
     
     // Reset distance movement state
     distanceMovementInProgress = false;
@@ -668,13 +668,9 @@ void BytecodeVM::updateDistanceMovement() {
 
 void BytecodeVM::stopProgram() {
     resetStateVariables(true);
-    motorDriver.resetCommandState();
-
-    stoppedDueToUsbSafety = false; // Reset safety flag when manually stopping
 
     Speaker::getInstance().setMuted(true);
     rgbLed.turn_all_leds_off();
-    motorDriver.brake_if_moving();
     return;
 }
 
@@ -698,7 +694,7 @@ void BytecodeVM::resetStateVariables(bool isFullReset) {
     // Note: Don't reset programContainsMotors or lastUsbState here as they persist across pause/resume
 
     // Force reset motor driver state completely
-    motorDriver.force_reset_motors();
+    motorDriver.resetCommandState(false);
 
     // Reset registers
     for (uint16_t i = 0; i < MAX_REGISTERS; i++) {
@@ -725,25 +721,13 @@ void BytecodeVM::resetStateVariables(bool isFullReset) {
     }
 }
 
-void BytecodeVM::togglePause() {
-    if (!program || isPaused == PROGRAM_NOT_STARTED) {
-        SerialQueueManager::getInstance().queueMessage("togglePause: No program loaded");
-        return;
-    }
-    
-    if (isPaused == PAUSED) resumeProgram();
-    else pauseProgram();
-}
-
 void BytecodeVM::pauseProgram() {
     if (!program || isPaused == PAUSED) return;
-    
+
     resetStateVariables();
-    motorDriver.resetCommandState();
 
     Speaker::getInstance().setMuted(true);
     rgbLed.turn_all_leds_off();     
-    motorDriver.brake_if_moving();
     
     isPaused = PAUSED;
 }
@@ -753,7 +737,7 @@ void BytecodeVM::resumeProgram() {
         SerialQueueManager::getInstance().queueMessage("resumeProgram: Not paused or no program");
         return;
     }
-    // canStartProgram() already logs the reason
+
     if (!canStartProgram()) return;
 
     isPaused = RUNNING;

@@ -1,11 +1,11 @@
 #pragma once
-#include <SPIFFS.h>
+#include <LittleFS.h>
 #include "Arduino.h"
 #include "utils/config.h"
 #include "utils/singleton.h"
 #include "networking/protocol.h"
 #include "networking/serial_queue_manager.h"
-#include "AudioFileSourceSPIFFS.h"
+#include "AudioFileSourceLittleFS.h"
 #include "AudioFileSourceID3.h"
 #include "AudioGeneratorMP3.h"
 #include "AudioOutputI2S.h"
@@ -34,7 +34,7 @@ class Speaker : public Singleton<Speaker> {
         float currentVolume = 3.9f;
         
         // Audio objects
-        AudioFileSourceSPIFFS* audioFile = nullptr;
+        AudioFileSourceLittleFS* audioFile = nullptr;
         AudioFileSourceID3* audioID3 = nullptr;
         AudioGeneratorMP3* audioMP3 = nullptr;
         AudioOutputI2S* audioOutput = nullptr;
@@ -53,7 +53,7 @@ class Speaker : public Singleton<Speaker> {
         bool audioObjectsValid = false;
         bool forceRecreateObjects = false;
         
-        bool initializeSPIFFS();
+        bool initializeLittleFS();
         bool initializeAudio();
         void cleanup();
         bool safeStopPlayback();

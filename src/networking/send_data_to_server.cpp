@@ -83,10 +83,10 @@ void SendDataToServer::sendSensorDataToServer() {
     JsonObject payload = doc.createNestedObject("payload");
 
     // Attach different types of sensor data
-    attachRPMData(payload);
+    // attachRPMData(payload);
     // attachIRData(payload);
     // attachColorSensorData(payload);
-    // attachImuData(payload);
+    attachImuData(payload);
 
     // Serialize and send
     String jsonString;

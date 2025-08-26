@@ -1,9 +1,10 @@
 #pragma once
 #include <Arduino.h>
-#include "./vcnl36828p/VCNL36828P.h"
-#include "./vcnl36828p/VCNL36828P_Prototypes.h"
-#include "./vcnl36828p/typedefinition.h"
-#include "./vcnl36828p/VCNL36828P_Application_Library.h"
+#include "../lib/vcnl36828p/I2C_Functions.h"
+#include "../lib/vcnl36828p/VCNL36828P_Prototypes.h"
+#include "../lib/vcnl36828p/typedefinition.h"
+#include "../lib/vcnl36828p/VCNL36828P_Application_Library.h"
+#include "../lib/vcnl36828p/VCNL36828P.h"
 #include "utils/config.h"
 #include "utils/structs.h"
 #include "sensor_data_buffer.h"
@@ -50,7 +51,7 @@ class SideTimeOfFlightSensor {
 
         // For rate limiting reads
         unsigned long _lastUpdateTime = 0;
-        static constexpr unsigned long DELAY_BETWEEN_READINGS = 10; //ms
+        static constexpr unsigned long DELAY_BETWEEN_READINGS = 1; //ms - minimal delay like performance test
 
         // New buffer-based methods following the established pattern
         void updateSensorData();  // Read sensor and return data (don't store locally)
