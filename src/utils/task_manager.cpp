@@ -182,12 +182,12 @@ void TaskManager::sensorLoggerTask(void* parameter) {
     // Main logging loop
     for(;;) {
         // Call each frequency logger function
-        imuLogger();
+        // imuLogger();
         // multizoneTofLogger();
         // sideTofLogger();
         // colorSensorLogger();
         // irSensorLogger();
-        // log_motor_rpm();  // Keep this commented for now since it's not frequency-based
+        log_motor_rpm();  // Keep this commented for now since it's not frequency-based
         
         // Small delay between logger cycles - loggers have their own internal timing
         vTaskDelay(pdMS_TO_TICKS(10));  // 100Hz - fast polling, loggers handle their own rate limiting
