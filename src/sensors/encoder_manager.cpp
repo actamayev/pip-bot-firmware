@@ -28,6 +28,8 @@ bool EncoderManager::initialize() {
     _lastUpdateTime = millis();
     _leftEncoderStartCount = 0;
     _rightEncoderStartCount = 0;
+    _leftLastCount = 0;
+    _rightLastCount = 0;
     
     isInitialized = true;
     SerialQueueManager::getInstance().queueMessage("Encoder Manager initialized successfully");
@@ -41,8 +43,12 @@ void EncoderManager::update() {
     // Only update if enough time has passed
     if (elapsedTime < RPM_CALC_INTERVAL) return;
     
-    int64_t leftPulses = _leftEncoder.getCount();
-    int64_t rightPulses = _rightEncoder.getCount();
+    int64_t leftCurrentCount = _leftEncoder.getCount();
+    int64_t rightCurrentCount = _rightEncoder.getCount();
+
+    // Calculate delta pulses since last update
+    int64_t leftPulses = leftCurrentCount - _leftLastCount;
+    int64_t rightPulses = rightCurrentCount - _rightLastCount;
 
     // Calculate motor shaft RPM - NOTE: Using elapsedTime in seconds
     float leftMotorShaftRPM = (float)(leftPulses * 60) / (PULSES_PER_REVOLUTION * (elapsedTime / 1000.0));
@@ -52,9 +58,9 @@ void EncoderManager::update() {
     _leftWheelRPM = leftMotorShaftRPM / GEAR_RATIO;
     _rightWheelRPM = rightMotorShaftRPM / GEAR_RATIO;
 
-    // Reset pulse counters for next interval
-    _leftEncoder.clearCount();
-    _rightEncoder.clearCount();
+    // Store current counts for next delta calculation
+    _leftLastCount = leftCurrentCount;
+    _rightLastCount = rightCurrentCount;
 
     _lastUpdateTime = currentTime;
 }

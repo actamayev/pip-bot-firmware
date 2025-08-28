@@ -51,6 +51,10 @@ class EncoderManager : public Singleton<EncoderManager> {
         int64_t _leftEncoderStartCount;
         int64_t _rightEncoderStartCount;
         
+        // For RPM calculation without clearing encoder counts
+        int64_t _leftLastCount;
+        int64_t _rightLastCount;
+        
         // Wheel physical properties
         static constexpr float WHEEL_DIAMETER_CM = 3.9; // Replace with actual wheel diameter
         static constexpr float WHEEL_CIRCUMFERENCE_CM = WHEEL_DIAMETER_CM * PI;

@@ -262,9 +262,10 @@ void MotorDriver::processPendingCommands() {
         }
         
         isExecutingCommand = false;
-    }
-    if (hasNextCommand) {
-        executeCommand(nextLeftPwm, nextRightPwm);
+        
+        if (hasNextCommand) {
+            executeCommand(nextLeftPwm, nextRightPwm);
+        }
     }
 }
 
