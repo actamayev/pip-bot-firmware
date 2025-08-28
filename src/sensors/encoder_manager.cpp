@@ -67,20 +67,11 @@ void EncoderManager::update() {
 
 // Standard sensor interface methods
 bool EncoderManager::shouldBePolling() const {
-    if (!isInitialized) return false;
-    
-    ReportTimeouts& timeouts = SensorDataBuffer::getInstance().getReportTimeouts();
-    return timeouts.shouldEnableEncoder();
+    return isInitialized;
 }
 
 void EncoderManager::updateSensorData() {
     if (!isInitialized) return;
-    
-    // Check if we should enable/disable the sensor based on timeouts
-    ReportTimeouts& timeouts = SensorDataBuffer::getInstance().getReportTimeouts();
-    bool shouldEnable = timeouts.shouldEnableEncoder();
-    
-    if (!shouldEnable) return; // Don't update encoder data if not requested recently
 
     // Call internal update method to calculate RPMs
     update();
