@@ -40,7 +40,9 @@ class EncoderManager : public Singleton<EncoderManager> {
 
         // Constants for calculations
         static constexpr float GEAR_RATIO = 297.924;
-        static constexpr uint8_t ENCODER_CPR = 3;
+        static constexpr uint8_t MOTOR_ENCODER_CPR = 3; // cycles per revolution on motor shaft
+        // attachHalfQuad counts 2 edges per cycle (x2)
+        static constexpr uint8_t PULSES_PER_REVOLUTION = MOTOR_ENCODER_CPR * 2;
         static constexpr unsigned long RPM_CALC_INTERVAL = 20; // ms
 
         // Internal update method (now private - called by updateSensorData)

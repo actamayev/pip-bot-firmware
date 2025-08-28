@@ -45,8 +45,8 @@ void EncoderManager::update() {
     int64_t rightPulses = _rightEncoder.getCount();
 
     // Calculate motor shaft RPM - NOTE: Using elapsedTime in seconds
-    float leftMotorShaftRPM = (float)(leftPulses * 60) / (ENCODER_CPR * (elapsedTime / 1000.0));
-    float rightMotorShaftRPM = (float)(rightPulses * 60) / (ENCODER_CPR * (elapsedTime / 1000.0));
+    float leftMotorShaftRPM = (float)(leftPulses * 60) / (PULSES_PER_REVOLUTION * (elapsedTime / 1000.0));
+    float rightMotorShaftRPM = (float)(rightPulses * 60) / (PULSES_PER_REVOLUTION * (elapsedTime / 1000.0));
 
     // Calculate wheel RPM
     _leftWheelRPM = leftMotorShaftRPM / GEAR_RATIO;
@@ -100,7 +100,7 @@ void EncoderManager::updateSensorData() {
     float avgEncoderDelta = (leftEncoderDelta + rightEncoderDelta) / 2.0f;
     
     // Convert encoder counts to revolutions
-    float wheelRevolutions = avgEncoderDelta / static_cast<float>(ENCODER_CPR);
+    float wheelRevolutions = avgEncoderDelta / static_cast<float>(PULSES_PER_REVOLUTION);
     
     // Compensate for gear ratio
     float wheelRevolutionsAfterGearing = wheelRevolutions / GEAR_RATIO;
