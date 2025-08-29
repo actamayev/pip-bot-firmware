@@ -35,7 +35,7 @@ class TriggerAnimations {
         static constexpr unsigned long S2P1_FADE_TIME = 1000; // 1000ms total fade time
         static constexpr unsigned long S2P1_UPDATE_INTERVAL = 20; // 20ms updates for smooth fading
         static constexpr unsigned long S2P4_DURATION = 5000; // 5 seconds
-        static constexpr unsigned long S2P4_UPDATE_INTERVAL = 50; // 50ms updates
+        static constexpr unsigned long S2P4_UPDATE_INTERVAL = 1000; // 50ms updates
         
     private:
         Adafruit_NeoPixel& strip;
