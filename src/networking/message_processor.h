@@ -16,6 +16,7 @@
 #include "utils/preferences_manager.h"
 #include "sensors/sensor_data_buffer.h"
 #include "actuators/led/led_animations.h"
+#include "actuators/led/trigger_animations.h"
 #include "networking/serial_queue_manager.h"
 #include "networking/network_state_manager.h"
 

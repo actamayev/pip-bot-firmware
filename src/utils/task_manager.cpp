@@ -1,5 +1,6 @@
 #include "task_manager.h"
 #include "sensors/sensor_initializer.h"
+#include "actuators/led/trigger_animations.h"
 
 TaskHandle_t TaskManager::buttonTaskHandle = NULL;
 TaskHandle_t TaskManager::serialInputTaskHandle = NULL;
@@ -45,6 +46,7 @@ void TaskManager::serialInputTask(void* parameter) {
 void TaskManager::ledTask(void* parameter) {
     for(;;) {
         ledAnimations.update();
+        triggerAnimations.update();
         vTaskDelay(pdMS_TO_TICKS(5));
     }
 }

@@ -1,4 +1,5 @@
 #include "message_processor.h"
+#include "actuators/led/trigger_animations.h"
 
 void MessageProcessor::handleMotorControl(const uint8_t* data) {
     // Extract 16-bit signed integers (little-endian)
@@ -399,17 +400,20 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
                         
                         switch (triggerType) {
                             case IntroductionTriggerType::S2_P1_ENTER:
-                                SerialQueueManager::getInstance().queueMessage("Recieved S2_P1_ENTER");
-                                // Handle S2_P1_ENTER trigger
+                                SerialQueueManager::getInstance().queueMessage("Received S2_P1_ENTER");
+                                triggerAnimations.startS2P1Sequence();
                                 break;
                             case IntroductionTriggerType::S2_P1_EXIT:
-                                // Handle S2_P1_EXIT trigger
+                                SerialQueueManager::getInstance().queueMessage("Received S2_P1_EXIT");
+                                triggerAnimations.stopS2P1Sequence();
                                 break;
                             case IntroductionTriggerType::S2_P4_ENTER:
-                                // Handle S2_P4_ENTER trigger
+                                SerialQueueManager::getInstance().queueMessage("Received S2_P4_ENTER");
+                                triggerAnimations.startS2P4LightShow();
                                 break;
                             case IntroductionTriggerType::S2_P4_EXIT:
-                                // Handle S2_P4_EXIT trigger
+                                SerialQueueManager::getInstance().queueMessage("Received S2_P4_EXIT");
+                                triggerAnimations.stopS2P4LightShow();
                                 break;
                             case IntroductionTriggerType::S3_P3_ENTER:
                                 // Handle S3_P3_ENTER trigger

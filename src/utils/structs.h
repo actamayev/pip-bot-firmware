@@ -74,7 +74,8 @@ namespace LedTypes {
         NONE,
         BREATHING,
         STROBING,
-        RAINBOW
+        RAINBOW,
+        TRIGGER_SEQUENCE
     };
 }
 
