@@ -387,6 +387,103 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             }
             break;
         }
+        case DataMessageType::TRIGGER_MESSAGE: {
+            if (length < 3) { // 1 byte for type + 1 byte for career + 1 byte for trigger
+                SerialQueueManager::getInstance().queueMessage("Invalid trigger message length");
+            } else {
+                CareerType careerType = static_cast<CareerType>(data[1]);
+                
+                switch (careerType) {
+                    case CareerType::INTRODUCTION: {
+                        IntroductionTriggerType triggerType = static_cast<IntroductionTriggerType>(data[2]);
+                        
+                        switch (triggerType) {
+                            case IntroductionTriggerType::S2_P1_ENTER:
+                                SerialQueueManager::getInstance().queueMessage("Recieved S2_P1_ENTER");
+                                // Handle S2_P1_ENTER trigger
+                                break;
+                            case IntroductionTriggerType::S2_P1_EXIT:
+                                // Handle S2_P1_EXIT trigger
+                                break;
+                            case IntroductionTriggerType::S2_P4_ENTER:
+                                // Handle S2_P4_ENTER trigger
+                                break;
+                            case IntroductionTriggerType::S2_P4_EXIT:
+                                // Handle S2_P4_EXIT trigger
+                                break;
+                            case IntroductionTriggerType::S3_P3_ENTER:
+                                // Handle S3_P3_ENTER trigger
+                                break;
+                            case IntroductionTriggerType::S3_P3_EXIT:
+                                // Handle S3_P3_EXIT trigger
+                                break;
+                            case IntroductionTriggerType::S4_P5_ENTER:
+                                // Handle S4_P5_ENTER trigger
+                                break;
+                            case IntroductionTriggerType::S5_P4_ENTER:
+                                // Handle S5_P4_ENTER trigger
+                                break;
+                            case IntroductionTriggerType::S5_P4_EXIT:
+                                // Handle S5_P4_EXIT trigger
+                                break;
+                            case IntroductionTriggerType::S5_P5_ENTER:
+                                // Handle S5_P5_ENTER trigger
+                                break;
+                            case IntroductionTriggerType::S5_P5_EXIT:
+                                // Handle S5_P5_EXIT trigger
+                                break;
+                            case IntroductionTriggerType::S6_P4_ENTER:
+                                // Handle S6_P4_ENTER trigger
+                                break;
+                            case IntroductionTriggerType::S6_P4_EXIT:
+                                // Handle S6_P4_EXIT trigger
+                                break;
+                            case IntroductionTriggerType::S6_P6_ENTER:
+                                // Handle S6_P6_ENTER trigger
+                                break;
+                            case IntroductionTriggerType::S6_P6_EXIT:
+                                // Handle S6_P6_EXIT trigger
+                                break;
+                            case IntroductionTriggerType::S7_P4_ENTER:
+                                // Handle S7_P4_ENTER trigger
+                                break;
+                            case IntroductionTriggerType::S7_P4_EXIT:
+                                // Handle S7_P4_EXIT trigger
+                                break;
+                            case IntroductionTriggerType::S7_P6_ENTER:
+                                // Handle S7_P6_ENTER trigger
+                                break;
+                            case IntroductionTriggerType::S7_P6_EXIT:
+                                // Handle S7_P6_EXIT trigger
+                                break;
+                            case IntroductionTriggerType::S8_P3_ENTER:
+                                // Handle S8_P3_ENTER trigger
+                                break;
+                            case IntroductionTriggerType::S8_P3_EXIT:
+                                // Handle S8_P3_EXIT trigger
+                                break;
+                            case IntroductionTriggerType::S9_P3_ENTER:
+                                // Handle S9_P3_ENTER trigger
+                                break;
+                            case IntroductionTriggerType::S9_P6_ENTER:
+                                // Handle S9_P6_ENTER trigger
+                                break;
+                            case IntroductionTriggerType::S9_P6_EXIT:
+                                // Handle S9_P6_EXIT trigger
+                                break;
+                            default:
+                                SerialQueueManager::getInstance().queueMessage("Unknown introduction trigger type");
+                                break;
+                        }
+                        break;
+                    }
+                    default:
+                        SerialQueueManager::getInstance().queueMessage("Unknown career type");
+                        break;
+                }
+            }
+            break;
+        }
         default:
             break;
     }
