@@ -29,13 +29,10 @@ void TriggerAnimations::startS2P1Sequence() {
 }
 
 void TriggerAnimations::stopS2P1Sequence() {
-    s2p1Active = false;
-    
-    // Turn off all LEDs
-    for(int i = 0; i < strip.numPixels(); i++) {
-        strip.setPixelColor(i, strip.Color(0, 0, 0));
-    }
-    strip.show();
+    if (!s2p1Active) return;
+    // Start exit fade instead of immediately turning off
+    isExitFading = true;
+    isFadingOut = true;
 }
 
 void TriggerAnimations::startS2P4LightShow() {
@@ -93,12 +90,19 @@ void TriggerAnimations::updateS2P1Sequence() {
                 strip.setPixelColor(currentLed, strip.Color(fadedRed, fadedGreen, fadedBlue));
                 strip.show();
             } else {
-                // Fade out complete, move to next LED and start fade in
-                isFadingOut = false;
-                currentLedIndex = (currentLedIndex + 1) % 6;
-                currentColorIndex = (currentColorIndex + 1) % 6;
-                currentBrightness = 0;
-                targetBrightness = 255;
+                if (isExitFading) {
+                    // Exit fade complete, stop the sequence
+                    s2p1Active = false;
+                    isExitFading = false;
+                    isFadingOut = false;
+                } else {
+                    // Normal fade out complete, move to next LED and start fade in
+                    isFadingOut = false;
+                    currentLedIndex = (currentLedIndex + 1) % 6;
+                    currentColorIndex = (currentColorIndex + 1) % 6;
+                    currentBrightness = 0;
+                    targetBrightness = 255;
+                }
             }
         } else {
             // Fade in new LED

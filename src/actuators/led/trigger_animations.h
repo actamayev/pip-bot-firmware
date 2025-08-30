@@ -48,6 +48,7 @@ class TriggerAnimations {
         
         // Fade state
         bool isFadingOut = false;
+        bool isExitFading = false;
         uint8_t currentBrightness = 0;
         uint8_t targetBrightness = 255;
         
