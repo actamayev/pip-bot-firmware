@@ -70,7 +70,7 @@ void TaskManager::displayTask(void* parameter) {
     
     for(;;) {
         DisplayScreen::getInstance().update();
-        vTaskDelay(pdMS_TO_TICKS(50));  // 20Hz update rate, smooth for animations
+        vTaskDelay(pdMS_TO_TICKS(40));  // 25Hz update rate, smooth for animations
     }
 }
 
@@ -190,6 +190,7 @@ void TaskManager::sensorLoggerTask(void* parameter) {
         // colorSensorLogger();
         // irSensorLogger();
         // log_motor_rpm();  // Keep this commented for now since it's not frequency-based
+        // displayPerformanceLogger();
         
         // Small delay between logger cycles - loggers have their own internal timing
         vTaskDelay(pdMS_TO_TICKS(10));  // 100Hz - fast polling, loggers handle their own rate limiting

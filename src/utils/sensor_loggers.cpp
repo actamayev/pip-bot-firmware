@@ -144,3 +144,24 @@ void irSensorLogger() {
     lastResetTime = millis();
     lastPrintTime = millis();
 }
+
+void displayPerformanceLogger() {
+    static unsigned long lastPrintTime = 0;
+    const unsigned long PRINT_INTERVAL = 1000; // Print frequency every 1 second
+    
+    if (millis() - lastPrintTime < PRINT_INTERVAL) return;
+    
+    DisplayScreen& display = DisplayScreen::getInstance();
+    
+    char buffer[128];
+    snprintf(buffer, sizeof(buffer), "DISPLAY: %.2f Hz actual I2C (Generated: %lu, Updates: %lu, Skipped: %lu)",
+             display.getDisplayUpdateRate(),
+             display.getContentGenerationCount(),
+             display.getDisplayUpdateCount(),
+             display.getSkippedUpdateCount());
+    SerialQueueManager::getInstance().queueMessage(buffer);
+    
+    // Reset performance counters for next measurement period
+    display.resetPerformanceCounters();
+    lastPrintTime = millis();
+}
