@@ -5,6 +5,7 @@
 #include "utils/config.h"
 #include "utils/structs.h"
 #include "actuators/display_screen.h"
+#include "actuators/led/rgb_led.h"
 
 class CareerQuestTriggers {
     public:

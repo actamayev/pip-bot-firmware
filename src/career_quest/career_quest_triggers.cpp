@@ -13,10 +13,7 @@ CareerQuestTriggers::CareerQuestTriggers(Adafruit_NeoPixel& strip)
 
 void CareerQuestTriggers::startS2P1Sequence() {
     // Turn off all LEDs first
-    for(int i = 0; i < strip.numPixels(); i++) {
-        strip.setPixelColor(i, strip.Color(0, 0, 0));
-    }
-    strip.show();
+    rgbLed.turn_all_leds_off();
     
     // Initialize sequence state
     s2p1Active = true;
@@ -37,11 +34,8 @@ void CareerQuestTriggers::stopS2P1Sequence() {
 
 void CareerQuestTriggers::startS2P4LightShow() {
     // Turn off all LEDs first
-    for(int i = 0; i < strip.numPixels(); i++) {
-        strip.setPixelColor(i, strip.Color(0, 0, 0));
-    }
-    strip.show();
-    
+    rgbLed.turn_all_leds_off();
+
     // Initialize light show state
     s2p4Active = true;
     s2p4StartTime = millis();
@@ -53,10 +47,7 @@ void CareerQuestTriggers::stopS2P4LightShow() {
     s2p4Active = false;
     
     // Turn off all LEDs
-    for(int i = 0; i < strip.numPixels(); i++) {
-        strip.setPixelColor(i, strip.Color(0, 0, 0));
-    }
-    strip.show();
+    rgbLed.turn_all_leds_off();
 }
 
 void CareerQuestTriggers::update() {
@@ -71,64 +62,63 @@ void CareerQuestTriggers::update() {
 void CareerQuestTriggers::updateS2P1Sequence() {
     unsigned long now = millis();
     
-    if (now - lastS2P1Update >= S2P1_UPDATE_INTERVAL) {
-        uint8_t currentLed = s2p1LedSequence[currentLedIndex];
-        uint8_t red = s2p1ColorSequence[currentColorIndex][0];
-        uint8_t green = s2p1ColorSequence[currentColorIndex][1];
-        uint8_t blue = s2p1ColorSequence[currentColorIndex][2];
-        
-        if (isFadingOut) {
-            // Fade out current LED
-            if (currentBrightness > 0) {
-                currentBrightness = max(0, currentBrightness - 5); // Fade out step
-                
-                // Apply brightness to current LED
-                uint8_t fadedRed = (red * currentBrightness) / 255;
-                uint8_t fadedGreen = (green * currentBrightness) / 255;
-                uint8_t fadedBlue = (blue * currentBrightness) / 255;
-                
-                strip.setPixelColor(currentLed, strip.Color(fadedRed, fadedGreen, fadedBlue));
-                strip.show();
-            } else {
-                if (isExitFading) {
-                    // Exit fade complete, stop the sequence
-                    s2p1Active = false;
-                    isExitFading = false;
-                    isFadingOut = false;
-                } else {
-                    // Normal fade out complete, move to next LED and start fade in
-                    isFadingOut = false;
-                    currentLedIndex = (currentLedIndex + 1) % 6;
-                    currentColorIndex = (currentColorIndex + 1) % 6;
-                    currentBrightness = 0;
-                    targetBrightness = 255;
-                }
-            }
+    if (now - lastS2P1Update < S2P1_UPDATE_INTERVAL) return;
+    uint8_t currentLed = s2p1LedSequence[currentLedIndex];
+    uint8_t red = s2p1ColorSequence[currentColorIndex][0];
+    uint8_t green = s2p1ColorSequence[currentColorIndex][1];
+    uint8_t blue = s2p1ColorSequence[currentColorIndex][2];
+    
+    if (isFadingOut) {
+        // Fade out current LED
+        if (currentBrightness > 0) {
+            currentBrightness = max(0, currentBrightness - 5); // Fade out step
+            
+            // Apply brightness to current LED
+            uint8_t fadedRed = (red * currentBrightness) / 255;
+            uint8_t fadedGreen = (green * currentBrightness) / 255;
+            uint8_t fadedBlue = (blue * currentBrightness) / 255;
+            
+            strip.setPixelColor(currentLed, strip.Color(fadedRed, fadedGreen, fadedBlue));
+            strip.show();
         } else {
-            // Fade in new LED
-            if (currentBrightness < targetBrightness) {
-                currentBrightness = min(255, currentBrightness + 5); // Fade in step
-                
-                // Apply brightness to new LED with new color
-                red = s2p1ColorSequence[currentColorIndex][0];
-                green = s2p1ColorSequence[currentColorIndex][1];
-                blue = s2p1ColorSequence[currentColorIndex][2];
-                
-                uint8_t fadedRed = (red * currentBrightness) / 255;
-                uint8_t fadedGreen = (green * currentBrightness) / 255;
-                uint8_t fadedBlue = (blue * currentBrightness) / 255;
-                
-                currentLed = s2p1LedSequence[currentLedIndex];
-                strip.setPixelColor(currentLed, strip.Color(fadedRed, fadedGreen, fadedBlue));
-                strip.show();
+            if (isExitFading) {
+                // Exit fade complete, stop the sequence
+                s2p1Active = false;
+                isExitFading = false;
+                isFadingOut = false;
             } else {
-                // Fade in complete, start fade out
-                isFadingOut = true;
+                // Normal fade out complete, move to next LED and start fade in
+                isFadingOut = false;
+                currentLedIndex = (currentLedIndex + 1) % 6;
+                currentColorIndex = (currentColorIndex + 1) % 6;
+                currentBrightness = 0;
+                targetBrightness = 255;
             }
         }
-        
-        lastS2P1Update = now;
+    } else {
+        // Fade in new LED
+        if (currentBrightness < targetBrightness) {
+            currentBrightness = min(255, currentBrightness + 5); // Fade in step
+            
+            // Apply brightness to new LED with new color
+            red = s2p1ColorSequence[currentColorIndex][0];
+            green = s2p1ColorSequence[currentColorIndex][1];
+            blue = s2p1ColorSequence[currentColorIndex][2];
+            
+            uint8_t fadedRed = (red * currentBrightness) / 255;
+            uint8_t fadedGreen = (green * currentBrightness) / 255;
+            uint8_t fadedBlue = (blue * currentBrightness) / 255;
+            
+            currentLed = s2p1LedSequence[currentLedIndex];
+            strip.setPixelColor(currentLed, strip.Color(fadedRed, fadedGreen, fadedBlue));
+            strip.show();
+        } else {
+            // Fade in complete, start fade out
+            isFadingOut = true;
+        }
     }
+    
+    lastS2P1Update = now;
 }
 
 void CareerQuestTriggers::updateS2P4LightShow() {

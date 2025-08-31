@@ -86,7 +86,10 @@ void setup() {
     // 12. DemoManager (high priority for demos)
     TaskManager::createDemoManagerTask();
 
-    // 13. BytecodeVM
+    // 13. CareerQuest (trigger system)
+    TaskManager::createCareerQuestTask();
+
+    // 14. BytecodeVM
     TaskManager::createBytecodeVMTask();
     
     // Note: StackMonitor can be enabled for debugging
