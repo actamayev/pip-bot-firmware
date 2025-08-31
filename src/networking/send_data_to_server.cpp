@@ -125,7 +125,8 @@ void SendDataToServer::sendSensorDataToServer() {
     if (mode == NetworkMode::WIFI_MODE) {
         WebSocketManager::getInstance().wsClient.send(jsonString);
     } else if (mode == NetworkMode::SERIAL_MODE) {
-        SerialQueueManager::getInstance().queueMessage(jsonString);
+        // Send with CRITICAL priority for proper serial communication
+        SerialQueueManager::getInstance().queueMessage(jsonString, SerialPriority::CRITICAL);
     }
 
     lastSendTime = currentTime;
