@@ -1,5 +1,5 @@
 #include "message_processor.h"
-#include "actuators/led/trigger_animations.h"
+#include "career_quest/career_quest_triggers.h"
 #include "networking/send_data_to_server.h"
 
 void MessageProcessor::handleMotorControl(const uint8_t* data) {
@@ -402,27 +402,27 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
                         switch (triggerType) {
                             case IntroductionTriggerType::S2_P1_ENTER:
                                 SerialQueueManager::getInstance().queueMessage("Received S2_P1_ENTER");
-                                triggerAnimations.startS2P1Sequence();
+                                careerQuestTriggers.startS2P1Sequence();
                                 break;
                             case IntroductionTriggerType::S2_P1_EXIT:
                                 SerialQueueManager::getInstance().queueMessage("Received S2_P1_EXIT");
-                                triggerAnimations.stopS2P1Sequence();
+                                careerQuestTriggers.stopS2P1Sequence();
                                 break;
                             case IntroductionTriggerType::S2_P4_ENTER:
                                 SerialQueueManager::getInstance().queueMessage("Received S2_P4_ENTER");
-                                triggerAnimations.startS2P4LightShow();
+                                careerQuestTriggers.startS2P4LightShow();
                                 break;
                             case IntroductionTriggerType::S2_P4_EXIT:
                                 SerialQueueManager::getInstance().queueMessage("Received S2_P4_EXIT");
-                                triggerAnimations.stopS2P4LightShow();
+                                careerQuestTriggers.stopS2P4LightShow();
                                 break;
                             case IntroductionTriggerType::S3_P3_ENTER:
                                 SerialQueueManager::getInstance().queueMessage("Received S3_P3_ENTER");
-                                triggerAnimations.startS3P3DisplayDemo();
+                                careerQuestTriggers.startS3P3DisplayDemo();
                                 break;
                             case IntroductionTriggerType::S3_P3_EXIT:
                                 SerialQueueManager::getInstance().queueMessage("Received S3_P3_EXIT");
-                                triggerAnimations.stopS3P3DisplayDemo();
+                                careerQuestTriggers.stopS3P3DisplayDemo();
                                 break;
                             case IntroductionTriggerType::S4_P5_ENTER:
                                 // Pip plays a short, fun song as a showcase

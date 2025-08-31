@@ -1,17 +1,17 @@
-#include "trigger_animations.h"
+#include "career_quest_triggers.h"
 
 extern Adafruit_NeoPixel strip;
-TriggerAnimations triggerAnimations(strip);
+CareerQuestTriggers careerQuestTriggers(strip);
 
 // Define static constexpr arrays
-constexpr uint8_t TriggerAnimations::s2p1LedSequence[6];
-constexpr uint8_t TriggerAnimations::s2p1ColorSequence[6][3];
+constexpr uint8_t CareerQuestTriggers::s2p1LedSequence[6];
+constexpr uint8_t CareerQuestTriggers::s2p1ColorSequence[6][3];
 
-TriggerAnimations::TriggerAnimations(Adafruit_NeoPixel& strip)
+CareerQuestTriggers::CareerQuestTriggers(Adafruit_NeoPixel& strip)
     : strip(strip) {
 }
 
-void TriggerAnimations::startS2P1Sequence() {
+void CareerQuestTriggers::startS2P1Sequence() {
     // Turn off all LEDs first
     for(int i = 0; i < strip.numPixels(); i++) {
         strip.setPixelColor(i, strip.Color(0, 0, 0));
@@ -28,14 +28,14 @@ void TriggerAnimations::startS2P1Sequence() {
     targetBrightness = 255;
 }
 
-void TriggerAnimations::stopS2P1Sequence() {
+void CareerQuestTriggers::stopS2P1Sequence() {
     if (!s2p1Active) return;
     // Start exit fade instead of immediately turning off
     isExitFading = true;
     isFadingOut = true;
 }
 
-void TriggerAnimations::startS2P4LightShow() {
+void CareerQuestTriggers::startS2P4LightShow() {
     // Turn off all LEDs first
     for(int i = 0; i < strip.numPixels(); i++) {
         strip.setPixelColor(i, strip.Color(0, 0, 0));
@@ -49,7 +49,7 @@ void TriggerAnimations::startS2P4LightShow() {
     s2p4Step = 0;
 }
 
-void TriggerAnimations::stopS2P4LightShow() {
+void CareerQuestTriggers::stopS2P4LightShow() {
     s2p4Active = false;
     
     // Turn off all LEDs
@@ -59,7 +59,7 @@ void TriggerAnimations::stopS2P4LightShow() {
     strip.show();
 }
 
-void TriggerAnimations::update() {
+void CareerQuestTriggers::update() {
     if (s2p1Active) {
         updateS2P1Sequence();
     }
@@ -68,7 +68,7 @@ void TriggerAnimations::update() {
     }
 }
 
-void TriggerAnimations::updateS2P1Sequence() {
+void CareerQuestTriggers::updateS2P1Sequence() {
     unsigned long now = millis();
     
     if (now - lastS2P1Update >= S2P1_UPDATE_INTERVAL) {
@@ -131,7 +131,7 @@ void TriggerAnimations::updateS2P1Sequence() {
     }
 }
 
-void TriggerAnimations::updateS2P4LightShow() {
+void CareerQuestTriggers::updateS2P4LightShow() {
     unsigned long now = millis();
     
     // Check if 5 seconds have elapsed
@@ -168,17 +168,17 @@ void TriggerAnimations::updateS2P4LightShow() {
     }
 }
 
-void TriggerAnimations::startS3P3DisplayDemo() {
+void CareerQuestTriggers::startS3P3DisplayDemo() {
     s3p3Active = true;
     lastS3P3Update = millis();
     s3p3AnimationStep = 0;
 }
 
-void TriggerAnimations::stopS3P3DisplayDemo() {
+void CareerQuestTriggers::stopS3P3DisplayDemo() {
     s3p3Active = false;
 }
 
-void TriggerAnimations::renderS3P3Animation() {
+void CareerQuestTriggers::renderS3P3Animation() {
     if (!s3p3Active) return;
     
     unsigned long now = millis();

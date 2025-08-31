@@ -11,7 +11,7 @@
 
 class DisplayScreen: public Singleton<DisplayScreen> {
     friend class Singleton<DisplayScreen>;  // Allow Singleton to access private constructor
-    friend class TriggerAnimations;  // Allow Singleton to access private constructor
+    friend class CareerQuestTriggers;  // Allow Singleton to access private constructor
 
     public:
         bool init(bool showStartup);

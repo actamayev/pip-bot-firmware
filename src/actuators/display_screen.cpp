@@ -1,5 +1,5 @@
 #include "display_screen.h"
-#include "actuators/led/trigger_animations.h"
+#include "career_quest/career_quest_triggers.h"
 
 // Initialize the display with explicit Wire reference
 bool DisplayScreen::init(bool showStartup) {
@@ -181,8 +181,8 @@ void DisplayScreen::showLowBatteryScreen() {
 
 void DisplayScreen::generateContentToBuffer() {
     // Check if trigger animation is active first
-    if (triggerAnimations.isS3P3Active()) {
-        triggerAnimations.renderS3P3Animation();
+    if (careerQuestTriggers.isS3P3Active()) {
+        careerQuestTriggers.renderS3P3Animation();
         // Copy display buffer to staging buffer
         uint8_t* displayBuffer = display.getBuffer();
         memcpy(stagingBuffer, displayBuffer, DISPLAY_BUFFER_SIZE);

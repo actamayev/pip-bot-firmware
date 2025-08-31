@@ -6,10 +6,10 @@
 #include "utils/structs.h"
 #include "actuators/display_screen.h"
 
-class TriggerAnimations {
+class CareerQuestTriggers {
     public:
-        TriggerAnimations(Adafruit_NeoPixel& strip);
-        
+        CareerQuestTriggers(Adafruit_NeoPixel& strip);
+
         void startS2P1Sequence();
         void stopS2P1Sequence();
         void startS2P4LightShow();
@@ -74,4 +74,4 @@ class TriggerAnimations {
         void updateS2P4LightShow();
 };
 
-extern TriggerAnimations triggerAnimations;
+extern CareerQuestTriggers careerQuestTriggers;

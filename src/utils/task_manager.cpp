@@ -1,6 +1,6 @@
 #include "task_manager.h"
 #include "sensors/sensor_initializer.h"
-#include "actuators/led/trigger_animations.h"
+#include "career_quest/career_quest_triggers.h"
 
 TaskHandle_t TaskManager::buttonTaskHandle = NULL;
 TaskHandle_t TaskManager::serialInputTaskHandle = NULL;
@@ -46,7 +46,7 @@ void TaskManager::serialInputTask(void* parameter) {
 void TaskManager::ledTask(void* parameter) {
     for(;;) {
         ledAnimations.update();
-        triggerAnimations.update();
+        careerQuestTriggers.update();
         vTaskDelay(pdMS_TO_TICKS(5));
     }
 }
