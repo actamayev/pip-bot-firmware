@@ -142,7 +142,7 @@ struct ReportTimeouts {
     std::atomic<uint32_t> color_last_request{0};  // Add color sensor timeout tracking
     std::atomic<uint32_t> ir_last_request{0};  // Add IR sensor timeout tracking
 
-    static constexpr uint32_t TIMEOUT_MS = 5000; // 1 minute
+    static constexpr uint32_t TIMEOUT_MS = 5000; // 5 seconds
     
     bool shouldEnableQuaternion() const {
         uint32_t lastRequest = quaternion_last_request.load();

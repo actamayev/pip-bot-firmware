@@ -26,31 +26,30 @@ void SendDataToServer::attachIRData(JsonObject& payload) {
     payload["irValid"] = irData.isValid;
 }
 
-void SendDataToServer::attachImuData(JsonObject& payload) {
-    // Now using SensorDataBuffer directly for cleaner access
-    SensorDataBuffer& buffer = SensorDataBuffer::getInstance();
-
-    // Get Euler angles (this will reset quaternion timeout)
-    EulerAngles eulerAngles = buffer.getLatestEulerAngles();
+void SendDataToServer::attachEulerData(JsonObject& payload) {
+    EulerAngles eulerAngles = SensorDataBuffer::getInstance().getLatestEulerAngles();
     //ROLL AND PITCH ARE SWITCHED ON PURPOSE
     payload["pitch"] = eulerAngles.roll;
     payload["yaw"] = eulerAngles.yaw;
     payload["roll"] = eulerAngles.pitch;
+}
 
-    // Get accelerometer data (this will reset accelerometer timeout)
-    AccelerometerData accelerometerData = buffer.getLatestAccelerometer();
+void SendDataToServer::attachAccelData(JsonObject& payload) {
+    AccelerometerData accelerometerData = SensorDataBuffer::getInstance().getLatestAccelerometer();
     payload["aX"] = accelerometerData.aX;
     payload["aY"] = accelerometerData.aY;
     payload["aZ"] = accelerometerData.aZ;
+}
 
-    // Get gyroscope data (this will reset gyroscope timeout)
-    GyroscopeData gyroscopeData = buffer.getLatestGyroscope();
+void SendDataToServer::attachGyroData(JsonObject& payload) {
+    GyroscopeData gyroscopeData = SensorDataBuffer::getInstance().getLatestGyroscope();
     payload["gX"] = gyroscopeData.gX;
     payload["gY"] = gyroscopeData.gY;
     payload["gZ"] = gyroscopeData.gZ;
+}
 
-    // Get magnetometer data (this will reset magnetometer timeout)
-    MagnetometerData magnetometerData = buffer.getLatestMagnetometer();
+void SendDataToServer::attachMagnetometerData(JsonObject& payload) {
+    MagnetometerData magnetometerData = SensorDataBuffer::getInstance().getLatestMagnetometer();
     payload["mX"] = magnetometerData.mX;
     payload["mY"] = magnetometerData.mY;
     payload["mZ"] = magnetometerData.mZ;
@@ -62,6 +61,20 @@ void SendDataToServer::attachColorSensorData(JsonObject& payload) {
     payload["redValue"] = colorSensorData.redValue;
     payload["greenValue"] = colorSensorData.greenValue;
     payload["blueValue"] = colorSensorData.blueValue;
+}
+
+void SendDataToServer::attachMultizoneTofData(JsonObject& payload) {
+    TofData tofData = SensorDataBuffer::getInstance().getLatestTofData();
+    payload["multizoneTofValid"] = tofData.isValid;
+    payload["objectDetected"] = tofData.isObjectDetected;
+}
+
+void SendDataToServer::attachSideTofData(JsonObject& payload) {
+    SideTofData sideTofData = SensorDataBuffer::getInstance().getLatestSideTofData();
+    payload["leftSideTofCounts"] = sideTofData.leftCounts;
+    payload["rightSideTofCounts"] = sideTofData.rightCounts;
+    payload["leftSideTofValid"] = sideTofData.leftValid;
+    payload["rightSideTofValid"] = sideTofData.rightValid;
 }
 
 void SendDataToServer::sendSensorDataToServer() {
@@ -82,11 +95,31 @@ void SendDataToServer::sendSensorDataToServer() {
     // Add the actual payload
     JsonObject payload = doc.createNestedObject("payload");
 
-    // Attach different types of sensor data
-    // attachRPMData(payload);
-    // attachIRData(payload);
-    // attachColorSensorData(payload);
-    attachImuData(payload);
+    // Attach different types of sensor data based on current flags
+    if (sendEulerData) {
+        attachEulerData(payload);
+    }
+    if (sendAccelData) {
+        attachAccelData(payload);
+    }
+    if (sendGyroData) {
+        attachGyroData(payload);
+    }
+    if (sendMagnetometerData) {
+        attachMagnetometerData(payload);
+    }
+    if (sendMultizoneTofData) {
+        attachMultizoneTofData(payload);
+    }
+    if (sendSideTofData) {
+        attachSideTofData(payload);
+    }
+    if (sendColorSensorData) {
+        attachColorSensorData(payload);
+    }
+    if (sendEncoderData) {
+        attachRPMData(payload);
+    }
 
     // Serialize and send
     String jsonString;

@@ -1,5 +1,6 @@
 #include "message_processor.h"
 #include "actuators/led/trigger_animations.h"
+#include "networking/send_data_to_server.h"
 
 void MessageProcessor::handleMotorControl(const uint8_t* data) {
     // Extract 16-bit signed integers (little-endian)
@@ -427,34 +428,46 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
                                 // Pip plays a short, fun song as a showcase
                                 break;
                             case IntroductionTriggerType::S5_P4_ENTER:
-                                // Start polling the IMU and sending it to the server
+                                SendDataToServer::getInstance().setSendSensorData(true);
+                                SendDataToServer::getInstance().setEulerDataEnabled(true);
+                                SendDataToServer::getInstance().setAccelDataEnabled(true);
                                 break;
                             case IntroductionTriggerType::S5_P4_EXIT:
-                                // Stop polling the IMU and sending it to the server
+                                SendDataToServer::getInstance().setEulerDataEnabled(false);
+                                SendDataToServer::getInstance().setAccelDataEnabled(false);
+                                SendDataToServer::getInstance().setSendSensorData(false);
                                 break;
                             case IntroductionTriggerType::S5_P5_ENTER:
-                                // Start polling the IMU and sending it to the server
+                                SendDataToServer::getInstance().setSendSensorData(true);
+                                SendDataToServer::getInstance().setEulerDataEnabled(true);
+                                SendDataToServer::getInstance().setAccelDataEnabled(true);
                                 break;
                             case IntroductionTriggerType::S5_P5_EXIT:
-                                // Stop polling the IMU and sending it to the server
+                                SendDataToServer::getInstance().setEulerDataEnabled(false);
+                                SendDataToServer::getInstance().setAccelDataEnabled(false);
+                                SendDataToServer::getInstance().setSendSensorData(false);
                                 break;
                             case IntroductionTriggerType::S6_P4_ENTER:
-                                // Start polling the MZ and sending it to the server
+                                SendDataToServer::getInstance().setSendSensorData(true);
+                                SendDataToServer::getInstance().setMultizoneTofDataEnabled(true);
                                 break;
                             case IntroductionTriggerType::S6_P4_EXIT:
-                                // Stop polling the MZ and sending it to the server
+                                SendDataToServer::getInstance().setMultizoneTofDataEnabled(false);
+                                SendDataToServer::getInstance().setSendSensorData(false);
                                 break;
                             case IntroductionTriggerType::S6_P6_ENTER:
-                                // Start polling the side TOFs and sending it to the server
+                                SendDataToServer::getInstance().setSendSensorData(true);
+                                SendDataToServer::getInstance().setSideTofDataEnabled(true);
                                 break;
                             case IntroductionTriggerType::S6_P6_EXIT:
-                                // Stop polling the side TOFS and sending it to the server
+                                SendDataToServer::getInstance().setSideTofDataEnabled(false);
+                                SendDataToServer::getInstance().setSendSensorData(false);
                                 break;
                             case IntroductionTriggerType::S7_P4_ENTER:
                                 //User presses one of Pip’s two buttons → Pip responds with a light and sound
                                 break;
                             case IntroductionTriggerType::S7_P4_EXIT:
-                                //User presses one of Pip’s two buttons → Pip responds with a light and sound
+                                //Stop User presses one of Pip’s two buttons → Pip responds with a light and sound
                                 break;
                             case IntroductionTriggerType::S7_P6_ENTER:
                                 // Google dino run inspired competitive mini game. Users play using the button and display
@@ -464,19 +477,23 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
                                 // Google dino run inspired competitive mini game. Users play using the button and display
                                 break;
                             case IntroductionTriggerType::S8_P3_ENTER:
-                                // Start polling the side TOFs and sending it to the server
+                                SendDataToServer::getInstance().setSendSensorData(true);
+                                SendDataToServer::getInstance().setColorSensorDataEnabled(true);
                                 break;
                             case IntroductionTriggerType::S8_P3_EXIT:
-                                // Stop polling the side TOFs and sending it to the server
+                                SendDataToServer::getInstance().setColorSensorDataEnabled(false);
+                                SendDataToServer::getInstance().setSendSensorData(false);
                                 break;
                             case IntroductionTriggerType::S9_P3_ENTER:
                                 // Pip performs a short “dance” → spins, wiggles forward/back, flashes LEDs, sounds.
                                 break;
                             case IntroductionTriggerType::S9_P6_ENTER:
-                                // Start sending encoder data to server.
+                                SendDataToServer::getInstance().setSendSensorData(true);
+                                SendDataToServer::getInstance().setEncoderDataEnabled(true);
                                 break;
                             case IntroductionTriggerType::S9_P6_EXIT:
-                                // Stop sending encoder data to server
+                                SendDataToServer::getInstance().setEncoderDataEnabled(false);
+                                SendDataToServer::getInstance().setSendSensorData(false);
                                 break;
                             default:
                                 SerialQueueManager::getInstance().queueMessage("Unknown introduction trigger type");
