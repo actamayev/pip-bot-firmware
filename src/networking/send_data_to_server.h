@@ -9,6 +9,8 @@
 #include "sensors/color_sensor.h"
 #include "sensors/sensor_data_buffer.h"
 #include "networking/websocket_manager.h"
+#include "networking/serial_queue_manager.h"
+#include "networking/network_state_manager.h"
 
 class SendDataToServer : public Singleton<SendDataToServer> {
     friend class Singleton<SendDataToServer>;

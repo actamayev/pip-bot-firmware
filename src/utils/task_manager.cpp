@@ -251,10 +251,13 @@ void TaskManager::networkCommunicationTask(void* parameter) {
     for(;;) {
         NetworkMode mode = NetworkStateManager::getInstance().getCurrentMode();
         
-        // Only do communication tasks when in WiFi mode
-        if (mode == NetworkMode::WIFI_MODE) {
-            // Lightweight, frequent operations
-            WebSocketManager::getInstance().pollWebSocket();
+        // Send sensor data in both WIFI_MODE and SERIAL_MODE
+        if (mode == NetworkMode::WIFI_MODE || mode == NetworkMode::SERIAL_MODE) {
+            if (mode == NetworkMode::WIFI_MODE) {
+                // WebSocket polling only needed in WiFi mode
+                WebSocketManager::getInstance().pollWebSocket();
+            }
+            // Sensor data transmission works for both modes
             SendDataToServer::getInstance().sendSensorDataToServer();
         }
 

@@ -67,21 +67,33 @@ void SendDataToServer::attachMultizoneTofData(JsonObject& payload) {
     TofData tofData = SensorDataBuffer::getInstance().getLatestTofData();
     payload["multizoneTofValid"] = tofData.isValid;
     payload["objectDetected"] = tofData.isObjectDetected;
+    
+    JsonArray distanceArray = payload.createNestedArray("distanceGrid");
+    for (int i = 0; i < 64; i++) {
+        distanceArray.add(tofData.rawData.distance_mm[i]);
+    }
 }
 
 void SendDataToServer::attachSideTofData(JsonObject& payload) {
     SideTofData sideTofData = SensorDataBuffer::getInstance().getLatestSideTofData();
     payload["leftSideTofCounts"] = sideTofData.leftCounts;
     payload["rightSideTofCounts"] = sideTofData.rightCounts;
-    payload["leftSideTofValid"] = sideTofData.leftValid;
-    payload["rightSideTofValid"] = sideTofData.rightValid;
 }
 
 void SendDataToServer::sendSensorDataToServer() {
-    if (
-        !sendSensorData ||
-        !WebSocketManager::getInstance().isConnected()
-    ) return;
+    if (!sendSensorData) return;
+
+    NetworkMode mode = NetworkStateManager::getInstance().getCurrentMode();
+    
+    // Check if we can transmit based on current mode
+    bool canTransmit = false;
+    if (mode == NetworkMode::WIFI_MODE && WebSocketManager::getInstance().isConnected()) {
+        canTransmit = true;
+    } else if (mode == NetworkMode::SERIAL_MODE) {
+        canTransmit = true;
+    }
+    
+    if (!canTransmit) return;
 
     unsigned long currentTime = millis();
     if (currentTime - lastSendTime < SEND_INTERVAL) return;
@@ -96,37 +108,25 @@ void SendDataToServer::sendSensorDataToServer() {
     JsonObject payload = doc.createNestedObject("payload");
 
     // Attach different types of sensor data based on current flags
-    if (sendEulerData) {
-        attachEulerData(payload);
-    }
-    if (sendAccelData) {
-        attachAccelData(payload);
-    }
-    if (sendGyroData) {
-        attachGyroData(payload);
-    }
-    if (sendMagnetometerData) {
-        attachMagnetometerData(payload);
-    }
-    if (sendMultizoneTofData) {
-        attachMultizoneTofData(payload);
-    }
-    if (sendSideTofData) {
-        attachSideTofData(payload);
-    }
-    if (sendColorSensorData) {
-        attachColorSensorData(payload);
-    }
-    if (sendEncoderData) {
-        attachRPMData(payload);
-    }
+    if (sendEulerData) attachEulerData(payload);
+    if (sendAccelData) attachAccelData(payload);
+    if (sendGyroData) attachGyroData(payload);
+    if (sendMagnetometerData) attachMagnetometerData(payload);
+    if (sendMultizoneTofData) attachMultizoneTofData(payload);
+    if (sendSideTofData) attachSideTofData(payload);
+    if (sendColorSensorData) attachColorSensorData(payload);
+    if (sendEncoderData) attachRPMData(payload);
 
-    // Serialize and send
+    // Serialize JSON
     String jsonString;
     serializeJson(doc, jsonString);
 
-    // Send the JSON string to the WebSocket
-    WebSocketManager::getInstance().wsClient.send(jsonString);
+    // Send based on current mode
+    if (mode == NetworkMode::WIFI_MODE) {
+        WebSocketManager::getInstance().wsClient.send(jsonString);
+    } else if (mode == NetworkMode::SERIAL_MODE) {
+        SerialQueueManager::getInstance().queueMessage(jsonString);
+    }
 
     lastSendTime = currentTime;
 }
