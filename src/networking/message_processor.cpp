@@ -416,64 +416,65 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
                                 triggerAnimations.stopS2P4LightShow();
                                 break;
                             case IntroductionTriggerType::S3_P3_ENTER:
-                                // Handle S3_P3_ENTER trigger
+                                // Small looped demo of words, graphics, animations on Pip’s screen.
                                 break;
                             case IntroductionTriggerType::S3_P3_EXIT:
-                                // Handle S3_P3_EXIT trigger
+                                // Stop looped display demo
                                 break;
                             case IntroductionTriggerType::S4_P5_ENTER:
-                                // Handle S4_P5_ENTER trigger
+                                // Pip plays a short, fun song as a showcase
                                 break;
                             case IntroductionTriggerType::S5_P4_ENTER:
-                                // Handle S5_P4_ENTER trigger
+                                // Start polling the IMU and sending it to the server
                                 break;
                             case IntroductionTriggerType::S5_P4_EXIT:
-                                // Handle S5_P4_EXIT trigger
+                                // Stop polling the IMU and sending it to the server
                                 break;
                             case IntroductionTriggerType::S5_P5_ENTER:
-                                // Handle S5_P5_ENTER trigger
+                                // Start polling the IMU and sending it to the server
                                 break;
                             case IntroductionTriggerType::S5_P5_EXIT:
-                                // Handle S5_P5_EXIT trigger
+                                // Stop polling the IMU and sending it to the server
                                 break;
                             case IntroductionTriggerType::S6_P4_ENTER:
-                                // Handle S6_P4_ENTER trigger
+                                // Start polling the MZ and sending it to the server
                                 break;
                             case IntroductionTriggerType::S6_P4_EXIT:
-                                // Handle S6_P4_EXIT trigger
+                                // Stop polling the MZ and sending it to the server
                                 break;
                             case IntroductionTriggerType::S6_P6_ENTER:
-                                // Handle S6_P6_ENTER trigger
+                                // Start polling the side TOFs and sending it to the server
                                 break;
                             case IntroductionTriggerType::S6_P6_EXIT:
-                                // Handle S6_P6_EXIT trigger
+                                // Stop polling the side TOFS and sending it to the server
                                 break;
                             case IntroductionTriggerType::S7_P4_ENTER:
-                                // Handle S7_P4_ENTER trigger
+                                //User presses one of Pip’s two buttons → Pip responds with a light and sound
                                 break;
                             case IntroductionTriggerType::S7_P4_EXIT:
-                                // Handle S7_P4_EXIT trigger
+                                //User presses one of Pip’s two buttons → Pip responds with a light and sound
                                 break;
                             case IntroductionTriggerType::S7_P6_ENTER:
-                                // Handle S7_P6_ENTER trigger
+                                // Google dino run inspired competitive mini game. Users play using the button and display
+                                // Send the results to the server when each user is done: Leader board after everyone is done.
                                 break;
                             case IntroductionTriggerType::S7_P6_EXIT:
-                                // Handle S7_P6_EXIT trigger
+                                // Google dino run inspired competitive mini game. Users play using the button and display
                                 break;
                             case IntroductionTriggerType::S8_P3_ENTER:
-                                // Handle S8_P3_ENTER trigger
+                                // Start polling the side TOFs and sending it to the server
                                 break;
                             case IntroductionTriggerType::S8_P3_EXIT:
-                                // Handle S8_P3_EXIT trigger
+                                // Stop polling the side TOFs and sending it to the server
                                 break;
                             case IntroductionTriggerType::S9_P3_ENTER:
-                                // Handle S9_P3_ENTER trigger
+                                // Pip performs a short “dance” → spins, wiggles forward/back, flashes LEDs, sounds.
                                 break;
                             case IntroductionTriggerType::S9_P6_ENTER:
-                                // Handle S9_P6_ENTER trigger
+                                // Start sending encoder data to server.
                                 break;
                             case IntroductionTriggerType::S9_P6_EXIT:
-                                // Handle S9_P6_EXIT trigger
+                                // Stop sending encoder data to server
                                 break;
                             default:
                                 SerialQueueManager::getInstance().queueMessage("Unknown introduction trigger type");
