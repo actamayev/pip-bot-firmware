@@ -28,6 +28,8 @@ This directory contains all output devices and user interface components for the
 ### Display (`display_screen.h/cpp`)
 - **128x64 OLED** (SSD1306, I2C 0x3C)
 - **Multi-screen UI**: startup, battery, WiFi selection
+- **Smart buffer optimization**: Only updates I2C when content changes
+- **Performance tracking**: Monitors update rates and I2C efficiency
 - **Real-time updates** via dedicated task
 - **Low battery warnings** with automatic display
 
@@ -88,6 +90,7 @@ Speaker::getInstance().setVolume(2.0); // 0.0-4.0 range
 ### Timing Constraints
 - **Motor updates**: 20ms intervals for smooth control
 - **LED animations**: 50ms refresh for visible effects
+- **Display updates**: 50ms content generation, I2C only on changes
 - **Button debouncing**: 50ms standard debounce time
 
 ## Troubleshooting
