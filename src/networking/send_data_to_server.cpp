@@ -64,10 +64,7 @@ void SendDataToServer::attachColorSensorData(JsonObject& payload) {
 }
 
 void SendDataToServer::attachMultizoneTofData(JsonObject& payload) {
-    TofData tofData = SensorDataBuffer::getInstance().getLatestTofData();
-    payload["multizoneTofValid"] = tofData.isValid;
-    payload["objectDetected"] = tofData.isObjectDetected;
-    
+    TofData tofData = SensorDataBuffer::getInstance().getLatestTofData();    
     JsonArray distanceArray = payload.createNestedArray("distanceGrid");
     for (int i = 0; i < 64; i++) {
         distanceArray.add(tofData.rawData.distance_mm[i]);
@@ -108,14 +105,14 @@ void SendDataToServer::sendSensorDataToServer() {
     JsonObject payload = doc.createNestedObject("payload");
 
     // Attach different types of sensor data based on current flags
+    if (sendEncoderData) attachRPMData(payload);
+    if (sendColorSensorData) attachColorSensorData(payload);
     if (sendEulerData) attachEulerData(payload);
     if (sendAccelData) attachAccelData(payload);
     if (sendGyroData) attachGyroData(payload);
     if (sendMagnetometerData) attachMagnetometerData(payload);
-    if (sendMultizoneTofData) attachMultizoneTofData(payload);
     if (sendSideTofData) attachSideTofData(payload);
-    if (sendColorSensorData) attachColorSensorData(payload);
-    if (sendEncoderData) attachRPMData(payload);
+    if (sendMultizoneTofData) attachMultizoneTofData(payload);
 
     // Serialize JSON
     String jsonString;
