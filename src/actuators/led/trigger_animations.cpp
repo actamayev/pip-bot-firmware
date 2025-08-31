@@ -167,3 +167,70 @@ void TriggerAnimations::updateS2P4LightShow() {
         lastS2P4Update = now;
     }
 }
+
+void TriggerAnimations::startS3P3DisplayDemo() {
+    s3p3Active = true;
+    lastS3P3Update = millis();
+    s3p3AnimationStep = 0;
+}
+
+void TriggerAnimations::stopS3P3DisplayDemo() {
+    s3p3Active = false;
+}
+
+void TriggerAnimations::renderS3P3Animation() {
+    if (!s3p3Active) return;
+    
+    unsigned long now = millis();
+    if (now - lastS3P3Update >= S3P3_UPDATE_INTERVAL) {
+        DisplayScreen& displayScreen = DisplayScreen::getInstance();
+        Adafruit_SSD1306& display = displayScreen.display;
+        
+        display.clearDisplay();
+        
+        // Cycle through different cute animations
+        switch (s3p3AnimationStep % 4) {
+            case 0: {
+                // Bouncing ball
+                int ballX = 20 + (s3p3AnimationStep % 88);
+                display.fillCircle(ballX, 32, 8, SSD1306_WHITE);
+                displayScreen.drawCenteredText("Bouncing Ball!", 50, 1);
+                break;
+            }
+            case 1: {
+                // Happy face
+                display.fillCircle(64, 32, 20, SSD1306_WHITE);
+                display.fillCircle(56, 26, 3, SSD1306_BLACK);
+                display.fillCircle(72, 26, 3, SSD1306_BLACK);
+                display.drawCircle(64, 32, 8, SSD1306_BLACK);
+                displayScreen.drawCenteredText("Hello!", 55, 1);
+                break;
+            }
+            case 2: {
+                // Pulsing heart
+                int size = 8 + (s3p3AnimationStep % 6);
+                display.fillCircle(58, 30, size, SSD1306_WHITE);
+                display.fillCircle(70, 30, size, SSD1306_WHITE);
+                display.fillTriangle(52, 35, 76, 35, 64, 50, SSD1306_WHITE);
+                displayScreen.drawCenteredText("Love!", 55, 1);
+                break;
+            }
+            case 3: {
+                // Rotating star
+                int centerX = 64, centerY = 32;
+                int rotation = s3p3AnimationStep % 8;
+                for (int i = 0; i < 5; i++) {
+                    int angle = (i * 72 + rotation * 5) * PI / 180;
+                    int x = centerX + 15 * cos(angle);
+                    int y = centerY + 15 * sin(angle);
+                    display.fillCircle(x, y, 2, SSD1306_WHITE);
+                }
+                displayScreen.drawCenteredText("Star!", 55, 1);
+                break;
+            }
+        }
+        
+        s3p3AnimationStep++;
+        lastS3P3Update = now;
+    }
+}

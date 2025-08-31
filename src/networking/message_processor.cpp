@@ -416,10 +416,12 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
                                 triggerAnimations.stopS2P4LightShow();
                                 break;
                             case IntroductionTriggerType::S3_P3_ENTER:
-                                // Small looped demo of words, graphics, animations on Pip’s screen.
+                                SerialQueueManager::getInstance().queueMessage("Received S3_P3_ENTER");
+                                triggerAnimations.startS3P3DisplayDemo();
                                 break;
                             case IntroductionTriggerType::S3_P3_EXIT:
-                                // Stop looped display demo
+                                SerialQueueManager::getInstance().queueMessage("Received S3_P3_EXIT");
+                                triggerAnimations.stopS3P3DisplayDemo();
                                 break;
                             case IntroductionTriggerType::S4_P5_ENTER:
                                 // Pip plays a short, fun song as a showcase
