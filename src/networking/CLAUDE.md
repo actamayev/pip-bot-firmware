@@ -92,7 +92,7 @@ enum class SoundType : uint8_t {
 
 ## Data Exchange
 
-### Send Data to Server (`send_data_to_server.h/cpp`)
+### Send Sensor Data (`send_sensor_data.h/cpp`)
 - **Sensor data streaming**: Real-time robot telemetry
 - **Batch updates**: Efficient multi-sensor data packets
 - **Registration**: Robot identification and capability reporting

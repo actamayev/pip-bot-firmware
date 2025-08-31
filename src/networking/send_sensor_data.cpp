@@ -1,7 +1,7 @@
-#include "send_data_to_server.h"
+#include "send_sensor_data.h"
 
 // Add RPM data to the provided JSON payload
-void SendDataToServer::attachRPMData(JsonObject& payload) {
+void SendSensorData::attachRPMData(JsonObject& payload) {
     // Get the RPM values
     WheelRPMs wheelRpms = SensorDataBuffer::getInstance().getLatestWheelRPMs();
     payload["leftWheelRPM"] = wheelRpms.leftWheelRPM;
@@ -9,7 +9,7 @@ void SendDataToServer::attachRPMData(JsonObject& payload) {
 }
 
 // Add IR sensor data to the provided JSON payload
-void SendDataToServer::attachIRData(JsonObject& payload) {
+void SendSensorData::attachIRData(JsonObject& payload) {
     SensorDataBuffer& buffer = SensorDataBuffer::getInstance();
     
     // Get IR sensor data (this will reset IR timeout)
@@ -26,7 +26,7 @@ void SendDataToServer::attachIRData(JsonObject& payload) {
     payload["irValid"] = irData.isValid;
 }
 
-void SendDataToServer::attachEulerData(JsonObject& payload) {
+void SendSensorData::attachEulerData(JsonObject& payload) {
     EulerAngles eulerAngles = SensorDataBuffer::getInstance().getLatestEulerAngles();
     //ROLL AND PITCH ARE SWITCHED ON PURPOSE
     payload["pitch"] = eulerAngles.roll;
@@ -34,28 +34,28 @@ void SendDataToServer::attachEulerData(JsonObject& payload) {
     payload["roll"] = eulerAngles.pitch;
 }
 
-void SendDataToServer::attachAccelData(JsonObject& payload) {
+void SendSensorData::attachAccelData(JsonObject& payload) {
     AccelerometerData accelerometerData = SensorDataBuffer::getInstance().getLatestAccelerometer();
     payload["aX"] = accelerometerData.aX;
     payload["aY"] = accelerometerData.aY;
     payload["aZ"] = accelerometerData.aZ;
 }
 
-void SendDataToServer::attachGyroData(JsonObject& payload) {
+void SendSensorData::attachGyroData(JsonObject& payload) {
     GyroscopeData gyroscopeData = SensorDataBuffer::getInstance().getLatestGyroscope();
     payload["gX"] = gyroscopeData.gX;
     payload["gY"] = gyroscopeData.gY;
     payload["gZ"] = gyroscopeData.gZ;
 }
 
-void SendDataToServer::attachMagnetometerData(JsonObject& payload) {
+void SendSensorData::attachMagnetometerData(JsonObject& payload) {
     MagnetometerData magnetometerData = SensorDataBuffer::getInstance().getLatestMagnetometer();
     payload["mX"] = magnetometerData.mX;
     payload["mY"] = magnetometerData.mY;
     payload["mZ"] = magnetometerData.mZ;
 }
 
-void SendDataToServer::attachColorSensorData(JsonObject& payload) {
+void SendSensorData::attachColorSensorData(JsonObject& payload) {
     ColorData colorSensorData = SensorDataBuffer::getInstance().getLatestColorData();
 
     payload["redValue"] = colorSensorData.redValue;
@@ -63,7 +63,7 @@ void SendDataToServer::attachColorSensorData(JsonObject& payload) {
     payload["blueValue"] = colorSensorData.blueValue;
 }
 
-void SendDataToServer::attachMultizoneTofData(JsonObject& payload) {
+void SendSensorData::attachMultizoneTofData(JsonObject& payload) {
     TofData tofData = SensorDataBuffer::getInstance().getLatestTofData();    
     JsonArray distanceArray = payload.createNestedArray("distanceGrid");
     for (int i = 0; i < 64; i++) {
@@ -71,13 +71,13 @@ void SendDataToServer::attachMultizoneTofData(JsonObject& payload) {
     }
 }
 
-void SendDataToServer::attachSideTofData(JsonObject& payload) {
+void SendSensorData::attachSideTofData(JsonObject& payload) {
     SideTofData sideTofData = SensorDataBuffer::getInstance().getLatestSideTofData();
     payload["leftSideTofCounts"] = sideTofData.leftCounts;
     payload["rightSideTofCounts"] = sideTofData.rightCounts;
 }
 
-void SendDataToServer::sendSensorDataToServer() {
+void SendSensorData::sendSensorDataToServer() {
     if (!sendSensorData) return;
 
     NetworkMode mode = NetworkStateManager::getInstance().getCurrentMode();

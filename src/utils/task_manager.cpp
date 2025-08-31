@@ -258,7 +258,7 @@ void TaskManager::networkCommunicationTask(void* parameter) {
                 WebSocketManager::getInstance().pollWebSocket();
             }
             // Sensor data transmission works for both modes
-            SendDataToServer::getInstance().sendSensorDataToServer();
+            SendSensorData::getInstance().sendSensorDataToServer();
         }
 
         // Fast update rate for real-time communication

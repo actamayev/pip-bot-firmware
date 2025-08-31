@@ -12,8 +12,8 @@
 #include "networking/serial_manager.h"
 #include "networking/network_state_manager.h"
 
-class SendDataToServer : public Singleton<SendDataToServer> {
-    friend class Singleton<SendDataToServer>;
+class SendSensorData : public Singleton<SendSensorData> {
+    friend class Singleton<SendSensorData>;
     friend class TaskManager;
 
     public:
@@ -28,7 +28,7 @@ class SendDataToServer : public Singleton<SendDataToServer> {
         void setEncoderDataEnabled(bool enabled) { sendEncoderData = enabled; }
 
     private:
-        SendDataToServer() = default;
+        SendSensorData() = default;
         bool sendSensorData = false;
         bool sendEulerData = false;
         bool sendAccelData = false;
