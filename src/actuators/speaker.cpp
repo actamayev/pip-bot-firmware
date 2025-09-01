@@ -160,8 +160,13 @@ const char* Speaker::getFilePath(SoundType audioFile) const {
 }
 
 void Speaker::playFile(SoundType file) {
-    if (!initialized || muted) {
-        SerialQueueManager::getInstance().queueMessage("Speaker not ready or muted");
+    if (!initialized) {
+        SerialQueueManager::getInstance().queueMessage("Speaker not ready");
+        return;
+    }
+
+    if (muted) {
+        SerialQueueManager::getInstance().queueMessage("Speaker muted");
         return;
     }
 
