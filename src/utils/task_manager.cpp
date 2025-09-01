@@ -82,7 +82,7 @@ void TaskManager::imuSensorTask(void* parameter) {
     while (!SensorInitializer::getInstance().isSensorInitialized(SensorInitializer::IMU)) {
         vTaskDelay(pdMS_TO_TICKS(50));  // Check every 50ms
     }
-    SerialQueueManager::getInstance().queueMessage("IMU centralized initialization complete, starting polling");
+    SerialQueueManager::getInstance().queueMessage("IMU centralized initialization complete.");
     
     // Main polling loop
     for(;;) {
@@ -114,7 +114,7 @@ void TaskManager::multizoneTofSensorTask(void* parameter) {
     while (!SensorInitializer::getInstance().isSensorInitialized(SensorInitializer::MULTIZONE_TOF)) {
         vTaskDelay(pdMS_TO_TICKS(50));  // Check every 50ms
     }
-    SerialQueueManager::getInstance().queueMessage("Multizone TOF centralized initialization complete, starting polling");
+    SerialQueueManager::getInstance().queueMessage("Multizone TOF centralized initialization complete.");
     
     // Main polling loop
     for(;;) {
@@ -151,7 +151,7 @@ void TaskManager::colorSensorTask(void* parameter) {
     while (!SensorInitializer::getInstance().isSensorInitialized(SensorInitializer::COLOR_SENSOR)) {
         vTaskDelay(pdMS_TO_TICKS(50));  // Check every 50ms
     }
-    SerialQueueManager::getInstance().queueMessage("Color sensor centralized initialization complete, starting polling");
+    SerialQueueManager::getInstance().queueMessage("Color sensor centralized initialization complete.");
     
     // Main polling loop
     for(;;) {
