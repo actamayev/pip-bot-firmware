@@ -43,19 +43,19 @@ void DisplayScreen::update() {
     contentGenerations++;
     
     // Check if content actually changed
-    if (hasContentChanged()) {
-        // Content changed - update display (I2C operation)
-        display.display();
-        
-        // Copy new content to current buffer for next comparison
-        copyCurrentBuffer();
-        
-        displayUpdates++;
-        lastDisplayUpdate = currentTime;
-    } else {
+    if (!hasContentChanged()) {
         // Content unchanged - skip expensive I2C operation
         skippedUpdates++;
+        return;
     }
+    // Content changed - update display (I2C operation)
+    display.display();
+    
+    // Copy new content to current buffer for next comparison
+    copyCurrentBuffer();
+    
+    displayUpdates++;
+    lastDisplayUpdate = currentTime;
 }
 
 // Show the start screen
@@ -142,13 +142,13 @@ void DisplayScreen::showCustomBuffer(const uint8_t* buffer) {
     uint8_t* displayBuffer = display.getBuffer();
     memcpy(stagingBuffer, displayBuffer, DISPLAY_BUFFER_SIZE);
     
-    if (hasContentChanged()) {
-        display.display();
-        copyCurrentBuffer();
-        displayUpdates++;
-    } else {
+    if (!hasContentChanged()) {
         skippedUpdates++;
+        return;
     }
+    display.display();
+    copyCurrentBuffer();
+    displayUpdates++;
 }
 
 void DisplayScreen::showLowBatteryScreen() {
