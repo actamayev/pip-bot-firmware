@@ -486,6 +486,7 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
                                 // Pip performs a short “dance” → spins, wiggles forward/back, flashes LEDs, sounds.
                                 break;
                             case IntroductionTriggerType::S9_P6_ENTER:
+                                motorDriver.stop_both_motors(); // We need this to prevent students from turning against the motors.
                                 SendSensorData::getInstance().setSendSensorData(true);
                                 SendSensorData::getInstance().setEncoderDataEnabled(true);
                                 break;
