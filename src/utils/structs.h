@@ -115,6 +115,7 @@ struct BatteryState {
 enum class RouteType {
     REGISTER,
     SENSOR_DATA,
+    SENSOR_DATA_MZ, // Multizone ToF chunked data
     BYTECODE_STATUS,
     WIFI_CONNECTION_RESULT,
     PIP_ID,

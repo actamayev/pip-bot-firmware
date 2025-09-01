@@ -4,6 +4,7 @@
 #include "sensors/imu.h"
 #include "utils/config.h"
 #include "utils/singleton.h"
+#include "utils/structs.h"
 #include "sensors/ir_sensor.h"
 #include "sensors/ir_sensor.h"
 #include "sensors/color_sensor.h"
@@ -18,6 +19,7 @@ class SendSensorData : public Singleton<SendSensorData> {
 
     public:
         void setSendSensorData(bool enabled) { sendSensorData = enabled; }
+        void setSendMultizoneData(bool enabled) { sendMzData = enabled; }
         void setEulerDataEnabled(bool enabled) { sendEulerData = enabled; }
         void setAccelDataEnabled(bool enabled) { sendAccelData = enabled; }
         void setGyroDataEnabled(bool enabled) { sendGyroData = enabled; }
@@ -30,6 +32,7 @@ class SendSensorData : public Singleton<SendSensorData> {
     private:
         SendSensorData() = default;
         bool sendSensorData = false;
+        bool sendMzData = false;
         bool sendEulerData = false;
         bool sendAccelData = false;
         bool sendGyroData = false;
@@ -49,7 +52,10 @@ class SendSensorData : public Singleton<SendSensorData> {
         void attachMultizoneTofData(JsonObject& payload);
         void attachSideTofData(JsonObject& payload);
         void sendSensorDataToServer();
+        void sendMultizoneData();
 
         unsigned long lastSendTime = 0;
+        unsigned long lastMzSendTime = 0;
         const unsigned long SEND_INTERVAL = 50; // Poll every 50ms for more responsive data
+        const unsigned long MZ_SEND_INTERVAL = 100; // Send MZ data every 100ms
 };

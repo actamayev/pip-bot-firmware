@@ -446,12 +446,10 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
                                 SendSensorData::getInstance().setSendSensorData(false);
                                 break;
                             case IntroductionTriggerType::S6_P4_ENTER:
-                                SendSensorData::getInstance().setSendSensorData(true);
-                                SendSensorData::getInstance().setMultizoneTofDataEnabled(true);
+                                SendSensorData::getInstance().setSendMultizoneData(true);
                                 break;
                             case IntroductionTriggerType::S6_P4_EXIT:
-                                SendSensorData::getInstance().setMultizoneTofDataEnabled(false);
-                                SendSensorData::getInstance().setSendSensorData(false);
+                                SendSensorData::getInstance().setSendMultizoneData(false);
                                 break;
                             case IntroductionTriggerType::S6_P6_ENTER:
                                 SendSensorData::getInstance().setSendSensorData(true);

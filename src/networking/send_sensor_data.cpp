@@ -1,4 +1,5 @@
 #include "send_sensor_data.h"
+#include "utils/utils.h"
 
 // Add RPM data to the provided JSON payload
 void SendSensorData::attachRPMData(JsonObject& payload) {
@@ -112,7 +113,7 @@ void SendSensorData::sendSensorDataToServer() {
     if (sendGyroData) attachGyroData(payload);
     if (sendMagnetometerData) attachMagnetometerData(payload);
     if (sendSideTofData) attachSideTofData(payload);
-    if (sendMultizoneTofData) attachMultizoneTofData(payload);
+    // Multizone ToF data is now sent separately via sendMultizoneData()
 
     // Serialize JSON
     String jsonString;
@@ -127,4 +128,51 @@ void SendSensorData::sendSensorDataToServer() {
     }
 
     lastSendTime = currentTime;
+}
+
+void SendSensorData::sendMultizoneData() {
+    if (!sendMzData) return;
+
+    NetworkMode mode = NetworkStateManager::getInstance().getCurrentMode();
+    
+    // Check if we can transmit based on current mode
+    bool canTransmit = false;
+    if (mode == NetworkMode::WIFI_MODE && WebSocketManager::getInstance().isConnected()) {
+        canTransmit = true;
+    } else if (mode == NetworkMode::SERIAL_MODE) {
+        canTransmit = true;
+    }
+    
+    if (!canTransmit) return;
+
+    unsigned long currentTime = millis();
+    if (currentTime - lastMzSendTime < MZ_SEND_INTERVAL) return;
+
+    TofData tofData = SensorDataBuffer::getInstance().getLatestTofData();
+    
+    // Send 8 messages (one per row) in burst mode
+    for (int row = 0; row < 8; row++) {
+        StaticJsonDocument<128> doc;
+        doc["route"] = routeToString(RouteType::SENSOR_DATA_MZ);
+        JsonObject payload = doc.createNestedObject("payload");
+        payload["row"] = row;
+        
+        JsonArray distances = payload.createNestedArray("distances");
+        for (int col = 0; col < 8; col++) {
+            int16_t distance = tofData.rawData.distance_mm[row * 8 + col];
+            distances.add(distance == 0 ? -1 : distance);
+        }
+        
+        String jsonString;
+        serializeJson(doc, jsonString);
+        
+        // Send based on current mode
+        if (mode == NetworkMode::WIFI_MODE) {
+            WebSocketManager::getInstance().wsClient.send(jsonString);
+        } else if (mode == NetworkMode::SERIAL_MODE) {
+            SerialQueueManager::getInstance().queueMessage(jsonString, SerialPriority::CRITICAL);
+        }
+    }
+
+    lastMzSendTime = currentTime;
 }

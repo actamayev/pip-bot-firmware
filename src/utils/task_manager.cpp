@@ -259,6 +259,7 @@ void TaskManager::networkCommunicationTask(void* parameter) {
             }
             // Sensor data transmission works for both modes
             SendSensorData::getInstance().sendSensorDataToServer();
+            SendSensorData::getInstance().sendMultizoneData();
         }
 
         // Fast update rate for real-time communication
