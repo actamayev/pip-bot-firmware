@@ -23,8 +23,6 @@ void SendSensorData::attachIRData(JsonObject& payload) {
     for (uint8_t i = 0; i < 5; i++) {
         irArray.add(irData.sensorReadings[i]);
     }
-    
-    payload["irValid"] = irData.isValid;
 }
 
 void SendSensorData::attachEulerData(JsonObject& payload) {
