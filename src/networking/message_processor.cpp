@@ -460,10 +460,10 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
                                 SendSensorData::getInstance().setSendSensorData(false);
                                 break;
                             case IntroductionTriggerType::S7_P4_ENTER:
-                                //User presses one of Pip’s two buttons → Pip responds with a light and sound
+                                careerQuestTriggers.startS7P4ButtonDemo();
                                 break;
                             case IntroductionTriggerType::S7_P4_EXIT:
-                                //Stop User presses one of Pip’s two buttons → Pip responds with a light and sound
+                                careerQuestTriggers.stopS7P4ButtonDemo();
                                 break;
                             case IntroductionTriggerType::S7_P6_ENTER:
                                 // Google dino run inspired competitive mini game. Users play using the button and display

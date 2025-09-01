@@ -57,6 +57,9 @@ void CareerQuestTriggers::update() {
     if (s2p4Active) {
         updateS2P4LightShow();
     }
+    if (s7p4Active) {
+        updateS7P4ButtonDemo();
+    }
 }
 
 void CareerQuestTriggers::updateS2P1Sequence() {
@@ -223,4 +226,78 @@ void CareerQuestTriggers::renderS3P3Animation() {
         s3p3AnimationStep++;
         lastS3P3Update = now;
     }
+}
+
+void CareerQuestTriggers::startS7P4ButtonDemo() {
+    s7p4Active = true;
+    s7p4ExitFading = false;
+    s7p4CurrentBrightness = 255;
+    
+    // Set up button handlers for random color changes and sounds
+    Buttons::getInstance().setLeftButtonClickHandler([](Button2& btn) {
+        // Generate random color
+        uint8_t red = random(0, MAX_LED_BRIGHTNESS + 1);
+        uint8_t green = random(0, MAX_LED_BRIGHTNESS + 1);
+        uint8_t blue = random(0, MAX_LED_BRIGHTNESS + 1);
+        
+        // Fade to new color using breathing animation
+        rgbLed.setDefaultColors(red, green, blue);
+        ledAnimations.startBreathing(1000, 0.0f); // 1s fade from dark
+        
+        // Play chime sound
+        Speaker::getInstance().playFile(SoundType::CHIME);
+    });
+    
+    Buttons::getInstance().setRightButtonClickHandler([](Button2& btn) {
+        // Generate random color
+        uint8_t red = random(0, MAX_LED_BRIGHTNESS + 1);
+        uint8_t green = random(0, MAX_LED_BRIGHTNESS + 1);
+        uint8_t blue = random(0, MAX_LED_BRIGHTNESS + 1);
+        
+        // Fade to new color using breathing animation
+        rgbLed.setDefaultColors(red, green, blue);
+        ledAnimations.startBreathing(1000, 0.0f); // 1s fade from dark
+        
+        // Play robot sound
+        Speaker::getInstance().playFile(SoundType::ROBOT);
+    });
+}
+
+void CareerQuestTriggers::stopS7P4ButtonDemo() {
+    if (!s7p4Active) return;
+    
+    // Clear button handlers (set to nullptr)
+    Buttons::getInstance().setLeftButtonClickHandler(nullptr);
+    Buttons::getInstance().setRightButtonClickHandler(nullptr);
+    
+    // Start exit fade instead of immediately turning off
+    s7p4ExitFading = true;
+    s7p4CurrentBrightness = 255;
+    lastS7P4Update = millis();
+}
+
+void CareerQuestTriggers::updateS7P4ButtonDemo() {
+    if (!s7p4ExitFading) return;
+    
+    unsigned long now = millis();
+    if (now - lastS7P4Update < S2P1_UPDATE_INTERVAL) return;
+    
+    // Fade out all main board LEDs
+    if (s7p4CurrentBrightness > 0) {
+        s7p4CurrentBrightness = max(0, s7p4CurrentBrightness - 5);
+        
+        // Apply brightness to all main board LEDs
+        uint8_t fadedRed = (rgbLed.getCurrentRed() * s7p4CurrentBrightness) / 255;
+        uint8_t fadedGreen = (rgbLed.getCurrentGreen() * s7p4CurrentBrightness) / 255;
+        uint8_t fadedBlue = (rgbLed.getCurrentBlue() * s7p4CurrentBrightness) / 255;
+        
+        rgbLed.set_main_board_leds_to_color(fadedRed, fadedGreen, fadedBlue);
+    } else {
+        // Fade complete, stop the demo
+        s7p4Active = false;
+        s7p4ExitFading = false;
+        rgbLed.turn_all_leds_off();
+    }
+    
+    lastS7P4Update = now;
 }

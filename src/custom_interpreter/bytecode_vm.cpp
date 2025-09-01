@@ -723,7 +723,6 @@ void BytecodeVM::resetStateVariables(bool isFullReset) {
         programContainsMotors = false;
         lastUsbState = false;
     }
-    Speaker::getInstance().setMuted(true);
     rgbLed.turn_all_leds_off();
 }
 

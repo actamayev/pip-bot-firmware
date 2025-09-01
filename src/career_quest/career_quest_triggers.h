@@ -6,6 +6,9 @@
 #include "utils/structs.h"
 #include "actuators/display_screen.h"
 #include "actuators/led/rgb_led.h"
+#include "actuators/led/led_animations.h"
+#include "actuators/buttons.h"
+#include "actuators/speaker.h"
 
 class CareerQuestTriggers {
     public:
@@ -17,11 +20,14 @@ class CareerQuestTriggers {
         void stopS2P4LightShow();
         void startS3P3DisplayDemo();
         void stopS3P3DisplayDemo();
+        void startS7P4ButtonDemo();
+        void stopS7P4ButtonDemo();
         void update();
         
         bool isS2P1Active() const { return s2p1Active; }
         bool isS2P4Active() const { return s2p4Active; }
         bool isS3P3Active() const { return s3p3Active; }
+        bool isS7P4Active() const { return s7p4Active; }
         
         void renderS3P3Animation();
         
@@ -71,8 +77,15 @@ class CareerQuestTriggers {
         unsigned long lastS3P3Update = 0;
         uint8_t s3p3AnimationStep = 0;
         
+        // S7_P4 button demo state
+        bool s7p4Active = false;
+        bool s7p4ExitFading = false;
+        uint8_t s7p4CurrentBrightness = 255;
+        unsigned long lastS7P4Update = 0;
+        
         void updateS2P1Sequence();
         void updateS2P4LightShow();
+        void updateS7P4ButtonDemo();
 };
 
 extern CareerQuestTriggers careerQuestTriggers;
