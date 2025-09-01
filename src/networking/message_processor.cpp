@@ -387,6 +387,124 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             }
             break;
         }
+        case DataMessageType::TRIGGER_MESSAGE: {
+            if (length < 3) { // 1 byte for type + 1 byte for career + 1 byte for trigger
+                SerialQueueManager::getInstance().queueMessage("Invalid trigger message length");
+            } else {
+                CareerType careerType = static_cast<CareerType>(data[1]);
+                
+                switch (careerType) {
+                    case CareerType::INTRODUCTION: {
+                        IntroductionTriggerType triggerType = static_cast<IntroductionTriggerType>(data[2]);
+                        
+                        switch (triggerType) {
+                            case IntroductionTriggerType::S2_P1_ENTER:
+                                SerialQueueManager::getInstance().queueMessage("Received S2_P1_ENTER");
+                                careerQuestTriggers.startS2P1Sequence();
+                                break;
+                            case IntroductionTriggerType::S2_P1_EXIT:
+                                SerialQueueManager::getInstance().queueMessage("Received S2_P1_EXIT");
+                                careerQuestTriggers.stopS2P1Sequence();
+                                break;
+                            case IntroductionTriggerType::S2_P4_ENTER:
+                                SerialQueueManager::getInstance().queueMessage("Received S2_P4_ENTER");
+                                careerQuestTriggers.startS2P4LightShow();
+                                break;
+                            case IntroductionTriggerType::S2_P4_EXIT:
+                                SerialQueueManager::getInstance().queueMessage("Received S2_P4_EXIT");
+                                careerQuestTriggers.stopS2P4LightShow();
+                                break;
+                            case IntroductionTriggerType::S3_P3_ENTER:
+                                SerialQueueManager::getInstance().queueMessage("Received S3_P3_ENTER");
+                                careerQuestTriggers.startS3P3DisplayDemo();
+                                break;
+                            case IntroductionTriggerType::S3_P3_EXIT:
+                                SerialQueueManager::getInstance().queueMessage("Received S3_P3_EXIT");
+                                careerQuestTriggers.stopS3P3DisplayDemo();
+                                break;
+                            case IntroductionTriggerType::S4_P5_ENTER:
+                                // Pip plays a short, fun song as a showcase
+                                break;
+                            case IntroductionTriggerType::S5_P4_ENTER:
+                                SendSensorData::getInstance().setSendSensorData(true);
+                                SendSensorData::getInstance().setEulerDataEnabled(true);
+                                SendSensorData::getInstance().setAccelDataEnabled(true);
+                                break;
+                            case IntroductionTriggerType::S5_P4_EXIT:
+                                SendSensorData::getInstance().setEulerDataEnabled(false);
+                                SendSensorData::getInstance().setAccelDataEnabled(false);
+                                SendSensorData::getInstance().setSendSensorData(false);
+                                break;
+                            case IntroductionTriggerType::S5_P5_ENTER:
+                                SendSensorData::getInstance().setSendSensorData(true);
+                                SendSensorData::getInstance().setEulerDataEnabled(true);
+                                SendSensorData::getInstance().setAccelDataEnabled(true);
+                                break;
+                            case IntroductionTriggerType::S5_P5_EXIT:
+                                SendSensorData::getInstance().setEulerDataEnabled(false);
+                                SendSensorData::getInstance().setAccelDataEnabled(false);
+                                SendSensorData::getInstance().setSendSensorData(false);
+                                break;
+                            case IntroductionTriggerType::S6_P4_ENTER:
+                                SendSensorData::getInstance().setSendMultizoneData(true);
+                                break;
+                            case IntroductionTriggerType::S6_P4_EXIT:
+                                SendSensorData::getInstance().setSendMultizoneData(false);
+                                break;
+                            case IntroductionTriggerType::S6_P6_ENTER:
+                                SendSensorData::getInstance().setSendSensorData(true);
+                                SendSensorData::getInstance().setSideTofDataEnabled(true);
+                                break;
+                            case IntroductionTriggerType::S6_P6_EXIT:
+                                SendSensorData::getInstance().setSideTofDataEnabled(false);
+                                SendSensorData::getInstance().setSendSensorData(false);
+                                break;
+                            case IntroductionTriggerType::S7_P4_ENTER:
+                                careerQuestTriggers.startS7P4ButtonDemo();
+                                break;
+                            case IntroductionTriggerType::S7_P4_EXIT:
+                                careerQuestTriggers.stopS7P4ButtonDemo();
+                                break;
+                            case IntroductionTriggerType::S7_P6_ENTER:
+                                // Google dino run inspired competitive mini game. Users play using the button and display
+                                // Send the results to the server when each user is done: Leader board after everyone is done.
+                                break;
+                            case IntroductionTriggerType::S7_P6_EXIT:
+                                // Google dino run inspired competitive mini game. Users play using the button and display
+                                break;
+                            case IntroductionTriggerType::S8_P3_ENTER:
+                                SendSensorData::getInstance().setSendSensorData(true);
+                                SendSensorData::getInstance().setColorSensorDataEnabled(true);
+                                break;
+                            case IntroductionTriggerType::S8_P3_EXIT:
+                                SendSensorData::getInstance().setColorSensorDataEnabled(false);
+                                SendSensorData::getInstance().setSendSensorData(false);
+                                break;
+                            case IntroductionTriggerType::S9_P3_ENTER:
+                                // Pip performs a short “dance” → spins, wiggles forward/back, flashes LEDs, sounds.
+                                break;
+                            case IntroductionTriggerType::S9_P6_ENTER:
+                                motorDriver.stop_both_motors(); // We need this to prevent students from turning against the motors.
+                                SendSensorData::getInstance().setSendSensorData(true);
+                                SendSensorData::getInstance().setEncoderDataEnabled(true);
+                                break;
+                            case IntroductionTriggerType::S9_P6_EXIT:
+                                SendSensorData::getInstance().setEncoderDataEnabled(false);
+                                SendSensorData::getInstance().setSendSensorData(false);
+                                break;
+                            default:
+                                SerialQueueManager::getInstance().queueMessage("Unknown introduction trigger type");
+                                break;
+                        }
+                        break;
+                    }
+                    default:
+                        SerialQueueManager::getInstance().queueMessage("Unknown career type");
+                        break;
+                }
+            }
+            break;
+        }
         default:
             break;
     }

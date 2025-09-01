@@ -181,12 +181,10 @@ bool SensorDataBuffer::isIrDataValid() {
 
 // NEW: Encoder Read methods - reset timeouts when called
 EncoderData SensorDataBuffer::getLatestEncoderData() {
-    timeouts.encoder_last_request.store(millis());
     return currentEncoderData;
 }
 
 WheelRPMs SensorDataBuffer::getLatestWheelRPMs() {
-    timeouts.encoder_last_request.store(millis());
     WheelRPMs rpms;
     rpms.leftWheelRPM = currentEncoderData.leftWheelRPM;
     rpms.rightWheelRPM = currentEncoderData.rightWheelRPM;
@@ -194,38 +192,31 @@ WheelRPMs SensorDataBuffer::getLatestWheelRPMs() {
 }
 
 float SensorDataBuffer::getLatestLeftWheelRPM() {
-    timeouts.encoder_last_request.store(millis());
     return currentEncoderData.leftWheelRPM;
 }
 
 float SensorDataBuffer::getLatestRightWheelRPM() {
-    timeouts.encoder_last_request.store(millis());
     return currentEncoderData.rightWheelRPM;
 }
 
 float SensorDataBuffer::getLatestDistanceTraveledCm() {
-    timeouts.encoder_last_request.store(millis());
     return currentEncoderData.distanceTraveledCm;
 }
 
 bool SensorDataBuffer::isEncoderDataValid() {
-    timeouts.encoder_last_request.store(millis());
     return currentEncoderData.isValid;
 }
 
 // Raw encoder count access methods (for motor driver)
 int64_t SensorDataBuffer::getLatestLeftEncoderCount() {
-    timeouts.encoder_last_request.store(millis());
     return currentEncoderData.leftEncoderCount;
 }
 
 int64_t SensorDataBuffer::getLatestRightEncoderCount() {
-    timeouts.encoder_last_request.store(millis());
     return currentEncoderData.rightEncoderCount;
 }
 
 std::pair<int64_t, int64_t> SensorDataBuffer::getLatestEncoderCounts() {
-    timeouts.encoder_last_request.store(millis());
     return std::make_pair(currentEncoderData.leftEncoderCount, currentEncoderData.rightEncoderCount);
 }
 
@@ -303,7 +294,6 @@ void SensorDataBuffer::stopPollingAllSensors() {
     timeouts.side_tof_last_request.store(0);
     timeouts.color_last_request.store(0);
     timeouts.ir_last_request.store(0);
-    timeouts.encoder_last_request.store(0);
 }
 
 void SensorDataBuffer::markImuDataUpdated() {

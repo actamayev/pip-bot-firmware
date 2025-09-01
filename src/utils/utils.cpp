@@ -97,6 +97,7 @@ const char* routeToString(RouteType route) {
     switch (route) {
         case RouteType::REGISTER: return "/register";
         case RouteType::SENSOR_DATA: return "/sensor-data";
+        case RouteType::SENSOR_DATA_MZ: return "/sensor-data-mz";
         case RouteType::BYTECODE_STATUS: return "/bytecode-status";
         case RouteType::WIFI_CONNECTION_RESULT: return "/wifi-connection-result";
         case RouteType::PIP_ID: return "/pip-id";

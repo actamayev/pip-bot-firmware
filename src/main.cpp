@@ -77,16 +77,19 @@ void setup() {
     
     // 10. Individual Sensor Tasks (wait for centralized init, then poll independently)
     TaskManager::createImuSensorTask();
-    // TaskManager::createEncoderSensorTask();
-    // TaskManager::createMultizoneTofSensorTask();
-    // TaskManager::createSideTofSensorTask();
-    // TaskManager::createColorSensorTask();
-    // TaskManager::createIrSensorTask();
+    TaskManager::createEncoderSensorTask();
+    TaskManager::createMultizoneTofSensorTask();
+    TaskManager::createSideTofSensorTask();
+    TaskManager::createColorSensorTask();
+    TaskManager::createIrSensorTask();
     
     // 12. DemoManager (high priority for demos)
     TaskManager::createDemoManagerTask();
 
-    // 13. BytecodeVM
+    // 13. CareerQuest (trigger system)
+    TaskManager::createCareerQuestTask();
+
+    // 14. BytecodeVM
     TaskManager::createBytecodeVMTask();
     
     // Note: StackMonitor can be enabled for debugging

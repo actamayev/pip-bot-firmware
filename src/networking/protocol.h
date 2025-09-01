@@ -27,7 +27,8 @@ enum class DataMessageType : uint8_t {
     STOP_SOUND = 23, // For stopping ongoing sounds (e.g. horn sound)
     REQUEST_BATTERY_MONITOR_DATA = 24,
     UPDATE_DISPLAY = 25,
-    STOP_SENSOR_POLLING = 26
+    STOP_SENSOR_POLLING = 26,
+    TRIGGER_MESSAGE = 27
 };
 
 // Sound types
@@ -85,6 +86,37 @@ enum class WiFiConnectionStatus : uint8_t {
     FAILED = 0,
     WIFI_ONLY = 1,
     WIFI_AND_WEBSOCKET_SUCCESS = 2
+};
+
+enum class CareerType : uint8_t {
+    INTRODUCTION = 1
+};
+
+enum class IntroductionTriggerType : uint8_t {
+    S2_P1_ENTER = 1,
+    S2_P1_EXIT = 2,
+    S2_P4_ENTER = 3,
+    S2_P4_EXIT = 4,
+    S3_P3_ENTER = 5,
+    S3_P3_EXIT = 6,
+    S4_P5_ENTER = 7,
+    S5_P4_ENTER = 8,
+    S5_P4_EXIT = 9,
+    S5_P5_ENTER = 10,
+    S5_P5_EXIT = 11,
+    S6_P4_ENTER = 12,
+    S6_P4_EXIT = 13,
+    S6_P6_ENTER = 14,
+    S6_P6_EXIT = 15,
+    S7_P4_ENTER = 16,
+    S7_P4_EXIT = 17,
+    S7_P6_ENTER = 18,
+    S7_P6_EXIT = 19,
+    S8_P3_ENTER = 20,
+    S8_P3_EXIT = 21,
+    S9_P3_ENTER = 22,
+    S9_P6_ENTER = 23,
+    S9_P6_EXIT = 24
 };
 
 struct NewBalancePids {

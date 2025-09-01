@@ -1,4 +1,5 @@
 #include "display_screen.h"
+#include "career_quest/career_quest_triggers.h"
 
 // Initialize the display with explicit Wire reference
 bool DisplayScreen::init(bool showStartup) {
@@ -11,6 +12,11 @@ bool DisplayScreen::init(bool showStartup) {
     }
 
     initialized = true;
+    perfStartTime = millis();
+    
+    // Initialize buffers
+    memset(stagingBuffer, 0, DISPLAY_BUFFER_SIZE);
+    memset(currentDisplayBuffer, 0, DISPLAY_BUFFER_SIZE);
 
     turnDisplayOff();
 
@@ -28,21 +34,35 @@ void DisplayScreen::update() {
     
     unsigned long currentTime = millis();
     
-    // Only update display at regular intervals to save processing
-    if (currentTime - lastUpdateTime < UPDATE_INTERVAL) return;
-    lastUpdateTime = currentTime;
+    // Only generate content at regular intervals
+    if (currentTime - lastContentGeneration < UPDATE_INTERVAL) return;
+    lastContentGeneration = currentTime;
     
-    // If nothing else has been set to display, keep the start screen showing
-    if (!customScreenActive) {
-        showStartScreen();
+    // Generate content to staging buffer
+    generateContentToBuffer();
+    contentGenerations++;
+    
+    // Check if content actually changed
+    if (!hasContentChanged()) {
+        // Content unchanged - skip expensive I2C operation
+        skippedUpdates++;
+        return;
     }
+    // Content changed - update display (I2C operation)
+    display.display();
+    
+    // Copy new content to current buffer for next comparison
+    copyCurrentBuffer();
+    
+    displayUpdates++;
+    lastDisplayUpdate = currentTime;
 }
 
 // Show the start screen
 void DisplayScreen::showStartScreen() {
     if (!initialized || isShowingStartScreen) return;
 
-    turnDisplayOff();
+    display.clearDisplay();
     
     // Draw border
     display.drawRect(0, 0, display.width(), display.height(), SSD1306_WHITE);
@@ -53,14 +73,32 @@ void DisplayScreen::showStartScreen() {
     // Draw circle underneath
     display.fillCircle(display.width()/2, 40, 10, SSD1306_WHITE);
     
-    renderDisplay();
+    // Copy to staging buffer and force update
+    uint8_t* displayBuffer = display.getBuffer();
+    memcpy(stagingBuffer, displayBuffer, DISPLAY_BUFFER_SIZE);
+    
+    // Force display update for startup screen
+    display.display();
+    copyCurrentBuffer();
+    
     isShowingStartScreen = true;
+    customScreenActive = false;
 }
 
 // Render the display (apply the buffer to the screen)
 void DisplayScreen::renderDisplay() {
     if (!initialized) return;
+    
+    // Force immediate display update (bypasses buffer comparison)
     display.display();
+    
+    // Update our buffer tracking
+    uint8_t* displayBuffer = display.getBuffer();
+    memcpy(stagingBuffer, displayBuffer, DISPLAY_BUFFER_SIZE);
+    copyCurrentBuffer();
+    
+    displayUpdates++;
+    lastDisplayUpdate = millis();
 }
 
 // Draw text at specified position
@@ -94,27 +132,32 @@ void DisplayScreen::showCustomBuffer(const uint8_t* buffer) {
     
     // Override any current display state
     customScreenActive = true;
+    isShowingStartScreen = false;
     
-    // Clear display
-    turnDisplayOff();
+    // Clear display and copy buffer directly
+    display.clearDisplay();
+    memcpy(display.getBuffer(), buffer, DISPLAY_BUFFER_SIZE);
     
-    // Copy the buffer directly to the display
-    // The buffer is already in SSD1306 format from React
-    display.getBuffer(); // Get the internal buffer pointer if needed
+    // Use optimized render (will check for changes)
+    uint8_t* displayBuffer = display.getBuffer();
+    memcpy(stagingBuffer, displayBuffer, DISPLAY_BUFFER_SIZE);
     
-    // Or use drawBitmap if available:
-    // display.drawBitmap(0, 0, buffer, SCREEN_WIDTH, SCREEN_HEIGHT, SSD1306_WHITE);
-    
-    // Alternative: Write directly to display buffer
-    memcpy(display.getBuffer(), buffer, 1024);
-    
-    renderDisplay();
+    if (!hasContentChanged()) {
+        skippedUpdates++;
+        return;
+    }
+    display.display();
+    copyCurrentBuffer();
+    displayUpdates++;
 }
 
 void DisplayScreen::showLowBatteryScreen() {
     if (!initialized) return;
 
-    turnDisplayOff();
+    customScreenActive = true;
+    isShowingStartScreen = false;
+    
+    display.clearDisplay();
     
     // Draw border
     display.drawRect(0, 0, display.width(), display.height(), SSD1306_WHITE);
@@ -132,11 +175,65 @@ void DisplayScreen::showLowBatteryScreen() {
     // Draw "SHUTTING DOWN" text
     drawCenteredText("SHUTTING DOWN", 40, 1);
     
+    // Force immediate display update for critical message
     renderDisplay();
+}
+
+void DisplayScreen::generateContentToBuffer() {
+    // Check if trigger animation is active first
+    if (careerQuestTriggers.isS3P3Active()) {
+        careerQuestTriggers.renderS3P3Animation();
+        // Copy display buffer to staging buffer
+        uint8_t* displayBuffer = display.getBuffer();
+        memcpy(stagingBuffer, displayBuffer, DISPLAY_BUFFER_SIZE);
+    }
+    // If nothing else has been set to display, keep the start screen showing
+    else if (!customScreenActive) {
+        display.clearDisplay();
+        
+        // Draw border
+        display.drawRect(0, 0, display.width(), display.height(), SSD1306_WHITE);
+        
+        // Draw company name (smaller)
+        drawCenteredText("Blue Dot Robots", 1);
+        
+        // Draw circle underneath
+        display.fillCircle(display.width()/2, 40, 10, SSD1306_WHITE);
+        
+        // Copy display buffer to staging buffer
+        uint8_t* displayBuffer = display.getBuffer();
+        memcpy(stagingBuffer, displayBuffer, DISPLAY_BUFFER_SIZE);
+    }
+}
+
+bool DisplayScreen::hasContentChanged() {
+    return memcmp(stagingBuffer, currentDisplayBuffer, DISPLAY_BUFFER_SIZE) != 0;
+}
+
+void DisplayScreen::copyCurrentBuffer() {
+    memcpy(currentDisplayBuffer, stagingBuffer, DISPLAY_BUFFER_SIZE);
+}
+
+float DisplayScreen::getDisplayUpdateRate() const {
+    unsigned long elapsed = millis() - perfStartTime;
+    if (elapsed == 0) return 0.0;
+    return (float)displayUpdates * 1000.0 / (float)elapsed;
+}
+
+void DisplayScreen::resetPerformanceCounters() {
+    displayUpdates = 0;
+    contentGenerations = 0;
+    skippedUpdates = 0;
+    perfStartTime = millis();
 }
 
 void DisplayScreen::turnDisplayOff() {
     if (!initialized) return;
     display.clearDisplay();
     display.display();
+    
+    // Update buffer tracking
+    memset(stagingBuffer, 0, DISPLAY_BUFFER_SIZE);
+    copyCurrentBuffer();
+    displayUpdates++;
 }

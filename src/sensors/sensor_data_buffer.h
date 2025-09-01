@@ -141,9 +141,8 @@ struct ReportTimeouts {
     std::atomic<uint32_t> side_tof_last_request{0};
     std::atomic<uint32_t> color_last_request{0};  // Add color sensor timeout tracking
     std::atomic<uint32_t> ir_last_request{0};  // Add IR sensor timeout tracking
-    std::atomic<uint32_t> encoder_last_request{0};  // Add encoder timeout tracking
 
-    static constexpr uint32_t TIMEOUT_MS = 5000; // 1 minute
+    static constexpr uint32_t TIMEOUT_MS = 5000; // 5 seconds
     
     bool shouldEnableQuaternion() const {
         uint32_t lastRequest = quaternion_last_request.load();
@@ -182,11 +181,6 @@ struct ReportTimeouts {
 
     bool shouldEnableIr() const {
         uint32_t lastRequest = ir_last_request.load();
-        return lastRequest > 0 && (millis() - lastRequest) < TIMEOUT_MS;
-    }
-    
-    bool shouldEnableEncoder() const {
-        uint32_t lastRequest = encoder_last_request.load();
         return lastRequest > 0 && (millis() - lastRequest) < TIMEOUT_MS;
     }
 };

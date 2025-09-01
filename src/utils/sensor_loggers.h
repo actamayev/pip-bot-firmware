@@ -17,3 +17,4 @@ void colorSensorLogger();
 void irSensorLogger();
 void setupButtonLoggers();
 void log_motor_rpm();
+void displayPerformanceLogger();
