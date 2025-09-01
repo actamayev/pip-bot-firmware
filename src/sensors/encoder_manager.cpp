@@ -28,6 +28,8 @@ bool EncoderManager::initialize() {
     _lastUpdateTime = millis();
     _leftEncoderStartCount = 0;
     _rightEncoderStartCount = 0;
+    _leftLastCount = 0;
+    _rightLastCount = 0;
     
     isInitialized = true;
     SerialQueueManager::getInstance().queueMessage("Encoder Manager initialized successfully");
@@ -41,40 +43,35 @@ void EncoderManager::update() {
     // Only update if enough time has passed
     if (elapsedTime < RPM_CALC_INTERVAL) return;
     
-    int64_t leftPulses = _leftEncoder.getCount();
-    int64_t rightPulses = _rightEncoder.getCount();
+    int64_t leftCurrentCount = _leftEncoder.getCount();
+    int64_t rightCurrentCount = _rightEncoder.getCount();
+
+    // Calculate delta pulses since last update
+    int64_t leftPulses = leftCurrentCount - _leftLastCount;
+    int64_t rightPulses = rightCurrentCount - _rightLastCount;
 
     // Calculate motor shaft RPM - NOTE: Using elapsedTime in seconds
-    float leftMotorShaftRPM = (float)(leftPulses * 60) / (ENCODER_CPR * (elapsedTime / 1000.0));
-    float rightMotorShaftRPM = (float)(rightPulses * 60) / (ENCODER_CPR * (elapsedTime / 1000.0));
+    float leftMotorShaftRPM = (float)(leftPulses * 60) / (PULSES_PER_REVOLUTION * (elapsedTime / 1000.0));
+    float rightMotorShaftRPM = (float)(rightPulses * 60) / (PULSES_PER_REVOLUTION * (elapsedTime / 1000.0));
 
     // Calculate wheel RPM
     _leftWheelRPM = leftMotorShaftRPM / GEAR_RATIO;
     _rightWheelRPM = rightMotorShaftRPM / GEAR_RATIO;
 
-    // Reset pulse counters for next interval
-    _leftEncoder.clearCount();
-    _rightEncoder.clearCount();
+    // Store current counts for next delta calculation
+    _leftLastCount = leftCurrentCount;
+    _rightLastCount = rightCurrentCount;
 
     _lastUpdateTime = currentTime;
 }
 
 // Standard sensor interface methods
 bool EncoderManager::shouldBePolling() const {
-    if (!isInitialized) return false;
-    
-    ReportTimeouts& timeouts = SensorDataBuffer::getInstance().getReportTimeouts();
-    return timeouts.shouldEnableEncoder();
+    return isInitialized;
 }
 
 void EncoderManager::updateSensorData() {
     if (!isInitialized) return;
-    
-    // Check if we should enable/disable the sensor based on timeouts
-    ReportTimeouts& timeouts = SensorDataBuffer::getInstance().getReportTimeouts();
-    bool shouldEnable = timeouts.shouldEnableEncoder();
-    
-    if (!shouldEnable) return; // Don't update encoder data if not requested recently
 
     // Call internal update method to calculate RPMs
     update();
@@ -100,7 +97,7 @@ void EncoderManager::updateSensorData() {
     float avgEncoderDelta = (leftEncoderDelta + rightEncoderDelta) / 2.0f;
     
     // Convert encoder counts to revolutions
-    float wheelRevolutions = avgEncoderDelta / static_cast<float>(ENCODER_CPR);
+    float wheelRevolutions = avgEncoderDelta / static_cast<float>(PULSES_PER_REVOLUTION);
     
     // Compensate for gear ratio
     float wheelRevolutionsAfterGearing = wheelRevolutions / GEAR_RATIO;

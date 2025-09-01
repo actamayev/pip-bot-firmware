@@ -1,5 +1,6 @@
 #include "task_manager.h"
 #include "sensors/sensor_initializer.h"
+#include "career_quest/career_quest_triggers.h"
 
 TaskHandle_t TaskManager::buttonTaskHandle = NULL;
 TaskHandle_t TaskManager::serialInputTaskHandle = NULL;
@@ -24,6 +25,7 @@ TaskHandle_t TaskManager::batteryMonitorTaskHandle = NULL;
 TaskHandle_t TaskManager::speakerTaskHandle = NULL;
 TaskHandle_t TaskManager::motorTaskHandle = NULL;
 TaskHandle_t TaskManager::demoManagerTaskHandle = NULL;
+TaskHandle_t TaskManager::careerQuestTaskHandle = NULL;
 TaskHandle_t TaskManager::displayInitTaskHandle = NULL;
 
 void TaskManager::buttonTask(void* parameter) {
@@ -68,7 +70,7 @@ void TaskManager::displayTask(void* parameter) {
     
     for(;;) {
         DisplayScreen::getInstance().update();
-        vTaskDelay(pdMS_TO_TICKS(50));  // 20Hz update rate, smooth for animations
+        vTaskDelay(pdMS_TO_TICKS(40));  // 25Hz update rate, smooth for animations
     }
 }
 
@@ -101,7 +103,7 @@ void TaskManager::encoderSensorTask(void* parameter) {
         if (EncoderManager::getInstance().shouldBePolling()) {
             EncoderManager::getInstance().updateSensorData();
         }
-        vTaskDelay(pdMS_TO_TICKS(20));  // 50Hz - good balance for encoder data
+        vTaskDelay(pdMS_TO_TICKS(10));  // 50Hz - good balance for encoder data
     }
 }
 
@@ -182,12 +184,13 @@ void TaskManager::sensorLoggerTask(void* parameter) {
     // Main logging loop
     for(;;) {
         // Call each frequency logger function
-        imuLogger();
+        // imuLogger();
         // multizoneTofLogger();
         // sideTofLogger();
         // colorSensorLogger();
         // irSensorLogger();
         // log_motor_rpm();  // Keep this commented for now since it's not frequency-based
+        // displayPerformanceLogger();
         
         // Small delay between logger cycles - loggers have their own internal timing
         vTaskDelay(pdMS_TO_TICKS(10));  // 100Hz - fast polling, loggers handle their own rate limiting
@@ -248,11 +251,15 @@ void TaskManager::networkCommunicationTask(void* parameter) {
     for(;;) {
         NetworkMode mode = NetworkStateManager::getInstance().getCurrentMode();
         
-        // Only do communication tasks when in WiFi mode
-        if (mode == NetworkMode::WIFI_MODE) {
-            // Lightweight, frequent operations
-            WebSocketManager::getInstance().pollWebSocket();
-            SendDataToServer::getInstance().sendSensorDataToServer();
+        // Send sensor data in both WIFI_MODE and SERIAL_MODE
+        if (mode == NetworkMode::WIFI_MODE || mode == NetworkMode::SERIAL_MODE) {
+            if (mode == NetworkMode::WIFI_MODE) {
+                // WebSocket polling only needed in WiFi mode
+                WebSocketManager::getInstance().pollWebSocket();
+            }
+            // Sensor data transmission works for both modes
+            SendSensorData::getInstance().sendSensorDataToServer();
+            SendSensorData::getInstance().sendMultizoneData();
         }
 
         // Fast update rate for real-time communication
@@ -299,6 +306,15 @@ void TaskManager::demoManagerTask(void* parameter) {
     for(;;) {
         DemoManager::getInstance().update();
         vTaskDelay(pdMS_TO_TICKS(5)); // Demo updates every 5ms
+    }
+}
+
+void TaskManager::careerQuestTask(void* parameter) {
+    SerialQueueManager::getInstance().queueMessage("CareerQuest task started");
+
+    for(;;) {
+        careerQuestTriggers.update();
+        vTaskDelay(pdMS_TO_TICKS(10)); // Career quest updates every 10ms
     }
 }
 
@@ -392,6 +408,11 @@ bool TaskManager::createMotorTask() {
 bool TaskManager::createDemoManagerTask() {
     return createTask("DemoManager", demoManagerTask, DEMO_MANAGER_STACK_SIZE,
                      Priority::SYSTEM_CONTROL, Core::CORE_0, &demoManagerTaskHandle);
+}
+
+bool TaskManager::createCareerQuestTask() {
+    return createTask("CareerQuest", careerQuestTask, CAREER_QUEST_STACK_SIZE,
+                     Priority::SYSTEM_CONTROL, Core::CORE_1, &careerQuestTaskHandle);
 }
 
 bool TaskManager::createDisplayInitTask() {
@@ -516,6 +537,7 @@ void TaskManager::printStackUsage() {
         {speakerTaskHandle, "Speaker", SPEAKER_STACK_SIZE},
         {motorTaskHandle, "Motor", MOTOR_STACK_SIZE},
         {demoManagerTaskHandle, "DemoManager", DEMO_MANAGER_STACK_SIZE},
+        {careerQuestTaskHandle, "CareerQuest", CAREER_QUEST_STACK_SIZE},
         {displayInitTaskHandle, "DisplayInit", DISPLAY_INIT_STACK_SIZE}
     };
     

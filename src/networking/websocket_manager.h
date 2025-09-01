@@ -5,7 +5,7 @@
 #include "protocol.h"
 #include "utils/singleton.h"
 #include "message_processor.h"
-#include "send_data_to_server.h"
+#include "send_sensor_data.h"
 #include "sensors/battery_monitor.h"
 #include "firmware_version_tracker.h"
 #include "utils/preferences_manager.h"
@@ -16,7 +16,7 @@ using namespace websockets;
 
 class WebSocketManager : public Singleton<WebSocketManager> {
     friend class Singleton<WebSocketManager>;
-    friend class SendDataToServer;
+    friend class SendSensorData;
 
     public:
         void connectToWebSocket();

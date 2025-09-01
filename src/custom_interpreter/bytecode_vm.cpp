@@ -4,11 +4,11 @@
 const std::map<BytecodeOpCode, std::vector<BytecodeVM::SensorType>> BytecodeVM::opcodeToSensors = {
     // This map is to control what sensors need to be polled for various OpCodes
     // Ie: For motor turn, we need to poll encoders, and quaternion
-    {OP_MOTOR_FORWARD_TIME, {SENSOR_ENCODER, SENSOR_QUATERNION}},
-    {OP_MOTOR_BACKWARD_TIME, {SENSOR_ENCODER, SENSOR_QUATERNION}},
-    {OP_MOTOR_FORWARD_DISTANCE, {SENSOR_ENCODER, SENSOR_QUATERNION}},
-    {OP_MOTOR_BACKWARD_DISTANCE, {SENSOR_ENCODER, SENSOR_QUATERNION}},
-    {OP_MOTOR_TURN, {SENSOR_ENCODER, SENSOR_QUATERNION}}
+    {OP_MOTOR_FORWARD_TIME, {SENSOR_QUATERNION}},
+    {OP_MOTOR_BACKWARD_TIME, {SENSOR_QUATERNION}},
+    {OP_MOTOR_FORWARD_DISTANCE, {SENSOR_QUATERNION}},
+    {OP_MOTOR_BACKWARD_DISTANCE, {SENSOR_QUATERNION}},
+    {OP_MOTOR_TURN, {SENSOR_QUATERNION}}
 };
 
 BytecodeVM::~BytecodeVM() {
@@ -723,7 +723,6 @@ void BytecodeVM::resetStateVariables(bool isFullReset) {
         programContainsMotors = false;
         lastUsbState = false;
     }
-    Speaker::getInstance().setMuted(true);
     rgbLed.turn_all_leds_off();
 }
 
@@ -769,7 +768,6 @@ void BytecodeVM::activateSensorsForProgram() {
     bool needMagnetometer = false;
     bool needTof = false;
     bool needSideTof = false;
-    bool needEncoder = false;
     
     // Scan through the entire program
     for (uint16_t i = 0; i < programSize; i++) {
@@ -821,7 +819,6 @@ void BytecodeVM::activateSensorsForProgram() {
                         case SENSOR_MAGNETOMETER: needMagnetometer = true; break;
                         case SENSOR_TOF: needTof = true; break;
                         case SENSOR_SIDE_TOF: needSideTof = true; break;
-                        case SENSOR_ENCODER: needEncoder = true; break;
                     }
                 }
             }
@@ -856,10 +853,6 @@ void BytecodeVM::activateSensorsForProgram() {
     if (needSideTof) {
         timeouts.side_tof_last_request.store(currentTime);
         SerialQueueManager::getInstance().queueMessage("Activated side TOF for program");
-    }
-    if (needEncoder) {
-        timeouts.encoder_last_request.store(currentTime);
-        SerialQueueManager::getInstance().queueMessage("Activated encoder for program");
     }
 }
 

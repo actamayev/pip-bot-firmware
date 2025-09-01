@@ -110,10 +110,9 @@ class BytecodeVM : public Singleton<BytecodeVM> {
             SENSOR_GYROSCOPE,
             SENSOR_MAGNETOMETER,
             SENSOR_TOF,
-            SENSOR_SIDE_TOF,
-            SENSOR_ENCODER
+            SENSOR_SIDE_TOF
         };
-        
+
         void activateSensorsForProgram();
         static const std::map<BytecodeOpCode, std::vector<SensorType>> opcodeToSensors;
         
