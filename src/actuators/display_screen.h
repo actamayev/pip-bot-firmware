@@ -53,6 +53,7 @@ class DisplayScreen: public Singleton<DisplayScreen> {
         // State flags
         bool initialized = false;
         bool customScreenActive = false;
+        bool displayOff = false;
         
         // Timing management
         unsigned long lastUpdateTime = 0;

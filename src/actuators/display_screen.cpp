@@ -180,6 +180,9 @@ void DisplayScreen::showLowBatteryScreen() {
 }
 
 void DisplayScreen::generateContentToBuffer() {
+    // If display is off, don't generate any content
+    if (displayOff) return;
+
     // Check if trigger animation is active first
     if (careerQuestTriggers.isS3P3Active()) {
         careerQuestTriggers.renderS3P3Animation();
@@ -229,6 +232,11 @@ void DisplayScreen::resetPerformanceCounters() {
 
 void DisplayScreen::turnDisplayOff() {
     if (!initialized) return;
+    
+    displayOff = true;
+    customScreenActive = false;
+    isShowingStartScreen = false;
+    
     display.clearDisplay();
     display.display();
     
