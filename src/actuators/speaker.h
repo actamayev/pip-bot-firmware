@@ -18,6 +18,7 @@ class Speaker : public Singleton<Speaker> {
         void setMuted(bool muted);
         void playFile(SoundType file);
         void setVolume(float volume); // 0.0 to 4.0
+        void stopAllSounds();
 
     private:
         Speaker() = default;

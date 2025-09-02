@@ -1,4 +1,5 @@
 #include "career_quest_triggers.h"
+#include <algorithm>
 
 extern Adafruit_NeoPixel strip;
 CareerQuestTriggers careerQuestTriggers(strip);
@@ -44,10 +45,10 @@ void CareerQuestTriggers::startS2P4LightShow() {
 }
 
 void CareerQuestTriggers::stopS2P4LightShow() {
-    s2p4Active = false;
-    
-    // Turn off all LEDs
-    rgbLed.turn_all_leds_off();
+    if (!s2p4Active) return;
+    // Start exit fade instead of immediately turning off
+    s2p4ExitFading = true;
+    s2p4CurrentBrightness = 255;
 }
 
 void CareerQuestTriggers::update() {
@@ -126,6 +127,45 @@ void CareerQuestTriggers::updateS2P1Sequence() {
 
 void CareerQuestTriggers::updateS2P4LightShow() {
     unsigned long now = millis();
+    
+    // Handle exit fading
+    if (s2p4ExitFading) {
+        if (now - lastS2P4Update >= S2P1_UPDATE_INTERVAL) {
+            // Fade out all main board LEDs
+            if (s2p4CurrentBrightness > 0) {
+                s2p4CurrentBrightness = std::max(0, s2p4CurrentBrightness - 5);
+                
+                // Get current color for fading
+                uint8_t colors[][3] = {
+                    {255, 0, 0},     // Red
+                    {0, 255, 0},     // Green  
+                    {0, 0, 255},     // Blue
+                    {255, 255, 0},   // Yellow
+                    {255, 0, 255},   // Magenta
+                    {0, 255, 255}    // Cyan
+                };
+                
+                uint8_t colorIndex = s2p4Step % 6;
+                uint8_t red = (colors[colorIndex][0] * s2p4CurrentBrightness) / 255;
+                uint8_t green = (colors[colorIndex][1] * s2p4CurrentBrightness) / 255;
+                uint8_t blue = (colors[colorIndex][2] * s2p4CurrentBrightness) / 255;
+                
+                // Apply faded color to all main board LEDs
+                for (int i = 0; i < 6; i++) {
+                    uint8_t ledIndex = s2p1LedSequence[i];
+                    strip.setPixelColor(ledIndex, strip.Color(red, green, blue));
+                }
+                strip.show();
+            } else {
+                // Fade complete, stop the light show
+                s2p4Active = false;
+                s2p4ExitFading = false;
+                rgbLed.turn_all_leds_off();
+            }
+            lastS2P4Update = now;
+        }
+        return;
+    }
     
     // Check if 5 seconds have elapsed
     if (now - s2p4StartTime >= S2P4_DURATION) {
@@ -300,4 +340,34 @@ void CareerQuestTriggers::updateS7P4ButtonDemo() {
     }
     
     lastS7P4Update = now;
+}
+
+void CareerQuestTriggers::stopAllCareerQuestTriggers() {
+    // Stop all active career quest triggers (these will start fade sequences)
+    stopS2P1Sequence();
+    stopS2P4LightShow();
+    stopS3P3DisplayDemo();
+    stopS7P4ButtonDemo();
+    
+    // Stop all LED animations (but don't force LEDs off - let career quest fades complete)
+    ledAnimations.stopAnimation();
+    ledAnimations.fadeOut();
+    
+    // Stop all audio
+    Speaker::getInstance().stopAllSounds();
+    
+    // Disable all sensor data sending
+    SendSensorData::getInstance().setSendSensorData(false);
+    SendSensorData::getInstance().setSendMultizoneData(false);
+    SendSensorData::getInstance().setEulerDataEnabled(false);
+    SendSensorData::getInstance().setAccelDataEnabled(false);
+    SendSensorData::getInstance().setGyroDataEnabled(false);
+    SendSensorData::getInstance().setMagnetometerDataEnabled(false);
+    SendSensorData::getInstance().setMultizoneTofDataEnabled(false);
+    SendSensorData::getInstance().setSideTofDataEnabled(false);
+    SendSensorData::getInstance().setColorSensorDataEnabled(false);
+    SendSensorData::getInstance().setEncoderDataEnabled(false);
+    
+    // Stop motors
+    motorDriver.stop_both_motors();
 }

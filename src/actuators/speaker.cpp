@@ -294,6 +294,12 @@ void Speaker::setVolume(float volume) {
     }
 }
 
+void Speaker::stopAllSounds() {
+    if (initialized && isCurrentlyPlaying) {
+        safeStopPlayback();
+    }
+}
+
 void Speaker::update() {
     if (!initialized) return;
     

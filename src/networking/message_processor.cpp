@@ -505,6 +505,14 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             }
             break;
         }
+        case DataMessageType::STOP_CAREER_QUEST_TRIGGER: {
+            if (length != 1) {
+                SerialQueueManager::getInstance().queueMessage("Invalid stop career quest trigger message length");
+            } else {
+                careerQuestTriggers.stopAllCareerQuestTriggers();
+            }
+            break;
+        }
         default:
             break;
     }

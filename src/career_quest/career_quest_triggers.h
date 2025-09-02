@@ -22,6 +22,7 @@ class CareerQuestTriggers {
         void stopS3P3DisplayDemo();
         void startS7P4ButtonDemo();
         void stopS7P4ButtonDemo();
+        void stopAllCareerQuestTriggers();
         void update();
         
         bool isS2P1Active() const { return s2p1Active; }
@@ -71,6 +72,8 @@ class CareerQuestTriggers {
         unsigned long s2p4StartTime = 0;
         unsigned long lastS2P4Update = 0;
         uint8_t s2p4Step = 0;
+        bool s2p4ExitFading = false;
+        uint8_t s2p4CurrentBrightness = 255;
         
         // S3_P3 display demo state
         bool s3p3Active = false;
