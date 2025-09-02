@@ -90,10 +90,11 @@ enum class WiFiConnectionStatus : uint8_t {
 };
 
 enum class CareerType : uint8_t {
-    INTRODUCTION = 1
+    MEET_PIP = 1
 };
 
-enum class IntroductionTriggerType : uint8_t {
+enum class MeetPipTriggerType : uint8_t {
+    ENTER_CAREER = 0,
     S2_P1_ENTER = 1,
     S2_P1_EXIT = 2,
     S2_P4_ENTER = 3,
