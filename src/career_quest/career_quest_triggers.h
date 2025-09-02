@@ -53,8 +53,12 @@ class CareerQuestTriggers {
         // Timing constants
         static constexpr unsigned long S2P1_FADE_TIME = 1000; // 1000ms total fade time
         static constexpr unsigned long S2P1_UPDATE_INTERVAL = 10; // 10ms updates for faster, smoother fading
-        static constexpr unsigned long S2P4_DURATION = 5000; // 5 seconds
-        static constexpr unsigned long S2P4_UPDATE_INTERVAL = 1000; // 50ms updates
+        static constexpr unsigned long S2P4_DURATION = 15000; // 15 seconds total
+        static constexpr unsigned long S2P4_SNAKE_DURATION = 6000; // 6 seconds
+        static constexpr unsigned long S2P4_FLASH_DURATION = 4000; // 4 seconds  
+        static constexpr unsigned long S2P4_BREATHING_DURATION = 5000; // 5 seconds
+        static constexpr unsigned long S2P4_SNAKE_INTERVAL = 200; // 200ms per LED
+        static constexpr unsigned long S2P4_FLASH_INTERVAL = 400; // 400ms per flash
         static constexpr unsigned long S3P3_UPDATE_INTERVAL = 50; // 50ms updates for smooth scrolling
         
     private:
@@ -79,6 +83,13 @@ class CareerQuestTriggers {
         uint8_t s2p4Step = 0;
         bool s2p4ExitFading = false;
         uint8_t s2p4CurrentBrightness = 255;
+        
+        // S2P4 3-phase light show
+        uint8_t s2p4Phase = 0;  // 0=snake, 1=flash, 2=breathing
+        uint8_t s2p4SnakePosition = 0;
+        uint8_t s2p4FlashColorIndex = 0;
+        bool s2p4SnakeDirection = true; // true=forward, false=reverse
+        unsigned long s2p4PhaseStartTime = 0;
         
         // S3_P3 display demo state
         bool s3p3Active = false;

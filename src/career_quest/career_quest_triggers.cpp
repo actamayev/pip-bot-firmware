@@ -9,6 +9,12 @@ CareerQuestTriggers careerQuestTriggers(strip);
 constexpr uint8_t CareerQuestTriggers::s2p1LedSequence[8];
 constexpr uint8_t CareerQuestTriggers::s2p1ColorSequence[8][3];
 constexpr unsigned long CareerQuestTriggers::S5P4_UPDATE_INTERVAL;
+constexpr unsigned long CareerQuestTriggers::S2P4_DURATION;
+constexpr unsigned long CareerQuestTriggers::S2P4_SNAKE_DURATION;
+constexpr unsigned long CareerQuestTriggers::S2P4_FLASH_DURATION;
+constexpr unsigned long CareerQuestTriggers::S2P4_BREATHING_DURATION;
+constexpr unsigned long CareerQuestTriggers::S2P4_SNAKE_INTERVAL;
+constexpr unsigned long CareerQuestTriggers::S2P4_FLASH_INTERVAL;
 
 CareerQuestTriggers::CareerQuestTriggers(Adafruit_NeoPixel& strip)
     : strip(strip) {
@@ -38,12 +44,19 @@ void CareerQuestTriggers::stopS2P1Sequence() {
 void CareerQuestTriggers::startS2P4LightShow() {
     // Turn off all LEDs first
     rgbLed.turn_all_leds_off();
+    // Stop any existing LED animations
+    ledAnimations.stopAnimation();
 
     // Initialize light show state
     s2p4Active = true;
     s2p4StartTime = millis();
     lastS2P4Update = millis();
     s2p4Step = 0;
+    s2p4Phase = 0; // Start with snake
+    s2p4SnakePosition = 0;
+    s2p4FlashColorIndex = 0;
+    s2p4SnakeDirection = true;
+    s2p4PhaseStartTime = millis();
 }
 
 void CareerQuestTriggers::stopS2P4LightShow() {
@@ -148,7 +161,7 @@ void CareerQuestTriggers::updateS2P4LightShow() {
                 uint8_t blue = (colors[colorIndex][2] * s2p4CurrentBrightness) / 255;
                 
                 // Apply faded color to all main board LEDs
-                for (int i = 0; i < 6; i++) {
+                for (int i = 0; i < 8; i++) {
                     uint8_t ledIndex = s2p1LedSequence[i];
                     strip.setPixelColor(ledIndex, strip.Color(red, green, blue));
                 }
@@ -164,38 +177,102 @@ void CareerQuestTriggers::updateS2P4LightShow() {
         return;
     }
     
-    // Check if 5 seconds have elapsed
+    // Check total duration
     if (now - s2p4StartTime >= S2P4_DURATION) {
         stopS2P4LightShow();
         return;
     }
     
-    if (now - lastS2P4Update >= S2P4_UPDATE_INTERVAL) {
-        // Simple light show: alternating colors on all LEDs
-        uint8_t colors[][3] = {
-            {255, 0, 0},     // Red
-            {0, 255, 0},     // Green  
-            {0, 0, 255},     // Blue
-            {255, 255, 0},   // Yellow
-            {255, 0, 255},   // Magenta
-            {0, 255, 255}    // Cyan
-        };
-        
-        uint8_t colorIndex = s2p4Step % 6;
-        uint8_t red = colors[colorIndex][0];
-        uint8_t green = colors[colorIndex][1];
-        uint8_t blue = colors[colorIndex][2];
-        
-        // Set all main board LEDs to current color (now including headlights)
-        for (int i = 0; i < 8; i++) {
-            uint8_t ledIndex = s2p1LedSequence[i];
-            strip.setPixelColor(ledIndex, strip.Color(red, green, blue));
-        }
-        strip.show();
-        
-        s2p4Step++;
-        lastS2P4Update = now;
+    unsigned long phaseElapsed = now - s2p4PhaseStartTime;
+    
+    // Phase transitions
+    if (s2p4Phase == 0 && phaseElapsed >= S2P4_SNAKE_DURATION) {
+        // Transition to flash phase
+        s2p4Phase = 1;
+        s2p4PhaseStartTime = now;
+        s2p4FlashColorIndex = 0;
+        rgbLed.turn_all_leds_off();
+        return;
+    } else if (s2p4Phase == 1 && phaseElapsed >= S2P4_FLASH_DURATION) {
+        // Transition to breathing phase
+        s2p4Phase = 2;
+        s2p4PhaseStartTime = now;
+        rgbLed.turn_all_leds_off();
+        // Start breathing animation with random color
+        uint8_t r = random(0, 256);
+        uint8_t g = random(0, 256);
+        uint8_t b = random(0, 256);
+        rgbLed.setDefaultColors(r, g, b);
+        ledAnimations.startBreathing(2000, 0.0f); // 2s breathing cycle
+        return;
     }
+    
+    // Phase 0: Snake animation
+    if (s2p4Phase == 0) {
+        if (now - lastS2P4Update >= S2P4_SNAKE_INTERVAL) {
+            rgbLed.turn_all_leds_off();
+            
+            // Generate random color for current LED
+            uint8_t r = random(50, 256); // Avoid very dim colors
+            uint8_t g = random(50, 256);
+            uint8_t b = random(50, 256);
+            
+            // Light up current LED in snake sequence
+            uint8_t currentLed = s2p1LedSequence[s2p4SnakePosition];
+            strip.setPixelColor(currentLed, strip.Color(r, g, b));
+            strip.show();
+            
+            // Advance snake position
+            if (s2p4SnakeDirection) {
+                s2p4SnakePosition++;
+                if (s2p4SnakePosition >= 8) {
+                    s2p4SnakePosition = 6; // Start going back
+                    s2p4SnakeDirection = false;
+                }
+            } else {
+                if (s2p4SnakePosition > 0) {
+                    s2p4SnakePosition--;
+                } else {
+                    s2p4SnakeDirection = true;
+                    s2p4SnakePosition = 1; // Start going forward again
+                }
+            }
+            
+            lastS2P4Update = now;
+        }
+    }
+    // Phase 1: Flash all LEDs with ROY G BIV colors
+    else if (s2p4Phase == 1) {
+        if (now - lastS2P4Update >= S2P4_FLASH_INTERVAL) {
+            // ROY G BIV color sequence
+            uint8_t roygbivColors[][3] = {
+                {255, 0, 0},     // Red
+                {255, 127, 0},   // Orange
+                {255, 255, 0},   // Yellow
+                {0, 255, 0},     // Green
+                {0, 0, 255},     // Blue
+                {75, 0, 130},    // Indigo
+                {148, 0, 211}    // Violet
+            };
+            
+            uint8_t colorIndex = s2p4FlashColorIndex % 7;
+            uint8_t red = roygbivColors[colorIndex][0];
+            uint8_t green = roygbivColors[colorIndex][1];
+            uint8_t blue = roygbivColors[colorIndex][2];
+            
+            // Flash all LEDs with current color
+            for (int i = 0; i < 8; i++) {
+                uint8_t ledIndex = s2p1LedSequence[i];
+                strip.setPixelColor(ledIndex, strip.Color(red, green, blue));
+            }
+            strip.show();
+            
+            s2p4FlashColorIndex++;
+            lastS2P4Update = now;
+        }
+    }
+    // Phase 2: Breathing animation (handled by LED animations system)
+    // No update needed here - ledAnimations.update() handles it
 }
 
 void CareerQuestTriggers::startS3P3DisplayDemo() {
