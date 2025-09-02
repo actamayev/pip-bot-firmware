@@ -513,33 +513,60 @@ void CareerQuestTriggers::updateS5P4LedVisualization() {
     
     // Define intensity based on tilt magnitude (0-255)
     constexpr float MAX_TILT = 45.0f; // degrees
+    constexpr float MIN_TILT = 3.0f;  // deadzone threshold
     
-    // Handle pitch (forward/backward tilt)
-    if (pitch < -5.0f) {
-        // Forward tilt - headlights red
-        uint8_t intensity = (uint8_t)constrain(abs(pitch) / MAX_TILT * 255, 0, 255);
-        strip.setPixelColor(2, strip.Color(intensity, 0, 0)); // right_headlight
-        strip.setPixelColor(3, strip.Color(intensity, 0, 0)); // left_headlight
-    } else if (pitch > 5.0f) {
-        // Backward tilt - back LEDs red
-        uint8_t intensity = (uint8_t)constrain(pitch / MAX_TILT * 255, 0, 255);
-        strip.setPixelColor(6, strip.Color(intensity, 0, 0)); // back_left
-        strip.setPixelColor(7, strip.Color(intensity, 0, 0)); // back_right
+    // Calculate individual LED intensities based on 2D tilt direction
+    // LED layout conceptually:
+    //     4(top_left)    1(top_right)
+    // 3(left_head)  5(mid_left)  0(mid_right)  2(right_head)
+    //     6(back_left)   7(back_right)
+    
+    // Calculate tilt influence for each LED position
+    // Front LEDs (headlights): stronger with forward pitch
+    float frontInfluence = max(0.0f, -pitch); // negative pitch = forward tilt
+    if (frontInfluence > MIN_TILT) {
+        uint8_t baseIntensity = (uint8_t)constrain(frontInfluence / MAX_TILT * 255, 0, 255);
+        // Headlights get additional intensity from left/right roll
+        uint8_t leftHeadIntensity = (uint8_t)constrain(baseIntensity + max(0.0f, -roll) / MAX_TILT * 127, 0, 255);
+        uint8_t rightHeadIntensity = (uint8_t)constrain(baseIntensity + max(0.0f, roll) / MAX_TILT * 127, 0, 255);
+        strip.setPixelColor(3, strip.Color(leftHeadIntensity, 0, 0));  // left_headlight
+        strip.setPixelColor(2, strip.Color(rightHeadIntensity, 0, 0)); // right_headlight
     }
     
-    // Handle roll (left/right tilt)
-    if (roll > 5.0f) {
-        // Right tilt - right side LEDs red
-        uint8_t intensity = (uint8_t)constrain(roll / MAX_TILT * 255, 0, 255);
-        strip.setPixelColor(0, strip.Color(intensity, 0, 0)); // middle_right
-        strip.setPixelColor(1, strip.Color(intensity, 0, 0)); // top_right
-        strip.setPixelColor(2, strip.Color(intensity, 0, 0)); // right_headlight
-    } else if (roll < -5.0f) {
-        // Left tilt - left side LEDs red
-        uint8_t intensity = (uint8_t)constrain(abs(roll) / MAX_TILT * 255, 0, 255);
-        strip.setPixelColor(3, strip.Color(intensity, 0, 0)); // left_headlight
+    // Back LEDs: stronger with backward pitch
+    float backInfluence = max(0.0f, pitch); // positive pitch = backward tilt
+    if (backInfluence > MIN_TILT) {
+        uint8_t baseIntensity = (uint8_t)constrain(backInfluence / MAX_TILT * 255, 0, 255);
+        uint8_t leftBackIntensity = (uint8_t)constrain(baseIntensity + max(0.0f, -roll) / MAX_TILT * 127, 0, 255);
+        uint8_t rightBackIntensity = (uint8_t)constrain(baseIntensity + max(0.0f, roll) / MAX_TILT * 127, 0, 255);
+        strip.setPixelColor(6, strip.Color(leftBackIntensity, 0, 0));  // back_left
+        strip.setPixelColor(7, strip.Color(rightBackIntensity, 0, 0)); // back_right
+    }
+    
+    // Top LEDs: influenced by both pitch (front/back) and roll (left/right)
+    float topLeftInfluence = max(0.0f, -roll) + max(0.0f, -pitch) * 0.5f; // left roll + forward pitch
+    float topRightInfluence = max(0.0f, roll) + max(0.0f, -pitch) * 0.5f;  // right roll + forward pitch
+    
+    if (topLeftInfluence > MIN_TILT) {
+        uint8_t intensity = (uint8_t)constrain(topLeftInfluence / MAX_TILT * 255, 0, 255);
         strip.setPixelColor(4, strip.Color(intensity, 0, 0)); // top_left
+    }
+    if (topRightInfluence > MIN_TILT) {
+        uint8_t intensity = (uint8_t)constrain(topRightInfluence / MAX_TILT * 255, 0, 255);
+        strip.setPixelColor(1, strip.Color(intensity, 0, 0)); // top_right
+    }
+    
+    // Middle LEDs: primarily controlled by roll, with slight pitch influence
+    float middleLeftInfluence = max(0.0f, -roll) + abs(pitch) * 0.3f;  // left roll + any pitch
+    float middleRightInfluence = max(0.0f, roll) + abs(pitch) * 0.3f;   // right roll + any pitch
+    
+    if (middleLeftInfluence > MIN_TILT) {
+        uint8_t intensity = (uint8_t)constrain(middleLeftInfluence / MAX_TILT * 255, 0, 255);
         strip.setPixelColor(5, strip.Color(intensity, 0, 0)); // middle_left
+    }
+    if (middleRightInfluence > MIN_TILT) {
+        uint8_t intensity = (uint8_t)constrain(middleRightInfluence / MAX_TILT * 255, 0, 255);
+        strip.setPixelColor(0, strip.Color(intensity, 0, 0)); // middle_right
     }
     
     strip.show();
