@@ -236,7 +236,7 @@ void CareerQuestTriggers::renderS3P3Animation() {
             // Phase 2: 3D rotating cube (5-10 seconds)
             unsigned long cubeTime = cycleTime - 5000;
             
-            displayScreen.drawCenteredText("3D CUBE", 5, 1);
+            displayScreen.drawCenteredText("3D CUBE", 5, 3);
             
             // Smooth rotation based on time
             float rotX = (float)cubeTime * 0.003f;
