@@ -217,18 +217,88 @@ void CareerQuestTriggers::renderS3P3Animation() {
         
         display.clearDisplay();
         
-        // Calculate elapsed time and loop every 5 seconds
+        // Calculate elapsed time and loop every 10 seconds (5s HAFTR + 5s cube)
         unsigned long elapsedTime = now - s3p3StartTime;
-        unsigned long cycleTime = elapsedTime % 5000; // 5 second cycle
-        float progress = (float)cycleTime / 5000.0f; // 0.0 to 1.0
+        unsigned long cycleTime = elapsedTime % 10000; // 10 second total cycle
         
-        // Calculate text position: scroll from left (-60) to right (128+60)
-        int textX = -60 + (int)(progress * 248); // Complete scroll across screen
-        
-        display.setTextSize(3);
-        display.setTextColor(SSD1306_WHITE);
-        display.setCursor(textX, 24);
-        display.println("HAFTR");
+        if (cycleTime < 5000) {
+            // Phase 1: HAFTR scrolling (0-5 seconds)
+            float progress = (float)cycleTime / 5000.0f; // 0.0 to 1.0
+            
+            // Calculate text position: scroll from left (-70) to right (128+30)
+            int textX = -70 + (int)(progress * 198); // Smoother scroll range
+            
+            display.setTextSize(3.5);
+            display.setTextColor(SSD1306_WHITE);
+            display.setCursor(textX, 24);
+            display.print("HAFTR"); // Use print instead of println to avoid newline
+        } else {
+            // Phase 2: 3D rotating cube (5-10 seconds)
+            unsigned long cubeTime = cycleTime - 5000;
+            
+            displayScreen.drawCenteredText("3D CUBE", 5, 1);
+            
+            // Smooth rotation based on time
+            float rotX = (float)cubeTime * 0.003f;
+            float rotY = (float)cubeTime * 0.004f;
+            
+            int centerX = 64, centerY = 35;
+            int size = 12;
+            
+            // Calculate cube vertices with rotation
+            float cosX = cos(rotX), sinX = sin(rotX);
+            float cosY = cos(rotY), sinY = sin(rotY);
+            
+            // 3D rotation matrix application (simplified)
+            // Front face vertices
+            float fx1 = size, fy1 = size, fz1 = size;
+            float fx2 = -size, fy2 = size, fz2 = size;
+            float fx3 = -size, fy3 = -size, fz3 = size;
+            float fx4 = size, fy4 = -size, fz4 = size;
+            
+            // Apply rotation and project to 2D
+            int x1 = centerX + (int)(fx1 * cosY + fz1 * sinY);
+            int y1 = centerY + (int)(fy1 * cosX);
+            int x2 = centerX + (int)(fx2 * cosY + fz2 * sinY);
+            int y2 = centerY + (int)(fy2 * cosX);
+            int x3 = centerX + (int)(fx3 * cosY + fz3 * sinY);
+            int y3 = centerY + (int)(fy3 * cosX);
+            int x4 = centerX + (int)(fx4 * cosY + fz4 * sinY);
+            int y4 = centerY + (int)(fy4 * cosX);
+            
+            // Back face vertices (z = -size)
+            float bx1 = size, by1 = size, bz1 = -size;
+            float bx2 = -size, by2 = size, bz2 = -size;
+            float bx3 = -size, by3 = -size, bz3 = -size;
+            float bx4 = size, by4 = -size, bz4 = -size;
+            
+            int bx1_2d = centerX + (int)(bx1 * cosY + bz1 * sinY);
+            int by1_2d = centerY + (int)(by1 * cosX);
+            int bx2_2d = centerX + (int)(bx2 * cosY + bz2 * sinY);
+            int by2_2d = centerY + (int)(by2 * cosX);
+            int bx3_2d = centerX + (int)(bx3 * cosY + bz3 * sinY);
+            int by3_2d = centerY + (int)(by3 * cosX);
+            int bx4_2d = centerX + (int)(bx4 * cosY + bz4 * sinY);
+            int by4_2d = centerY + (int)(by4 * cosX);
+            
+            // Draw front face
+            display.drawLine(x1, y1, x2, y2, SSD1306_WHITE);
+            display.drawLine(x2, y2, x3, y3, SSD1306_WHITE);
+            display.drawLine(x3, y3, x4, y4, SSD1306_WHITE);
+            display.drawLine(x4, y4, x1, y1, SSD1306_WHITE);
+            
+            // Draw back face
+            display.drawLine(bx1_2d, by1_2d, bx2_2d, by2_2d, SSD1306_WHITE);
+            display.drawLine(bx2_2d, by2_2d, bx3_2d, by3_2d, SSD1306_WHITE);
+            display.drawLine(bx3_2d, by3_2d, bx4_2d, by4_2d, SSD1306_WHITE);
+            display.drawLine(bx4_2d, by4_2d, bx1_2d, by1_2d, SSD1306_WHITE);
+            
+            // Connect front and back faces
+            display.drawLine(x1, y1, bx1_2d, by1_2d, SSD1306_WHITE);
+            display.drawLine(x2, y2, bx2_2d, by2_2d, SSD1306_WHITE);
+            display.drawLine(x3, y3, bx3_2d, by3_2d, SSD1306_WHITE);
+            display.drawLine(x4, y4, bx4_2d, by4_2d, SSD1306_WHITE);
+        }
         
         s3p3AnimationStep++;
         lastS3P3Update = now;

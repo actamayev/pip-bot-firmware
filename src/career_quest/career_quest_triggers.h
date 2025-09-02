@@ -50,7 +50,7 @@ class CareerQuestTriggers {
         static constexpr unsigned long S2P1_UPDATE_INTERVAL = 20; // 20ms updates for smooth fading
         static constexpr unsigned long S2P4_DURATION = 5000; // 5 seconds
         static constexpr unsigned long S2P4_UPDATE_INTERVAL = 1000; // 50ms updates
-        static constexpr unsigned long S3P3_UPDATE_INTERVAL = 500; // 500ms updates for display animation
+        static constexpr unsigned long S3P3_UPDATE_INTERVAL = 50; // 50ms updates for smooth scrolling
         
     private:
         Adafruit_NeoPixel& strip;
