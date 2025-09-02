@@ -61,6 +61,8 @@ void CareerQuestTriggers::startS2P4LightShow() {
 
 void CareerQuestTriggers::stopS2P4LightShow() {
     if (!s2p4Active) return;
+    // Stop any breathing animation immediately
+    ledAnimations.stopAnimation();
     // Start exit fade instead of immediately turning off
     s2p4ExitFading = true;
     s2p4CurrentBrightness = 255;
@@ -140,40 +142,11 @@ void CareerQuestTriggers::updateS2P4LightShow() {
     
     // Handle exit fading
     if (s2p4ExitFading) {
-        if (now - lastS2P4Update >= S2P1_UPDATE_INTERVAL) {
-            // Fade out all main board LEDs
-            if (s2p4CurrentBrightness > 0) {
-                s2p4CurrentBrightness = std::max(0, s2p4CurrentBrightness - 5);
-                
-                // Get current color for fading
-                uint8_t colors[][3] = {
-                    {255, 0, 0},     // Red
-                    {0, 255, 0},     // Green  
-                    {0, 0, 255},     // Blue
-                    {255, 255, 0},   // Yellow
-                    {255, 0, 255},   // Magenta
-                    {0, 255, 255}    // Cyan
-                };
-                
-                uint8_t colorIndex = s2p4Step % 6;
-                uint8_t red = (colors[colorIndex][0] * s2p4CurrentBrightness) / 255;
-                uint8_t green = (colors[colorIndex][1] * s2p4CurrentBrightness) / 255;
-                uint8_t blue = (colors[colorIndex][2] * s2p4CurrentBrightness) / 255;
-                
-                // Apply faded color to all main board LEDs
-                for (int i = 0; i < 8; i++) {
-                    uint8_t ledIndex = s2p1LedSequence[i];
-                    strip.setPixelColor(ledIndex, strip.Color(red, green, blue));
-                }
-                strip.show();
-            } else {
-                // Fade complete, stop the light show
-                s2p4Active = false;
-                s2p4ExitFading = false;
-                rgbLed.turn_all_leds_off();
-            }
-            lastS2P4Update = now;
-        }
+        // Stop any breathing animation immediately and turn off all LEDs
+        ledAnimations.stopAnimation();
+        rgbLed.turn_all_leds_off();
+        s2p4Active = false;
+        s2p4ExitFading = false;
         return;
     }
     
@@ -198,10 +171,10 @@ void CareerQuestTriggers::updateS2P4LightShow() {
         s2p4Phase = 2;
         s2p4PhaseStartTime = now;
         rgbLed.turn_all_leds_off();
-        // Start breathing animation with random color
-        uint8_t r = random(0, 256);
-        uint8_t g = random(0, 256);
-        uint8_t b = random(0, 256);
+        // Start breathing animation with first S2P1 color (red)
+        uint8_t r = s2p1ColorSequence[0][0];
+        uint8_t g = s2p1ColorSequence[0][1];
+        uint8_t b = s2p1ColorSequence[0][2];
         rgbLed.setDefaultColors(r, g, b);
         ledAnimations.startBreathing(2000, 0.0f); // 2s breathing cycle
         return;
@@ -212,10 +185,11 @@ void CareerQuestTriggers::updateS2P4LightShow() {
         if (now - lastS2P4Update >= S2P4_SNAKE_INTERVAL) {
             rgbLed.turn_all_leds_off();
             
-            // Generate random color for current LED
-            uint8_t r = random(50, 256); // Avoid very dim colors
-            uint8_t g = random(50, 256);
-            uint8_t b = random(50, 256);
+            // Use S2P1 color sequence for snake
+            uint8_t colorIndex = s2p4SnakePosition % 8;
+            uint8_t r = s2p1ColorSequence[colorIndex][0];
+            uint8_t g = s2p1ColorSequence[colorIndex][1];
+            uint8_t b = s2p1ColorSequence[colorIndex][2];
             
             // Light up current LED in snake sequence
             uint8_t currentLed = s2p1LedSequence[s2p4SnakePosition];
