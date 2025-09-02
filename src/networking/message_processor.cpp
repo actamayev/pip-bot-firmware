@@ -435,20 +435,20 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
                                 SendSensorData::getInstance().setSendSensorData(true);
                                 SendSensorData::getInstance().setEulerDataEnabled(true);
                                 SendSensorData::getInstance().setAccelDataEnabled(true);
+                                careerQuestTriggers.startS5P4LedVisualization();
                                 break;
                             case MeetPipTriggerType::S5_P4_EXIT:
                                 SendSensorData::getInstance().setEulerDataEnabled(false);
                                 SendSensorData::getInstance().setAccelDataEnabled(false);
                                 SendSensorData::getInstance().setSendSensorData(false);
+                                careerQuestTriggers.stopS5P4LedVisualization();
                                 break;
                             case MeetPipTriggerType::S5_P5_ENTER:
                                 SendSensorData::getInstance().setSendSensorData(true);
                                 SendSensorData::getInstance().setEulerDataEnabled(true);
-                                SendSensorData::getInstance().setAccelDataEnabled(true);
                                 break;
                             case MeetPipTriggerType::S5_P5_EXIT:
                                 SendSensorData::getInstance().setEulerDataEnabled(false);
-                                SendSensorData::getInstance().setAccelDataEnabled(false);
                                 SendSensorData::getInstance().setSendSensorData(false);
                                 break;
                             case MeetPipTriggerType::S6_P4_ENTER:

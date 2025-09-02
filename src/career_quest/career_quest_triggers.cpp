@@ -1,4 +1,5 @@
 #include "career_quest_triggers.h"
+#include "sensors/sensor_data_buffer.h"
 #include <algorithm>
 
 extern Adafruit_NeoPixel strip;
@@ -7,6 +8,7 @@ CareerQuestTriggers careerQuestTriggers(strip);
 // Define static constexpr arrays
 constexpr uint8_t CareerQuestTriggers::s2p1LedSequence[8];
 constexpr uint8_t CareerQuestTriggers::s2p1ColorSequence[8][3];
+constexpr unsigned long CareerQuestTriggers::S5P4_UPDATE_INTERVAL;
 
 CareerQuestTriggers::CareerQuestTriggers(Adafruit_NeoPixel& strip)
     : strip(strip) {
@@ -55,6 +57,7 @@ void CareerQuestTriggers::update() {
     if (s2p1Active) updateS2P1Sequence();
     if (s2p4Active) updateS2P4LightShow();
     if (s7p4Active) updateS7P4ButtonDemo();
+    if (s5p4Active) updateS5P4LedVisualization();
 }
 
 void CareerQuestTriggers::updateS2P1Sequence() {
@@ -473,12 +476,83 @@ void CareerQuestTriggers::updateS7P4ButtonDemo() {
     lastS7P4Update = now;
 }
 
+void CareerQuestTriggers::startS5P4LedVisualization() {
+    rgbLed.turn_all_leds_off();
+    s5p4Active = true;
+    s5p4ExitFading = false;
+    lastS5P4Update = millis();
+}
+
+void CareerQuestTriggers::stopS5P4LedVisualization() {
+    if (!s5p4Active) return;
+    s5p4ExitFading = true;
+    lastS5P4Update = millis();
+}
+
+void CareerQuestTriggers::updateS5P4LedVisualization() {
+    unsigned long now = millis();
+    
+    if (now - lastS5P4Update < S5P4_UPDATE_INTERVAL) return;
+    
+    // Handle exit fading
+    if (s5p4ExitFading) {
+        // Simple fade out - turn off all LEDs
+        rgbLed.turn_all_leds_off();
+        s5p4Active = false;
+        s5p4ExitFading = false;
+        lastS5P4Update = now;
+        return;
+    }
+    
+    // Get IMU data
+    float pitch = SensorDataBuffer::getInstance().getLatestPitch();
+    float roll = SensorDataBuffer::getInstance().getLatestRoll();
+    
+    // Clear all LEDs first
+    rgbLed.turn_all_leds_off();
+    
+    // Define intensity based on tilt magnitude (0-255)
+    constexpr float MAX_TILT = 45.0f; // degrees
+    
+    // Handle pitch (forward/backward tilt)
+    if (pitch < -5.0f) {
+        // Forward tilt - headlights red
+        uint8_t intensity = (uint8_t)constrain(abs(pitch) / MAX_TILT * 255, 0, 255);
+        strip.setPixelColor(2, strip.Color(intensity, 0, 0)); // right_headlight
+        strip.setPixelColor(3, strip.Color(intensity, 0, 0)); // left_headlight
+    } else if (pitch > 5.0f) {
+        // Backward tilt - back LEDs red
+        uint8_t intensity = (uint8_t)constrain(pitch / MAX_TILT * 255, 0, 255);
+        strip.setPixelColor(6, strip.Color(intensity, 0, 0)); // back_left
+        strip.setPixelColor(7, strip.Color(intensity, 0, 0)); // back_right
+    }
+    
+    // Handle roll (left/right tilt)
+    if (roll > 5.0f) {
+        // Right tilt - right side LEDs red
+        uint8_t intensity = (uint8_t)constrain(roll / MAX_TILT * 255, 0, 255);
+        strip.setPixelColor(0, strip.Color(intensity, 0, 0)); // middle_right
+        strip.setPixelColor(1, strip.Color(intensity, 0, 0)); // top_right
+        strip.setPixelColor(2, strip.Color(intensity, 0, 0)); // right_headlight
+    } else if (roll < -5.0f) {
+        // Left tilt - left side LEDs red
+        uint8_t intensity = (uint8_t)constrain(abs(roll) / MAX_TILT * 255, 0, 255);
+        strip.setPixelColor(3, strip.Color(intensity, 0, 0)); // left_headlight
+        strip.setPixelColor(4, strip.Color(intensity, 0, 0)); // top_left
+        strip.setPixelColor(5, strip.Color(intensity, 0, 0)); // middle_left
+    }
+    
+    strip.show();
+    lastS5P4Update = now;
+}
+
 void CareerQuestTriggers::stopAllCareerQuestTriggers() {
     // Stop all active career quest triggers (these will start fade sequences)
     stopS2P1Sequence();
     stopS2P4LightShow();
     stopS3P3DisplayDemo();
     stopS7P4ButtonDemo();
+    stopS5P4LedVisualization();
     
     // Stop all LED animations (but don't force LEDs off - let career quest fades complete)
     ledAnimations.stopAnimation();

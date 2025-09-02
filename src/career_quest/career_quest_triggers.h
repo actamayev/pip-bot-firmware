@@ -22,6 +22,8 @@ class CareerQuestTriggers {
         void stopS3P3DisplayDemo();
         void startS7P4ButtonDemo();
         void stopS7P4ButtonDemo();
+        void startS5P4LedVisualization();
+        void stopS5P4LedVisualization();
         void stopAllCareerQuestTriggers();
         void update();
         
@@ -29,6 +31,7 @@ class CareerQuestTriggers {
         bool isS2P4Active() const { return s2p4Active; }
         bool isS3P3Active() const { return s3p3Active; }
         bool isS7P4Active() const { return s7p4Active; }
+        bool isS5P4Active() const { return s5p4Active; }
         
         void renderS3P3Animation();
         
@@ -89,9 +92,16 @@ class CareerQuestTriggers {
         uint8_t s7p4CurrentBrightness = 255;
         unsigned long lastS7P4Update = 0;
         
+        // S5_P4 IMU LED visualization state
+        bool s5p4Active = false;
+        bool s5p4ExitFading = false;
+        unsigned long lastS5P4Update = 0;
+        static constexpr unsigned long S5P4_UPDATE_INTERVAL = 20; // 20ms for responsive visualization
+        
         void updateS2P1Sequence();
         void updateS2P4LightShow();
         void updateS7P4ButtonDemo();
+        void updateS5P4LedVisualization();
 };
 
 extern CareerQuestTriggers careerQuestTriggers;
