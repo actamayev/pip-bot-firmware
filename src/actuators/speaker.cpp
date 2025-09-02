@@ -108,6 +108,12 @@ void Speaker::cleanup() {
         vTaskDelay(pdMS_TO_TICKS(50));
     }
     
+    // Stop RTTTL playback
+    if (rtttlGenerator && rtttlGenerator->isRunning()) {
+        rtttlGenerator->stop();
+        vTaskDelay(pdMS_TO_TICKS(50));
+    }
+    
     // Close any open files
     if (audioFile) {
         audioFile->close();
@@ -126,6 +132,17 @@ void Speaker::cleanup() {
         delete audioFile;
         audioFile = nullptr;
     }
+    
+    // Clean up RTTTL objects
+    if (rtttlSource) {
+        delete rtttlSource;
+        rtttlSource = nullptr;
+    }
+    if (rtttlGenerator) {
+        delete rtttlGenerator;
+        rtttlGenerator = nullptr;
+    }
+    
     if (audioOutput) {
         delete audioOutput;
         audioOutput = nullptr;
@@ -134,6 +151,7 @@ void Speaker::cleanup() {
     // Reset state
     isCurrentlyPlaying = false;
     isStoppingPlayback = false;
+    isMelodyPlaying = false;
     audioObjectsValid = false;
     currentFilename = "";
     
@@ -303,6 +321,12 @@ void Speaker::stopAllSounds() {
 void Speaker::update() {
     if (!initialized) return;
     
+    // Handle melody playback first
+    if (isMelodyPlaying) {
+        updateMelody();
+        return; // Don't process MP3 playback while melody is playing
+    }
+    
     // Handle delayed clearing of stopping state
     if (isStoppingPlayback) {
         if (millis() - stopRequestTime >= STOP_DELAY_MS) {
@@ -328,6 +352,61 @@ void Speaker::update() {
             
             // Mark for recreation since something went wrong
             forceRecreateObjects = true;
+        }
+    }
+}
+
+
+void Speaker::updateMelody() {
+    if (!isMelodyPlaying || !rtttlGenerator) return;
+    
+    // Keep the RTTTL generator running
+    if (rtttlGenerator->isRunning()) {
+        if (!rtttlGenerator->loop()) {
+            // Melody finished
+            isMelodyPlaying = false;
+            SerialQueueManager::getInstance().queueMessage("Entertainer melody completed");
+            
+            // Clean up RTTTL resources
+            if (rtttlSource) {
+                delete rtttlSource;
+                rtttlSource = nullptr;
+            }
+        }
+    }
+}
+
+void Speaker::startEntertainerMelody() {
+    if (muted || isMelodyPlaying) return;
+    
+    SerialQueueManager::getInstance().queueMessage("Starting The Entertainer melody");
+    
+    // The Entertainer in RTTTL format
+    static const uint8_t entertainerRTTTL[] = "TheEntertainer:d=4,o=5,b=140:8d,8d#,8e,c6,8e,c6,8e,c6,c,8c6,8a,8g,8f#,8a,8c6,8e,8d,8c,8a,2d";
+    
+    // Create RTTTL generator if not exists
+    if (!rtttlGenerator) {
+        rtttlGenerator = new AudioGeneratorRTTTL();
+    }
+    
+    // Clean up any existing source
+    if (rtttlSource) {
+        delete rtttlSource;
+    }
+    
+    // Create PROGMEM source from RTTTL data
+    rtttlSource = new AudioFileSourcePROGMEM(entertainerRTTTL, sizeof(entertainerRTTTL));
+    
+    // Begin playing the RTTTL tune using existing audioOutput
+    if (audioOutput && rtttlGenerator->begin(rtttlSource, audioOutput)) {
+        isMelodyPlaying = true;
+        SerialQueueManager::getInstance().queueMessage("✓ Entertainer playback started");
+    } else {
+        SerialQueueManager::getInstance().queueMessage("✗ Failed to start Entertainer playback");
+        // Clean up on failure
+        if (rtttlSource) {
+            delete rtttlSource;
+            rtttlSource = nullptr;
         }
     }
 }

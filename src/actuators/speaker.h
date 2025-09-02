@@ -8,6 +8,8 @@
 #include "AudioFileSourceLittleFS.h"
 #include "AudioFileSourceID3.h"
 #include "AudioGeneratorMP3.h"
+#include "AudioGeneratorRTTTL.h"
+#include "AudioFileSourcePROGMEM.h"
 #include "AudioOutputI2S.h"
 
 class Speaker : public Singleton<Speaker> {
@@ -19,6 +21,7 @@ class Speaker : public Singleton<Speaker> {
         void playFile(SoundType file);
         void setVolume(float volume); // 0.0 to 4.0
         void stopAllSounds();
+        void startEntertainerMelody();
 
     private:
         Speaker() = default;
@@ -36,6 +39,10 @@ class Speaker : public Singleton<Speaker> {
         AudioFileSourceID3* audioID3 = nullptr;
         AudioGeneratorMP3* audioMP3 = nullptr;
         AudioOutputI2S* audioOutput = nullptr;
+        
+        // RTTTL objects for melody playback
+        AudioGeneratorRTTTL* rtttlGenerator = nullptr;
+        AudioFileSourcePROGMEM* rtttlSource = nullptr;
         
         // Simplified state management
         bool isCurrentlyPlaying = false;
@@ -60,6 +67,12 @@ class Speaker : public Singleton<Speaker> {
         bool validateAudioObjects();
 
         const char* getFilePath(SoundType audioFile) const;
+        
+        // RTTTL melody methods
+        void updateMelody();
+        
+        // Melody playback state
+        bool isMelodyPlaying = false;
 
         const uint8_t I2S_DOUT = 13;
         const uint8_t I2S_BCLK = 14;

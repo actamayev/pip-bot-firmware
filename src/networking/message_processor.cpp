@@ -429,7 +429,8 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
                                 careerQuestTriggers.stopS3P3DisplayDemo();
                                 break;
                             case MeetPipTriggerType::S4_P5_ENTER:
-                                // Pip plays a short, fun song as a showcase
+                                SerialQueueManager::getInstance().queueMessage("Received S4_P5_ENTER - Playing The Entertainer");
+                                Speaker::getInstance().startEntertainerMelody();
                                 break;
                             case MeetPipTriggerType::S5_P4_ENTER:
                                 SendSensorData::getInstance().setSendSensorData(true);
