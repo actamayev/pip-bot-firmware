@@ -223,81 +223,98 @@ void CareerQuestTriggers::renderS3P3Animation() {
         
         if (cycleTime < 5000) {
             // Phase 1: HAFTR scrolling (0-5 seconds)
-            float progress = (float)cycleTime / 5000.0f; // 0.0 to 1.0
-            
-            // Calculate text position: scroll from left (-70) to right (128+30)
-            int textX = -70 + (int)(progress * 198); // Smoother scroll range
-            
-            display.setTextSize(3.5);
+           float progress = (float)cycleTime / 5000.0f; // 0.0 to 1.0
+
+            display.setTextSize(4);
             display.setTextColor(SSD1306_WHITE);
-            display.setCursor(textX, 24);
-            display.print("HAFTR"); // Use print instead of println to avoid newline
+
+            // Compute text width so scroll range adapts to word size
+            int16_t xb, yb;
+            uint16_t tw, th;
+            const char* word = "HAFTR";
+            display.getTextBounds(word, 0, 0, &xb, &yb, &tw, &th);
+
+            int startX = - (int)tw;                 // start fully off-left
+            int endX   = SCREEN_WIDTH + 30;         // end past the right edge
+            int textX  = startX + (int)(progress * (endX - startX));
+            int textY  = 24;
+
+            display.setTextWrap(false);             // prevent automatic wrapping
+            display.setCursor(textX, textY);
+            display.print(word);
+            display.setTextWrap(true);              // restore wrap (safe default)
         } else {
             // Phase 2: 3D rotating cube (5-10 seconds)
             unsigned long cubeTime = cycleTime - 5000;
-            
-            displayScreen.drawCenteredText("3D CUBE", 5, 3);
-            
-            // Smooth rotation based on time
-            float rotX = (float)cubeTime * 0.003f;
-            float rotY = (float)cubeTime * 0.004f;
-            
-            int centerX = 64, centerY = 35;
-            int size = 12;
-            
-            // Calculate cube vertices with rotation
-            float cosX = cos(rotX), sinX = sin(rotX);
-            float cosY = cos(rotY), sinY = sin(rotY);
-            
-            // 3D rotation matrix application (simplified)
-            // Front face vertices
-            float fx1 = size, fy1 = size, fz1 = size;
-            float fx2 = -size, fy2 = size, fz2 = size;
-            float fx3 = -size, fy3 = -size, fz3 = size;
-            float fx4 = size, fy4 = -size, fz4 = size;
-            
-            // Apply rotation and project to 2D
-            int x1 = centerX + (int)(fx1 * cosY + fz1 * sinY);
-            int y1 = centerY + (int)(fy1 * cosX);
-            int x2 = centerX + (int)(fx2 * cosY + fz2 * sinY);
-            int y2 = centerY + (int)(fy2 * cosX);
-            int x3 = centerX + (int)(fx3 * cosY + fz3 * sinY);
-            int y3 = centerY + (int)(fy3 * cosX);
-            int x4 = centerX + (int)(fx4 * cosY + fz4 * sinY);
-            int y4 = centerY + (int)(fy4 * cosX);
-            
-            // Back face vertices (z = -size)
-            float bx1 = size, by1 = size, bz1 = -size;
-            float bx2 = -size, by2 = size, bz2 = -size;
-            float bx3 = -size, by3 = -size, bz3 = -size;
-            float bx4 = size, by4 = -size, bz4 = -size;
-            
-            int bx1_2d = centerX + (int)(bx1 * cosY + bz1 * sinY);
-            int by1_2d = centerY + (int)(by1 * cosX);
-            int bx2_2d = centerX + (int)(bx2 * cosY + bz2 * sinY);
-            int by2_2d = centerY + (int)(by2 * cosX);
-            int bx3_2d = centerX + (int)(bx3 * cosY + bz3 * sinY);
-            int by3_2d = centerY + (int)(by3 * cosX);
-            int bx4_2d = centerX + (int)(bx4 * cosY + bz4 * sinY);
-            int by4_2d = centerY + (int)(by4 * cosX);
-            
-            // Draw front face
-            display.drawLine(x1, y1, x2, y2, SSD1306_WHITE);
-            display.drawLine(x2, y2, x3, y3, SSD1306_WHITE);
-            display.drawLine(x3, y3, x4, y4, SSD1306_WHITE);
-            display.drawLine(x4, y4, x1, y1, SSD1306_WHITE);
-            
-            // Draw back face
-            display.drawLine(bx1_2d, by1_2d, bx2_2d, by2_2d, SSD1306_WHITE);
-            display.drawLine(bx2_2d, by2_2d, bx3_2d, by3_2d, SSD1306_WHITE);
-            display.drawLine(bx3_2d, by3_2d, bx4_2d, by4_2d, SSD1306_WHITE);
-            display.drawLine(bx4_2d, by4_2d, bx1_2d, by1_2d, SSD1306_WHITE);
-            
-            // Connect front and back faces
-            display.drawLine(x1, y1, bx1_2d, by1_2d, SSD1306_WHITE);
-            display.drawLine(x2, y2, bx2_2d, by2_2d, SSD1306_WHITE);
-            display.drawLine(x3, y3, bx3_2d, by3_2d, SSD1306_WHITE);
-            display.drawLine(x4, y4, bx4_2d, by4_2d, SSD1306_WHITE);
+
+            float ax = (float)cubeTime * 0.0015f;
+            float ay = (float)cubeTime * 0.0020f;
+            float az = (float)cubeTime * 0.00125f;
+
+            const int centerX = 64;
+            const int centerY = 35;
+            const float SIZE_PIX = 12.0f;   // cube half-size in model units (tweak to scale)
+            const float FX = 95.0f;         // focal length
+            const float ZCAM = 60.0f;       // camera distance
+
+            // Cube vertices in unit cube (centered at origin)
+            struct Vec3 { float x, y, z; };
+            static const Vec3 CUBE[8] = {
+                {-1,-1,-1}, {+1,-1,-1}, {+1,+1,-1}, {-1,+1,-1},
+                {-1,-1,+1}, {+1,-1,+1}, {+1,+1,+1}, {-1,+1,+1}
+            };
+
+            // Edge list (pairs of vertex indices)
+            static const uint8_t EDGES[12][2] = {
+                {0,1},{1,2},{2,3},{3,0},
+                {4,5},{5,6},{6,7},{7,4},
+                {0,4},{1,5},{2,6},{3,7}
+            };
+
+            // Precompute sin/cos for current orientation
+            float sx = sin(ax), cxr = cos(ax);
+            float sy = sin(ay), cyr = cos(ay);
+            float sz = sin(az), czr = cos(az);
+
+            float px[8], py[8];
+
+            for (uint8_t i = 0; i < 8; i++) {
+                // Scale model vertex
+                float x = CUBE[i].x * SIZE_PIX;
+                float y = CUBE[i].y * SIZE_PIX;
+                float z = CUBE[i].z * SIZE_PIX;
+
+                // Rotate around X
+                float y1 = y * cxr - z * sx;
+                float z1 = y * sx  + z * cxr;
+                float x1 = x;
+
+                // Rotate around Y
+                float x2 = x1 * cyr + z1 * sy;
+                float z2 = -x1 * sy + z1 * cyr;
+                float y2 = y1;
+
+                // Rotate around Z
+                float x3 = x2 * czr - y2 * sz;
+                float y3 = x2 * sz  + y2 * czr;
+                float z3 = z2;
+
+                // Project with simple perspective (fixed camera ZCAM)
+                float denom = (z3 + ZCAM);
+                if (denom <= 1.0f) denom = 1.0f; // prevent divide-by-zero / extreme distortion
+                float s = FX / denom;
+
+                px[i] = centerX + x3 * s;
+                py[i] = centerY + y3 * s;
+            }
+
+            // Draw edges
+            for (uint8_t e = 0; e < 12; e++) {
+                uint8_t i0 = EDGES[e][0], i1 = EDGES[e][1];
+                display.drawLine((int16_t)px[i0], (int16_t)py[i0],
+                                (int16_t)px[i1], (int16_t)py[i1], SSD1306_WHITE);
+            }
+
         }
         
         s3p3AnimationStep++;
