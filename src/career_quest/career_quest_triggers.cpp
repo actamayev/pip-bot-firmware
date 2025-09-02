@@ -52,15 +52,9 @@ void CareerQuestTriggers::stopS2P4LightShow() {
 }
 
 void CareerQuestTriggers::update() {
-    if (s2p1Active) {
-        updateS2P1Sequence();
-    }
-    if (s2p4Active) {
-        updateS2P4LightShow();
-    }
-    if (s7p4Active) {
-        updateS7P4ButtonDemo();
-    }
+    if (s2p1Active) updateS2P1Sequence();
+    if (s2p4Active) updateS2P4LightShow();
+    if (s7p4Active) updateS7P4ButtonDemo();
 }
 
 void CareerQuestTriggers::updateS2P1Sequence() {
