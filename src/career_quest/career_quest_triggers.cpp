@@ -217,15 +217,22 @@ void CareerQuestTriggers::renderS3P3Animation() {
         
         display.clearDisplay();
         
-        // Calculate elapsed time and loop every 10 seconds (5s HAFTR + 5s cube)
+        // Calculate elapsed time and loop:
+        // Phase1: 0-5s  -> HAFTR scroll
+        // Phase2: 5-10s -> 3D cube
+        // Phase3: 10-15s -> speed gauge (5s: 2.5s up, 2.5s down)
         unsigned long elapsedTime = now - s3p3StartTime;
-        unsigned long cycleTime = elapsedTime % 10000; // 10 second total cycle
+        const unsigned long PH1 = 5000UL;
+        const unsigned long PH2 = 5000UL;
+        const unsigned long PH3 = 5000UL;
+        const unsigned long TOTAL = PH1 + PH2 + PH3; // 15000 ms
+        unsigned long cycleTime = elapsedTime % TOTAL;
         
-        if (cycleTime < 5000) {
+        if (cycleTime < PH1) {
             // Phase 1: HAFTR scrolling (0-5 seconds)
-           float progress = (float)cycleTime / 5000.0f; // 0.0 to 1.0
+            float progress = (float)cycleTime / (float)PH1; // 0.0 .. 1.0
 
-            display.setTextSize(4);
+            display.setTextSize(3.5);
             display.setTextColor(SSD1306_WHITE);
 
             // Compute text width so scroll range adapts to word size
@@ -242,14 +249,16 @@ void CareerQuestTriggers::renderS3P3Animation() {
             display.setTextWrap(false);             // prevent automatic wrapping
             display.setCursor(textX, textY);
             display.print(word);
-            display.setTextWrap(true);              // restore wrap (safe default)
-        } else {
-            // Phase 2: 3D rotating cube (5-10 seconds)
-            unsigned long cubeTime = cycleTime - 5000;
+            display.setTextWrap(true);              // restore wrap
+        }
+        else if (cycleTime < (PH1 + PH2)) {
+            // Phase 2: 3D rotating cube (5-10 seconds) — half the previous rotation speed
+            unsigned long t = cycleTime - PH1;     // 0..PH2-1
 
-            float ax = (float)cubeTime * 0.0015f;
-            float ay = (float)cubeTime * 0.0020f;
-            float az = (float)cubeTime * 0.00125f;
+            // half-speed rotations (previously 0.003f / 0.004f / 0.0025f)
+            float ax = (float)t * 0.0015f;
+            float ay = (float)t * 0.0020f;
+            float az = (float)t * 0.00125f;
 
             const int centerX = 64;
             const int centerY = 35;
@@ -257,51 +266,47 @@ void CareerQuestTriggers::renderS3P3Animation() {
             const float FX = 95.0f;         // focal length
             const float ZCAM = 60.0f;       // camera distance
 
-            // Cube vertices in unit cube (centered at origin)
+            // Cube verts and edges
             struct Vec3 { float x, y, z; };
             static const Vec3 CUBE[8] = {
                 {-1,-1,-1}, {+1,-1,-1}, {+1,+1,-1}, {-1,+1,-1},
                 {-1,-1,+1}, {+1,-1,+1}, {+1,+1,+1}, {-1,+1,+1}
             };
-
-            // Edge list (pairs of vertex indices)
             static const uint8_t EDGES[12][2] = {
                 {0,1},{1,2},{2,3},{3,0},
                 {4,5},{5,6},{6,7},{7,4},
                 {0,4},{1,5},{2,6},{3,7}
             };
 
-            // Precompute sin/cos for current orientation
+            // Precompute sin/cos
             float sx = sin(ax), cxr = cos(ax);
             float sy = sin(ay), cyr = cos(ay);
             float sz = sin(az), czr = cos(az);
 
             float px[8], py[8];
-
             for (uint8_t i = 0; i < 8; i++) {
-                // Scale model vertex
                 float x = CUBE[i].x * SIZE_PIX;
                 float y = CUBE[i].y * SIZE_PIX;
                 float z = CUBE[i].z * SIZE_PIX;
 
-                // Rotate around X
+                // Rotate X
                 float y1 = y * cxr - z * sx;
                 float z1 = y * sx  + z * cxr;
                 float x1 = x;
 
-                // Rotate around Y
+                // Rotate Y
                 float x2 = x1 * cyr + z1 * sy;
                 float z2 = -x1 * sy + z1 * cyr;
                 float y2 = y1;
 
-                // Rotate around Z
+                // Rotate Z
                 float x3 = x2 * czr - y2 * sz;
                 float y3 = x2 * sz  + y2 * czr;
                 float z3 = z2;
 
-                // Project with simple perspective (fixed camera ZCAM)
+                // Project
                 float denom = (z3 + ZCAM);
-                if (denom <= 1.0f) denom = 1.0f; // prevent divide-by-zero / extreme distortion
+                if (denom <= 1.0f) denom = 1.0f;
                 float s = FX / denom;
 
                 px[i] = centerX + x3 * s;
@@ -312,15 +317,87 @@ void CareerQuestTriggers::renderS3P3Animation() {
             for (uint8_t e = 0; e < 12; e++) {
                 uint8_t i0 = EDGES[e][0], i1 = EDGES[e][1];
                 display.drawLine((int16_t)px[i0], (int16_t)py[i0],
-                                (int16_t)px[i1], (int16_t)py[i1], SSD1306_WHITE);
+                                 (int16_t)px[i1], (int16_t)py[i1], SSD1306_WHITE);
+            }
+        }
+        else {
+            // Phase 3: Speed gauge (10-15s) -> 5 seconds total: 2.5s up, 2.5s down
+            unsigned long t = cycleTime - (PH1 + PH2); // 0 .. PH3-1
+            const unsigned long HALF = PH3 / 2;        // 2500 ms
+            float progress;
+            if (t < HALF) {
+                progress = (float)t / (float)HALF;     // 0..1 (rev up)
+            } else {
+                progress = 1.0f - (float)(t - HALF) / (float)HALF; // 1..0 (rev down)
             }
 
+            // Gauge geometry
+            const int cx = 64;
+            const int cy = 48;
+            const int radius = 22;
+            const float START_ANGLE = -3.0f * PI / 4.0f; // -135 degrees
+            const float END_ANGLE   =  3.0f * PI / 4.0f; // +135 degrees
+            const float sweep = END_ANGLE - START_ANGLE;
+
+            // Draw outer arc (approximate by plotting pixels)
+            for (float a = START_ANGLE; a <= END_ANGLE; a += 0.04f) {
+                int x = cx + (int)(cos(a) * radius);
+                int y = cy + (int)(sin(a) * radius);
+                display.drawPixel(x, y, SSD1306_WHITE);
+            }
+
+            // Draw ticks (major ticks every 15 degrees)
+            const int NUM_TICKS = 11;
+            for (int i = 0; i < NUM_TICKS; ++i) {
+                float ta = START_ANGLE + (sweep * (float)i / (NUM_TICKS - 1));
+                int x1 = cx + (int)(cos(ta) * (radius - 1));
+                int y1 = cy + (int)(sin(ta) * (radius - 1));
+                int x2 = cx + (int)(cos(ta) * (radius - 5));
+                int y2 = cy + (int)(sin(ta) * (radius - 5));
+                display.drawLine(x1, y1, x2, y2, SSD1306_WHITE);
+            }
+
+            // Draw filled progress arc (draw small radial points from start to current angle)
+            float curAngle = START_ANGLE + progress * sweep;
+            for (float a = START_ANGLE; a <= curAngle; a += 0.03f) {
+                int x = cx + (int)(cos(a) * (radius - 2));
+                int y = cy + (int)(sin(a) * (radius - 2));
+                display.drawPixel(x, y, SSD1306_WHITE);
+            }
+
+            // Draw center pivot
+            display.fillCircle(cx, cy, 2, SSD1306_WHITE);
+
+            // Draw needle
+            int nx = cx + (int)(cos(curAngle) * (radius - 6));
+            int ny = cy + (int)(sin(curAngle) * (radius - 6));
+            display.drawLine(cx, cy, nx, ny, SSD1306_WHITE);
+            // small extra line to make needle thicker
+            display.drawLine(cx+1, cy, nx+1, ny, SSD1306_WHITE);
+
+            // Draw numeric speed (0-100)
+            int speedValue = (int)(progress * 100.0f + 0.5f);
+            char buf[6];
+            snprintf(buf, sizeof(buf), "%3d", speedValue);
+            display.setTextSize(2);
+            display.setTextColor(SSD1306_WHITE);
+            int16_t tbx, tby; uint16_t tbw, tbh;
+            display.getTextBounds(buf, 0, 0, &tbx, &tby, &tbw, &tbh);
+            // position the number above the gauge center
+            display.setCursor(cx - tbw / 2, cy - radius - 12);
+            display.print(buf);
+
+            // Label
+            display.setTextSize(1);
+            display.setCursor(cx - 16, cy + 8);
+            display.print("SPEED");
         }
         
         s3p3AnimationStep++;
         lastS3P3Update = now;
     }
 }
+
 
 void CareerQuestTriggers::startS7P4ButtonDemo() {
     s7p4Active = true;
