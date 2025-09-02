@@ -32,22 +32,24 @@ class CareerQuestTriggers {
         
         void renderS3P3Animation();
         
-        // LED sequence order (back_right → middle_right → etc.)
-        static constexpr uint8_t s2p1LedSequence[6] = {7, 0, 1, 4, 5, 6}; // Skip headlights (2,3)
+        // LED sequence order (back_right → middle_right → etc.) including headlights
+        static constexpr uint8_t s2p1LedSequence[8] = {7, 0, 1, 2, 3, 4, 5, 6}; // Include headlights (2,3)
         
-        // Color progression (Red → Orange → Yellow → Green → Blue → Purple)
-        static constexpr uint8_t s2p1ColorSequence[6][3] = {
+        // Color progression (Red → Orange → Yellow → Green → Blue → Purple → Cyan → Magenta)
+        static constexpr uint8_t s2p1ColorSequence[8][3] = {
             {255, 0, 0},     // Red
-            {255, 165, 0},   // Orange  
+            {255, 127, 0},   // Orange
             {255, 255, 0},   // Yellow
+            {127, 255, 0},   // Chartreuse
             {0, 255, 0},     // Green
+            {0, 255, 255},   // Cyan
             {0, 0, 255},     // Blue
-            {128, 0, 128}    // Purple
+            {128, 0, 255}    // Purple
         };
         
         // Timing constants
         static constexpr unsigned long S2P1_FADE_TIME = 1000; // 1000ms total fade time
-        static constexpr unsigned long S2P1_UPDATE_INTERVAL = 20; // 20ms updates for smooth fading
+        static constexpr unsigned long S2P1_UPDATE_INTERVAL = 10; // 10ms updates for faster, smoother fading
         static constexpr unsigned long S2P4_DURATION = 5000; // 5 seconds
         static constexpr unsigned long S2P4_UPDATE_INTERVAL = 1000; // 50ms updates
         static constexpr unsigned long S3P3_UPDATE_INTERVAL = 50; // 50ms updates for smooth scrolling

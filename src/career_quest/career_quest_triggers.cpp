@@ -5,8 +5,8 @@ extern Adafruit_NeoPixel strip;
 CareerQuestTriggers careerQuestTriggers(strip);
 
 // Define static constexpr arrays
-constexpr uint8_t CareerQuestTriggers::s2p1LedSequence[6];
-constexpr uint8_t CareerQuestTriggers::s2p1ColorSequence[6][3];
+constexpr uint8_t CareerQuestTriggers::s2p1LedSequence[8];
+constexpr uint8_t CareerQuestTriggers::s2p1ColorSequence[8][3];
 
 CareerQuestTriggers::CareerQuestTriggers(Adafruit_NeoPixel& strip)
     : strip(strip) {
@@ -87,8 +87,8 @@ void CareerQuestTriggers::updateS2P1Sequence() {
             } else {
                 // Normal fade out complete, move to next LED and start fade in
                 isFadingOut = false;
-                currentLedIndex = (currentLedIndex + 1) % 6;
-                currentColorIndex = (currentColorIndex + 1) % 6;
+                currentLedIndex = (currentLedIndex + 1) % 8;
+                currentColorIndex = (currentColorIndex + 1) % 8;
                 currentBrightness = 0;
                 targetBrightness = 255;
             }
@@ -183,8 +183,8 @@ void CareerQuestTriggers::updateS2P4LightShow() {
         uint8_t green = colors[colorIndex][1];
         uint8_t blue = colors[colorIndex][2];
         
-        // Set all main board LEDs to current color (skip headlights)
-        for (int i = 0; i < 6; i++) {
+        // Set all main board LEDs to current color (now including headlights)
+        for (int i = 0; i < 8; i++) {
             uint8_t ledIndex = s2p1LedSequence[i];
             strip.setPixelColor(ledIndex, strip.Color(red, green, blue));
         }
