@@ -61,6 +61,7 @@ void DisplayScreen::update() {
 // Show the start screen
 void DisplayScreen::showStartScreen() {
     if (!initialized || isShowingStartScreen) return;
+    displayOff = false;
 
     display.clearDisplay();
     
@@ -129,7 +130,8 @@ void DisplayScreen::drawCenteredText(const String& text, uint16_t y, uint16_t si
 // Add this method to your DisplayScreen class
 void DisplayScreen::showCustomBuffer(const uint8_t* buffer) {
     if (!initialized) return;
-    
+    displayOff = false;
+
     // Override any current display state
     customScreenActive = true;
     isShowingStartScreen = false;

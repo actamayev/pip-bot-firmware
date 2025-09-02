@@ -197,8 +197,10 @@ void CareerQuestTriggers::updateS2P4LightShow() {
 
 void CareerQuestTriggers::startS3P3DisplayDemo() {
     s3p3Active = true;
+    s3p3StartTime = millis();
     lastS3P3Update = millis();
     s3p3AnimationStep = 0;
+    DisplayScreen::getInstance().displayOff = false;
 }
 
 void CareerQuestTriggers::stopS3P3DisplayDemo() {
@@ -215,47 +217,18 @@ void CareerQuestTriggers::renderS3P3Animation() {
         
         display.clearDisplay();
         
-        // Cycle through different cute animations
-        switch (s3p3AnimationStep % 4) {
-            case 0: {
-                // Bouncing ball
-                int ballX = 20 + (s3p3AnimationStep % 88);
-                display.fillCircle(ballX, 32, 8, SSD1306_WHITE);
-                displayScreen.drawCenteredText("Bouncing Ball!", 50, 1);
-                break;
-            }
-            case 1: {
-                // Happy face
-                display.fillCircle(64, 32, 20, SSD1306_WHITE);
-                display.fillCircle(56, 26, 3, SSD1306_BLACK);
-                display.fillCircle(72, 26, 3, SSD1306_BLACK);
-                display.drawCircle(64, 32, 8, SSD1306_BLACK);
-                displayScreen.drawCenteredText("Hello!", 55, 1);
-                break;
-            }
-            case 2: {
-                // Pulsing heart
-                int size = 8 + (s3p3AnimationStep % 6);
-                display.fillCircle(58, 30, size, SSD1306_WHITE);
-                display.fillCircle(70, 30, size, SSD1306_WHITE);
-                display.fillTriangle(52, 35, 76, 35, 64, 50, SSD1306_WHITE);
-                displayScreen.drawCenteredText("Love!", 55, 1);
-                break;
-            }
-            case 3: {
-                // Rotating star
-                int centerX = 64, centerY = 32;
-                int rotation = s3p3AnimationStep % 8;
-                for (int i = 0; i < 5; i++) {
-                    int angle = (i * 72 + rotation * 5) * PI / 180;
-                    int x = centerX + 15 * cos(angle);
-                    int y = centerY + 15 * sin(angle);
-                    display.fillCircle(x, y, 2, SSD1306_WHITE);
-                }
-                displayScreen.drawCenteredText("Star!", 55, 1);
-                break;
-            }
-        }
+        // Calculate elapsed time and loop every 5 seconds
+        unsigned long elapsedTime = now - s3p3StartTime;
+        unsigned long cycleTime = elapsedTime % 5000; // 5 second cycle
+        float progress = (float)cycleTime / 5000.0f; // 0.0 to 1.0
+        
+        // Calculate text position: scroll from left (-60) to right (128+60)
+        int textX = -60 + (int)(progress * 248); // Complete scroll across screen
+        
+        display.setTextSize(3);
+        display.setTextColor(SSD1306_WHITE);
+        display.setCursor(textX, 24);
+        display.println("HAFTR");
         
         s3p3AnimationStep++;
         lastS3P3Update = now;

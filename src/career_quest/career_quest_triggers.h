@@ -78,6 +78,7 @@ class CareerQuestTriggers {
         // S3_P3 display demo state
         bool s3p3Active = false;
         unsigned long lastS3P3Update = 0;
+        unsigned long s3p3StartTime = 0;
         uint8_t s3p3AnimationStep = 0;
         
         // S7_P4 button demo state
