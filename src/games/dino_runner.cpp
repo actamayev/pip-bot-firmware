@@ -272,7 +272,6 @@ void DinoRunner::drawDinoSprite(int x, int y, bool onGround, Adafruit_SSD1306& d
     }
 }
 
-
 void DinoRunner::drawToBuffer(uint8_t* buffer) {
     DisplayScreen& displayScreen = DisplayScreen::getInstance();
     
@@ -301,8 +300,6 @@ void DinoRunner::drawToBuffer(uint8_t* buffer) {
     memcpy(buffer, displayScreen.display.getBuffer(), DISPLAY_BUFFER_SIZE);
 }
 
-
-
 void DinoRunner::drawMenu(uint8_t* buffer) {
     DisplayScreen& display = DisplayScreen::getInstance();
     
@@ -329,5 +326,4 @@ void DinoRunner::drawGameOver(uint8_t* buffer) {
     // Copy display buffer to our custom buffer
     memcpy(buffer, display.display.getBuffer(), DISPLAY_BUFFER_SIZE);
 }
-
 
