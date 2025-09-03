@@ -87,7 +87,7 @@ void CareerQuestTriggers::updateS2P1Sequence() {
     if (isFadingOut) {
         // Fade out current LED
         if (currentBrightness > 0) {
-            currentBrightness = max(0, currentBrightness - 5); // Fade out step
+            currentBrightness = max(0, currentBrightness - S2P1_BRIGHTNESS_STEP); // Fade out step
             
             // Apply brightness to current LED
             uint8_t fadedRed = (red * currentBrightness) / 255;
@@ -114,7 +114,7 @@ void CareerQuestTriggers::updateS2P1Sequence() {
     } else {
         // Fade in new LED
         if (currentBrightness < targetBrightness) {
-            currentBrightness = min(255, currentBrightness + 5); // Fade in step
+            currentBrightness = min(255, currentBrightness + S2P1_BRIGHTNESS_STEP); // Fade in step
             
             // Apply brightness to new LED with new color
             red = s2p1ColorSequence[currentColorIndex][0];
