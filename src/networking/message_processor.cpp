@@ -431,7 +431,6 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
                             case MeetPipTriggerType::S4_P5_ENTER:
                                 SerialQueueManager::getInstance().queueMessage("Received S4_P5_ENTER - Starting The Entertainer show");
                                 Speaker::getInstance().startEntertainerMelody();
-                                DanceManager::getInstance().startEntertainerDance();
                                 break;
                             case MeetPipTriggerType::S5_P4_ENTER:
                                 SendSensorData::getInstance().setSendSensorData(true);
@@ -490,8 +489,7 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
                                 break;
                             case MeetPipTriggerType::S9_P3_ENTER:
                                 SerialQueueManager::getInstance().queueMessage("Received S9_P3_ENTER - Starting dance performance");
-                                Speaker::getInstance().startEntertainerMelody();
-                                DanceManager::getInstance().startEntertainerDance();
+                                DanceManager::getInstance().startDance();
                                 break;
                             case MeetPipTriggerType::S9_P6_ENTER:
                                 motorDriver.stop_both_motors(); // We need this to prevent students from turning against the motors.

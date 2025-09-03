@@ -1,7 +1,37 @@
 #include "dance_manager.h"
 #include "networking/serial_manager.h"
 
-void DanceManager::startEntertainerDance() {
+const DanceManager::DanceStep* DanceManager::getDanceSequence() {
+    static const DanceStep danceSequence[] = {
+        // Opening flourish - slow rainbow wiggles
+        {DANCE_SPEED_GENTLE, -DANCE_SPEED_GENTLE, 400, LedTypes::RAINBOW, 10},  // Slow right turn
+        {-DANCE_SPEED_GENTLE, DANCE_SPEED_GENTLE, 400, LedTypes::RAINBOW, 10}, // Slow left turn
+        {DANCE_SPEED_GENTLE, -DANCE_SPEED_GENTLE, 400, LedTypes::RAINBOW, 10}, // Slow right turn
+        
+        // Playful spins - cute strobe flashes
+        {DANCE_SPEED_MODERATE, -DANCE_SPEED_MODERATE, 600, LedTypes::STROBING, 6}, // Spin right
+        {-DANCE_SPEED_MODERATE, DANCE_SPEED_MODERATE, 600, LedTypes::STROBING, 6}, // Spin left
+        
+        // Gentle sway - small forward/back with breathing
+        {DANCE_SPEED_GENTLE, DANCE_SPEED_GENTLE, 250, LedTypes::BREATHING, 8},   // Tiny forward
+        {-DANCE_SPEED_GENTLE, -DANCE_SPEED_GENTLE, 250, LedTypes::BREATHING, 8}, // Tiny back
+        
+        // Extra turning section for "cuteness"
+        {DANCE_SPEED_GENTLE, -DANCE_SPEED_GENTLE, 500, LedTypes::RAINBOW, 12},  // Circle right
+        {-DANCE_SPEED_GENTLE, DANCE_SPEED_GENTLE, 500, LedTypes::RAINBOW, 12},  // Circle left
+        
+        // Final bow - fade out with pause
+        {0, 0, 1000, LedTypes::BREATHING, 0},  // Hold + fade lights
+        {0, 0, 500, LedTypes::NONE, 0}        // End stop
+    };
+    return danceSequence;
+}
+
+int DanceManager::getDanceStepCount() {
+    return 11; // Number of steps in the dance sequence
+}
+
+void DanceManager::startDance() {
     // Safety check - only dance if USB is not connected
     if (SerialManager::getInstance().isSerialConnected()) {
         SerialQueueManager::getInstance().queueMessage("Dance blocked - USB connected for safety");
@@ -13,14 +43,16 @@ void DanceManager::startEntertainerDance() {
         return;
     }
     
-    SerialQueueManager::getInstance().queueMessage("Starting Entertainer dance sequence");
+    SerialQueueManager::getInstance().queueMessage("Starting dance sequence");
     isCurrentlyDancing = true;
     currentStep = 0;
     stepStartTime = millis();
-    nextStepTime = stepStartTime + entertainerDance[0].duration;
+    
+    const DanceStep* danceSequence = getDanceSequence();
+    nextStepTime = stepStartTime + danceSequence[0].duration;
     
     // Start first dance step
-    DanceStep firstStep = entertainerDance[0];
+    DanceStep firstStep = danceSequence[0];
     motorDriver.updateMotorPwm(firstStep.leftSpeed, firstStep.rightSpeed);
     
     // Start LED animation
@@ -65,14 +97,15 @@ void DanceManager::update() {
         currentStep++;
         
         // Check if dance is complete
-        if (currentStep >= danceStepCount) {
+        if (currentStep >= getDanceStepCount()) {
             stopDance();
-            SerialQueueManager::getInstance().queueMessage("Entertainer dance completed");
+            SerialQueueManager::getInstance().queueMessage("Dance completed");
             return;
         }
         
         // Execute next dance step
-        DanceStep step = entertainerDance[currentStep];
+        const DanceStep* danceSequence = getDanceSequence();
+        DanceStep step = danceSequence[currentStep];
         stepStartTime = currentTime;
         nextStepTime = currentTime + step.duration;
         
@@ -91,6 +124,6 @@ void DanceManager::update() {
             rgbLed.turn_all_leds_off();
         }
         
-        SerialQueueManager::getInstance().queueMessage("Dance step " + String(currentStep) + "/" + String(danceStepCount));
+        SerialQueueManager::getInstance().queueMessage("Dance step " + String(currentStep) + "/" + String(getDanceStepCount()));
     }
 }
