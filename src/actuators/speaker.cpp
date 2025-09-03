@@ -316,6 +316,19 @@ void Speaker::stopAllSounds() {
     if (initialized && isCurrentlyPlaying) {
         safeStopPlayback();
     }
+    
+    // Stop RTTTL melody if playing
+    if (isMelodyPlaying && rtttlGenerator && rtttlGenerator->isRunning()) {
+        rtttlGenerator->stop();
+        isMelodyPlaying = false;
+        SerialQueueManager::getInstance().queueMessage("Stopped entertainer melody");
+        
+        // Clean up RTTTL resources
+        if (rtttlSource) {
+            delete rtttlSource;
+            rtttlSource = nullptr;
+        }
+    }
 }
 
 void Speaker::update() {
