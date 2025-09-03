@@ -242,6 +242,15 @@ void DisplayScreen::turnDisplayOff() {
     display.clearDisplay();
     display.display();
     
+    SerialQueueManager::getInstance().queueMessage("Display turned off");
+}
+
+void DisplayScreen::turnDisplayOn() {
+    if (!initialized) return;
+    
+    displayOff = false;
+    SerialQueueManager::getInstance().queueMessage("Display turned on");
+    
     // Update buffer tracking
     memset(stagingBuffer, 0, DISPLAY_BUFFER_SIZE);
     copyCurrentBuffer();

@@ -1,4 +1,5 @@
 #include "buttons.h"
+#include "games/game_manager.h"
 
 Buttons::Buttons() 
     : leftButton(LEFT_BUTTON_PIN), 
@@ -82,9 +83,12 @@ void Buttons::setLeftButtonClickHandler(std::function<void(Button2&)> callback) 
             return;
         }
 
-        // If no program is running and we're not waiting to start, use original callback
+        // If no program is running and we're not waiting to start, check for games first
         if (vm.isPaused == BytecodeVM::PROGRAM_NOT_STARTED) {
-            if (originalCallback) {
+            // Forward button press to game manager if game is active
+            if (GameManager::getInstance().isAnyGameActive()) {
+                GameManager::getInstance().handleButtonPress(true, false); // Left button pressed
+            } else if (originalCallback) {
                 originalCallback(btn);
             }
         }
@@ -129,8 +133,10 @@ void Buttons::setRightButtonClickHandler(std::function<void(Button2&)> callback)
             return;
         }
         
-        // Otherwise, proceed with normal click handling
-        if (originalCallback) {
+        // Otherwise, proceed with normal click handling - check games first
+        if (GameManager::getInstance().isAnyGameActive()) {
+            GameManager::getInstance().handleButtonPress(false, true); // Right button pressed
+        } else if (originalCallback) {
             originalCallback(btn);
         }
     });

@@ -21,6 +21,7 @@
 #include "networking/serial_queue_manager.h"
 #include "networking/network_state_manager.h"
 #include "actuators/dance_manager.h"
+#include "games/game_manager.h"
 
 class MessageProcessor : public Singleton<MessageProcessor> {
     friend class Singleton<MessageProcessor>;

@@ -86,7 +86,10 @@ void setup() {
     // 12. DemoManager (high priority for demos)
     TaskManager::createDemoManagerTask();
 
-    // 13. CareerQuest (trigger system)
+    // 13. GameManager (interactive games)
+    TaskManager::createGameManagerTask();
+
+    // 14. CareerQuest (trigger system)
     TaskManager::createCareerQuestTask();
 
     // 14. BytecodeVM

@@ -473,11 +473,12 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
                                 careerQuestTriggers.stopS7P4ButtonDemo();
                                 break;
                             case MeetPipTriggerType::S7_P6_ENTER:
-                                // Google dino run inspired competitive mini game. Users play using the button and display
-                                // Send the results to the server when each user is done: Leader board after everyone is done.
+                                SerialQueueManager::getInstance().queueMessage("Received S7_P6_ENTER - Starting Dino Runner game");
+                                GameManager::getInstance().startGame(Games::GameType::DINO_RUNNER);
                                 break;
                             case MeetPipTriggerType::S7_P6_EXIT:
-                                // Google dino run inspired competitive mini game. Users play using the button and display
+                                SerialQueueManager::getInstance().queueMessage("Received S7_P6_EXIT - Stopping Dino Runner game");
+                                GameManager::getInstance().stopCurrentGame();
                                 break;
                             case MeetPipTriggerType::S8_P3_ENTER:
                                 SendSensorData::getInstance().setSendSensorData(true);

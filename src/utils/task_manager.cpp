@@ -25,6 +25,7 @@ TaskHandle_t TaskManager::batteryMonitorTaskHandle = NULL;
 TaskHandle_t TaskManager::speakerTaskHandle = NULL;
 TaskHandle_t TaskManager::motorTaskHandle = NULL;
 TaskHandle_t TaskManager::demoManagerTaskHandle = NULL;
+TaskHandle_t TaskManager::gameManagerTaskHandle = NULL;
 TaskHandle_t TaskManager::careerQuestTaskHandle = NULL;
 TaskHandle_t TaskManager::displayInitTaskHandle = NULL;
 
@@ -310,6 +311,15 @@ void TaskManager::demoManagerTask(void* parameter) {
     }
 }
 
+void TaskManager::gameManagerTask(void* parameter) {
+    SerialQueueManager::getInstance().queueMessage("GameManager task started");
+
+    for(;;) {
+        GameManager::getInstance().update();
+        vTaskDelay(pdMS_TO_TICKS(16)); // Game updates ~60fps (16ms)
+    }
+}
+
 void TaskManager::careerQuestTask(void* parameter) {
     SerialQueueManager::getInstance().queueMessage("CareerQuest task started");
 
@@ -409,6 +419,11 @@ bool TaskManager::createMotorTask() {
 bool TaskManager::createDemoManagerTask() {
     return createTask("DemoManager", demoManagerTask, DEMO_MANAGER_STACK_SIZE,
                      Priority::SYSTEM_CONTROL, Core::CORE_0, &demoManagerTaskHandle);
+}
+
+bool TaskManager::createGameManagerTask() {
+    return createTask("GameManager", gameManagerTask, GAME_MANAGER_STACK_SIZE,
+                     Priority::SYSTEM_CONTROL, Core::CORE_1, &gameManagerTaskHandle);
 }
 
 bool TaskManager::createCareerQuestTask() {
@@ -538,6 +553,7 @@ void TaskManager::printStackUsage() {
         {speakerTaskHandle, "Speaker", SPEAKER_STACK_SIZE},
         {motorTaskHandle, "Motor", MOTOR_STACK_SIZE},
         {demoManagerTaskHandle, "DemoManager", DEMO_MANAGER_STACK_SIZE},
+        {gameManagerTaskHandle, "GameManager", GAME_MANAGER_STACK_SIZE},
         {careerQuestTaskHandle, "CareerQuest", CAREER_QUEST_STACK_SIZE},
         {displayInitTaskHandle, "DisplayInit", DISPLAY_INIT_STACK_SIZE}
     };
