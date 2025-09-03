@@ -1,4 +1,6 @@
 #include "dino_runner.h"
+#include "networking/websocket_manager.h"
+#include "networking/serial_manager.h"
 
 void DinoRunner::startGame() {
     if (gameActive) return;
@@ -211,6 +213,13 @@ bool DinoRunner::checkCollision(const Obstacle& o) {
 void DinoRunner::gameOver() {
     gameState = GameState::GAME_OVER;
     SerialQueueManager::getInstance().queueMessage("Dino game over - Score: " + String(score));
+    
+    // Send score via available communication channels
+    if (WebSocketManager::getInstance().isConnected()) {
+        WebSocketManager::getInstance().sendDinoScore(score);
+    } else if (SerialManager::getInstance().isSerialConnected()) {
+        SerialManager::getInstance().sendDinoScore(score);
+    }
 }
 
 // Drawing methods using buffer manipulation

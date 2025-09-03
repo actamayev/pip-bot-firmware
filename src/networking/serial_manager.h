@@ -24,6 +24,7 @@ class SerialManager : public Singleton<SerialManager> {
         void sendScanResultsResponse(const std::vector<WiFiNetworkInfo>& networks);
         void sendScanStartedMessage();
         void sendBatteryMonitorData();
+        void sendDinoScore(int score);
 
     private:
         SerialManager() = default;  // Make constructor private and implement it
