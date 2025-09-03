@@ -580,8 +580,8 @@ void CareerQuestTriggers::updateS5P4LedVisualization() {
         // Headlights get additional intensity from left/right roll
         uint8_t leftHeadIntensity = (uint8_t)constrain(baseIntensity + max(0.0f, -roll) / MAX_TILT * 127, 0, 255);
         uint8_t rightHeadIntensity = (uint8_t)constrain(baseIntensity + max(0.0f, roll) / MAX_TILT * 127, 0, 255);
-        strip.setPixelColor(3, strip.Color(leftHeadIntensity, 0, 0));  // left_headlight
-        strip.setPixelColor(2, strip.Color(rightHeadIntensity, 0, 0)); // right_headlight
+        strip.setPixelColor(3, strip.Color(0, 0, leftHeadIntensity));  // left_headlight
+        strip.setPixelColor(2, strip.Color(0, 0, rightHeadIntensity)); // right_headlight
     }
     
     // Back LEDs: stronger with backward pitch
@@ -590,8 +590,8 @@ void CareerQuestTriggers::updateS5P4LedVisualization() {
         uint8_t baseIntensity = (uint8_t)constrain(backInfluence / MAX_TILT * 255, 0, 255);
         uint8_t leftBackIntensity = (uint8_t)constrain(baseIntensity + max(0.0f, -roll) / MAX_TILT * 127, 0, 255);
         uint8_t rightBackIntensity = (uint8_t)constrain(baseIntensity + max(0.0f, roll) / MAX_TILT * 127, 0, 255);
-        strip.setPixelColor(6, strip.Color(leftBackIntensity, 0, 0));  // back_left
-        strip.setPixelColor(7, strip.Color(rightBackIntensity, 0, 0)); // back_right
+        strip.setPixelColor(6, strip.Color(0, 0, leftBackIntensity));  // back_left
+        strip.setPixelColor(7, strip.Color(0, 0, rightBackIntensity)); // back_right
     }
     
     // Top LEDs: influenced by both pitch (front/back) and roll (left/right)
@@ -600,11 +600,11 @@ void CareerQuestTriggers::updateS5P4LedVisualization() {
     
     if (topLeftInfluence > MIN_TILT) {
         uint8_t intensity = (uint8_t)constrain(topLeftInfluence / MAX_TILT * 255, 0, 255);
-        strip.setPixelColor(4, strip.Color(intensity, 0, 0)); // top_left
+        strip.setPixelColor(4, strip.Color(0, 0, intensity)); // top_left
     }
     if (topRightInfluence > MIN_TILT) {
         uint8_t intensity = (uint8_t)constrain(topRightInfluence / MAX_TILT * 255, 0, 255);
-        strip.setPixelColor(1, strip.Color(intensity, 0, 0)); // top_right
+        strip.setPixelColor(1, strip.Color(0, 0, intensity)); // top_right
     }
     
     // Middle LEDs: primarily controlled by roll, with slight pitch influence
@@ -613,11 +613,11 @@ void CareerQuestTriggers::updateS5P4LedVisualization() {
     
     if (middleLeftInfluence > MIN_TILT) {
         uint8_t intensity = (uint8_t)constrain(middleLeftInfluence / MAX_TILT * 255, 0, 255);
-        strip.setPixelColor(5, strip.Color(intensity, 0, 0)); // middle_left
+        strip.setPixelColor(5, strip.Color(0, 0, intensity)); // middle_left
     }
     if (middleRightInfluence > MIN_TILT) {
         uint8_t intensity = (uint8_t)constrain(middleRightInfluence / MAX_TILT * 255, 0, 255);
-        strip.setPixelColor(0, strip.Color(intensity, 0, 0)); // middle_right
+        strip.setPixelColor(0, strip.Color(0, 0, intensity)); // middle_right
     }
     
     strip.show();

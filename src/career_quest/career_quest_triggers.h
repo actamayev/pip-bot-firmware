@@ -52,7 +52,7 @@ class CareerQuestTriggers {
         
         // Timing constants
         static constexpr unsigned long S2P1_FADE_TIME = 1000; // 1000ms total fade time
-        static constexpr unsigned long S2P1_UPDATE_INTERVAL = 10; // 10ms updates for faster, smoother fading
+        static constexpr unsigned long S2P1_UPDATE_INTERVAL = 5; // 10ms updates for faster, smoother fading
         static constexpr unsigned long S2P4_DURATION = 15000; // 15 seconds total
         static constexpr unsigned long S2P4_SNAKE_DURATION = 6000; // 6 seconds
         static constexpr unsigned long S2P4_FLASH_DURATION = 4000; // 4 seconds  
