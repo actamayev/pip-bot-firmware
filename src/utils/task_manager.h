@@ -3,6 +3,7 @@
 #include <freertos/task.h>
 #include "actuators/buttons.h"
 #include "actuators/speaker.h"
+#include "actuators/dance_manager.h"
 #include "utils/sensor_loggers.h"
 #include "sensors/battery_monitor.h"
 #include "networking/serial_manager.h"

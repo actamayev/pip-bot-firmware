@@ -429,8 +429,9 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
                                 careerQuestTriggers.stopS3P3DisplayDemo();
                                 break;
                             case MeetPipTriggerType::S4_P5_ENTER:
-                                SerialQueueManager::getInstance().queueMessage("Received S4_P5_ENTER - Playing The Entertainer");
+                                SerialQueueManager::getInstance().queueMessage("Received S4_P5_ENTER - Starting The Entertainer show");
                                 Speaker::getInstance().startEntertainerMelody();
+                                DanceManager::getInstance().startEntertainerDance();
                                 break;
                             case MeetPipTriggerType::S5_P4_ENTER:
                                 SendSensorData::getInstance().setSendSensorData(true);
@@ -488,7 +489,9 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
                                 SendSensorData::getInstance().setSendSensorData(false);
                                 break;
                             case MeetPipTriggerType::S9_P3_ENTER:
-                                // Pip performs a short “dance” → spins, wiggles forward/back, flashes LEDs, sounds.
+                                SerialQueueManager::getInstance().queueMessage("Received S9_P3_ENTER - Starting dance performance");
+                                Speaker::getInstance().startEntertainerMelody();
+                                DanceManager::getInstance().startEntertainerDance();
                                 break;
                             case MeetPipTriggerType::S9_P6_ENTER:
                                 motorDriver.stop_both_motors(); // We need this to prevent students from turning against the motors.

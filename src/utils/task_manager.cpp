@@ -286,6 +286,7 @@ void TaskManager::speakerTask(void* parameter) {
 
     for(;;) {
         Speaker::getInstance().update();
+        DanceManager::getInstance().update();
         vTaskDelay(pdMS_TO_TICKS(10)); // Update every 10ms for smooth audio
     }
 }
