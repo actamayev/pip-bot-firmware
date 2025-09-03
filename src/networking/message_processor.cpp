@@ -399,38 +399,33 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
                         
                         switch (triggerType) {
                             case MeetPipTriggerType::ENTER_CAREER:
-                                SerialQueueManager::getInstance().queueMessage("Received ENTER_CAREER");
                                 DisplayScreen::getInstance().turnDisplayOff();
                                 Speaker::getInstance().stopAllSounds();
                                 ledAnimations.fadeOut();
                                 break;
                             case MeetPipTriggerType::S2_P1_ENTER:
-                                SerialQueueManager::getInstance().queueMessage("Received S2_P1_ENTER");
                                 careerQuestTriggers.startS2P1Sequence();
                                 break;
                             case MeetPipTriggerType::S2_P1_EXIT:
-                                SerialQueueManager::getInstance().queueMessage("Received S2_P1_EXIT");
                                 careerQuestTriggers.stopS2P1Sequence();
                                 break;
                             case MeetPipTriggerType::S2_P4_ENTER:
-                                SerialQueueManager::getInstance().queueMessage("Received S2_P4_ENTER");
                                 careerQuestTriggers.startS2P4LightShow();
                                 break;
                             case MeetPipTriggerType::S2_P4_EXIT:
-                                SerialQueueManager::getInstance().queueMessage("Received S2_P4_EXIT");
                                 careerQuestTriggers.stopS2P4LightShow();
                                 break;
                             case MeetPipTriggerType::S3_P3_ENTER:
-                                SerialQueueManager::getInstance().queueMessage("Received S3_P3_ENTER");
                                 careerQuestTriggers.startS3P3DisplayDemo();
                                 break;
                             case MeetPipTriggerType::S3_P3_EXIT:
-                                SerialQueueManager::getInstance().queueMessage("Received S3_P3_EXIT");
                                 careerQuestTriggers.stopS3P3DisplayDemo();
                                 break;
                             case MeetPipTriggerType::S4_P5_ENTER:
-                                SerialQueueManager::getInstance().queueMessage("Received S4_P5_ENTER - Starting The Entertainer show");
                                 Speaker::getInstance().startEntertainerMelody();
+                                break;
+                            case MeetPipTriggerType::S4_P5_EXIT:
+                                Speaker::getInstance().stopAllSounds();
                                 break;
                             case MeetPipTriggerType::S5_P4_ENTER:
                                 SendSensorData::getInstance().setSendSensorData(true);
@@ -473,11 +468,9 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
                                 careerQuestTriggers.stopS7P4ButtonDemo();
                                 break;
                             case MeetPipTriggerType::S7_P6_ENTER:
-                                SerialQueueManager::getInstance().queueMessage("Received S7_P6_ENTER - Starting Dino Runner game");
                                 GameManager::getInstance().startGame(Games::GameType::DINO_RUNNER);
                                 break;
                             case MeetPipTriggerType::S7_P6_EXIT:
-                                SerialQueueManager::getInstance().queueMessage("Received S7_P6_EXIT - Stopping Dino Runner game");
                                 GameManager::getInstance().stopCurrentGame();
                                 break;
                             case MeetPipTriggerType::S8_P3_ENTER:
@@ -490,8 +483,10 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
                                 SensorDataBuffer::getInstance().stopPollingSensor(SensorDataBuffer::SensorType::COLOR);
                                 break;
                             case MeetPipTriggerType::S9_P3_ENTER:
-                                SerialQueueManager::getInstance().queueMessage("Received S9_P3_ENTER - Starting dance performance");
                                 DanceManager::getInstance().startDance();
+                                break;
+                            case MeetPipTriggerType::S9_P3_EXIT:
+                                DanceManager::getInstance().stopDance();
                                 break;
                             case MeetPipTriggerType::S9_P6_ENTER:
                                 motorDriver.stop_both_motors(); // We need this to prevent students from turning against the motors.

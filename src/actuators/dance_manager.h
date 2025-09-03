@@ -35,8 +35,29 @@ class DanceManager : public Singleton<DanceManager> {
             LedTypes::AnimationType ledAnimation;
             int ledSpeed;
         };
-        
-        // Fun dance sequence - safe movements with light show
-        static const DanceStep* getDanceSequence();
-        static int getDanceStepCount();
+
+        static constexpr const DanceStep danceSequence[] = {
+            // Opening flourish - slow rainbow wiggles
+            {DANCE_SPEED_GENTLE, -DANCE_SPEED_GENTLE, 400, LedTypes::RAINBOW, 10},  // Slow right turn
+            {-DANCE_SPEED_GENTLE, DANCE_SPEED_GENTLE, 400, LedTypes::RAINBOW, 10}, // Slow left turn
+            {DANCE_SPEED_GENTLE, -DANCE_SPEED_GENTLE, 400, LedTypes::RAINBOW, 10}, // Slow right turn
+            
+            // Playful spins - cute strobe flashes
+            {DANCE_SPEED_MODERATE, -DANCE_SPEED_MODERATE, 600, LedTypes::STROBING, 6}, // Spin right
+            {-DANCE_SPEED_MODERATE, DANCE_SPEED_MODERATE, 600, LedTypes::STROBING, 6}, // Spin left
+            
+            // Gentle sway - small forward/back with breathing
+            {DANCE_SPEED_GENTLE, -DANCE_SPEED_GENTLE, 250, LedTypes::BREATHING, 8},   // Right turn
+            {-DANCE_SPEED_GENTLE, DANCE_SPEED_GENTLE, 250, LedTypes::BREATHING, 8}, // Left turn
+            
+            // Extra turning section for "cuteness"
+            {DANCE_SPEED_GENTLE, -DANCE_SPEED_GENTLE, 500, LedTypes::RAINBOW, 12},  // Circle right
+            {-DANCE_SPEED_GENTLE, DANCE_SPEED_GENTLE, 500, LedTypes::RAINBOW, 12},  // Circle left
+            
+            // Final bow - fade out with pause
+            {0, 0, 1000, LedTypes::BREATHING, 0},  // Hold + fade lights
+            {0, 0, 500, LedTypes::NONE, 0}        // End stop
+        };
+
+        static constexpr size_t DANCE_SEQUENCE_LENGTH = sizeof(danceSequence) / sizeof(danceSequence[0]);
 };

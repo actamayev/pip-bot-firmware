@@ -484,7 +484,7 @@ void CareerQuestTriggers::startS7P4ButtonDemo() {
         ledAnimations.startBreathing(1000, 0.0f); // 1s fade from dark
         
         // Play robot sound
-        Speaker::getInstance().playFile(SoundType::ROBOT);
+        Speaker::getInstance().playFile(SoundType::FART);
     });
 }
 

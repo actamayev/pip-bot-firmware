@@ -118,7 +118,9 @@ enum class MeetPipTriggerType : uint8_t {
     S8_P3_EXIT = 21,
     S9_P3_ENTER = 22,
     S9_P6_ENTER = 23,
-    S9_P6_EXIT = 24
+    S9_P6_EXIT = 24,
+    S4_P5_EXIT = 25,
+    S9_P3_EXIT = 26
 };
 
 struct NewBalancePids {
