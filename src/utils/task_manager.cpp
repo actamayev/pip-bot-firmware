@@ -316,7 +316,7 @@ void TaskManager::gameManagerTask(void* parameter) {
 
     for(;;) {
         GameManager::getInstance().update();
-        vTaskDelay(pdMS_TO_TICKS(16)); // Game updates ~60fps (16ms)
+        vTaskDelay(pdMS_TO_TICKS(10)); // Game updates ~60fps (16ms)
     }
 }
 
