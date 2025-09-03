@@ -1,5 +1,8 @@
 #include "speaker.h"
 
+// Define the static constexpr LED sequence array
+constexpr const Speaker::MelodyNote Speaker::entertainerLedSequence[];
+
 Speaker::~Speaker() {
     cleanup();
 }
@@ -321,7 +324,12 @@ void Speaker::stopAllSounds() {
     if (isMelodyPlaying && rtttlGenerator && rtttlGenerator->isRunning()) {
         rtttlGenerator->stop();
         isMelodyPlaying = false;
-        SerialQueueManager::getInstance().queueMessage("Stopped entertainer melody");
+        
+        // Stop LED sequence and turn off LEDs
+        isLedSequencePlaying = false;
+        rgbLed.turn_main_board_leds_off();
+        
+        SerialQueueManager::getInstance().queueMessage("Stopped entertainer melody and LED sync");
         
         // Clean up RTTTL resources
         if (rtttlSource) {
@@ -373,11 +381,34 @@ void Speaker::update() {
 void Speaker::updateMelody() {
     if (!isMelodyPlaying || !rtttlGenerator) return;
     
+    // Update LED sequence if playing
+    if (isLedSequencePlaying) {
+        unsigned long currentTime = millis();
+        
+        // Check if it's time for the next LED step
+        if (currentTime >= ledStepStartTime + entertainerLedSequence[currentLedStep].duration) {
+            currentLedStep++;
+            
+            // Check if LED sequence is complete
+            if (currentLedStep >= ENTERTAINER_LED_SEQUENCE_LENGTH) {
+                isLedSequencePlaying = false;
+                rgbLed.turn_main_board_leds_off();
+            } else {
+                // Update LEDs with next note's color
+                const MelodyNote& note = entertainerLedSequence[currentLedStep];
+                rgbLed.set_main_board_leds_to_color(note.ledR, note.ledG, note.ledB);
+                ledStepStartTime = currentTime;
+            }
+        }
+    }
+    
     // Keep the RTTTL generator running
     if (rtttlGenerator->isRunning()) {
         if (!rtttlGenerator->loop()) {
             // Melody finished
             isMelodyPlaying = false;
+            isLedSequencePlaying = false;
+            rgbLed.turn_main_board_leds_off();
             SerialQueueManager::getInstance().queueMessage("Entertainer melody completed");
             
             // Clean up RTTTL resources
@@ -392,7 +423,7 @@ void Speaker::updateMelody() {
 void Speaker::startEntertainerMelody() {
     if (muted || isMelodyPlaying) return;
     
-    SerialQueueManager::getInstance().queueMessage("Starting The Entertainer melody");
+    SerialQueueManager::getInstance().queueMessage("Starting The Entertainer melody with LED sync");
     
     // The Entertainer in RTTTL format
     static const uint8_t entertainerRTTTL[] = "TheEntertainer:d=4,o=5,b=140:8d,8d#,8e,c6,8e,c6,8e,c6,c,8c6,8a,8g,8f#,8a,8c6,8e,8d,8c,8a,2d";
@@ -413,7 +444,17 @@ void Speaker::startEntertainerMelody() {
     // Begin playing the RTTTL tune using existing audioOutput
     if (audioOutput && rtttlGenerator->begin(rtttlSource, audioOutput)) {
         isMelodyPlaying = true;
-        SerialQueueManager::getInstance().queueMessage("✓ Entertainer playback started");
+        
+        // Start synchronized LED sequence
+        isLedSequencePlaying = true;
+        currentLedStep = 0;
+        ledStepStartTime = millis();
+        
+        // Set first note's LED color
+        const MelodyNote& firstNote = entertainerLedSequence[0];
+        rgbLed.set_main_board_leds_to_color(firstNote.ledR, firstNote.ledG, firstNote.ledB);
+        
+        SerialQueueManager::getInstance().queueMessage("✓ Entertainer melody and LED sync started");
     } else {
         SerialQueueManager::getInstance().queueMessage("✗ Failed to start Entertainer playback");
         // Clean up on failure

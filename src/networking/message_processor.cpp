@@ -449,17 +449,21 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
                                 break;
                             case MeetPipTriggerType::S6_P4_ENTER:
                                 SendSensorData::getInstance().setSendMultizoneData(true);
+                                rgbLed.turn_headlights_faint_blue();
                                 break;
                             case MeetPipTriggerType::S6_P4_EXIT:
                                 SendSensorData::getInstance().setSendMultizoneData(false);
+                                rgbLed.turn_headlights_off();
                                 break;
                             case MeetPipTriggerType::S6_P6_ENTER:
                                 SendSensorData::getInstance().setSendSensorData(true);
                                 SendSensorData::getInstance().setSideTofDataEnabled(true);
+                                rgbLed.turn_headlights_faint_blue();
                                 break;
                             case MeetPipTriggerType::S6_P6_EXIT:
                                 SendSensorData::getInstance().setSideTofDataEnabled(false);
                                 SendSensorData::getInstance().setSendSensorData(false);
+                                rgbLed.turn_headlights_off();
                                 break;
                             case MeetPipTriggerType::S7_P4_ENTER:
                                 careerQuestTriggers.startS7P4ButtonDemo();

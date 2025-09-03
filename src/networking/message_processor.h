@@ -22,6 +22,7 @@
 #include "networking/network_state_manager.h"
 #include "actuators/dance_manager.h"
 #include "games/game_manager.h"
+#include "actuators/led/rgb_led.h"
 
 class MessageProcessor : public Singleton<MessageProcessor> {
     friend class Singleton<MessageProcessor>;
