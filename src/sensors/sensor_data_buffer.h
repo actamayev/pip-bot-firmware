@@ -261,6 +261,21 @@ class SensorDataBuffer : public Singleton<SensorDataBuffer> {
         // Helper methods for bulk polling control
         void stopPollingAllSensors();
         
+        // Sensor type enum for selective control
+        enum class SensorType {
+            QUATERNION,
+            ACCELEROMETER, 
+            GYROSCOPE,
+            MAGNETOMETER,
+            MULTIZONE_TOF,
+            SIDE_TOF,
+            COLOR,
+            IR
+        };
+        
+        // Selective sensor polling control
+        void stopPollingSensor(SensorType sensorType);
+        
         // Get complete samples (for debugging/logging)
         ImuSample getLatestImuSample();
         

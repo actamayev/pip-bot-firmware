@@ -487,6 +487,7 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
                             case MeetPipTriggerType::S8_P3_EXIT:
                                 SendSensorData::getInstance().setColorSensorDataEnabled(false);
                                 SendSensorData::getInstance().setSendSensorData(false);
+                                SensorDataBuffer::getInstance().stopPollingSensor(SensorDataBuffer::SensorType::COLOR);
                                 break;
                             case MeetPipTriggerType::S9_P3_ENTER:
                                 SerialQueueManager::getInstance().queueMessage("Received S9_P3_ENTER - Starting dance performance");
