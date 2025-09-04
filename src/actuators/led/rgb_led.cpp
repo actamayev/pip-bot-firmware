@@ -185,3 +185,10 @@ void RgbLed::turn_headlights_off() {
     strip.setPixelColor(2, strip.Color(0, 0, 0)); // right_headlight
     strip.show();
 }
+
+void RgbLed::turn_headlights_faint_blue() {
+    constexpr uint8_t faintBlue = 20; // Very faint blue
+    strip.setPixelColor(3, strip.Color(0, 0, faintBlue)); // left_headlight
+    strip.setPixelColor(2, strip.Color(0, 0, faintBlue)); // right_headlight
+    strip.show();
+}

@@ -79,7 +79,7 @@ void ColorSensor::enableColorSensor() {
     if (!isInitialized || sensorEnabled) return;
     
     // Turn on LED for color sensor readings
-    analogWrite(COLOR_SENSOR_LED_PIN, 155);
+    analogWrite(COLOR_SENSOR_LED_PIN, COLOR_SENSOR_LED_BRIGHTNESS);
     
     sensorEnabled = true;
     SerialQueueManager::getInstance().queueMessage("Color sensor enabled");
@@ -111,7 +111,7 @@ void ColorSensor::calibrateBlackPoint() {
     
     SerialQueueManager::getInstance().queueMessage("Calibrating black point - ensure dark surface...");
     
-    analogWrite(COLOR_SENSOR_LED_PIN, 255);
+    analogWrite(COLOR_SENSOR_LED_PIN, COLOR_SENSOR_LED_BRIGHTNESS);
     vTaskDelay(pdMS_TO_TICKS(500)); // Wait for sensor to stabilize
 
     // Take multiple readings and average them
@@ -139,7 +139,7 @@ void ColorSensor::calibrateWhitePoint() {
     
     SerialQueueManager::getInstance().queueMessage("Calibrating white point - ensure white surface...");
     
-    analogWrite(COLOR_SENSOR_LED_PIN, 255);
+    analogWrite(COLOR_SENSOR_LED_PIN, COLOR_SENSOR_LED_BRIGHTNESS);
     vTaskDelay(pdMS_TO_TICKS(500)); // Wait for sensor to stabilize
     
     // Take multiple readings and average them
@@ -162,7 +162,6 @@ void ColorSensor::calibrateWhitePoint() {
     isCalibrated = true;
     analogWrite(COLOR_SENSOR_LED_PIN, 0);
 }
-
 
 void ColorSensor::read_color_sensor() {
     // Use non-blocking state machine for maximum speed

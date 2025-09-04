@@ -25,15 +25,15 @@ class ColorSensor : public Singleton<ColorSensor> {
         bool sensorEnabled = false;  // Track if sensor is actively enabled
 
         struct CalibrationValues {
-            uint16_t blackRed;
-            uint16_t blackGreen;
-            uint16_t blackBlue;
-            uint16_t whiteRed;
-            uint16_t whiteGreen;
-            uint16_t whiteBlue;
+            uint16_t blackRed  = 3338;
+            uint16_t blackGreen= 5868;
+            uint16_t blackBlue = 2993;
+            uint16_t whiteRed  = 37333;
+            uint16_t whiteGreen= 65535;
+            uint16_t whiteBlue = 40437;
         } calibration;
         
-        bool isCalibrated = false;
+        bool isCalibrated = true;
         ColorSensorData colorSensorData;
         unsigned long lastUpdateTime = 0;
         static constexpr unsigned long DELAY_BETWEEN_READINGS = 20; // ms - minimal delay like performance test
@@ -42,4 +42,6 @@ class ColorSensor : public Singleton<ColorSensor> {
         void updateSensorData();  // Single read, write to buffer
         bool shouldBePolling() const;
         const uint8_t COLOR_SENSOR_LED_PIN = 5;
+
+        static constexpr uint8_t COLOR_SENSOR_LED_BRIGHTNESS = 255; // use 255 to match bench
 };

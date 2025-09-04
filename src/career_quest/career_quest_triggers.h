@@ -22,34 +22,44 @@ class CareerQuestTriggers {
         void stopS3P3DisplayDemo();
         void startS7P4ButtonDemo();
         void stopS7P4ButtonDemo();
+        void startS5P4LedVisualization();
+        void stopS5P4LedVisualization();
+        void stopAllCareerQuestTriggers();
         void update();
         
         bool isS2P1Active() const { return s2p1Active; }
         bool isS2P4Active() const { return s2p4Active; }
         bool isS3P3Active() const { return s3p3Active; }
         bool isS7P4Active() const { return s7p4Active; }
+        bool isS5P4Active() const { return s5p4Active; }
         
         void renderS3P3Animation();
         
-        // LED sequence order (back_right → middle_right → etc.)
-        static constexpr uint8_t s2p1LedSequence[6] = {7, 0, 1, 4, 5, 6}; // Skip headlights (2,3)
+        // LED sequence order (back_right → middle_right → etc.) including headlights
+        static constexpr uint8_t s2p1LedSequence[8] = {7, 0, 1, 2, 3, 4, 5, 6}; // Include headlights (2,3)
         
-        // Color progression (Red → Orange → Yellow → Green → Blue → Purple)
-        static constexpr uint8_t s2p1ColorSequence[6][3] = {
+        // Color progression (Red → Orange → Yellow → Green → Blue → Purple → Cyan → Magenta)
+        static constexpr uint8_t s2p1ColorSequence[8][3] = {
             {255, 0, 0},     // Red
-            {255, 165, 0},   // Orange  
+            {255, 127, 0},   // Orange
             {255, 255, 0},   // Yellow
+            {127, 255, 0},   // Chartreuse
             {0, 255, 0},     // Green
+            {0, 255, 255},   // Cyan
             {0, 0, 255},     // Blue
-            {128, 0, 128}    // Purple
+            {128, 0, 255}    // Purple
         };
         
         // Timing constants
-        static constexpr unsigned long S2P1_FADE_TIME = 1000; // 1000ms total fade time
-        static constexpr unsigned long S2P1_UPDATE_INTERVAL = 20; // 20ms updates for smooth fading
-        static constexpr unsigned long S2P4_DURATION = 5000; // 5 seconds
-        static constexpr unsigned long S2P4_UPDATE_INTERVAL = 1000; // 50ms updates
-        static constexpr unsigned long S3P3_UPDATE_INTERVAL = 500; // 500ms updates for display animation
+        static constexpr unsigned long S2P1_UPDATE_INTERVAL = 10; // 10ms updates for faster, smoother fading
+        static constexpr uint8_t S2P1_BRIGHTNESS_STEP = 10; // 10ms updates for faster, smoother fading
+        static constexpr unsigned long S2P4_DURATION = 15000; // 15 seconds total
+        static constexpr unsigned long S2P4_SNAKE_DURATION = 6000; // 6 seconds
+        static constexpr unsigned long S2P4_FLASH_DURATION = 4000; // 4 seconds  
+        static constexpr unsigned long S2P4_BREATHING_DURATION = 5000; // 5 seconds
+        static constexpr unsigned long S2P4_SNAKE_INTERVAL = 200; // 200ms per LED
+        static constexpr unsigned long S2P4_FLASH_INTERVAL = 400; // 400ms per flash
+        static constexpr unsigned long S3P3_UPDATE_INTERVAL = 50; // 50ms updates for smooth scrolling
         
     private:
         Adafruit_NeoPixel& strip;
@@ -71,10 +81,20 @@ class CareerQuestTriggers {
         unsigned long s2p4StartTime = 0;
         unsigned long lastS2P4Update = 0;
         uint8_t s2p4Step = 0;
+        bool s2p4ExitFading = false;
+        uint8_t s2p4CurrentBrightness = 255;
+        
+        // S2P4 3-phase light show
+        uint8_t s2p4Phase = 0;  // 0=snake, 1=flash, 2=breathing
+        uint8_t s2p4SnakePosition = 0;
+        uint8_t s2p4FlashColorIndex = 0;
+        bool s2p4SnakeDirection = true; // true=forward, false=reverse
+        unsigned long s2p4PhaseStartTime = 0;
         
         // S3_P3 display demo state
         bool s3p3Active = false;
         unsigned long lastS3P3Update = 0;
+        unsigned long s3p3StartTime = 0;
         uint8_t s3p3AnimationStep = 0;
         
         // S7_P4 button demo state
@@ -83,9 +103,16 @@ class CareerQuestTriggers {
         uint8_t s7p4CurrentBrightness = 255;
         unsigned long lastS7P4Update = 0;
         
+        // S5_P4 IMU LED visualization state
+        bool s5p4Active = false;
+        bool s5p4ExitFading = false;
+        unsigned long lastS5P4Update = 0;
+        static constexpr unsigned long S5P4_UPDATE_INTERVAL = 20; // 20ms for responsive visualization
+        
         void updateS2P1Sequence();
         void updateS2P4LightShow();
         void updateS7P4ButtonDemo();
+        void updateS5P4LedVisualization();
 };
 
 extern CareerQuestTriggers careerQuestTriggers;

@@ -394,101 +394,110 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
                 CareerType careerType = static_cast<CareerType>(data[1]);
                 
                 switch (careerType) {
-                    case CareerType::INTRODUCTION: {
-                        IntroductionTriggerType triggerType = static_cast<IntroductionTriggerType>(data[2]);
+                    case CareerType::MEET_PIP: {
+                        MeetPipTriggerType triggerType = static_cast<MeetPipTriggerType>(data[2]);
                         
                         switch (triggerType) {
-                            case IntroductionTriggerType::S2_P1_ENTER:
-                                SerialQueueManager::getInstance().queueMessage("Received S2_P1_ENTER");
+                            case MeetPipTriggerType::ENTER_CAREER:
+                                DisplayScreen::getInstance().turnDisplayOff();
+                                Speaker::getInstance().stopAllSounds();
+                                ledAnimations.fadeOut();
+                                break;
+                            case MeetPipTriggerType::S2_P1_ENTER:
                                 careerQuestTriggers.startS2P1Sequence();
                                 break;
-                            case IntroductionTriggerType::S2_P1_EXIT:
-                                SerialQueueManager::getInstance().queueMessage("Received S2_P1_EXIT");
+                            case MeetPipTriggerType::S2_P1_EXIT:
                                 careerQuestTriggers.stopS2P1Sequence();
                                 break;
-                            case IntroductionTriggerType::S2_P4_ENTER:
-                                SerialQueueManager::getInstance().queueMessage("Received S2_P4_ENTER");
+                            case MeetPipTriggerType::S2_P4_ENTER:
                                 careerQuestTriggers.startS2P4LightShow();
                                 break;
-                            case IntroductionTriggerType::S2_P4_EXIT:
-                                SerialQueueManager::getInstance().queueMessage("Received S2_P4_EXIT");
+                            case MeetPipTriggerType::S2_P4_EXIT:
                                 careerQuestTriggers.stopS2P4LightShow();
                                 break;
-                            case IntroductionTriggerType::S3_P3_ENTER:
-                                SerialQueueManager::getInstance().queueMessage("Received S3_P3_ENTER");
+                            case MeetPipTriggerType::S3_P3_ENTER:
                                 careerQuestTriggers.startS3P3DisplayDemo();
                                 break;
-                            case IntroductionTriggerType::S3_P3_EXIT:
-                                SerialQueueManager::getInstance().queueMessage("Received S3_P3_EXIT");
+                            case MeetPipTriggerType::S3_P3_EXIT:
                                 careerQuestTriggers.stopS3P3DisplayDemo();
                                 break;
-                            case IntroductionTriggerType::S4_P5_ENTER:
-                                // Pip plays a short, fun song as a showcase
+                            case MeetPipTriggerType::S4_P5_ENTER:
+                                Speaker::getInstance().startEntertainerMelody();
                                 break;
-                            case IntroductionTriggerType::S5_P4_ENTER:
+                            case MeetPipTriggerType::S4_P5_EXIT:
+                                Speaker::getInstance().stopAllSounds();
+                                break;
+                            case MeetPipTriggerType::S5_P4_ENTER:
                                 SendSensorData::getInstance().setSendSensorData(true);
                                 SendSensorData::getInstance().setEulerDataEnabled(true);
                                 SendSensorData::getInstance().setAccelDataEnabled(true);
+                                careerQuestTriggers.startS5P4LedVisualization();
                                 break;
-                            case IntroductionTriggerType::S5_P4_EXIT:
+                            case MeetPipTriggerType::S5_P4_EXIT:
                                 SendSensorData::getInstance().setEulerDataEnabled(false);
                                 SendSensorData::getInstance().setAccelDataEnabled(false);
                                 SendSensorData::getInstance().setSendSensorData(false);
+                                careerQuestTriggers.stopS5P4LedVisualization();
                                 break;
-                            case IntroductionTriggerType::S5_P5_ENTER:
+                            case MeetPipTriggerType::S5_P5_ENTER:
                                 SendSensorData::getInstance().setSendSensorData(true);
                                 SendSensorData::getInstance().setEulerDataEnabled(true);
-                                SendSensorData::getInstance().setAccelDataEnabled(true);
                                 break;
-                            case IntroductionTriggerType::S5_P5_EXIT:
+                            case MeetPipTriggerType::S5_P5_EXIT:
                                 SendSensorData::getInstance().setEulerDataEnabled(false);
-                                SendSensorData::getInstance().setAccelDataEnabled(false);
                                 SendSensorData::getInstance().setSendSensorData(false);
                                 break;
-                            case IntroductionTriggerType::S6_P4_ENTER:
+                            case MeetPipTriggerType::S6_P4_ENTER:
                                 SendSensorData::getInstance().setSendMultizoneData(true);
+                                rgbLed.turn_headlights_faint_blue();
                                 break;
-                            case IntroductionTriggerType::S6_P4_EXIT:
+                            case MeetPipTriggerType::S6_P4_EXIT:
                                 SendSensorData::getInstance().setSendMultizoneData(false);
+                                rgbLed.turn_headlights_off();
                                 break;
-                            case IntroductionTriggerType::S6_P6_ENTER:
+                            case MeetPipTriggerType::S6_P6_ENTER:
                                 SendSensorData::getInstance().setSendSensorData(true);
                                 SendSensorData::getInstance().setSideTofDataEnabled(true);
+                                rgbLed.turn_headlights_faint_blue();
                                 break;
-                            case IntroductionTriggerType::S6_P6_EXIT:
+                            case MeetPipTriggerType::S6_P6_EXIT:
                                 SendSensorData::getInstance().setSideTofDataEnabled(false);
                                 SendSensorData::getInstance().setSendSensorData(false);
+                                rgbLed.turn_headlights_off();
                                 break;
-                            case IntroductionTriggerType::S7_P4_ENTER:
+                            case MeetPipTriggerType::S7_P4_ENTER:
                                 careerQuestTriggers.startS7P4ButtonDemo();
                                 break;
-                            case IntroductionTriggerType::S7_P4_EXIT:
+                            case MeetPipTriggerType::S7_P4_EXIT:
                                 careerQuestTriggers.stopS7P4ButtonDemo();
                                 break;
-                            case IntroductionTriggerType::S7_P6_ENTER:
-                                // Google dino run inspired competitive mini game. Users play using the button and display
-                                // Send the results to the server when each user is done: Leader board after everyone is done.
+                            case MeetPipTriggerType::S7_P6_ENTER:
+                                GameManager::getInstance().startGame(Games::GameType::DINO_RUNNER);
                                 break;
-                            case IntroductionTriggerType::S7_P6_EXIT:
-                                // Google dino run inspired competitive mini game. Users play using the button and display
+                            case MeetPipTriggerType::S7_P6_EXIT:
+                                GameManager::getInstance().stopCurrentGame();
                                 break;
-                            case IntroductionTriggerType::S8_P3_ENTER:
+                            case MeetPipTriggerType::S8_P3_ENTER:
                                 SendSensorData::getInstance().setSendSensorData(true);
                                 SendSensorData::getInstance().setColorSensorDataEnabled(true);
                                 break;
-                            case IntroductionTriggerType::S8_P3_EXIT:
+                            case MeetPipTriggerType::S8_P3_EXIT:
                                 SendSensorData::getInstance().setColorSensorDataEnabled(false);
                                 SendSensorData::getInstance().setSendSensorData(false);
+                                SensorDataBuffer::getInstance().stopPollingSensor(SensorDataBuffer::SensorType::COLOR);
                                 break;
-                            case IntroductionTriggerType::S9_P3_ENTER:
-                                // Pip performs a short “dance” → spins, wiggles forward/back, flashes LEDs, sounds.
+                            case MeetPipTriggerType::S9_P3_ENTER:
+                                DanceManager::getInstance().startDance();
                                 break;
-                            case IntroductionTriggerType::S9_P6_ENTER:
+                            case MeetPipTriggerType::S9_P3_EXIT:
+                                DanceManager::getInstance().stopDance();
+                                break;
+                            case MeetPipTriggerType::S9_P6_ENTER:
                                 motorDriver.stop_both_motors(); // We need this to prevent students from turning against the motors.
                                 SendSensorData::getInstance().setSendSensorData(true);
                                 SendSensorData::getInstance().setEncoderDataEnabled(true);
                                 break;
-                            case IntroductionTriggerType::S9_P6_EXIT:
+                            case MeetPipTriggerType::S9_P6_EXIT:
                                 SendSensorData::getInstance().setEncoderDataEnabled(false);
                                 SendSensorData::getInstance().setSendSensorData(false);
                                 break;
@@ -502,6 +511,14 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
                         SerialQueueManager::getInstance().queueMessage("Unknown career type");
                         break;
                 }
+            }
+            break;
+        }
+        case DataMessageType::STOP_CAREER_QUEST_TRIGGER: {
+            if (length != 1) {
+                SerialQueueManager::getInstance().queueMessage("Invalid stop career quest trigger message length");
+            } else {
+                careerQuestTriggers.stopAllCareerQuestTriggers();
             }
             break;
         }

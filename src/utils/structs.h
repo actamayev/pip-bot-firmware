@@ -127,5 +127,6 @@ enum class RouteType {
     BATTERY_MONITOR_DATA_ITEM,
     BATTERY_MONITOR_DATA_COMPLETE,
     BATTERY_MONITOR_DATA_FULL, // This is for sending data over WS
-    PIP_TURNING_OFF
+    PIP_TURNING_OFF,
+    DINO_SCORE
 };

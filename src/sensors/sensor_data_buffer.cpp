@@ -285,15 +285,43 @@ ImuSample SensorDataBuffer::getLatestImuSample() {
 }
 
 void SensorDataBuffer::stopPollingAllSensors() {
-    // Reset all timeout timestamps to 0 to disable all sensors
-    timeouts.quaternion_last_request.store(0);
-    timeouts.accelerometer_last_request.store(0);
-    timeouts.gyroscope_last_request.store(0);
-    timeouts.magnetometer_last_request.store(0);
-    timeouts.tof_last_request.store(0);
-    timeouts.side_tof_last_request.store(0);
-    timeouts.color_last_request.store(0);
-    timeouts.ir_last_request.store(0);
+    stopPollingSensor(SensorType::QUATERNION);
+    stopPollingSensor(SensorType::ACCELEROMETER);
+    stopPollingSensor(SensorType::GYROSCOPE);
+    stopPollingSensor(SensorType::MAGNETOMETER);
+    stopPollingSensor(SensorType::MULTIZONE_TOF);
+    stopPollingSensor(SensorType::SIDE_TOF);
+    stopPollingSensor(SensorType::COLOR);
+    stopPollingSensor(SensorType::IR);
+}
+
+void SensorDataBuffer::stopPollingSensor(SensorType sensorType) {
+    switch (sensorType) {
+        case SensorType::QUATERNION:
+            timeouts.quaternion_last_request.store(0);
+            break;
+        case SensorType::ACCELEROMETER:
+            timeouts.accelerometer_last_request.store(0);
+            break;
+        case SensorType::GYROSCOPE:
+            timeouts.gyroscope_last_request.store(0);
+            break;
+        case SensorType::MAGNETOMETER:
+            timeouts.magnetometer_last_request.store(0);
+            break;
+        case SensorType::MULTIZONE_TOF:
+            timeouts.tof_last_request.store(0);
+            break;
+        case SensorType::SIDE_TOF:
+            timeouts.side_tof_last_request.store(0);
+            break;
+        case SensorType::COLOR:
+            timeouts.color_last_request.store(0);
+            break;
+        case SensorType::IR:
+            timeouts.ir_last_request.store(0);
+            break;
+    }
 }
 
 void SensorDataBuffer::markImuDataUpdated() {

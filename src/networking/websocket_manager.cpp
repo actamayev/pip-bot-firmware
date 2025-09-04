@@ -194,3 +194,16 @@ void WebSocketManager::sendPipTurningOff() {
     serializeJson(pipTurningOffDoc, jsonString);
     wsClient.send(jsonString);
 }
+
+void WebSocketManager::sendDinoScore(int score) {
+    if (!wsConnected) return;
+    
+    StaticJsonDocument<256> doc;
+    doc["route"] = routeToString(RouteType::DINO_SCORE);
+    JsonObject payload = doc.createNestedObject("payload");
+    payload["score"] = score;
+    
+    String jsonString;
+    serializeJson(doc, jsonString);
+    wsClient.send(jsonString);
+}

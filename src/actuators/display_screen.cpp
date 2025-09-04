@@ -61,6 +61,7 @@ void DisplayScreen::update() {
 // Show the start screen
 void DisplayScreen::showStartScreen() {
     if (!initialized || isShowingStartScreen) return;
+    displayOff = false;
 
     display.clearDisplay();
     
@@ -129,7 +130,8 @@ void DisplayScreen::drawCenteredText(const String& text, uint16_t y, uint16_t si
 // Add this method to your DisplayScreen class
 void DisplayScreen::showCustomBuffer(const uint8_t* buffer) {
     if (!initialized) return;
-    
+    displayOff = false;
+
     // Override any current display state
     customScreenActive = true;
     isShowingStartScreen = false;
@@ -180,6 +182,9 @@ void DisplayScreen::showLowBatteryScreen() {
 }
 
 void DisplayScreen::generateContentToBuffer() {
+    // If display is off, don't generate any content
+    if (displayOff) return;
+
     // Check if trigger animation is active first
     if (careerQuestTriggers.isS3P3Active()) {
         careerQuestTriggers.renderS3P3Animation();
@@ -229,8 +234,22 @@ void DisplayScreen::resetPerformanceCounters() {
 
 void DisplayScreen::turnDisplayOff() {
     if (!initialized) return;
+    
+    displayOff = true;
+    customScreenActive = false;
+    isShowingStartScreen = false;
+    
     display.clearDisplay();
     display.display();
+    
+    SerialQueueManager::getInstance().queueMessage("Display turned off");
+}
+
+void DisplayScreen::turnDisplayOn() {
+    if (!initialized) return;
+    
+    displayOff = false;
+    SerialQueueManager::getInstance().queueMessage("Display turned on");
     
     // Update buffer tracking
     memset(stagingBuffer, 0, DISPLAY_BUFFER_SIZE);
