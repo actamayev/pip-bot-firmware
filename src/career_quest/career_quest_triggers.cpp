@@ -652,5 +652,7 @@ void CareerQuestTriggers::stopAllCareerQuestTriggers() {
     SendSensorData::getInstance().setEncoderDataEnabled(false);
     
     // Stop motors
-    motorDriver.stop_both_motors();
+    DanceManager::getInstance().stopDance();
+    GameManager::getInstance().stopCurrentGame();
+    DisplayScreen::getInstance().showStartScreen();
 }
