@@ -300,3 +300,17 @@ void SerialManager::sendBatteryDataItem(const String& key, bool value) {
     
     SerialQueueManager::getInstance().queueMessage(jsonString, SerialPriority::CRITICAL);
 }
+
+void SerialManager::sendDinoScore(int score) {
+    if (!isConnected) return;
+    
+    StaticJsonDocument<256> doc;
+    doc["route"] = routeToString(RouteType::DINO_SCORE);
+    JsonObject payload = doc.createNestedObject("payload");
+    payload["score"] = score;
+    
+    String jsonString;
+    serializeJson(doc, jsonString);
+    
+    SerialQueueManager::getInstance().queueMessage(jsonString, SerialPriority::CRITICAL);
+}

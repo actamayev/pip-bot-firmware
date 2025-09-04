@@ -1,4 +1,5 @@
 #include "buttons.h"
+#include "games/game_manager.h"
 
 Buttons::Buttons() 
     : leftButton(LEFT_BUTTON_PIN), 
@@ -129,8 +130,10 @@ void Buttons::setRightButtonClickHandler(std::function<void(Button2&)> callback)
             return;
         }
         
-        // Otherwise, proceed with normal click handling
-        if (originalCallback) {
+        // Otherwise, proceed with normal click handling - check games first
+        if (GameManager::getInstance().isAnyGameActive()) {
+            GameManager::getInstance().handleButtonPress(true); // Right button pressed
+        } else if (originalCallback) {
             originalCallback(btn);
         }
     });

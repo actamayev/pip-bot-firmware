@@ -3,6 +3,7 @@
 #include <freertos/task.h>
 #include "actuators/buttons.h"
 #include "actuators/speaker.h"
+#include "actuators/dance_manager.h"
 #include "utils/sensor_loggers.h"
 #include "sensors/battery_monitor.h"
 #include "networking/serial_manager.h"
@@ -11,6 +12,7 @@
 #include "networking/serial_queue_manager.h"
 #include "actuators/motor_driver.h"
 #include "demos/demo_manager.h"
+#include "games/game_manager.h"
 
 class TaskManager {
     public:
@@ -29,6 +31,7 @@ class TaskManager {
         static bool createSpeakerTask();
         static bool createMotorTask();
         static bool createDemoManagerTask();
+        static bool createGameManagerTask();
         static bool createCareerQuestTask();
         
         // Individual sensor task creation methods
@@ -66,6 +69,7 @@ class TaskManager {
         static void speakerTask(void* parameter);
         static void motorTask(void* parameter);
         static void demoManagerTask(void* parameter);
+        static void gameManagerTask(void* parameter);
         static void careerQuestTask(void* parameter);
 
         static constexpr uint32_t BUTTON_STACK_SIZE = 4096;
@@ -93,6 +97,7 @@ class TaskManager {
         static constexpr uint32_t SPEAKER_STACK_SIZE = 12288;
         static constexpr uint32_t MOTOR_STACK_SIZE = 4096;
         static constexpr uint32_t DEMO_MANAGER_STACK_SIZE = 6144;
+        static constexpr uint32_t GAME_MANAGER_STACK_SIZE = 8192;
         static constexpr uint32_t CAREER_QUEST_STACK_SIZE = 8192;
 
         // Task priorities (higher number = higher priority)
@@ -146,6 +151,7 @@ class TaskManager {
         static TaskHandle_t speakerTaskHandle;
         static TaskHandle_t motorTaskHandle;
         static TaskHandle_t demoManagerTaskHandle;
+        static TaskHandle_t gameManagerTaskHandle;
         static TaskHandle_t careerQuestTaskHandle;
 
         static void printStackUsage();

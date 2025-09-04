@@ -28,7 +28,8 @@ enum class DataMessageType : uint8_t {
     REQUEST_BATTERY_MONITOR_DATA = 24,
     UPDATE_DISPLAY = 25,
     STOP_SENSOR_POLLING = 26,
-    TRIGGER_MESSAGE = 27
+    TRIGGER_MESSAGE = 27,
+    STOP_CAREER_QUEST_TRIGGER = 28
 };
 
 // Sound types
@@ -89,10 +90,11 @@ enum class WiFiConnectionStatus : uint8_t {
 };
 
 enum class CareerType : uint8_t {
-    INTRODUCTION = 1
+    MEET_PIP = 1
 };
 
-enum class IntroductionTriggerType : uint8_t {
+enum class MeetPipTriggerType : uint8_t {
+    ENTER_CAREER = 0,
     S2_P1_ENTER = 1,
     S2_P1_EXIT = 2,
     S2_P4_ENTER = 3,
@@ -116,7 +118,9 @@ enum class IntroductionTriggerType : uint8_t {
     S8_P3_EXIT = 21,
     S9_P3_ENTER = 22,
     S9_P6_ENTER = 23,
-    S9_P6_EXIT = 24
+    S9_P6_EXIT = 24,
+    S4_P5_EXIT = 25,
+    S9_P3_EXIT = 26
 };
 
 struct NewBalancePids {

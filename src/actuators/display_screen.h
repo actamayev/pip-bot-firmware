@@ -12,6 +12,7 @@
 class DisplayScreen: public Singleton<DisplayScreen> {
     friend class Singleton<DisplayScreen>;  // Allow Singleton to access private constructor
     friend class CareerQuestTriggers;  // Allow Singleton to access private constructor
+    friend class DinoRunner;  // Allow Singleton to access private constructor
 
     public:
         bool init(bool showStartup);
@@ -24,6 +25,7 @@ class DisplayScreen: public Singleton<DisplayScreen> {
         void showLowBatteryScreen();
 
         void turnDisplayOff();
+        void turnDisplayOn();
         
         // Performance tracking
         unsigned long getDisplayUpdateCount() const { return displayUpdates; }
@@ -53,6 +55,7 @@ class DisplayScreen: public Singleton<DisplayScreen> {
         // State flags
         bool initialized = false;
         bool customScreenActive = false;
+        bool displayOff = false;
         
         // Timing management
         unsigned long lastUpdateTime = 0;

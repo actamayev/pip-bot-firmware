@@ -25,6 +25,7 @@ TaskHandle_t TaskManager::batteryMonitorTaskHandle = NULL;
 TaskHandle_t TaskManager::speakerTaskHandle = NULL;
 TaskHandle_t TaskManager::motorTaskHandle = NULL;
 TaskHandle_t TaskManager::demoManagerTaskHandle = NULL;
+TaskHandle_t TaskManager::gameManagerTaskHandle = NULL;
 TaskHandle_t TaskManager::careerQuestTaskHandle = NULL;
 TaskHandle_t TaskManager::displayInitTaskHandle = NULL;
 
@@ -82,7 +83,7 @@ void TaskManager::imuSensorTask(void* parameter) {
     while (!SensorInitializer::getInstance().isSensorInitialized(SensorInitializer::IMU)) {
         vTaskDelay(pdMS_TO_TICKS(50));  // Check every 50ms
     }
-    SerialQueueManager::getInstance().queueMessage("IMU centralized initialization complete, starting polling");
+    SerialQueueManager::getInstance().queueMessage("IMU centralized initialization complete.");
     
     // Main polling loop
     for(;;) {
@@ -114,7 +115,7 @@ void TaskManager::multizoneTofSensorTask(void* parameter) {
     while (!SensorInitializer::getInstance().isSensorInitialized(SensorInitializer::MULTIZONE_TOF)) {
         vTaskDelay(pdMS_TO_TICKS(50));  // Check every 50ms
     }
-    SerialQueueManager::getInstance().queueMessage("Multizone TOF centralized initialization complete, starting polling");
+    SerialQueueManager::getInstance().queueMessage("Multizone TOF centralized initialization complete.");
     
     // Main polling loop
     for(;;) {
@@ -151,7 +152,7 @@ void TaskManager::colorSensorTask(void* parameter) {
     while (!SensorInitializer::getInstance().isSensorInitialized(SensorInitializer::COLOR_SENSOR)) {
         vTaskDelay(pdMS_TO_TICKS(50));  // Check every 50ms
     }
-    SerialQueueManager::getInstance().queueMessage("Color sensor centralized initialization complete, starting polling");
+    SerialQueueManager::getInstance().queueMessage("Color sensor centralized initialization complete.");
     
     // Main polling loop
     for(;;) {
@@ -286,6 +287,7 @@ void TaskManager::speakerTask(void* parameter) {
 
     for(;;) {
         Speaker::getInstance().update();
+        DanceManager::getInstance().update();
         vTaskDelay(pdMS_TO_TICKS(10)); // Update every 10ms for smooth audio
     }
 }
@@ -306,6 +308,15 @@ void TaskManager::demoManagerTask(void* parameter) {
     for(;;) {
         DemoManager::getInstance().update();
         vTaskDelay(pdMS_TO_TICKS(5)); // Demo updates every 5ms
+    }
+}
+
+void TaskManager::gameManagerTask(void* parameter) {
+    SerialQueueManager::getInstance().queueMessage("GameManager task started");
+
+    for(;;) {
+        GameManager::getInstance().update();
+        vTaskDelay(pdMS_TO_TICKS(10)); // Game updates ~60fps (16ms)
     }
 }
 
@@ -408,6 +419,11 @@ bool TaskManager::createMotorTask() {
 bool TaskManager::createDemoManagerTask() {
     return createTask("DemoManager", demoManagerTask, DEMO_MANAGER_STACK_SIZE,
                      Priority::SYSTEM_CONTROL, Core::CORE_0, &demoManagerTaskHandle);
+}
+
+bool TaskManager::createGameManagerTask() {
+    return createTask("GameManager", gameManagerTask, GAME_MANAGER_STACK_SIZE,
+                     Priority::SYSTEM_CONTROL, Core::CORE_1, &gameManagerTaskHandle);
 }
 
 bool TaskManager::createCareerQuestTask() {
@@ -537,6 +553,7 @@ void TaskManager::printStackUsage() {
         {speakerTaskHandle, "Speaker", SPEAKER_STACK_SIZE},
         {motorTaskHandle, "Motor", MOTOR_STACK_SIZE},
         {demoManagerTaskHandle, "DemoManager", DEMO_MANAGER_STACK_SIZE},
+        {gameManagerTaskHandle, "GameManager", GAME_MANAGER_STACK_SIZE},
         {careerQuestTaskHandle, "CareerQuest", CAREER_QUEST_STACK_SIZE},
         {displayInitTaskHandle, "DisplayInit", DISPLAY_INIT_STACK_SIZE}
     };
