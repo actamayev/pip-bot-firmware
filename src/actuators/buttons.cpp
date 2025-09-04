@@ -85,7 +85,9 @@ void Buttons::setLeftButtonClickHandler(std::function<void(Button2&)> callback) 
 
         // If no program is running and we're not waiting to start, use original callback
         if (vm.isPaused == BytecodeVM::PROGRAM_NOT_STARTED) {
-            originalCallback(btn);
+            if (originalCallback) {
+                originalCallback(btn);
+            }
         }
     });
 
