@@ -36,12 +36,12 @@ void GameManager::update() {
     }
 }
 
-void GameManager::handleButtonPress(bool leftPressed, bool rightPressed) {
+void GameManager::handleButtonPress(bool rightPressed) {
     if (currentGame == Games::GameType::NONE) return;
     
     switch (currentGame) {
         case Games::GameType::DINO_RUNNER:
-            DinoRunner::getInstance().handleButtonPress(leftPressed, rightPressed);
+            DinoRunner::getInstance().handleButtonPress(rightPressed);
             break;
         default:
             break;

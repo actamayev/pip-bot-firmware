@@ -52,7 +52,7 @@ void DinoRunner::resetGame() {
     lastFrameMs = millis();
 }
 
-void DinoRunner::handleButtonPress(bool leftPressed, bool rightPressed) {
+void DinoRunner::handleButtonPress(bool rightPressed) {
     if (!gameActive) return;
     
     // Only respond to right button

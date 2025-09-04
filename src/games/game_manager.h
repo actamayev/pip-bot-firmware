@@ -24,7 +24,7 @@ class GameManager : public Singleton<GameManager> {
         bool isAnyGameActive() const { return currentGame != Games::GameType::NONE; }
         
         // Button input handling
-        void handleButtonPress(bool leftPressed, bool rightPressed);
+        void handleButtonPress(bool rightPressed);
         
     private:
         GameManager() = default;

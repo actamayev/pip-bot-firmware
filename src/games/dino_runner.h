@@ -13,7 +13,7 @@ class DinoRunner : public Singleton<DinoRunner> {
         void startGame();
         void stopGame();
         void update();
-        void handleButtonPress(bool leftPressed, bool rightPressed);
+        void handleButtonPress(bool rightPressed);
         
         bool isGameActive() const { return gameActive; }
         int getCurrentScore() const { return score; }
