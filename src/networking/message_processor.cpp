@@ -458,12 +458,12 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
                             case MeetPipTriggerType::S6_P6_ENTER:
                                 SendSensorData::getInstance().setSendSensorData(true);
                                 SendSensorData::getInstance().setSideTofDataEnabled(true);
-                                rgbLed.turn_headlights_faint_blue();
+                                rgbLed.turn_front_middle_leds_faint_blue();
                                 break;
                             case MeetPipTriggerType::S6_P6_EXIT:
                                 SendSensorData::getInstance().setSideTofDataEnabled(false);
                                 SendSensorData::getInstance().setSendSensorData(false);
-                                rgbLed.turn_headlights_off();
+                                rgbLed.turn_front_middle_leds_off();
                                 break;
                             case MeetPipTriggerType::S7_P4_ENTER:
                                 careerQuestTriggers.startS7P4ButtonDemo();
@@ -496,10 +496,12 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
                                 motorDriver.stop_both_motors(); // We need this to prevent students from turning against the motors.
                                 SendSensorData::getInstance().setSendSensorData(true);
                                 SendSensorData::getInstance().setEncoderDataEnabled(true);
+                                rgbLed.turn_back_leds_faint_blue();
                                 break;
                             case MeetPipTriggerType::S9_P6_EXIT:
                                 SendSensorData::getInstance().setEncoderDataEnabled(false);
                                 SendSensorData::getInstance().setSendSensorData(false);
+                                rgbLed.turn_back_leds_off();
                                 break;
                             default:
                                 SerialQueueManager::getInstance().queueMessage("Unknown introduction trigger type");
