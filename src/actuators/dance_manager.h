@@ -25,8 +25,8 @@ class DanceManager : public Singleton<DanceManager> {
         
         // Safe dance parameters - much lower than MAX_MOTOR_SPEED (255)
         // TODO 9/4/25: Change to 35/45 when connected to Wifi, keep at 60, 90 when on serial
-        static constexpr int16_t DANCE_SPEED_GENTLE = 60;  // Very gentle for safety
-        static constexpr int16_t DANCE_SPEED_MODERATE = 90; // Still safe but more expressive
+        static constexpr int16_t DANCE_SPEED_GENTLE = 45;  // Very gentle for safety
+        static constexpr int16_t DANCE_SPEED_MODERATE = 60; // Still safe but more expressive
         
         // Dance step structure
         struct DanceStep {
