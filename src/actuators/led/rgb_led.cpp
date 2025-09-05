@@ -192,3 +192,33 @@ void RgbLed::turn_headlights_faint_blue() {
     strip.setPixelColor(2, strip.Color(0, 0, faintBlue)); // right_headlight
     strip.show();
 }
+
+void RgbLed::turn_front_middle_leds_faint_blue() {
+    constexpr uint8_t faintBlue = 20; // Very faint blue
+    strip.setPixelColor(0, strip.Color(0, 0, faintBlue)); // middle_right
+    strip.setPixelColor(1, strip.Color(0, 0, faintBlue)); // top_right
+    strip.setPixelColor(4, strip.Color(0, 0, faintBlue)); // top_left
+    strip.setPixelColor(5, strip.Color(0, 0, faintBlue)); // middle_left
+    strip.show();
+}
+
+void RgbLed::turn_front_middle_leds_off() {
+    strip.setPixelColor(0, strip.Color(0, 0, 0)); // middle_right
+    strip.setPixelColor(1, strip.Color(0, 0, 0)); // top_right
+    strip.setPixelColor(4, strip.Color(0, 0, 0)); // top_left
+    strip.setPixelColor(5, strip.Color(0, 0, 0)); // middle_left
+    strip.show();
+}
+
+void RgbLed::turn_back_leds_faint_blue() {
+    constexpr uint8_t faintBlue = 20; // Very faint blue
+    strip.setPixelColor(6, strip.Color(0, 0, faintBlue)); // back_left
+    strip.setPixelColor(7, strip.Color(0, 0, faintBlue)); // back_right
+    strip.show();
+}
+
+void RgbLed::turn_back_leds_off() {
+    strip.setPixelColor(6, strip.Color(0, 0, 0)); // back_left
+    strip.setPixelColor(7, strip.Color(0, 0, 0)); // back_right
+    strip.show();
+}
