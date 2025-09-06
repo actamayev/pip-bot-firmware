@@ -424,6 +424,9 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
                             case MeetPipTriggerType::S4_P5_ENTER:
                                 Speaker::getInstance().startEntertainerMelody();
                                 break;
+                            case MeetPipTriggerType::S4_P4_EXIT:
+                                Speaker::getInstance().stopAllSounds();
+                                break;
                             case MeetPipTriggerType::S4_P5_EXIT:
                                 Speaker::getInstance().stopAllSounds();
                                 break;
