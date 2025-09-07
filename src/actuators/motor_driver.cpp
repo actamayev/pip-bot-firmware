@@ -124,14 +124,12 @@ void MotorDriver::update() {
     int16_t leftAdjusted = _actualLeftPwm;
     int16_t rightAdjusted = _actualRightPwm;
 
-    // if (StraightLineDrive::getInstance().isEnabled()) {
-    //     StraightLineDrive::getInstance().update(leftAdjusted, rightAdjusted);
-    // }
+    if (StraightLineDrive::getInstance().isEnabled()) {
+        StraightLineDrive::getInstance().update(leftAdjusted, rightAdjusted);
+    }
 
-    // Only update motor controls if speeds have changed
-    // TODO 8/18/25: Bring this back after SLD works
-    // if (speedsChanged || StraightLineDrive::getInstance().isEnabled()) {
-    if (speedsChanged) {
+    // Only update motor controls if speeds have changed or StraightLineDrive is applying corrections
+    if (speedsChanged || StraightLineDrive::getInstance().isEnabled()) {
         // Apply the current speeds
         if (leftAdjusted == 0) {
             brake_left_motor();
@@ -185,8 +183,6 @@ void MotorDriver::updateMotorPwm(int16_t leftPwm, int16_t rightPwm) {
         if (!StraightLineDrive::getInstance().isEnabled()) {
             StraightLineDrive::getInstance().enable();
         }
-        // Apply corrections to motor speeds
-        StraightLineDrive::getInstance().update(leftPwm, rightPwm);
     } else {
         // Disable straight-line driving for all other cases
         StraightLineDrive::getInstance().disable();
