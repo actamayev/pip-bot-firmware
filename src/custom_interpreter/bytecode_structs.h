@@ -42,6 +42,7 @@ enum BytecodeOpCode : uint32_t {
 
     OP_MOTOR_FORWARD_DISTANCE = 0x56,
     OP_MOTOR_BACKWARD_DISTANCE = 0x57,
+    PLAY_SOUND = 0x60,
 };
 
 // Comparison operators
