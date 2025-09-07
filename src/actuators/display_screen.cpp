@@ -216,16 +216,12 @@ void DisplayScreen::generateContentToBuffer() {
         // Copy display buffer to staging buffer
         uint8_t* displayBuffer = display.getBuffer();
         memcpy(stagingBuffer, displayBuffer, DISPLAY_BUFFER_SIZE);
-    }
-    // Check if trigger animation is active
-    else if (careerQuestTriggers.isS3P3Active()) {
+    } else if (careerQuestTriggers.isS3P3Active()) {
         careerQuestTriggers.renderS3P3Animation();
         // Copy display buffer to staging buffer
         uint8_t* displayBuffer = display.getBuffer();
         memcpy(stagingBuffer, displayBuffer, DISPLAY_BUFFER_SIZE);
-    }
-    // If nothing else has been set to display, keep the start screen showing
-    else if (!customScreenActive) {
+    } else if (!customScreenActive) {
         display.clearDisplay();
         
         // Draw border
