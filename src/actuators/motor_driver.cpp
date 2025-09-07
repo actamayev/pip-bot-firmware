@@ -179,6 +179,19 @@ void MotorDriver::updateMotorPwm(int16_t leftPwm, int16_t rightPwm) {
     leftPwm = constrain(leftPwm, -MAX_MOTOR_SPEED, MAX_MOTOR_SPEED);
     rightPwm = constrain(rightPwm, -MAX_MOTOR_SPEED, MAX_MOTOR_SPEED);
     
+    // Check if straight-line driving should be active
+    if (leftPwm > 0 && rightPwm > 0 && leftPwm == rightPwm) {
+        // Enable straight-line driving if not already active
+        if (!StraightLineDrive::getInstance().isEnabled()) {
+            StraightLineDrive::getInstance().enable();
+        }
+        // Apply corrections to motor speeds
+        StraightLineDrive::getInstance().update(leftPwm, rightPwm);
+    } else {
+        // Disable straight-line driving for all other cases
+        StraightLineDrive::getInstance().disable();
+    }
+    
     // If we're not executing a command, start this one immediately
     if (!isExecutingCommand) {
         executeCommand(leftPwm, rightPwm);

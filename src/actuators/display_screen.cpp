@@ -1,5 +1,6 @@
 #include "display_screen.h"
 #include "career_quest/career_quest_triggers.h"
+#include "demos/straight_line_drive.h"
 
 // Initialize the display with explicit Wire reference
 bool DisplayScreen::init(bool showStartup) {
@@ -185,8 +186,39 @@ void DisplayScreen::generateContentToBuffer() {
     // If display is off, don't generate any content
     if (displayOff) return;
 
-    // Check if trigger animation is active first
-    if (careerQuestTriggers.isS3P3Active()) {
+    // Check if straight-line drive is active first (highest priority for debugging)
+    if (StraightLineDrive::getInstance().isEnabled()) {
+        display.clearDisplay();
+        
+        const auto& debugInfo = StraightLineDrive::getInstance().getDebugInfo();
+        
+        // Title
+        drawCenteredText("Straight Line Drive", 0, 1);
+        
+        // Yaw information
+        display.setCursor(0, 10);
+        display.printf("Init: %.1f deg", debugInfo.initialYaw);
+        
+        display.setCursor(0, 18);
+        display.printf("Curr: %.1f deg", debugInfo.currentYaw);
+        
+        display.setCursor(0, 26);
+        display.printf("Err:  %.1f deg", debugInfo.yawError);
+        
+        // Motor speeds
+        display.setCursor(0, 38);
+        display.printf("L: %d  R: %d", debugInfo.leftSpeed, debugInfo.rightSpeed);
+        
+        // Correction
+        display.setCursor(0, 50);
+        display.printf("Correction: %d", debugInfo.correction);
+        
+        // Copy display buffer to staging buffer
+        uint8_t* displayBuffer = display.getBuffer();
+        memcpy(stagingBuffer, displayBuffer, DISPLAY_BUFFER_SIZE);
+    }
+    // Check if trigger animation is active
+    else if (careerQuestTriggers.isS3P3Active()) {
         careerQuestTriggers.renderS3P3Animation();
         // Copy display buffer to staging buffer
         uint8_t* displayBuffer = display.getBuffer();
