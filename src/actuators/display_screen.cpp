@@ -234,8 +234,14 @@ void DisplayScreen::generateContentToBuffer() {
         // Draw company name (smaller)
         drawCenteredText("Blue Dot Robots", 1);
         
-        // Draw circle underneath
-        display.fillCircle(display.width()/2, 40, 10, SSD1306_WHITE);
+        // Draw circle underneath (moved up)
+        display.fillCircle(display.width()/2, 32, 10, SSD1306_WHITE);
+        
+        // Show PipID below circle if WebSocket connected
+        if (wsConnected) {
+            String pipId = PreferencesManager::getInstance().getPipId();
+            drawCenteredText(pipId, 48, 1);
+        }
         
         // Copy display buffer to staging buffer
         uint8_t* displayBuffer = display.getBuffer();

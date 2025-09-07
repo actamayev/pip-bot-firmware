@@ -1,6 +1,7 @@
 #include "utils/config.h"
 #include "utils/structs.h"
 #include "websocket_manager.h"
+#include "actuators/display_screen.h"
 
 WebSocketManager::WebSocketManager() {
     wsConnected = false;
@@ -69,11 +70,13 @@ void WebSocketManager::connectToWebSocket() {
                 this->lastPingTime = millis(); // Initialize ping time
                 rgbLed.set_led_blue();
                 ledAnimations.stopAnimation();
+                DisplayScreen::getInstance().setWebSocketConnected(true);
                 break;
             case WebsocketsEvent::ConnectionClosed:
                 SerialQueueManager::getInstance().queueMessage("WebSocket disconnected");
                 killWiFiProcesses();
                 this->wsConnected = false;
+                DisplayScreen::getInstance().setWebSocketConnected(false);
                 break;
             case WebsocketsEvent::GotPing:
                 SerialQueueManager::getInstance().queueMessage("Got ping");
@@ -142,6 +145,7 @@ void WebSocketManager::pollWebSocket() {
     if (wsConnected && (currentTime - lastPingTime >= WS_TIMEOUT)) {
         SerialQueueManager::getInstance().queueMessage("WebSocket ping timeout - connection lost");
         wsConnected = false;
+        DisplayScreen::getInstance().setWebSocketConnected(false);
         killWiFiProcesses();
     }
 
@@ -181,6 +185,7 @@ void WebSocketManager::killWiFiProcesses() {
     motorDriver.resetCommandState(false);
     rgbLed.set_led_red();
     ledAnimations.startBreathing();
+    DisplayScreen::getInstance().setWebSocketConnected(false);
     hasKilledWiFiProcesses = true;
 }
 
