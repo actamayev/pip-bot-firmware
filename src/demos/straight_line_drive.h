@@ -57,5 +57,6 @@ class StraightLineDrive : public Singleton<StraightLineDrive> {
         float normalizeAngle(float angle);
         float shortestAnglePath(float from, float to);
 
+        const int16_t MIN_FORWARD_SPEED = 35;
         const int16_t MAX_CORRECTION_PER_CYCLE = 20;
 };
