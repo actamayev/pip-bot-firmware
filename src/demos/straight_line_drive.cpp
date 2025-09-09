@@ -89,17 +89,36 @@ void StraightLineDrive::update(int16_t& leftSpeed, int16_t& rightSpeed) {
     
     int16_t correction = proportionalTerm + integralTerm + derivativeTerm;
     
-    // Limit correction rate of change (slew rate limiting)
-    if (correction - _lastCorrection > MAX_CORRECTION_PER_CYCLE) {
-        correction = _lastCorrection + MAX_CORRECTION_PER_CYCLE;
-    } else if (_lastCorrection - correction > MAX_CORRECTION_PER_CYCLE) {
-        correction = _lastCorrection - MAX_CORRECTION_PER_CYCLE;
+    // Calculate speed-proportional correction scaling to reduce oscillation at low speeds
+    float avgSpeed = (abs(leftSpeed) + abs(rightSpeed)) / 2.0f;
+    float speedRatio = avgSpeed / static_cast<float>(MAX_MOTOR_SPEED); // 0.0 to 1.0
+    // Scale correction with minimum of 20% for very low speeds, full scaling at high speeds
+    float scaledMaxCorrection = MAX_CORRECTION_PER_CYCLE * max(0.2f, speedRatio);
+    
+    // Limit correction rate of change (speed-proportional slew rate limiting)
+    if (correction - _lastCorrection > scaledMaxCorrection) {
+        correction = _lastCorrection + static_cast<int16_t>(scaledMaxCorrection);
+    } else if (_lastCorrection - correction > scaledMaxCorrection) {
+        correction = _lastCorrection - static_cast<int16_t>(scaledMaxCorrection);
     }
     _lastCorrection = correction;
 
-    // Apply adjustments
-    leftSpeed += correction;
-    rightSpeed -= correction;
+    // Apply asymmetric corrections - only slow down the motor that's drifting
+    // Keep the motor that should speed up at its original target speed
+    int16_t originalLeftSpeed = leftSpeed;
+    int16_t originalRightSpeed = rightSpeed;
+    
+    if (correction > 0) {
+        // Robot drifting right, need to correct left
+        // Keep left motor at target speed, slow down right motor
+        leftSpeed = originalLeftSpeed;
+        rightSpeed = originalRightSpeed - abs(correction);
+    } else if (correction < 0) {
+        // Robot drifting left, need to correct right  
+        // Keep right motor at target speed, slow down left motor
+        rightSpeed = originalRightSpeed;
+        leftSpeed = originalLeftSpeed - abs(correction);
+    }
 
     // Constrain to valid range
     leftSpeed = constrain(leftSpeed, -MAX_MOTOR_SPEED, MAX_MOTOR_SPEED);
