@@ -102,6 +102,15 @@ void StraightLineDrive::update(int16_t& leftSpeed, int16_t& rightSpeed) {
         correction = _lastCorrection - static_cast<int16_t>(scaledMaxCorrection);
     }
     _lastCorrection = correction;
+    
+    // Limit correction magnitude to prevent any motor from going negative
+    // Keep a minimum forward speed of 10 PWM to ensure forward motion
+    const int16_t MIN_FORWARD_SPEED = 10;
+    int16_t minMotorSpeed = min(leftSpeed, rightSpeed);
+    int16_t maxAllowedCorrection = max(0, minMotorSpeed - MIN_FORWARD_SPEED);
+    
+    // Clamp correction to safe range
+    correction = constrain(correction, -maxAllowedCorrection, maxAllowedCorrection);
 
     // Apply asymmetric corrections - only slow down the motor that's drifting
     // Keep the motor that should speed up at its original target speed

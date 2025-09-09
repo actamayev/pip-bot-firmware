@@ -48,7 +48,7 @@ class StraightLineDrive : public Singleton<StraightLineDrive> {
         static constexpr float YAW_I_MAX = 100.0f;
 
         // Yaw filtering buffer
-        static constexpr uint8_t YAW_BUFFER_SIZE = 10;
+        static constexpr uint8_t YAW_BUFFER_SIZE = 3;
         float _yawBuffer[YAW_BUFFER_SIZE] = {0};
         uint8_t _yawBufferIndex = 0;
         uint8_t _yawBufferCount = 0;
