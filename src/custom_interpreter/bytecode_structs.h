@@ -5,7 +5,7 @@ enum BytecodeOpCode : uint32_t {
     // System operations
     OP_NOP = 0x00,      // No operation
     OP_END = 0x01,      // End sequence
-    OP_DELAY = 0x02,    // Delay (ms)
+    OP_WAIT = 0x02,    // Delay (s)
     OP_WAIT_FOR_BUTTON = 0x03,
 
     // LED operations
