@@ -13,6 +13,8 @@
 #include "networking/serial_queue_manager.h"
 #include "networking/serial_manager.h"
 #include "sensors/sensor_data_buffer.h"
+#include "actuators/speaker.h"
+#include "demos/straight_line_drive.h"
 
 class BytecodeVM : public Singleton<BytecodeVM> {
     friend class Singleton<BytecodeVM>;

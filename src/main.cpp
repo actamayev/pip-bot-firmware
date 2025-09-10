@@ -84,7 +84,7 @@ void setup() {
     TaskManager::createIrSensorTask();
     
     // 12. DemoManager (high priority for demos)
-    TaskManager::createDemoManagerTask();
+    // TaskManager::createDemoManagerTask();
 
     // 13. GameManager (interactive games)
     TaskManager::createGameManagerTask();

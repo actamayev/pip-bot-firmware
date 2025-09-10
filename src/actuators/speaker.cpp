@@ -5,12 +5,25 @@ constexpr const Speaker::MelodyNote Speaker::entertainerLedSequence[];
 
 Speaker::~Speaker() {
     cleanup();
+    if (audioMutex) {
+        vSemaphoreDelete(audioMutex);
+        audioMutex = nullptr;
+    }
 }
 
 bool Speaker::initialize() {
     if (initialized) return true;
     
     SerialQueueManager::getInstance().queueMessage("Initializing Speaker...");
+    
+    // Create mutex for thread safety
+    if (!audioMutex) {
+        audioMutex = xSemaphoreCreateMutex();
+        if (!audioMutex) {
+            SerialQueueManager::getInstance().queueMessage("✗ Speaker: Failed to create mutex");
+            return false;
+        }
+    }
     
     if (!initializeLittleFS()) {
         SerialQueueManager::getInstance().queueMessage("✗ Speaker: LittleFS init failed");
@@ -105,62 +118,46 @@ bool Speaker::validateAudioObjects() {
 }
 
 void Speaker::cleanup() {
+    // Take mutex if available (don't block forever)
+    bool hasMutex = false;
+    if (audioMutex && xSemaphoreTake(audioMutex, pdMS_TO_TICKS(200)) == pdTRUE) {
+        hasMutex = true;
+    }
+
     // Stop any ongoing playback first
     if (audioMP3 && audioMP3->isRunning()) {
         audioMP3->stop();
         vTaskDelay(pdMS_TO_TICKS(50));
     }
-    
-    // Stop RTTTL playback
+
     if (rtttlGenerator && rtttlGenerator->isRunning()) {
         rtttlGenerator->stop();
         vTaskDelay(pdMS_TO_TICKS(50));
     }
-    
-    // Close any open files
+
     if (audioFile) {
         audioFile->close();
     }
-    
-    // Delete in reverse order of creation
-    if (audioMP3) {
-        delete audioMP3;
-        audioMP3 = nullptr;
-    }
-    if (audioID3) {
-        delete audioID3;
-        audioID3 = nullptr;
-    }
-    if (audioFile) {
-        delete audioFile;
-        audioFile = nullptr;
-    }
-    
-    // Clean up RTTTL objects
-    if (rtttlSource) {
-        delete rtttlSource;
-        rtttlSource = nullptr;
-    }
-    if (rtttlGenerator) {
-        delete rtttlGenerator;
-        rtttlGenerator = nullptr;
-    }
-    
-    if (audioOutput) {
-        delete audioOutput;
-        audioOutput = nullptr;
-    }
-    
-    // Reset state
+
+    if (audioMP3) { delete audioMP3; audioMP3 = nullptr; }
+    if (audioID3) { delete audioID3; audioID3 = nullptr; }
+    if (audioFile) { delete audioFile; audioFile = nullptr; }
+    if (rtttlSource) { delete rtttlSource; rtttlSource = nullptr; }
+    if (rtttlGenerator) { delete rtttlGenerator; rtttlGenerator = nullptr; }
+    if (audioOutput) { delete audioOutput; audioOutput = nullptr; }
+
     isCurrentlyPlaying = false;
     isStoppingPlayback = false;
     isMelodyPlaying = false;
     audioObjectsValid = false;
     currentFilename = "";
-    
-    // Give time for I2S resources to be released
+
+    if (hasMutex) {
+        xSemaphoreGive(audioMutex);
+    }
     vTaskDelay(pdMS_TO_TICKS(50));
 }
+
 
 const char* Speaker::getFilePath(SoundType audioFile) const {
     switch (audioFile) {
@@ -225,23 +222,40 @@ void Speaker::playFile(SoundType file) {
 
 bool Speaker::safeStopPlayback() {
     if (!isCurrentlyPlaying) return true;
-    
-    if (audioMP3 && audioMP3->isRunning()) {
-        audioMP3->stop();
+
+    // Try to take the mutex first with a reasonable timeout
+    if (!audioMutex || xSemaphoreTake(audioMutex, pdMS_TO_TICKS(200)) != pdTRUE) {
+        SerialQueueManager::getInstance().queueMessage("✗ Failed to acquire audio mutex for stop");
+        return false;
     }
-    
-    // Close any open files
-    if (audioFile) {
+
+    bool stopSuccess = true;
+    // Re-check state under mutex
+    if (isCurrentlyPlaying && audioMP3 && audioObjectsValid) {
+        bool canStop = audioMP3->isRunning();
+        if (canStop) {
+            SerialQueueManager::getInstance().queueMessage("audioMP3->stop");
+            // safe to call stop while holding mutex
+            audioMP3->stop();
+            vTaskDelay(pdMS_TO_TICKS(50));
+        }
+    }
+
+    if (audioFile && audioObjectsValid) {
+        SerialQueueManager::getInstance().queueMessage("audioFile->close");
         audioFile->close();
+        vTaskDelay(pdMS_TO_TICKS(20));
     }
-    
+
     // Set stopping state and timer
     isStoppingPlayback = true;
     stopRequestTime = millis();
     isCurrentlyPlaying = false;
     currentFilename = "";
-    
-    return true;
+
+    // Release mutex
+    xSemaphoreGive(audioMutex);
+    return stopSuccess;
 }
 
 bool Speaker::safeStartPlayback(SoundType file) {
@@ -250,49 +264,59 @@ bool Speaker::safeStartPlayback(SoundType file) {
         SerialQueueManager::getInstance().queueMessage("✗ Invalid audio file");
         return false;
     }
-    
+
     SerialQueueManager::getInstance().queueMessage("Starting playback: " + String(filename));
-    
-    // Validate audio objects before use
+
+    // Take mutex to safely use audio objects
+    if (!audioMutex || xSemaphoreTake(audioMutex, pdMS_TO_TICKS(200)) != pdTRUE) {
+        SerialQueueManager::getInstance().queueMessage("✗ Failed to acquire audio mutex for start");
+        return false;
+    }
+
     if (!validateAudioObjects()) {
         SerialQueueManager::getInstance().queueMessage("✗ Audio objects invalid, recreating...");
+        // We'll drop the mutex while recreating to avoid deadlocks in initializeAudio/cleanup which may try to take it.
+        xSemaphoreGive(audioMutex);
         if (!recreateAudioObjects()) {
             SerialQueueManager::getInstance().queueMessage("✗ Failed to recreate audio objects");
             return false;
         }
+        // reacquire
+        if (!audioMutex || xSemaphoreTake(audioMutex, pdMS_TO_TICKS(200)) != pdTRUE) {
+            SerialQueueManager::getInstance().queueMessage("✗ Failed to reacquire audio mutex after recreation");
+            return false;
+        }
     }
-    
-    // Close any existing file first
-    audioFile->close();
-    
-    // Small delay to ensure file is properly closed
+
+    // Close any existing file first (still under mutex)
+    if (audioFile) {
+        audioFile->close();
+    }
     vTaskDelay(pdMS_TO_TICKS(10));
-    
+
     // Open new file
     if (!audioFile->open(filename)) {
         SerialQueueManager::getInstance().queueMessage("✗ Could not open: " + String(filename));
-        // Mark for recreation on next attempt
         forceRecreateObjects = true;
+        xSemaphoreGive(audioMutex);
         return false;
     }
-    
-    // Set volume
+
     audioOutput->SetGain(currentVolume);
-    
-    // Begin playback with error handling
+
     if (!audioMP3->begin(audioID3, audioOutput)) {
         SerialQueueManager::getInstance().queueMessage("✗ MP3 begin failed");
         audioFile->close();
-        // Mark for recreation on next attempt
         forceRecreateObjects = true;
+        xSemaphoreGive(audioMutex);
         return false;
     }
-    
-    // Set playing state
+
     isCurrentlyPlaying = true;
     isStoppingPlayback = false;
     currentFilename = filename;
-    
+
+    xSemaphoreGive(audioMutex);
     SerialQueueManager::getInstance().queueMessage("✓ Audio playback started");
     return true;
 }
@@ -319,9 +343,12 @@ void Speaker::stopAllSounds() {
     if (initialized && isCurrentlyPlaying) {
         safeStopPlayback();
     }
+
+    SerialQueueManager::getInstance().queueMessage("Stopped playback");
     
     // Stop RTTTL melody if playing
     if (isMelodyPlaying && rtttlGenerator && rtttlGenerator->isRunning()) {
+        SerialQueueManager::getInstance().queueMessage("Stopping RTTTL");
         rtttlGenerator->stop();
         isMelodyPlaying = false;
         
@@ -341,13 +368,14 @@ void Speaker::stopAllSounds() {
 
 void Speaker::update() {
     if (!initialized) return;
-    
-    // Handle melody playback first
+
+    // Keep melody processing as before but protect shared state
     if (isMelodyPlaying) {
+        // melody functions will take audioMutex internally (see updateMelody)
         updateMelody();
-        return; // Don't process MP3 playback while melody is playing
+        return;
     }
-    
+
     // Handle delayed clearing of stopping state
     if (isStoppingPlayback) {
         if (millis() - stopRequestTime >= STOP_DELAY_MS) {
@@ -355,112 +383,107 @@ void Speaker::update() {
         }
         return;
     }
-    
-    // Keep current audio playing
+
+    // If we need to read or run audioMP3, take the mutex
+    if (!audioMutex || xSemaphoreTake(audioMutex, pdMS_TO_TICKS(100)) != pdTRUE) {
+        // failed to lock, just return — safer than touching audio objects
+        return;
+    }
+
     if (isCurrentlyPlaying) {
         if (audioMP3 && audioMP3->isRunning()) {
+            // call loop() while holding the mutex so object cannot be deleted under us
             if (!audioMP3->loop()) {
-                // Audio finished or error occurred
                 SerialQueueManager::getInstance().queueMessage("Audio playback completed");
                 isCurrentlyPlaying = false;
                 currentFilename = "";
             }
         } else {
-            // Audio finished unexpectedly
             SerialQueueManager::getInstance().queueMessage("Audio playback ended unexpectedly");
             isCurrentlyPlaying = false;
             currentFilename = "";
-            
-            // Mark for recreation since something went wrong
             forceRecreateObjects = true;
         }
     }
+
+    xSemaphoreGive(audioMutex);
 }
 
-
 void Speaker::updateMelody() {
-    if (!isMelodyPlaying || !rtttlGenerator) return;
-    
-    // Update LED sequence if playing
+    // Acquire mutex around operations that touch audio/LED state
+    if (!audioMutex || xSemaphoreTake(audioMutex, pdMS_TO_TICKS(100)) != pdTRUE) {
+        return;
+    }
+
+    if (!isMelodyPlaying || !rtttlGenerator) {
+        xSemaphoreGive(audioMutex);
+        return;
+    }
+
+    // LED sequence update (doesn't touch audio objects, but keep under mutex to keep state consistent)
     if (isLedSequencePlaying) {
         unsigned long currentTime = millis();
-        
-        // Check if it's time for the next LED step
         if (currentTime >= ledStepStartTime + entertainerLedSequence[currentLedStep].duration) {
             currentLedStep++;
-            
-            // Check if LED sequence is complete
             if (currentLedStep >= ENTERTAINER_LED_SEQUENCE_LENGTH) {
                 isLedSequencePlaying = false;
                 rgbLed.turn_main_board_leds_off();
             } else {
-                // Update LEDs with next note's color
                 const MelodyNote& note = entertainerLedSequence[currentLedStep];
                 rgbLed.set_main_board_leds_to_color(note.ledR, note.ledG, note.ledB);
                 ledStepStartTime = currentTime;
             }
         }
     }
-    
-    // Keep the RTTTL generator running
+
+    // Keep RTTTL generator running safely while mutex held
     if (rtttlGenerator->isRunning()) {
         if (!rtttlGenerator->loop()) {
-            // Melody finished
             isMelodyPlaying = false;
             isLedSequencePlaying = false;
             rgbLed.turn_main_board_leds_off();
             SerialQueueManager::getInstance().queueMessage("Entertainer melody completed");
-            
-            // Clean up RTTTL resources
-            if (rtttlSource) {
-                delete rtttlSource;
-                rtttlSource = nullptr;
-            }
+            if (rtttlSource) { delete rtttlSource; rtttlSource = nullptr; }
         }
     }
+
+    xSemaphoreGive(audioMutex);
 }
 
 void Speaker::startEntertainerMelody() {
     if (muted || isMelodyPlaying) return;
-    
+
     SerialQueueManager::getInstance().queueMessage("Starting The Entertainer melody with LED sync");
-    
-    // The Entertainer in RTTTL format
+
+    // Take mutex for RTTTL creation and start
+    if (!audioMutex || xSemaphoreTake(audioMutex, pdMS_TO_TICKS(200)) != pdTRUE) {
+        SerialQueueManager::getInstance().queueMessage("✗ Failed to acquire audio mutex for melody start");
+        return;
+    }
+
     static const uint8_t entertainerRTTTL[] = "TheEntertainer:d=4,o=5,b=140:8d,8d#,8e,c6,8e,c6,8e,c6,c,8c6,8a,8g,8f#,8a,8c6,8e,8d,8c,8a,2d";
-    
-    // Create RTTTL generator if not exists
+
     if (!rtttlGenerator) {
         rtttlGenerator = new AudioGeneratorRTTTL();
     }
-    
-    // Clean up any existing source
     if (rtttlSource) {
         delete rtttlSource;
+        rtttlSource = nullptr;
     }
-    
-    // Create PROGMEM source from RTTTL data
     rtttlSource = new AudioFileSourcePROGMEM(entertainerRTTTL, sizeof(entertainerRTTTL));
-    
-    // Begin playing the RTTTL tune using existing audioOutput
+
     if (audioOutput && rtttlGenerator->begin(rtttlSource, audioOutput)) {
         isMelodyPlaying = true;
-        
-        // Start synchronized LED sequence
         isLedSequencePlaying = true;
         currentLedStep = 0;
         ledStepStartTime = millis();
-        
-        // Set first note's LED color
         const MelodyNote& firstNote = entertainerLedSequence[0];
         rgbLed.set_main_board_leds_to_color(firstNote.ledR, firstNote.ledG, firstNote.ledB);
-        
         SerialQueueManager::getInstance().queueMessage("✓ Entertainer melody and LED sync started");
     } else {
         SerialQueueManager::getInstance().queueMessage("✗ Failed to start Entertainer playback");
-        // Clean up on failure
-        if (rtttlSource) {
-            delete rtttlSource;
-            rtttlSource = nullptr;
-        }
+        if (rtttlSource) { delete rtttlSource; rtttlSource = nullptr; }
     }
+
+    xSemaphoreGive(audioMutex);
 }
