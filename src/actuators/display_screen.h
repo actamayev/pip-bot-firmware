@@ -28,9 +28,6 @@ class DisplayScreen: public Singleton<DisplayScreen> {
         void turnDisplayOff();
         void turnDisplayOn();
         
-        // WebSocket connection state
-        void setWebSocketConnected(bool connected) { wsConnected = connected; }
-        
         // Performance tracking
         unsigned long getDisplayUpdateCount() const { return displayUpdates; }
         unsigned long getContentGenerationCount() const { return contentGenerations; }
@@ -60,7 +57,6 @@ class DisplayScreen: public Singleton<DisplayScreen> {
         bool initialized = false;
         bool customScreenActive = false;
         bool displayOff = false;
-        bool wsConnected = false;
         
         // Timing management
         unsigned long lastUpdateTime = 0;

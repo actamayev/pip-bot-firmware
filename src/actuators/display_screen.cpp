@@ -234,7 +234,7 @@ void DisplayScreen::generateContentToBuffer() {
         display.fillCircle(display.width()/2, 32, 10, SSD1306_WHITE);
         
         // Show PipID below circle if WebSocket connected
-        if (wsConnected) {
+        if (WebSocketManager::getInstance().isConnected()) {
             String pipId = PreferencesManager::getInstance().getPipId();
             drawCenteredText(pipId, 48, 1);
         }
