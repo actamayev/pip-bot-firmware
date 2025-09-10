@@ -59,6 +59,9 @@ class Speaker : public Singleton<Speaker> {
         bool audioObjectsValid = false;
         bool forceRecreateObjects = false;
         
+        // Thread safety
+        SemaphoreHandle_t audioMutex = nullptr;
+        
         bool initializeLittleFS();
         bool initializeAudio();
         void cleanup();

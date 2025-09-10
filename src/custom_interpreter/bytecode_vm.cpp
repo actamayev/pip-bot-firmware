@@ -175,10 +175,10 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             isPaused = PROGRAM_FINISHED;
             break;
 
-        case OP_DELAY: {
+        case OP_WAIT: {
             // Delay execution for specified milliseconds
-            uint32_t delayMs = static_cast<uint32_t>(instr.operand1);
-            delayUntil = millis() + delayMs;
+            uint32_t delaySeconds = static_cast<uint32_t>(instr.operand1);
+            delayUntil = millis() + (delaySeconds * 1000);
             waitingForDelay = true;
             break;
         }
@@ -642,6 +642,21 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             return; // Return without incrementing PC
         }
 
+        case PLAY_SOUND: {
+            // Extract sound ID from operand1
+            uint8_t soundId = static_cast<uint8_t>(instr.operand1);
+            SoundType soundType = static_cast<SoundType>(soundId);
+            
+            // Validate sound type is within valid range
+            if (soundId >= static_cast<uint8_t>(SoundType::CHIME) && 
+                soundId <= static_cast<uint8_t>(SoundType::ROBOT)) {
+                Speaker::getInstance().playFile(soundType);
+            } else {
+                SerialQueueManager::getInstance().queueMessage("Invalid sound ID: " + String(soundId));
+            }
+            break;
+        }
+
         default:
             // Unknown opcode, stop execution
             pc = programSize;
@@ -686,7 +701,7 @@ void BytecodeVM::resetStateVariables(bool isFullReset) {
     
     // Reset TurningManager state
     TurningManager::getInstance().completeNavigation(false);
-    
+    StraightLineDrive::getInstance().disable();
     timedMotorMovementInProgress = false;
     distanceMovementInProgress = false;
     motorMovementEndTime = 0;
@@ -724,6 +739,7 @@ void BytecodeVM::resetStateVariables(bool isFullReset) {
         lastUsbState = false;
     }
     rgbLed.turn_all_leds_off();
+    Speaker::getInstance().stopAllSounds();
 }
 
 void BytecodeVM::pauseProgram() {
