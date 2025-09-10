@@ -177,8 +177,10 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
 
         case OP_WAIT: {
             // Delay execution for specified milliseconds
-            uint32_t delaySeconds = static_cast<uint32_t>(instr.operand1);
-            delayUntil = millis() + (delaySeconds * 1000);
+            // This converts from seconds (ie. 1.5s into milliseconds).
+            // delayMs can be uint32_t since it will always be 
+            uint32_t delayMs = static_cast<uint32_t>(instr.operand1 * 1000.0f);
+            delayUntil = millis() + delayMs;
             waitingForDelay = true;
             break;
         }
