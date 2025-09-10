@@ -58,7 +58,7 @@ void StraightLineDrive::update(int16_t& leftSpeed, int16_t& rightSpeed) {
     _debugInfo.yawError = yawError;
 
     // Add deadband to ignore small errors
-    if (abs(yawError) < 1.0f) {
+    if (abs(yawError) < DEADBAND) {
         yawError = 0.0f;
         // Reset integral when in deadband to prevent buildup
         _integralError *= 0.9f;

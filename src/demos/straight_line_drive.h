@@ -42,9 +42,9 @@ class StraightLineDrive : public Singleton<StraightLineDrive> {
         DebugInfo _debugInfo;
 
         // PID Constants
-        static constexpr float YAW_P_GAIN = 7.5f;
+        static constexpr float YAW_P_GAIN = 3.5f;
         static constexpr float YAW_I_GAIN = 0.1f;
-        static constexpr float YAW_D_GAIN = 4.0f;
+        static constexpr float YAW_D_GAIN = 2.0f;
         static constexpr float YAW_I_MAX = 100.0f;
 
         // Yaw filtering buffer
@@ -59,4 +59,5 @@ class StraightLineDrive : public Singleton<StraightLineDrive> {
 
         const int16_t MIN_FORWARD_SPEED = 35;
         const int16_t MAX_CORRECTION_PER_CYCLE = 20;
+        const float DEADBAND = 1.0f;
 };
