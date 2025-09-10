@@ -19,7 +19,6 @@
 #include "networking/send_sensor_data.h"
 #include "career_quest/career_quest_triggers.h"
 #include "networking/serial_queue_manager.h"
-#include "networking/network_state_manager.h"
 #include "actuators/dance_manager.h"
 #include "games/game_manager.h"
 #include "actuators/led/rgb_led.h"
