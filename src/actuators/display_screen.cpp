@@ -65,13 +65,10 @@ void DisplayScreen::showStartScreen() {
     displayOff = false;
 
     display.clearDisplay();
-    
-    // Draw border
-    display.drawRect(0, 0, display.width(), display.height(), SSD1306_WHITE);
-    
+
     // Draw company name (smaller)
-    drawCenteredText("Blue Dot Robots", 1);
-    
+    drawCenteredText("Blue Dot Robots", 2, 1);
+
     // Draw circle underneath
     display.fillCircle(display.width()/2, 40, 10, SSD1306_WHITE);
     
@@ -162,9 +159,6 @@ void DisplayScreen::showLowBatteryScreen() {
     
     display.clearDisplay();
     
-    // Draw border
-    display.drawRect(0, 0, display.width(), display.height(), SSD1306_WHITE);
-    
     // Draw warning icon (triangle with exclamation)
     int centerX = display.width() / 2;
     display.drawTriangle(centerX - 8, 20, centerX + 8, 20, centerX, 5, SSD1306_WHITE);
@@ -224,19 +218,15 @@ void DisplayScreen::generateContentToBuffer() {
     } else if (!customScreenActive) {
         display.clearDisplay();
         
-        // Draw border
-        display.drawRect(0, 0, display.width(), display.height(), SSD1306_WHITE);
-        
         // Draw company name (smaller)
-        drawCenteredText("Blue Dot Robots", 1);
-        
-        // Draw circle underneath (moved up)
-        display.fillCircle(display.width()/2, 32, 10, SSD1306_WHITE);
-        
+        drawCenteredText("Blue Dot Robots", 2, 1.5);
+
         // Show PipID below circle if WebSocket connected
         if (WebSocketManager::getInstance().isConnected()) {
             String pipId = PreferencesManager::getInstance().getPipId();
-            drawCenteredText(pipId, 48, 1);
+            drawCenteredText(pipId, 30, 3);
+        } else {
+            display.fillCircle(display.width()/2, 40, 10, SSD1306_WHITE);
         }
         
         // Copy display buffer to staging buffer
