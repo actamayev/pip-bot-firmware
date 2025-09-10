@@ -136,8 +136,6 @@ void StraightLineDrive::update(int16_t& leftSpeed, int16_t& rightSpeed) {
     _debugInfo.leftSpeed = leftSpeed;
     _debugInfo.rightSpeed = rightSpeed;
     _debugInfo.correction = correction;
-    
-    rgbLed.set_led_green();
 }
 
 float StraightLineDrive::normalizeAngle(float angle) {
