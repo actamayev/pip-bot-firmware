@@ -199,8 +199,8 @@ float SensorDataBuffer::getLatestRightWheelRPM() {
     return currentEncoderData.rightWheelRPM;
 }
 
-float SensorDataBuffer::getLatestDistanceTraveledCm() {
-    return currentEncoderData.distanceTraveledCm;
+float SensorDataBuffer::getLatestDistanceTraveledIn() {
+    return currentEncoderData.distanceTraveledIn;
 }
 
 bool SensorDataBuffer::isEncoderDataValid() {

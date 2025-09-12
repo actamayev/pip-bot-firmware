@@ -79,17 +79,12 @@ void SendSensorData::attachSideTofData(JsonObject& payload) {
 void SendSensorData::sendSensorDataToServer() {
     if (!sendSensorData) return;
 
-    NetworkMode mode = NetworkStateManager::getInstance().getCurrentMode();
+    // Check available connections - prioritize serial over websocket
+    bool serialConnected = SerialManager::getInstance().isSerialConnected();
+    bool websocketConnected = WebSocketManager::getInstance().isConnected();
     
-    // Check if we can transmit based on current mode
-    bool canTransmit = false;
-    if (mode == NetworkMode::WIFI_MODE && WebSocketManager::getInstance().isConnected()) {
-        canTransmit = true;
-    } else if (mode == NetworkMode::SERIAL_MODE) {
-        canTransmit = true;
-    }
-    
-    if (!canTransmit) return;
+    // Must have at least one connection
+    if (!serialConnected && !websocketConnected) return;
 
     unsigned long currentTime = millis();
     if (currentTime - lastSendTime < SEND_INTERVAL) return;
@@ -117,12 +112,11 @@ void SendSensorData::sendSensorDataToServer() {
     String jsonString;
     serializeJson(doc, jsonString);
 
-    // Send based on current mode
-    if (mode == NetworkMode::WIFI_MODE) {
-        WebSocketManager::getInstance().wsClient.send(jsonString);
-    } else if (mode == NetworkMode::SERIAL_MODE) {
-        // Send with CRITICAL priority for proper serial communication
+    // Send via serial if connected (preferred), otherwise websocket
+    if (serialConnected) {
         SerialQueueManager::getInstance().queueMessage(jsonString, SerialPriority::CRITICAL);
+    } else if (websocketConnected) {
+        WebSocketManager::getInstance().wsClient.send(jsonString);
     }
 
     lastSendTime = currentTime;
@@ -131,17 +125,12 @@ void SendSensorData::sendSensorDataToServer() {
 void SendSensorData::sendMultizoneData() {
     if (!sendMzData) return;
 
-    NetworkMode mode = NetworkStateManager::getInstance().getCurrentMode();
+    // Check available connections - prioritize serial over websocket
+    bool serialConnected = SerialManager::getInstance().isSerialConnected();
+    bool websocketConnected = WebSocketManager::getInstance().isConnected();
     
-    // Check if we can transmit based on current mode
-    bool canTransmit = false;
-    if (mode == NetworkMode::WIFI_MODE && WebSocketManager::getInstance().isConnected()) {
-        canTransmit = true;
-    } else if (mode == NetworkMode::SERIAL_MODE) {
-        canTransmit = true;
-    }
-    
-    if (!canTransmit) return;
+    // Must have at least one connection
+    if (!serialConnected && !websocketConnected) return;
 
     unsigned long currentTime = millis();
     if (currentTime - lastMzSendTime < MZ_SEND_INTERVAL) return;
@@ -164,11 +153,11 @@ void SendSensorData::sendMultizoneData() {
         String jsonString;
         serializeJson(doc, jsonString);
         
-        // Send based on current mode
-        if (mode == NetworkMode::WIFI_MODE) {
-            WebSocketManager::getInstance().wsClient.send(jsonString);
-        } else if (mode == NetworkMode::SERIAL_MODE) {
+        // Send via serial if connected (preferred), otherwise websocket
+        if (serialConnected) {
             SerialQueueManager::getInstance().queueMessage(jsonString, SerialPriority::CRITICAL);
+        } else if (websocketConnected) {
+            WebSocketManager::getInstance().wsClient.send(jsonString);
         }
     }
 

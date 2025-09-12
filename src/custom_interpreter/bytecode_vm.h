@@ -13,6 +13,7 @@
 #include "networking/serial_queue_manager.h"
 #include "networking/serial_manager.h"
 #include "sensors/sensor_data_buffer.h"
+#include "sensors/encoder_manager.h"
 #include "actuators/speaker.h"
 #include "demos/straight_line_drive.h"
 
@@ -25,6 +26,11 @@ class BytecodeVM : public Singleton<BytecodeVM> {
         // Load bytecode program into the VM
         bool loadProgram(const uint8_t* byteCode, uint16_t size);
         void stopProgram();
+        
+        // Debug methods for distance movement
+        bool isDistanceMovementActive() const { return distanceMovementInProgress; }
+        float getTargetDistanceIn() const { return targetDistanceIn; }
+        float getStartingDistanceIn() const { return startingDistanceIn; }
 
     private:
         BytecodeVM() = default;
@@ -86,8 +92,8 @@ class BytecodeVM : public Singleton<BytecodeVM> {
         void updateTimedMotorMovement();
 
         bool distanceMovementInProgress = false;
-        float targetDistanceCm = 0.0f;
-        float startingDistanceCm = 0.0f;
+        float targetDistanceIn = 0.0f;
+        float startingDistanceIn = 0.0f;
         
         // Helper method for distance-based motor operations
         void updateDistanceMovement();

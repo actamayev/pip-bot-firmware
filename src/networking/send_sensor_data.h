@@ -11,7 +11,6 @@
 #include "sensors/sensor_data_buffer.h"
 #include "networking/websocket_manager.h"
 #include "networking/serial_manager.h"
-#include "networking/network_state_manager.h"
 
 class SendSensorData : public Singleton<SendSensorData> {
     friend class Singleton<SendSensorData>;

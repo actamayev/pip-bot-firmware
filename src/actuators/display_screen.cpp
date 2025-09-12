@@ -65,13 +65,10 @@ void DisplayScreen::showStartScreen() {
     displayOff = false;
 
     display.clearDisplay();
-    
-    // Draw border
-    display.drawRect(0, 0, display.width(), display.height(), SSD1306_WHITE);
-    
+
     // Draw company name (smaller)
-    drawCenteredText("Blue Dot Robots", 1);
-    
+    drawCenteredText("Blue Dot Robots", 2, 1);
+
     // Draw circle underneath
     display.fillCircle(display.width()/2, 40, 10, SSD1306_WHITE);
     
@@ -162,9 +159,6 @@ void DisplayScreen::showLowBatteryScreen() {
     
     display.clearDisplay();
     
-    // Draw border
-    display.drawRect(0, 0, display.width(), display.height(), SSD1306_WHITE);
-    
     // Draw warning icon (triangle with exclamation)
     int centerX = display.width() / 2;
     display.drawTriangle(centerX - 8, 20, centerX + 8, 20, centerX, 5, SSD1306_WHITE);
@@ -186,37 +180,71 @@ void DisplayScreen::generateContentToBuffer() {
     // If display is off, don't generate any content
     if (displayOff) return;
 
-    // Check if straight-line drive is active first (highest priority for debugging)
-    if (StraightLineDrive::getInstance().isEnabled()) {
-        display.clearDisplay();
+    // if (BytecodeVM::getInstance().isDistanceMovementActive()) {
+    //     display.clearDisplay();
         
-        const auto& debugInfo = StraightLineDrive::getInstance().getDebugInfo();
+    //     // Get distance values
+    //     float targetDistance = BytecodeVM::getInstance().getTargetDistanceIn();
+    //     float startingDistance = BytecodeVM::getInstance().getStartingDistanceIn();
+    //     float totalDistance = SensorDataBuffer::getInstance().getLatestDistanceTraveledIn();
+    //     float currentDistance = totalDistance - startingDistance;
         
-        // Title
-        drawCenteredText("Straight Line Drive", 0, 1);
+    //     // Title
+    //     drawCenteredText("Distance Movement", 0, 1);
         
-        // Yaw information
-        display.setCursor(0, 10);
-        display.printf("Init: %.1f deg", debugInfo.initialYaw);
+    //     // Target distance
+    //     display.setCursor(0, 12);
+    //     display.printf("Target: %.1f cm", targetDistance);
         
-        display.setCursor(0, 18);
-        display.printf("Curr: %.1f deg", debugInfo.currentYaw);
+    //     // Starting distance (total odometry when movement began)
+    //     display.setCursor(0, 22);
+    //     display.printf("Start: %.1f cm", startingDistance);
         
-        display.setCursor(0, 26);
-        display.printf("Err:  %.1f deg", debugInfo.yawError);
+    //     // Total distance traveled since robot power-on
+    //     display.setCursor(0, 32);
+    //     display.printf("Total: %.1f cm", totalDistance);
         
-        // Motor speeds
-        display.setCursor(0, 38);
-        display.printf("L: %d  R: %d", debugInfo.leftSpeed, debugInfo.rightSpeed);
+    //     // Current distance traveled in this movement
+    //     display.setCursor(0, 42);
+    //     display.printf("Current: %.1f cm", currentDistance);
         
-        // Correction
-        display.setCursor(0, 50);
-        display.printf("Correction: %d", debugInfo.correction);
+    //     // Progress indicator
+    //     display.setCursor(0, 52);
+    //     float progress = (currentDistance / targetDistance) * 100.0f;
+    //     display.printf("Progress: %.0f%%", progress);
         
-        // Copy display buffer to staging buffer
-        uint8_t* displayBuffer = display.getBuffer();
-        memcpy(stagingBuffer, displayBuffer, DISPLAY_BUFFER_SIZE);
-    } else if (careerQuestTriggers.isS3P3Active()) {
+    //     // Copy display buffer to staging buffer
+    //     uint8_t* displayBuffer = display.getBuffer();
+    //     memcpy(stagingBuffer, displayBuffer, DISPLAY_BUFFER_SIZE);
+    // }
+    // else if (StraightLineDrive::getInstance().isEnabled()) {
+    //     display.clearDisplay();
+        
+    //     const auto& debugInfo = StraightLineDrive::getInstance().getDebugInfo();
+        
+    //     // Title
+    //     drawCenteredText("Straight Line Drive", 0, 1);
+        
+    //     // Encoder count information
+    //     display.setCursor(0, 10);
+    //     display.printf("L: %lld  R: %lld", debugInfo.leftCounts, debugInfo.rightCounts);
+        
+    //     display.setCursor(0, 18);
+    //     display.printf("Err: %lld counts", debugInfo.countError);
+        
+    //     // Motor speeds
+    //     display.setCursor(0, 30);
+    //     display.printf("Spd L:%d R:%d", debugInfo.leftSpeed, debugInfo.rightSpeed);
+        
+    //     // Correction
+    //     display.setCursor(0, 42);
+    //     display.printf("Correction: %d", debugInfo.correction);
+        
+    //     // Copy display buffer to staging buffer
+    //     uint8_t* displayBuffer = display.getBuffer();
+    //     memcpy(stagingBuffer, displayBuffer, DISPLAY_BUFFER_SIZE);
+    // }
+    if (careerQuestTriggers.isS3P3Active()) {
         careerQuestTriggers.renderS3P3Animation();
         // Copy display buffer to staging buffer
         uint8_t* displayBuffer = display.getBuffer();
@@ -224,19 +252,15 @@ void DisplayScreen::generateContentToBuffer() {
     } else if (!customScreenActive) {
         display.clearDisplay();
         
-        // Draw border
-        display.drawRect(0, 0, display.width(), display.height(), SSD1306_WHITE);
-        
         // Draw company name (smaller)
-        drawCenteredText("Blue Dot Robots", 1);
-        
-        // Draw circle underneath (moved up)
-        display.fillCircle(display.width()/2, 32, 10, SSD1306_WHITE);
-        
+        drawCenteredText("Blue Dot Robots", 2, 1.5);
+
         // Show PipID below circle if WebSocket connected
         if (WebSocketManager::getInstance().isConnected()) {
             String pipId = PreferencesManager::getInstance().getPipId();
-            drawCenteredText(pipId, 48, 1);
+            drawCenteredText(pipId, 30, 3);
+        } else {
+            display.fillCircle(display.width()/2, 40, 10, SSD1306_WHITE);
         }
         
         // Copy display buffer to staging buffer

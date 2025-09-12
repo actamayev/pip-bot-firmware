@@ -86,6 +86,7 @@ void TurningManager::update() {
                 SerialQueueManager::getInstance().queueMessage("Turn completed");
             }
         }
+        vTaskDelay(pdMS_TO_TICKS(250));
         return;
     }
     

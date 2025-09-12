@@ -39,11 +39,15 @@ class EncoderManager : public Singleton<EncoderManager> {
         bool shouldBePolling() const;
 
         // Constants for calculations
-        static constexpr float GEAR_RATIO = 297.924;
-        static constexpr uint8_t MOTOR_ENCODER_CPR = 3; // cycles per revolution on motor shaft
-        // attachHalfQuad counts 2 edges per cycle (x2)
-        static constexpr uint8_t PULSES_PER_REVOLUTION = MOTOR_ENCODER_CPR * 2;
+        static constexpr float GEAR_RATIO = 50.0;
+        static constexpr uint8_t MOTOR_ENCODER_CPR = 12; // cycles per revolution on motor shaft
+        // attachFullQuad counts all 4 edges (4x resolution)
+        static constexpr uint8_t PULSES_PER_REVOLUTION = MOTOR_ENCODER_CPR;
         static constexpr unsigned long RPM_CALC_INTERVAL = 20; // ms
+
+        // Wheel physical properties
+        static constexpr float WHEEL_DIAMETER_IN = 1.535; // 39mm converted to inches
+        static constexpr float WHEEL_CIRCUMFERENCE_IN = WHEEL_DIAMETER_IN * PI;
 
         // Internal update method (now private - called by updateSensorData)
         void update();

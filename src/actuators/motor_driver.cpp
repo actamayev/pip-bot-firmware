@@ -293,6 +293,7 @@ void MotorDriver::resetCommandState(bool absoluteBrake) {
     hasNextCommand = false;
     nextLeftPwm = 0;
     nextRightPwm = 0;
+    StraightLineDrive::getInstance().disable();
     
     // Apply brakes after clearing state
     if (absoluteBrake) {

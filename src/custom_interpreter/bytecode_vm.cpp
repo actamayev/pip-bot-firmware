@@ -578,11 +578,11 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
         }
 
         case OP_MOTOR_FORWARD_DISTANCE: {
-            float distanceCm = instr.operand1;
+            float distanceIn = instr.operand1;
             uint8_t throttlePercent = constrain(static_cast<uint8_t>(instr.operand2), 0, 100);
             
             // Validate parameters
-            if (distanceCm <= 0.0f) {
+            if (distanceIn <= 0.0f) {
                 SerialQueueManager::getInstance().queueMessage("Invalid distance value for forward movement");
                 break;
             }
@@ -595,12 +595,12 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             uint8_t motorSpeed = map(throttlePercent, 0, 100, 0, MAX_MOTOR_SPEED);
             
             // Reset distance tracking - store current distance as starting point
-            startingDistanceCm = SensorDataBuffer::getInstance().getLatestDistanceTraveledCm();
+            startingDistanceIn = SensorDataBuffer::getInstance().getLatestDistanceTraveledIn();
             
             // Set up distance movement
             distanceMovementInProgress = true;
-            targetDistanceCm = distanceCm;
-            
+            targetDistanceIn = distanceIn;
+
             // Set motors to forward motion
             motorDriver.updateMotorPwm(motorSpeed, motorSpeed);
             
@@ -608,11 +608,11 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
         }
 
         case OP_MOTOR_BACKWARD_DISTANCE: {
-            float distanceCm = instr.operand1;
+            float distanceIn = instr.operand1;
             uint8_t throttlePercent = constrain(static_cast<uint8_t>(instr.operand2), 0, 100);
             
             // Validate parameters
-            if (distanceCm <= 0.0f) {
+            if (distanceIn <= 0.0f) {
                 SerialQueueManager::getInstance().queueMessage("Invalid distance value for backward movement");
                 break;
             }
@@ -625,11 +625,11 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             uint8_t motorSpeed = map(throttlePercent, 0, 100, 0, MAX_MOTOR_SPEED);
             
             // Reset distance tracking - store current distance as starting point
-            startingDistanceCm = SensorDataBuffer::getInstance().getLatestDistanceTraveledCm();
+            startingDistanceIn = SensorDataBuffer::getInstance().getLatestDistanceTraveledIn();
             
             // Set up distance movement
             distanceMovementInProgress = true;
-            targetDistanceCm = distanceCm;
+            targetDistanceIn = distanceIn;
             
             // Set motors to backward motion
             motorDriver.updateMotorPwm(-motorSpeed, -motorSpeed);
@@ -678,13 +678,19 @@ void BytecodeVM::updateTimedMotorMovement() {
 
 void BytecodeVM::updateDistanceMovement() {
     // Get distance traveled from sensor data buffer (relative to starting point)
-    float totalDistance = SensorDataBuffer::getInstance().getLatestDistanceTraveledCm();
-    float currentDistance = totalDistance - startingDistanceCm;
+    float totalDistance = SensorDataBuffer::getInstance().getLatestDistanceTraveledIn();
+    float currentDistance = totalDistance - startingDistanceIn;
     
-    // // Check if we've reached or exceeded the target distance
-    if (currentDistance < targetDistanceCm) return;
-    // Distance reached - brake motors
+    // Check if we've reached or exceeded the target distance (with small tolerance for overshoot)
+    float tolerance = 0.5f; // 0.5cm tolerance to prevent overshoot issues
+    if (abs(currentDistance) < (targetDistanceIn - tolerance)) return;
+    
+    // Distance reached - brake motors and clear any pending commands
     motorDriver.resetCommandState(true);
+
+    // **ADD THIS LINE:** Disable straight line drive when distance movement completes
+    StraightLineDrive::getInstance().disable();
+    vTaskDelay(pdMS_TO_TICKS(250));
 
     // Reset distance movement state
     distanceMovementInProgress = false;
@@ -704,10 +710,11 @@ void BytecodeVM::resetStateVariables(bool isFullReset) {
     // Reset TurningManager state
     TurningManager::getInstance().completeNavigation(false);
     StraightLineDrive::getInstance().disable();
+    // StraightLineDrive::getInstance().disable();
     timedMotorMovementInProgress = false;
     distanceMovementInProgress = false;
     motorMovementEndTime = 0;
-    targetDistanceCm = 0.0f;
+    targetDistanceIn = 0.0f;
     waitingForButtonPressToStart = false;
 
     // ADD THESE USB safety resets:
