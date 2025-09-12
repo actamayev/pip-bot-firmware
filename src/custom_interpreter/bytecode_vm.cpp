@@ -600,7 +600,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             // Set up distance movement
             distanceMovementInProgress = true;
             targetDistanceCm = distanceCm;
-            
+
             // Set motors to forward motion
             motorDriver.updateMotorPwm(motorSpeed, motorSpeed);
             
@@ -681,13 +681,16 @@ void BytecodeVM::updateDistanceMovement() {
     float totalDistance = SensorDataBuffer::getInstance().getLatestDistanceTraveledCm();
     float currentDistance = totalDistance - startingDistanceCm;
     
-    // Check if we've reached or exceeded the target distance
-    if (abs(currentDistance) < targetDistanceCm) return;
-    // Distance reached - brake motors
+    // Check if we've reached or exceeded the target distance (with small tolerance for overshoot)
+    float tolerance = 0.5f; // 0.5cm tolerance to prevent overshoot issues
+    if (abs(currentDistance) < (targetDistanceCm - tolerance)) return;
+    
+    // Distance reached - brake motors and clear any pending commands
     motorDriver.resetCommandState(true);
 
     // Reset distance movement state
     distanceMovementInProgress = false;
+    // vTaskDelay(pdMS_TO_TICKS(100));
 }
 
 void BytecodeVM::stopProgram() {
