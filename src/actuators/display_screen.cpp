@@ -180,8 +180,43 @@ void DisplayScreen::generateContentToBuffer() {
     // If display is off, don't generate any content
     if (displayOff) return;
 
-    // Check if straight-line drive is active first (highest priority for debugging)
-    if (StraightLineDrive::getInstance().isEnabled()) {
+    if (BytecodeVM::getInstance().isDistanceMovementActive()) {
+        display.clearDisplay();
+        
+        // Get distance values
+        float targetDistance = BytecodeVM::getInstance().getTargetDistanceIn();
+        float startingDistance = BytecodeVM::getInstance().getStartingDistanceIn();
+        float totalDistance = SensorDataBuffer::getInstance().getLatestDistanceTraveledIn();
+        float currentDistance = totalDistance - startingDistance;
+        
+        // Title
+        drawCenteredText("Distance Movement", 0, 1);
+        
+        // Target distance
+        display.setCursor(0, 12);
+        display.printf("Target: %.1f cm", targetDistance);
+        
+        // Starting distance (total odometry when movement began)
+        display.setCursor(0, 22);
+        display.printf("Start: %.1f cm", startingDistance);
+        
+        // Total distance traveled since robot power-on
+        display.setCursor(0, 32);
+        display.printf("Total: %.1f cm", totalDistance);
+        
+        // Current distance traveled in this movement
+        display.setCursor(0, 42);
+        display.printf("Current: %.1f cm", currentDistance);
+        
+        // Progress indicator
+        display.setCursor(0, 52);
+        float progress = (currentDistance / targetDistance) * 100.0f;
+        display.printf("Progress: %.0f%%", progress);
+        
+        // Copy display buffer to staging buffer
+        uint8_t* displayBuffer = display.getBuffer();
+        memcpy(stagingBuffer, displayBuffer, DISPLAY_BUFFER_SIZE);
+    } else if (StraightLineDrive::getInstance().isEnabled()) {
         display.clearDisplay();
         
         const auto& debugInfo = StraightLineDrive::getInstance().getDebugInfo();
