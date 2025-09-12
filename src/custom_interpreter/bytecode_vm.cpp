@@ -688,9 +688,11 @@ void BytecodeVM::updateDistanceMovement() {
     // Distance reached - brake motors and clear any pending commands
     motorDriver.resetCommandState(true);
 
+    // **ADD THIS LINE:** Disable straight line drive when distance movement completes
+    StraightLineDrive::getInstance().disable();
+
     // Reset distance movement state
     distanceMovementInProgress = false;
-    // vTaskDelay(pdMS_TO_TICKS(100));
 }
 
 void BytecodeVM::stopProgram() {
