@@ -690,6 +690,7 @@ void BytecodeVM::updateDistanceMovement() {
 
     // **ADD THIS LINE:** Disable straight line drive when distance movement completes
     StraightLineDrive::getInstance().disable();
+    vTaskDelay(pdMS_TO_TICKS(250));
 
     // Reset distance movement state
     distanceMovementInProgress = false;
