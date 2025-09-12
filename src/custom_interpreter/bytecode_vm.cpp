@@ -681,8 +681,8 @@ void BytecodeVM::updateDistanceMovement() {
     float totalDistance = SensorDataBuffer::getInstance().getLatestDistanceTraveledCm();
     float currentDistance = totalDistance - startingDistanceCm;
     
-    // // Check if we've reached or exceeded the target distance
-    if (currentDistance < targetDistanceCm) return;
+    // Check if we've reached or exceeded the target distance
+    if (abs(currentDistance) < targetDistanceCm) return;
     // Distance reached - brake motors
     motorDriver.resetCommandState(true);
 
@@ -703,7 +703,7 @@ void BytecodeVM::resetStateVariables(bool isFullReset) {
     
     // Reset TurningManager state
     TurningManager::getInstance().completeNavigation(false);
-    StraightLineDrive::getInstance().disable();
+    // StraightLineDrive::getInstance().disable();
     timedMotorMovementInProgress = false;
     distanceMovementInProgress = false;
     motorMovementEndTime = 0;

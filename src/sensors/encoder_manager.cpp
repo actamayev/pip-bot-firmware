@@ -89,9 +89,9 @@ void EncoderManager::updateSensorData() {
     leftCount = leftEncoderCurrentCount;
     rightCount = rightEncoderCurrentCount;
     
-    // Calculate change in encoder counts for distance
-    int64_t leftEncoderDelta = abs(leftEncoderCurrentCount - _leftEncoderStartCount);
-    int64_t rightEncoderDelta = abs(rightEncoderCurrentCount - _rightEncoderStartCount);
+    // Calculate change in encoder counts for distance (maintain sign for direction)
+    int64_t leftEncoderDelta = leftEncoderCurrentCount - _leftEncoderStartCount;
+    int64_t rightEncoderDelta = rightEncoderCurrentCount - _rightEncoderStartCount;
     
     // Average the two encoders to account for slight differences in wheel speeds
     float avgEncoderDelta = (leftEncoderDelta + rightEncoderDelta) / 2.0f;
