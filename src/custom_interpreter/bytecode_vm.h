@@ -29,8 +29,8 @@ class BytecodeVM : public Singleton<BytecodeVM> {
         
         // Debug methods for distance movement
         bool isDistanceMovementActive() const { return distanceMovementInProgress; }
-        float getTargetDistanceCm() const { return targetDistanceCm; }
-        float getStartingDistanceCm() const { return startingDistanceCm; }
+        float getTargetDistanceIn() const { return targetDistanceIn; }
+        float getStartingDistanceIn() const { return startingDistanceIn; }
 
     private:
         BytecodeVM() = default;
@@ -92,8 +92,8 @@ class BytecodeVM : public Singleton<BytecodeVM> {
         void updateTimedMotorMovement();
 
         bool distanceMovementInProgress = false;
-        float targetDistanceCm = 0.0f;
-        float startingDistanceCm = 0.0f;
+        float targetDistanceIn = 0.0f;
+        float startingDistanceIn = 0.0f;
         
         // Helper method for distance-based motor operations
         void updateDistanceMovement();

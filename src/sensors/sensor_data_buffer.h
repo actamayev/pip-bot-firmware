@@ -76,7 +76,7 @@ struct IrData {
 struct EncoderData {
     float leftWheelRPM;
     float rightWheelRPM;
-    float distanceTraveledCm;
+    float distanceTraveledIn;
     int64_t leftEncoderCount;    // Raw encoder count from _leftEncoder.getCount()
     int64_t rightEncoderCount;   // Raw encoder count from _rightEncoder.getCount()
     bool isValid;
@@ -85,7 +85,7 @@ struct EncoderData {
     EncoderData() {
         leftWheelRPM = 0.0f;
         rightWheelRPM = 0.0f;
-        distanceTraveledCm = 0.0f;
+        distanceTraveledIn = 0.0f;
         leftEncoderCount = 0;
         rightEncoderCount = 0;
         isValid = false;
@@ -232,7 +232,7 @@ class SensorDataBuffer : public Singleton<SensorDataBuffer> {
         WheelRPMs getLatestWheelRPMs();  // Returns legacy WheelRPMs struct for compatibility
         float getLatestLeftWheelRPM();
         float getLatestRightWheelRPM();
-        float getLatestDistanceTraveledCm();
+        float getLatestDistanceTraveledIn();
         bool isEncoderDataValid();
         
         // Raw encoder count access (for motor driver)

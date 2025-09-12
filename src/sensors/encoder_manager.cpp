@@ -18,11 +18,11 @@ bool EncoderManager::initialize() {
     ESP32Encoder::useInternalWeakPullResistors = puType::up;
     
     // Setup left encoder
-    _leftEncoder.attachHalfQuad(LEFT_MOTOR_ENCODER_A, LEFT_MOTOR_ENCODER_B);
+    _leftEncoder.attachFullQuad(LEFT_MOTOR_ENCODER_A, LEFT_MOTOR_ENCODER_B);
     _leftEncoder.clearCount();
-    
+
     // Setup right encoder
-    _rightEncoder.attachHalfQuad(RIGHT_MOTOR_ENCODER_A, RIGHT_MOTOR_ENCODER_B);
+    _rightEncoder.attachFullQuad(RIGHT_MOTOR_ENCODER_A, RIGHT_MOTOR_ENCODER_B);
     _rightEncoder.clearCount();
     
     _lastUpdateTime = millis();
@@ -103,13 +103,13 @@ void EncoderManager::updateSensorData() {
     float wheelRevolutionsAfterGearing = wheelRevolutions / GEAR_RATIO;
     
     // Convert wheel revolutions to distance traveled
-    distanceTraveled = wheelRevolutionsAfterGearing * WHEEL_CIRCUMFERENCE_CM;
+    distanceTraveled = wheelRevolutionsAfterGearing * WHEEL_CIRCUMFERENCE_IN;
     
     // Create encoder data struct with both calculated and raw values
     EncoderData encoderData;
     encoderData.leftWheelRPM = _leftWheelRPM;
     encoderData.rightWheelRPM = _rightWheelRPM;
-    encoderData.distanceTraveledCm = distanceTraveled;
+    encoderData.distanceTraveledIn = distanceTraveled;
     encoderData.leftEncoderCount = leftCount;    // Raw counts for motor driver
     encoderData.rightEncoderCount = rightCount;  // Raw counts for motor driver
     encoderData.isValid = true;
