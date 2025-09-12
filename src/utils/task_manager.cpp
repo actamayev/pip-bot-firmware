@@ -209,36 +209,19 @@ void TaskManager::networkManagementTask(void* parameter) {
         SerialQueueManager::getInstance().queueMessage("ERROR: Failed to create NetworkCommunication task!");
     }
 
-    // Main management loop - slower operations
+    // Main management loop - unified approach
     for(;;) {
-        NetworkMode mode = NetworkStateManager::getInstance().getCurrentMode();
-        
-        // Heavy/infrequent operations
+        // Heavy/infrequent operations that run regardless of connection state
         WiFiManager::getInstance().checkAsyncScanProgress();
         TimeoutManager::getInstance().update();
-
-        switch (mode) {
-            case NetworkMode::SERIAL_MODE:
-                // When in serial mode, we don't do any WiFi operations
-                break;
-
-            case NetworkMode::ADD_PIP_MODE:
-                // Process ADD_PIP_MODE WiFi testing
-                WiFiManager::getInstance().processAddPipMode();
-                break;
-
-            case NetworkMode::WIFI_MODE:
-                // WiFi connected mode - management tasks only
-                // (Communication task handles WebSocket polling)
-                break;
-
-            case NetworkMode::NONE:
-                // No connectivity - try to establish WiFi
-                WiFiManager::getInstance().checkAndReconnectWiFi();
-                // HapticFeedbackManager::getInstance().update();
-                // WifiSelectionManager::getInstance().processNetworkSelection();
-                break;
+        
+        // Always try to maintain WiFi connection if not connected
+        if (WiFi.status() != WL_CONNECTED) {
+            WiFiManager::getInstance().checkAndReconnectWiFi();
         }
+        
+        // Process any WiFi credential testing operations
+        WiFiManager::getInstance().processWiFiCredentialTest();
 
         // Slower update rate for management operations
         vTaskDelay(pdMS_TO_TICKS(50));
@@ -248,20 +231,16 @@ void TaskManager::networkManagementTask(void* parameter) {
 void TaskManager::networkCommunicationTask(void* parameter) {
     SerialQueueManager::getInstance().queueMessage("Network communication task started");
     
-    // Main communication loop - fast operations
+    // Main communication loop - unified approach
     for(;;) {
-        NetworkMode mode = NetworkStateManager::getInstance().getCurrentMode();
-        
-        // Send sensor data in both WIFI_MODE and SERIAL_MODE
-        if (mode == NetworkMode::WIFI_MODE || mode == NetworkMode::SERIAL_MODE) {
-            if (mode == NetworkMode::WIFI_MODE) {
-                // WebSocket polling only needed in WiFi mode
-                WebSocketManager::getInstance().pollWebSocket();
-            }
-            // Sensor data transmission works for both modes
-            SendSensorData::getInstance().sendSensorDataToServer();
-            SendSensorData::getInstance().sendMultizoneData();
+        // Always poll WebSocket if WiFi is connected
+        if (WiFi.status() == WL_CONNECTED) {
+            WebSocketManager::getInstance().pollWebSocket();
         }
+        
+        // Always attempt sensor data transmission (SendSensorData will handle routing)
+        SendSensorData::getInstance().sendSensorDataToServer();
+        SendSensorData::getInstance().sendMultizoneData();
 
         // Fast update rate for real-time communication
         vTaskDelay(pdMS_TO_TICKS(5));

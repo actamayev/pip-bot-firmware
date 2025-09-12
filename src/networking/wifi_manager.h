@@ -9,7 +9,6 @@
 #include "websocket_manager.h"
 #include "serial_queue_manager.h"
 #include "actuators/led/rgb_led.h"
-#include "network_state_manager.h"
 #include "sensors/encoder_manager.h"
 #include "wifi_selection/wifi_selection_manager.h"
 
@@ -34,8 +33,8 @@ class WiFiManager : public Singleton<WiFiManager> {
 			bool websocketConnected;
 		};
 		
-		void startAddPipWiFiTest(const String& ssid, const String& password);
-		void processAddPipMode();
+		void startWiFiCredentialTest(const String& ssid, const String& password);
+		void processWiFiCredentialTest();
 		std::vector<WiFiCredentials> getSavedNetworksForResponse();
 		bool startAsyncScan();
 		void checkAsyncScanProgress();
@@ -65,9 +64,9 @@ class WiFiManager : public Singleton<WiFiManager> {
 
 		bool testConnectionOnly(const String& ssid, const String& password);
 
-		bool _isTestingAddPipCredentials = false;
-		String _addPipSSID = "";
-		String _addPipPassword = "";
+		bool _isTestingCredentials = false;
+		String _testSSID = "";
+		String _testPassword = "";
 		bool _asyncScanInProgress = false;
 		unsigned long _asyncScanStartTime = 0;
 		static constexpr unsigned long ASYNC_SCAN_TIMEOUT_MS = 10000; // 10 seconds

@@ -5,7 +5,7 @@ WiFiManager::WiFiManager() {
     // storeWiFiCredentials("Another Dimension", "Iforgotit123", 0);
     // storeWiFiCredentials("NETGEAR08", "breezyshoe123", 1);
     // storeWiFiCredentials("iPhone", "12345678", 0);
-    // storeWiFiCredentials("MSTest", "!haftr2024!", 0);
+    storeWiFiCredentials("MSTest", "!haftr2024!", 0);
 
     WiFi.setTxPower(WIFI_POWER_19_5dBm);
     connectToStoredWiFi();
@@ -50,12 +50,6 @@ bool WiFiManager::attemptDirectConnectionToSavedNetworks() {
     
     // Try to connect to each saved network without scanning first
     for (const WiFiCredentials& network : savedNetworks) {
-        if (NetworkStateManager::getInstance().shouldStopWiFiOperations()) {
-            SerialQueueManager::getInstance().queueMessage("Serial connection detected - aborting WiFi connection attempts");
-            return false;
-        }
-        // SerialQueueManager::getInstance().queueMessage("Trying to connect to: %s\n", network.ssid.c_str());
-        
         // Attempt connection
         if (attemptNewWifiConnection(network)) return true;
 
@@ -67,11 +61,6 @@ bool WiFiManager::attemptDirectConnectionToSavedNetworks() {
 
 bool WiFiManager::attemptNewWifiConnection(WiFiCredentials wifiCredentials) {
     // Set WiFi mode to Station (client mode)
-    if (NetworkStateManager::getInstance().shouldStopWiFiOperations()) {
-        SerialQueueManager::getInstance().queueMessage("Serial connection detected - aborting WiFi connection attempt");
-        return false;
-    }
-
     _isConnecting = true;
     WiFi.mode(WIFI_STA);
 
@@ -101,12 +90,6 @@ bool WiFiManager::attemptNewWifiConnection(WiFiCredentials wifiCredentials) {
             
             // Poll serial to update connection status
             SerialManager::getInstance().pollSerial();
-            
-            if (NetworkStateManager::getInstance().shouldStopWiFiOperations()) {
-                SerialQueueManager::getInstance().queueMessage("\nSerial connection detected - aborting WiFi connection");
-                _isConnecting = false;
-                return false;
-            }
         }
     }
 
@@ -198,19 +181,19 @@ void WiFiManager::checkAndReconnectWiFi() {
     }
 }
 
-void WiFiManager::startAddPipWiFiTest(const String& ssid, const String& password) {
-    _addPipSSID = ssid;
-    _addPipPassword = password;
-    _isTestingAddPipCredentials = true;
+void WiFiManager::startWiFiCredentialTest(const String& ssid, const String& password) {
+    _testSSID = ssid;
+    _testPassword = password;
+    _isTestingCredentials = true;
 }
 
-void WiFiManager::processAddPipMode() {
-    if (!_isTestingAddPipCredentials) return;
+void WiFiManager::processWiFiCredentialTest() {
+    if (!_isTestingCredentials) return;
     
-    _isTestingAddPipCredentials = false;
+    _isTestingCredentials = false;
 
     // Directly attempt connection without scanning
-    if (testConnectionOnly(_addPipSSID, _addPipPassword)) {
+    if (testConnectionOnly(_testSSID, _testPassword)) {
         SerialQueueManager::getInstance().queueMessage("WiFi connection successful - testing WebSocket...");
         
         // Test WebSocket connection
@@ -230,8 +213,7 @@ void WiFiManager::processAddPipMode() {
         }
         
         if (websocketConnected) {
-            storeWiFiCredentials(_addPipSSID, _addPipPassword, 0);
-            NetworkStateManager::getInstance().setAddPipMode(false);
+            storeWiFiCredentials(_testSSID, _testPassword, 0);
             SerialManager::getInstance().sendJsonMessage(RouteType::WIFI_CONNECTION_RESULT, "success");
         } else {
             WiFi.setAutoReconnect(false);
@@ -244,9 +226,9 @@ void WiFiManager::processAddPipMode() {
         SerialManager::getInstance().sendJsonMessage(RouteType::WIFI_CONNECTION_RESULT, "failed");
     }
     
-    // Clear stored credentials
-    _addPipSSID = "";
-    _addPipPassword = "";
+    // Clear test credentials
+    _testSSID = "";
+    _testPassword = "";
 }
 
 bool WiFiManager::testConnectionOnly(const String& ssid, const String& password) {
@@ -279,12 +261,6 @@ bool WiFiManager::testConnectionOnly(const String& ssid, const String& password)
         }
         
         vTaskDelay(pdMS_TO_TICKS(500)); // Increased delay - less aggressive polling for better sensor performance
-        
-        if (NetworkStateManager::getInstance().shouldStopWiFiOperations()) {
-            SerialQueueManager::getInstance().queueMessage("Serial connection detected - aborting WiFi test");
-            WiFi.disconnect(true);
-            return false;
-        }
     }
     
     bool connected = WiFi.status() == WL_CONNECTED;

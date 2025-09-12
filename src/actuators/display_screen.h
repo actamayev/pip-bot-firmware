@@ -7,6 +7,8 @@
 #include "utils/singleton.h"
 #include "networking/serial_queue_manager.h"
 #include "utils/preferences_manager.h"
+#include "custom_interpreter/bytecode_vm.h"
+#include "sensors/sensor_data_buffer.h"
 
 #define DISPLAY_BUFFER_SIZE ((SCREEN_WIDTH * SCREEN_HEIGHT) / 8)
 
