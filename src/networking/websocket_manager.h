@@ -47,7 +47,7 @@ class WebSocketManager : public Singleton<WebSocketManager> {
         void killWiFiProcesses();
         unsigned long lastPingTime = 0;
         // NOTE: The WS_TIMEOUT must be greater than the PING_INTERVAL in SingleESP32Connection.
-        const unsigned long WS_TIMEOUT = 2000; // 2 seconds timeout
+        const unsigned long WS_TIMEOUT = 3000; // 3 seconds timeout
         bool hasKilledWiFiProcesses = false;
         bool userConnectedToThisPip = false;
 };
