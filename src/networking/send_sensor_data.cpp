@@ -81,7 +81,7 @@ void SendSensorData::sendSensorDataToServer() {
 
     // Check available connections - prioritize serial over websocket
     bool serialConnected = SerialManager::getInstance().isSerialConnected();
-    bool websocketConnected = WebSocketManager::getInstance().isConnected();
+    bool websocketConnected = WebSocketManager::getInstance().isWsConnected();
     
     // Must have at least one connection
     if (!serialConnected && !websocketConnected) return;
@@ -127,7 +127,7 @@ void SendSensorData::sendMultizoneData() {
 
     // Check available connections - prioritize serial over websocket
     bool serialConnected = SerialManager::getInstance().isSerialConnected();
-    bool websocketConnected = WebSocketManager::getInstance().isConnected();
+    bool websocketConnected = WebSocketManager::getInstance().isWsConnected();
     
     // Must have at least one connection
     if (!serialConnected && !websocketConnected) return;

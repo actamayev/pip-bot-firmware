@@ -368,7 +368,7 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             break;
         }
         case DataMessageType::STOP_SOUND: {
-            // 7/21/25 TODO: Implement this
+            Speaker::getInstance().stopAllSounds();
             break;
         }
         case DataMessageType::REQUEST_BATTERY_MONITOR_DATA: { // This comes from the server when the user reloads the page (user requests battery data for each pip)
@@ -525,6 +525,26 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
                 careerQuestTriggers.stopAllCareerQuestTriggers();
             }
             break;
+        }
+        case DataMessageType::SHOW_DISPLAY_START_SCREEN: {
+                if (length != 1) {
+                    SerialQueueManager::getInstance().queueMessage("Invalid show display start screen message length");
+                } else {
+                    DisplayScreen::getInstance().showStartScreen();
+                }
+                break;
+            }
+        case DataMessageType::IS_USER_CONNECTED_TO_PIP: {
+            if (length != 2) {
+                SerialQueueManager::getInstance().queueMessage("Invalid Is user connected to pip length");
+            } else {
+                UserConnectedStatus status = static_cast<UserConnectedStatus>(data[1]);
+                if (status == UserConnectedStatus::NOT_CONNECTED) {
+                    WebSocketManager::getInstance().setIsUserConnectedToThisPip(false);
+                } else {
+                    WebSocketManager::getInstance().setIsUserConnectedToThisPip(true);
+                }
+            }
         }
         default:
             break;

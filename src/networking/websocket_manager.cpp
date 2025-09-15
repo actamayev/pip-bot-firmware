@@ -183,6 +183,7 @@ void WebSocketManager::killWiFiProcesses() {
     rgbLed.set_led_red();
     ledAnimations.startBreathing();
     hasKilledWiFiProcesses = true;
+    userConnectedToThisPip = false;
 }
 
 void WebSocketManager::sendPipTurningOff() {
@@ -207,4 +208,13 @@ void WebSocketManager::sendDinoScore(int score) {
     String jsonString;
     serializeJson(doc, jsonString);
     wsClient.send(jsonString);
+}
+
+void WebSocketManager::setIsUserConnectedToThisPip(bool newIsUserConnectedToThisPip) {
+    userConnectedToThisPip = newIsUserConnectedToThisPip;
+    if (newIsUserConnectedToThisPip) return;
+    ledAnimations.fadeOut();
+    motorDriver.resetCommandState(true);
+    Speaker::getInstance().stopAllSounds();
+    DisplayScreen::getInstance().showStartScreen();
 }

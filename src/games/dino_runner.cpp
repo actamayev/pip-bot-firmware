@@ -215,7 +215,7 @@ void DinoRunner::gameOver() {
     SerialQueueManager::getInstance().queueMessage("Dino game over - Score: " + String(score));
     
     // Send score via available communication channels
-    if (WebSocketManager::getInstance().isConnected()) {
+    if (WebSocketManager::getInstance().isWsConnected()) {
         WebSocketManager::getInstance().sendDinoScore(score);
     } else if (SerialManager::getInstance().isSerialConnected()) {
         SerialManager::getInstance().sendDinoScore(score);

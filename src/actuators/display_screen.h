@@ -37,6 +37,9 @@ class DisplayScreen: public Singleton<DisplayScreen> {
         float getDisplayUpdateRate() const;
         void resetPerformanceCounters();
 
+        // Screen display methods
+        void showStartScreen();
+
     private:
         // Private constructor for singleton
         DisplayScreen() = default;
@@ -48,9 +51,6 @@ class DisplayScreen: public Singleton<DisplayScreen> {
         void clear();
         void drawText(const String& text, uint16_t x, uint16_t y, uint16_t size = 1);
         void drawCenteredText(const String& text, uint16_t y, uint16_t size = 1);
-
-        // Screen display methods
-        void showStartScreen();
 
         // Display object
         Adafruit_SSD1306 display;
