@@ -29,7 +29,9 @@ enum class DataMessageType : uint8_t {
     UPDATE_DISPLAY = 25,
     STOP_SENSOR_POLLING = 26,
     TRIGGER_MESSAGE = 27,
-    STOP_CAREER_QUEST_TRIGGER = 28
+    STOP_CAREER_QUEST_TRIGGER = 28,
+    SHOW_DISPLAY_START_SCREEN = 29,
+    IS_USER_CONNECTED_TO_PIP = 30
 };
 
 // Sound types
@@ -72,6 +74,11 @@ enum class BalanceStatus : uint8_t {
 enum class ObstacleAvoidanceStatus : uint8_t {
     STOP_AVOIDANCE = 0,
     AVOID = 1
+};
+
+enum class UserConnectedStatus : uint8_t {
+    NOT_CONNECTED = 0,
+    CONNECTED = 1
 };
 
 enum class LightAnimationStatus : uint8_t {

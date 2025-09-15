@@ -106,7 +106,7 @@ void BatteryMonitor::handleBatteryLogging() {
     // Only log if connected to serial
     if (
         !SerialManager::getInstance().isSerialConnected() &&
-        !WebSocketManager::getInstance().isConnected()
+        !WebSocketManager::getInstance().isWsConnected()
     ) return;
     
     unsigned long currentTime = millis();
@@ -133,7 +133,7 @@ void BatteryMonitor::sendBatteryMonitorDataOverSerial() {
 }
 
 void BatteryMonitor::sendBatteryMonitorDataOverWebSocket() {
-    if (!WebSocketManager::getInstance().isConnected()) return;
+    if (!WebSocketManager::getInstance().isWsConnected()) return;
     WebSocketManager::getInstance().sendBatteryMonitorData();
     lastBatteryLogTime = millis();
 }

@@ -205,7 +205,7 @@ void WiFiManager::processWiFiCredentialTest() {
         
         while (millis() - startTime < WEBSOCKET_TIMEOUT) {
             WebSocketManager::getInstance().pollWebSocket();
-            if (WebSocketManager::getInstance().isConnected()) {
+            if (WebSocketManager::getInstance().isWsConnected()) {
                 websocketConnected = true;
                 break;
             }

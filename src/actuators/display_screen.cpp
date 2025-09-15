@@ -256,9 +256,17 @@ void DisplayScreen::generateContentToBuffer() {
         drawCenteredText("Blue Dot Robots", 2, 1.5);
 
         // Show PipID below circle if WebSocket connected
-        if (WebSocketManager::getInstance().isConnected()) {
+        if (
+            WebSocketManager::getInstance().isWsConnected() &&
+            !WebSocketManager::getInstance().isUserConnectedToThisPip()
+        ) {
             String pipId = PreferencesManager::getInstance().getPipId();
             drawCenteredText(pipId, 30, 3);
+        } else if (
+            WebSocketManager::getInstance().isWsConnected() &&
+            WebSocketManager::getInstance().isUserConnectedToThisPip()
+        ) {
+            drawCenteredText("Connected!", 30, 2);
         } else {
             display.fillCircle(display.width()/2, 40, 10, SSD1306_WHITE);
         }
