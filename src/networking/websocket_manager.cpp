@@ -183,6 +183,7 @@ void WebSocketManager::killWiFiProcesses() {
     rgbLed.set_led_red();
     ledAnimations.startBreathing();
     hasKilledWiFiProcesses = true;
+    DisplayScreen::getInstance().showStartScreen();
 }
 
 void WebSocketManager::sendPipTurningOff() {

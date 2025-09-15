@@ -36,7 +36,7 @@ class WebSocketManager : public Singleton<WebSocketManager> {
         void sendInitialData();
 
         unsigned long lastPollTime = 0;
-        const unsigned long POLL_INTERVAL = 50; // Poll every 50ms
+        const unsigned long POLL_INTERVAL = 40; // Poll every 40ms
 
         bool wsConnected = false;
         unsigned long lastConnectionAttempt = 0;
@@ -44,6 +44,7 @@ class WebSocketManager : public Singleton<WebSocketManager> {
 
         void killWiFiProcesses();
         unsigned long lastPingTime = 0;
-        const unsigned long WS_TIMEOUT = 5000; // 5 seconds timeout
+        // NOTE: The WS_TIMEOUT must be greater than the PING_INTERVAL in SingleESP32Connection.
+        const unsigned long WS_TIMEOUT = 2000; // 2 seconds timeout
         bool hasKilledWiFiProcesses = false;
 };
