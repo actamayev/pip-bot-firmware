@@ -22,10 +22,12 @@ class WebSocketManager : public Singleton<WebSocketManager> {
         void connectToWebSocket();
         void pollWebSocket();
 
-        bool isConnected() const { return wsConnected; }
+        bool isWsConnected() const { return wsConnected; }
         void sendBatteryMonitorData();
         void sendPipTurningOff();
         void sendDinoScore(int score);
+        bool isUserConnectedToThisPip() const { return userConnectedToThisPip; }
+        void setIsUserConnectedToThisPip(bool newIsUserConnectedToThisPip);
 
     private:
         // Make constructor private for singleton
@@ -47,4 +49,5 @@ class WebSocketManager : public Singleton<WebSocketManager> {
         // NOTE: The WS_TIMEOUT must be greater than the PING_INTERVAL in SingleESP32Connection.
         const unsigned long WS_TIMEOUT = 2000; // 2 seconds timeout
         bool hasKilledWiFiProcesses = false;
+        bool userConnectedToThisPip = false;
 };
