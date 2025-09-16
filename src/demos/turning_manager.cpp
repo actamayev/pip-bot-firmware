@@ -82,7 +82,7 @@ void TurningManager::update() {
         if (currentTime - turnCompletionStartTime >= COMPLETION_CONFIRMATION_TIME) {
             if (!turnCompletionConfirmed && abs(currentVelocity) < 20.0f) {
                 turnCompletionConfirmed = true;
-                completeNavigation(true);
+                completeNavigation();
                 SerialQueueManager::getInstance().queueMessage("Turn completed");
             }
         }
@@ -294,12 +294,9 @@ void TurningManager::setTurnSpeed(uint8_t speed) {
     }
 }
 
-void TurningManager::completeNavigation(bool absoluteBrake) {
-    if (absoluteBrake) {
-        motorDriver.brake_both_motors();
-    } else {
-        motorDriver.brake_if_moving();
-    }
+void TurningManager::completeNavigation() {
+    // Note: We are not doing brake_if_moving because 
+    motorDriver.brake_both_motors();
     currentDirection = TurningDirection::NONE;
     targetDirection = TurningDirection::NONE;
     currentState = TurningState::IDLE;

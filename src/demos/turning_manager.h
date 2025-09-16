@@ -21,7 +21,7 @@ class TurningManager : public Singleton<TurningManager> {
         // Main interface
         bool startTurn(float degrees);
         void update();
-        void completeNavigation(bool absoluteBrake);
+        void completeNavigation();
         const bool isActive() { return currentState == TurningState::TURNING; };
 
     private:
