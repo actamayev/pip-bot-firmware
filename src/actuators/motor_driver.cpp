@@ -124,12 +124,12 @@ void MotorDriver::update() {
     int16_t leftAdjusted = _actualLeftPwm;
     int16_t rightAdjusted = _actualRightPwm;
 
-    // if (StraightLineDrive::getInstance().isEnabled()) {
-    //     StraightLineDrive::getInstance().update(leftAdjusted, rightAdjusted);
-    // }
+    if (StraightLineDrive::getInstance().isEnabled()) {
+        StraightLineDrive::getInstance().update(leftAdjusted, rightAdjusted);
+    }
 
     // Only update motor controls if speeds have changed or StraightLineDrive is applying corrections
-    if (speedsChanged) {
+    if (speedsChanged || StraightLineDrive::getInstance().isEnabled()) {
         // Apply the current speeds
         if (leftAdjusted == 0) {
             brake_left_motor();
@@ -178,15 +178,15 @@ void MotorDriver::updateMotorPwm(int16_t leftPwm, int16_t rightPwm) {
     rightPwm = constrain(rightPwm, -MAX_MOTOR_SPEED, MAX_MOTOR_SPEED);
     
     // Check if straight-line driving should be active
-    // if (leftPwm > 0 && rightPwm > 0 && leftPwm == rightPwm) {
-    //     // Enable straight-line driving if not already active
-    //     if (!StraightLineDrive::getInstance().isEnabled()) {
-    //         StraightLineDrive::getInstance().enable();
-    //     }
-    // } else {
-    //     // Disable straight-line driving for all other cases
-    //     StraightLineDrive::getInstance().disable();
-    // }
+    if (leftPwm > 0 && rightPwm > 0 && leftPwm == rightPwm) {
+        // Enable straight-line driving if not already active
+        if (!StraightLineDrive::getInstance().isEnabled()) {
+            StraightLineDrive::getInstance().enable();
+        }
+    } else {
+        // Disable straight-line driving for all other cases
+        StraightLineDrive::getInstance().disable();
+    }
     
     // If we're not executing a command, start this one immediately
     if (!isExecutingCommand) {
@@ -213,14 +213,6 @@ void MotorDriver::executeCommand(int16_t leftPwm, int16_t rightPwm) {
     commandStartTime = millis();
 
     set_motor_speeds(leftPwm, rightPwm, true); // ramp is default true for commands that are executed in series (ie driving in the garage)
-
-    // Enable straight driving correction for forward movement only. 
-    // 4/12/25: Removing straight line drive for backward movement. need to bring back eventually
-    // if ((leftSpeed > 0 && rightSpeed > 0) && (leftSpeed == rightSpeed)) {
-    //     StraightLineDrive::getInstance().enable();
-    // } else {
-    //     StraightLineDrive::getInstance().disable();
-    // }
 
     isExecutingCommand = true;
     hasNextCommand = false;
@@ -293,7 +285,7 @@ void MotorDriver::resetCommandState(bool absoluteBrake) {
     hasNextCommand = false;
     nextLeftPwm = 0;
     nextRightPwm = 0;
-    // StraightLineDrive::getInstance().disable();
+    StraightLineDrive::getInstance().disable();
     
     // Apply brakes after clearing state
     if (absoluteBrake) {
