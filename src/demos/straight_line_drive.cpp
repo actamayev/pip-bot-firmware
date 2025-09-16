@@ -36,15 +36,13 @@ void StraightLineDrive::update(int16_t& leftSpeed, int16_t& rightSpeed) {
     // Calculate heading error with wrap-around handling
     float headingError = calculateHeadingError(currentHeading, _initialHeading);
     
-    // Apply dead zone - skip tiny corrections that cause oscillation
-    if (abs(headingError) < DEAD_ZONE_DEGREES) {
-        return; // No correction needed for small errors
-    }
-
     // Update debug info
     _debugInfo.currentHeading = currentHeading;
     _debugInfo.headingError = headingError;
-    
+
+    // Apply dead zone - skip tiny corrections that cause oscillation
+    if (abs(headingError) < DEAD_ZONE_DEGREES) return; // No correction needed for small errors
+
     // Calculate proportional correction (simplified)
     int16_t correction = static_cast<int16_t>(KP_HEADING_TO_PWM * headingError);
     

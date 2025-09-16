@@ -67,12 +67,6 @@ bool BytecodeVM::loadProgram(const uint8_t* byteCode, uint16_t size) {
 void BytecodeVM::update() {
     checkUsbSafetyConditions();
     if (!program || isPaused == PauseState::PAUSED || isPaused == PauseState::PROGRAM_FINISHED) return;
-    
-    // Your existing debug log
-    SerialQueueManager::getInstance().queueMessage(
-        "VM Update: PC=" + String(pc) + ", timedMotor=" + String(timedMotorMovementInProgress) + 
-        ", state=" + String((int)isPaused)
-    );
 
     // Check if program has naturally completed (pc reached or exceeded program size)
     if (pc >= programSize) {
