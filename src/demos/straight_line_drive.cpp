@@ -1,18 +1,23 @@
 #include "straight_line_drive.h"
 
-constexpr float StraightLineDrive::KP_COUNTS_TO_PWM;
+constexpr float StraightLineDrive::KP_HEADING_TO_PWM;
 constexpr int16_t StraightLineDrive::MAX_CORRECTION_PWM;
 constexpr int16_t StraightLineDrive::MIN_FORWARD_SPEED;
+constexpr float StraightLineDrive::MAX_HEADING_ERROR;
+constexpr float StraightLineDrive::MIN_CORRECTION_SCALE;
+constexpr float StraightLineDrive::MAX_CORRECTION_SCALE;
+constexpr int16_t StraightLineDrive::SPEED_SCALE_THRESHOLD;
 
 void StraightLineDrive::enable() {
     _straightDrivingEnabled = true;
     
-    // Get current encoder counts as our baseline
-    auto currentCounts = SensorDataBuffer::getInstance().getLatestEncoderCounts();
-    _initialLeftCount = currentCounts.first;
-    _initialRightCount = currentCounts.second;
+    // Get current yaw heading as our baseline
+    _initialHeading = -SensorDataBuffer::getInstance().getLatestYaw();  // Note: negative for consistency with turning manager
     
-    SerialQueueManager::getInstance().queueMessage("StraightLineDrive enabled");
+    // Initialize debug info
+    _debugInfo.initialHeading = _initialHeading;
+    
+    SerialQueueManager::getInstance().queueMessage("StraightLineDrive enabled (IMU-based)");
 }
 
 void StraightLineDrive::disable() {
@@ -26,25 +31,28 @@ void StraightLineDrive::update(int16_t& leftSpeed, int16_t& rightSpeed) {
     // Only apply corrections if both motors are moving forward in the same direction
     if (!(leftSpeed > 0 && rightSpeed > 0)) return;
 
-    // Get current encoder counts
-    auto currentCounts = SensorDataBuffer::getInstance().getLatestEncoderCounts();
-    int64_t currentLeftCount = currentCounts.first;
-    int64_t currentRightCount = currentCounts.second;
+    // Get current yaw heading (negative for consistency with turning manager)
+    float currentHeading = -SensorDataBuffer::getInstance().getLatestYaw();
     
-    // Calculate travel since enable (absolute values for distance comparison)
-    int64_t leftTravel = abs(currentLeftCount - _initialLeftCount);
-    int64_t rightTravel = abs(currentRightCount - _initialRightCount);
-    
-    // Calculate count error (positive = left wheel ahead, negative = right wheel ahead)
-    int64_t countError = leftTravel - rightTravel;
+    // Calculate heading error with wrap-around handling
+    float headingError = calculateHeadingError(currentHeading, _initialHeading);
     
     // Update debug info
-    _debugInfo.leftCounts = leftTravel;
-    _debugInfo.rightCounts = rightTravel;
-    _debugInfo.countError = countError;
+    _debugInfo.currentHeading = currentHeading;
+    _debugInfo.headingError = headingError;
     
-    // Calculate proportional correction
-    int16_t correction = static_cast<int16_t>(KP_COUNTS_TO_PWM * static_cast<float>(countError));
+    // Skip correction if heading error is too large (probably a sensor glitch or manual intervention)
+    if (abs(headingError) > MAX_HEADING_ERROR) {
+        SerialQueueManager::getInstance().queueMessage("Warning: Large heading error detected, skipping correction");
+        return;
+    }
+    
+    // Calculate speed-adaptive correction scaling
+    float correctionScale = calculateCorrectionScale(leftSpeed, rightSpeed);
+    _debugInfo.correctionScale = correctionScale;
+    
+    // Calculate proportional correction with speed scaling
+    int16_t correction = static_cast<int16_t>(KP_HEADING_TO_PWM * headingError * correctionScale);
     
     // Limit correction magnitude
     correction = constrain(correction, -MAX_CORRECTION_PWM, MAX_CORRECTION_PWM);
@@ -53,13 +61,13 @@ void StraightLineDrive::update(int16_t& leftSpeed, int16_t& rightSpeed) {
     int16_t originalLeftSpeed = leftSpeed;
     int16_t originalRightSpeed = rightSpeed;
     
-    // Apply correction by reducing speed of faster wheel (SLD approach)
+    // Apply correction based on heading error
     if (correction > 0) {
-        // Left wheel is ahead, slow it down
+        // Positive heading error = robot drifted clockwise (right) = slow down left wheel to correct counter-clockwise
         leftSpeed = originalLeftSpeed - abs(correction);
-        rightSpeed = originalRightSpeed;  // Keep right speed unchanged
+        rightSpeed = originalRightSpeed;   // Keep right speed unchanged
     } else if (correction < 0) {
-        // Right wheel is ahead, slow it down
+        // Negative heading error = robot drifted counter-clockwise (left) = slow down right wheel to correct clockwise
         leftSpeed = originalLeftSpeed;    // Keep left speed unchanged
         rightSpeed = originalRightSpeed - abs(correction);
     }
@@ -76,4 +84,38 @@ void StraightLineDrive::update(int16_t& leftSpeed, int16_t& rightSpeed) {
     _debugInfo.leftSpeed = leftSpeed;
     _debugInfo.rightSpeed = rightSpeed;
     _debugInfo.correction = correction;
+}
+
+float StraightLineDrive::calculateHeadingError(float currentHeading, float targetHeading) {
+    float error = currentHeading - targetHeading;
+    
+    // Handle wrap-around using shortest path (same logic as turning manager)
+    while (error > 180.0f) error -= 360.0f;
+    while (error < -180.0f) error += 360.0f;
+    
+    return error;
+}
+
+float StraightLineDrive::calculateCorrectionScale(int16_t leftSpeed, int16_t rightSpeed) {
+    // Calculate average speed for scaling
+    float avgSpeed = (abs(leftSpeed) + abs(rightSpeed)) / 2.0f;
+    
+    // Scale correction strength based on speed
+    // Lower speeds get smaller corrections to avoid overcorrection
+    // Higher speeds get larger corrections to handle higher momentum
+    float scale;
+    
+    if (avgSpeed < SPEED_SCALE_THRESHOLD) {
+        // Linear scaling from MIN_CORRECTION_SCALE to 1.0 for low speeds
+        scale = MIN_CORRECTION_SCALE + 
+                (1.0f - MIN_CORRECTION_SCALE) * (avgSpeed / SPEED_SCALE_THRESHOLD);
+    } else {
+        // Linear scaling from 1.0 to MAX_CORRECTION_SCALE for high speeds  
+        float highSpeedRange = MAX_MOTOR_SPEED - SPEED_SCALE_THRESHOLD;
+        float speedAboveThreshold = avgSpeed - SPEED_SCALE_THRESHOLD;
+        scale = 1.0f + (MAX_CORRECTION_SCALE - 1.0f) * (speedAboveThreshold / highSpeedRange);
+    }
+    
+    // Ensure scale stays within bounds
+    return constrain(scale, MIN_CORRECTION_SCALE, MAX_CORRECTION_SCALE);
 }

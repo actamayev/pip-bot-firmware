@@ -4,6 +4,8 @@
 const std::map<BytecodeOpCode, std::vector<BytecodeVM::SensorType>> BytecodeVM::opcodeToSensors = {
     // This map is to control what sensors need to be polled for various OpCodes
     // Ie: For motor turn, we need to poll encoders, and quaternion
+    {OP_MOTOR_FORWARD, {SENSOR_QUATERNION}},
+    {OP_MOTOR_BACKWARD, {SENSOR_QUATERNION}},
     {OP_MOTOR_FORWARD_TIME, {SENSOR_QUATERNION}},
     {OP_MOTOR_BACKWARD_TIME, {SENSOR_QUATERNION}},
     {OP_MOTOR_FORWARD_DISTANCE, {SENSOR_QUATERNION}},
