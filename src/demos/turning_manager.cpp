@@ -38,8 +38,18 @@ void TurningManager::initializeTurn() {
 
 void TurningManager::update() {
     if (currentState == TurningState::IDLE) return;
-    
+
     updateVelocity();
+
+    // Update debug info
+    _debugInfo.targetAngle = TARGET_TURN_ANGLE;
+    _debugInfo.cumulativeRotation = cumulativeRotation;
+    _debugInfo.currentError = currentError;
+    _debugInfo.currentVelocity = currentVelocity;
+    _debugInfo.currentMinPWM = currentMinPWM;
+    _debugInfo.currentMaxPWM = currentMaxPWM;
+    _debugInfo.directionChanges = turnDirectionChanges;
+    _debugInfo.inSafetyPause = inSafetyPause;
     
     // Handle safety pause
     if (inSafetyPause) {
@@ -82,11 +92,10 @@ void TurningManager::update() {
         if (currentTime - turnCompletionStartTime >= COMPLETION_CONFIRMATION_TIME) {
             if (!turnCompletionConfirmed && abs(currentVelocity) < 20.0f) {
                 turnCompletionConfirmed = true;
-                completeNavigation(true);
+                completeNavigation();
                 SerialQueueManager::getInstance().queueMessage("Turn completed");
             }
         }
-        vTaskDelay(pdMS_TO_TICKS(250));
         return;
     }
     
@@ -295,20 +304,26 @@ void TurningManager::setTurnSpeed(uint8_t speed) {
     }
 }
 
-void TurningManager::completeNavigation(bool absoluteBrake) {
-    if (absoluteBrake) {
-        motorDriver.brake_both_motors();
-    } else {
-        motorDriver.brake_if_moving();
-    }
+void TurningManager::completeNavigation() {
+    // Note: We are not doing brake_if_moving because 
+    motorDriver.brake_both_motors();
     currentDirection = TurningDirection::NONE;
     targetDirection = TurningDirection::NONE;
     currentState = TurningState::IDLE;
     turnCompletionStartTime = 0;
     turnCompletionConfirmed = false;
-    
+
     // Reset rotation tracking
     cumulativeRotation = 0.0;
     rotationTrackingInitialized = false;
     TARGET_TURN_ANGLE = 0.0f;
+
+    // Reset control variables to prevent restart loops
+    currentError = 0.0f;
+    currentVelocity = 0.0f;
+    lastHeading = 0.0f;
+    lastTime = 0;
+    turnDirectionChanges = 0;
+    inSafetyPause = false;
+    lastHeadingForRotation = 0.0f;
 }

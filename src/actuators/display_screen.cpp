@@ -1,6 +1,7 @@
 #include "display_screen.h"
 #include "career_quest/career_quest_triggers.h"
 #include "demos/straight_line_drive.h"
+#include "demos/turning_manager.h"
 
 // Initialize the display with explicit Wire reference
 bool DisplayScreen::init(bool showStartup) {
@@ -180,44 +181,7 @@ void DisplayScreen::generateContentToBuffer() {
     // If display is off, don't generate any content
     if (displayOff) return;
 
-    // if (BytecodeVM::getInstance().isDistanceMovementActive()) {
-    //     display.clearDisplay();
-        
-    //     // Get distance values
-    //     float targetDistance = BytecodeVM::getInstance().getTargetDistanceIn();
-    //     float startingDistance = BytecodeVM::getInstance().getStartingDistanceIn();
-    //     float totalDistance = SensorDataBuffer::getInstance().getLatestDistanceTraveledIn();
-    //     float currentDistance = totalDistance - startingDistance;
-        
-    //     // Title
-    //     drawCenteredText("Distance Movement", 0, 1);
-        
-    //     // Target distance
-    //     display.setCursor(0, 12);
-    //     display.printf("Target: %.1f cm", targetDistance);
-        
-    //     // Starting distance (total odometry when movement began)
-    //     display.setCursor(0, 22);
-    //     display.printf("Start: %.1f cm", startingDistance);
-        
-    //     // Total distance traveled since robot power-on
-    //     display.setCursor(0, 32);
-    //     display.printf("Total: %.1f cm", totalDistance);
-        
-    //     // Current distance traveled in this movement
-    //     display.setCursor(0, 42);
-    //     display.printf("Current: %.1f cm", currentDistance);
-        
-    //     // Progress indicator
-    //     display.setCursor(0, 52);
-    //     float progress = (currentDistance / targetDistance) * 100.0f;
-    //     display.printf("Progress: %.0f%%", progress);
-        
-    //     // Copy display buffer to staging buffer
-    //     uint8_t* displayBuffer = display.getBuffer();
-    //     memcpy(stagingBuffer, displayBuffer, DISPLAY_BUFFER_SIZE);
-    // }
-    // else if (StraightLineDrive::getInstance().isEnabled()) {
+    // if (StraightLineDrive::getInstance().isEnabled()) {
     //     display.clearDisplay();
         
     //     const auto& debugInfo = StraightLineDrive::getInstance().getDebugInfo();
@@ -225,21 +189,58 @@ void DisplayScreen::generateContentToBuffer() {
     //     // Title
     //     drawCenteredText("Straight Line Drive", 0, 1);
         
-    //     // Encoder count information
+    //     // Motor speeds (int16_t -> %d)
     //     display.setCursor(0, 10);
-    //     display.printf("L: %lld  R: %lld", debugInfo.leftCounts, debugInfo.rightCounts);
+    //     display.printf("L: %d  R: %d", debugInfo.leftSpeed, debugInfo.rightSpeed);
         
-    //     display.setCursor(0, 18);
-    //     display.printf("Err: %lld counts", debugInfo.countError);
+    //     // Initial heading (float -> %.1f)
+    //     display.setCursor(0, 20);
+    //     display.printf("Init heading: %.1f", debugInfo.initialHeading);
         
-    //     // Motor speeds
+    //     // Current heading (float -> %.1f)
     //     display.setCursor(0, 30);
-    //     display.printf("Spd L:%d R:%d", debugInfo.leftSpeed, debugInfo.rightSpeed);
+    //     display.printf("Curr heading: %.1f", debugInfo.currentHeading);
+
+    //     // Heading error (float -> %.1f)
+    //     display.setCursor(0, 40);
+    //     display.printf("Err: %.1f deg", debugInfo.headingError);
         
-    //     // Correction
-    //     display.setCursor(0, 42);
+    //     // Correction (int16_t -> %d)
+    //     display.setCursor(0, 50);
     //     display.printf("Correction: %d", debugInfo.correction);
         
+    //     // Copy display buffer to staging buffer
+    //     uint8_t* displayBuffer = display.getBuffer();
+    //     memcpy(stagingBuffer, displayBuffer, DISPLAY_BUFFER_SIZE);
+    // } else if (TurningManager::getInstance().isActive()) {
+    //     display.clearDisplay();
+
+    //     const auto& debugInfo = TurningManager::getInstance().getDebugInfo();
+
+    //     // Title
+    //     drawCenteredText("Turning Manager", 0, 1);
+
+    //     // Target angle
+    //     display.setCursor(0, 10);
+    //     display.printf("Target: %.1f deg", debugInfo.targetAngle);
+
+    //     // Cumulative rotation
+    //     display.setCursor(0, 20);
+    //     display.printf("Rotation: %.1f deg", debugInfo.cumulativeRotation);
+
+    //     // Current error
+    //     display.setCursor(0, 30);
+    //     display.printf("Error: %.1f deg", debugInfo.currentError);
+
+    //     // Velocity and PWM
+    //     display.setCursor(0, 40);
+    //     display.printf("Vel: %.1f d/s", debugInfo.currentVelocity);
+
+    //     // PWM limits and status
+    //     display.setCursor(0, 50);
+    //     display.printf("PWM: %d-%d %s", debugInfo.currentMinPWM, debugInfo.currentMaxPWM,
+    //                   debugInfo.inSafetyPause ? "SAFE" : "");
+
     //     // Copy display buffer to staging buffer
     //     uint8_t* displayBuffer = display.getBuffer();
     //     memcpy(stagingBuffer, displayBuffer, DISPLAY_BUFFER_SIZE);

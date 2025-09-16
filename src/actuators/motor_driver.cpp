@@ -214,14 +214,6 @@ void MotorDriver::executeCommand(int16_t leftPwm, int16_t rightPwm) {
 
     set_motor_speeds(leftPwm, rightPwm, true); // ramp is default true for commands that are executed in series (ie driving in the garage)
 
-    // Enable straight driving correction for forward movement only. 
-    // 4/12/25: Removing straight line drive for backward movement. need to bring back eventually
-    // if ((leftSpeed > 0 && rightSpeed > 0) && (leftSpeed == rightSpeed)) {
-    //     StraightLineDrive::getInstance().enable();
-    // } else {
-    //     StraightLineDrive::getInstance().disable();
-    // }
-
     isExecutingCommand = true;
     hasNextCommand = false;
 }

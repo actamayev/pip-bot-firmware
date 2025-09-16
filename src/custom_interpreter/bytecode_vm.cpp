@@ -4,6 +4,8 @@
 const std::map<BytecodeOpCode, std::vector<BytecodeVM::SensorType>> BytecodeVM::opcodeToSensors = {
     // This map is to control what sensors need to be polled for various OpCodes
     // Ie: For motor turn, we need to poll encoders, and quaternion
+    {OP_MOTOR_FORWARD, {SENSOR_QUATERNION}},
+    {OP_MOTOR_BACKWARD, {SENSOR_QUATERNION}},
     {OP_MOTOR_FORWARD_TIME, {SENSOR_QUATERNION}},
     {OP_MOTOR_BACKWARD_TIME, {SENSOR_QUATERNION}},
     {OP_MOTOR_FORWARD_DISTANCE, {SENSOR_QUATERNION}},
@@ -64,12 +66,13 @@ bool BytecodeVM::loadProgram(const uint8_t* byteCode, uint16_t size) {
 
 void BytecodeVM::update() {
     checkUsbSafetyConditions();
-    if (!program || isPaused == PauseState::PAUSED) return;
+    if (!program || isPaused == PauseState::PAUSED || isPaused == PauseState::PROGRAM_FINISHED) return;
 
     // Check if program has naturally completed (pc reached or exceeded program size)
     if (pc >= programSize) {
         if (isPaused != PROGRAM_FINISHED) {
             isPaused = PROGRAM_FINISHED;
+            resetStateVariables(false);
         }
         return;
     }
@@ -559,6 +562,9 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
                 SerialQueueManager::getInstance().queueMessage("Invalid time value for backward movement");
                 break;
             }
+            SerialQueueManager::getInstance().queueMessage(
+                "Executing MOTOR_BACKWARD_TIME at PC=" + String(pc)
+            );
             
             if (throttlePercent > 100) {
                 throttlePercent = 100;  // Clamp to valid range
@@ -688,12 +694,10 @@ void BytecodeVM::updateDistanceMovement() {
     // Distance reached - brake motors and clear any pending commands
     motorDriver.resetCommandState(true);
 
-    // **ADD THIS LINE:** Disable straight line drive when distance movement completes
-    StraightLineDrive::getInstance().disable();
-    vTaskDelay(pdMS_TO_TICKS(250));
-
     // Reset distance movement state
     distanceMovementInProgress = false;
+    targetDistanceIn = 0.0f;
+    startingDistanceIn = 0.0f;
 }
 
 void BytecodeVM::stopProgram() {
@@ -708,13 +712,13 @@ void BytecodeVM::resetStateVariables(bool isFullReset) {
     lastComparisonResult = false;
     
     // Reset TurningManager state
-    TurningManager::getInstance().completeNavigation(false);
+    TurningManager::getInstance().completeNavigation();
     StraightLineDrive::getInstance().disable();
-    // StraightLineDrive::getInstance().disable();
     timedMotorMovementInProgress = false;
     distanceMovementInProgress = false;
     motorMovementEndTime = 0;
     targetDistanceIn = 0.0f;
+    startingDistanceIn = 0.0f;
     waitingForButtonPressToStart = false;
 
     // ADD THESE USB safety resets:
@@ -777,9 +781,11 @@ void BytecodeVM::resumeProgram() {
     if (programSize > 0 && program[0].opcode == OP_WAIT_FOR_BUTTON) {
         SerialQueueManager::getInstance().queueMessage("Resuming program - skipping initial wait for button");
         pc = 1; // Start after the wait for button instruction
+        waitingForButtonPressToStart = false; // ← FIX: Clear the flag!
     } else {
         SerialQueueManager::getInstance().queueMessage("Resuming program from beginning");
         pc = 0; // Start from the beginning for scripts without a start block
+        waitingForButtonPressToStart = false; // ← FIX: Clear here too for consistency
     }
 }
 

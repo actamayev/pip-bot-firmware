@@ -24,15 +24,15 @@ void ImuSensor::updateEnabledReports() {
     
     ReportTimeouts& timeouts = SensorDataBuffer::getInstance().getReportTimeouts();
     
-    // Enable/disable quaternion reports based on timeout
-    bool shouldEnableQuat = timeouts.shouldEnableQuaternion();
+    // Enable/disable quaternion reports based on extended conditions
+    bool shouldEnableQuat = SensorDataBuffer::getInstance().shouldEnableQuaternionExtended();
     if (shouldEnableQuat && !enabledReports.gameRotationVector) {
         enableGameRotationVector();
     } else if (!shouldEnableQuat && enabledReports.gameRotationVector) {
         disableGameRotationVector();
     }
     
-    // Enable/disable accelerometer reports
+    // Enable/disable accelerometer reports (unchanged)
     bool shouldEnableAccel = timeouts.shouldEnableAccelerometer();
     if (shouldEnableAccel && !enabledReports.accelerometer) {
         enableAccelerometer();
@@ -40,7 +40,7 @@ void ImuSensor::updateEnabledReports() {
         disableAccelerometer();
     }
     
-    // Enable/disable gyroscope reports
+    // Enable/disable gyroscope reports (unchanged)
     bool shouldEnableGyro = timeouts.shouldEnableGyroscope();
     if (shouldEnableGyro && !enabledReports.gyroscope) {
         enableGyroscope();
@@ -48,7 +48,7 @@ void ImuSensor::updateEnabledReports() {
         disableGyroscope();
     }
     
-    // Enable/disable magnetometer reports
+    // Enable/disable magnetometer reports (unchanged)
     bool shouldEnableMag = timeouts.shouldEnableMagnetometer();
     if (shouldEnableMag && !enabledReports.magneticField) {
         enableMagneticField();
@@ -126,8 +126,8 @@ bool ImuSensor::shouldBePolling() const {
     
     ReportTimeouts& timeouts = SensorDataBuffer::getInstance().getReportTimeouts();
     
-    // Should poll if any report type is within timeout window
-    return timeouts.shouldEnableQuaternion() || 
+    // Should poll if any report type is within timeout window, using extended logic for quaternion
+    return SensorDataBuffer::getInstance().shouldEnableQuaternionExtended() || 
            timeouts.shouldEnableAccelerometer() || 
            timeouts.shouldEnableGyroscope() || 
            timeouts.shouldEnableMagnetometer();
