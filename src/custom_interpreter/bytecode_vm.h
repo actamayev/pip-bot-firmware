@@ -31,6 +31,7 @@ class BytecodeVM : public Singleton<BytecodeVM> {
         bool isDistanceMovementActive() const { return distanceMovementInProgress; }
         float getTargetDistanceIn() const { return targetDistanceIn; }
         float getStartingDistanceIn() const { return startingDistanceIn; }
+        bool isProgramLoaded() const { return program != nullptr; }
 
     private:
         BytecodeVM() = default;

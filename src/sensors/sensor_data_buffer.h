@@ -7,6 +7,11 @@
 #include "utils/singleton.h"
 #include "networking/serial_queue_manager.h"
 
+// Forward declarations instead of includes
+class SerialManager;
+class WebSocketManager;  
+class BytecodeVM;
+
 // TOF sensor data structure
 struct TofData {
     VL53L7CX_ResultsData rawData;
@@ -284,6 +289,8 @@ class SensorDataBuffer : public Singleton<SensorDataBuffer> {
         float getMultizoneTofFrequency();
         float getSideTofFrequency();
         float getColorSensorFrequency();
+
+        bool shouldEnableQuaternionExtended() const;
 
     private:
         SensorDataBuffer() = default;
