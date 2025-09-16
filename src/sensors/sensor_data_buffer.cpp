@@ -1,4 +1,8 @@
 #include "sensor_data_buffer.h"
+#include "sensor_data_buffer.h"
+#include "networking/serial_manager.h"
+#include "networking/websocket_manager.h" 
+#include "custom_interpreter/bytecode_vm.h"
 
 // IMU update methods (existing)
 void SensorDataBuffer::updateQuaternion(const QuaternionData& quaternion) {
@@ -485,4 +489,20 @@ float SensorDataBuffer::getColorSensorFrequency() {
     }
     
     return lastFrequency;
+}
+
+bool SensorDataBuffer::shouldEnableQuaternionExtended() const {
+    // Check if within timeout window (original condition)
+    bool withinTimeout = timeouts.shouldEnableQuaternion();
+    
+    // Check if serial is connected
+    bool serialConnected = SerialManager::getInstance().isSerialConnected();
+    
+    // Check if bytecode program is loaded (including paused)
+    bool programLoaded = BytecodeVM::getInstance().isProgramLoaded();
+    
+    // Check if user is connected via websocket
+    bool userConnected = WebSocketManager::getInstance().isUserConnectedToThisPip();
+    
+    return withinTimeout || serialConnected || programLoaded || userConnected;
 }

@@ -17,12 +17,25 @@ enum class TurningState {
 class TurningManager : public Singleton<TurningManager> {
     friend class Singleton<TurningManager>;
 
-    public:        
+    public:
         // Main interface
         bool startTurn(float degrees);
         void update();
-        void completeNavigation(bool absoluteBrake);
+        void completeNavigation();
         const bool isActive() { return currentState == TurningState::TURNING; };
+
+        // Debug info structure
+        struct DebugInfo {
+            float targetAngle = 0.0f;
+            float cumulativeRotation = 0.0f;
+            float currentError = 0.0f;
+            float currentVelocity = 0.0f;
+            uint8_t currentMinPWM = 0;
+            uint8_t currentMaxPWM = 0;
+            uint8_t directionChanges = 0;
+            bool inSafetyPause = false;
+        };
+        const DebugInfo& getDebugInfo() const { return _debugInfo; }
 
     private:
         TurningManager() = default;
@@ -85,4 +98,7 @@ class TurningManager : public Singleton<TurningManager> {
         static constexpr unsigned long SAFETY_PAUSE_DURATION = 20; // ms
         static constexpr uint8_t MAX_DIRECTION_CHANGES = 3;
         static constexpr unsigned long ADAPTATION_RATE_LIMIT = 20; // ms
+
+        // Debug info
+        mutable DebugInfo _debugInfo;
 };

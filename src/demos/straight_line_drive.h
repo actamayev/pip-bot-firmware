@@ -18,9 +18,9 @@ class StraightLineDrive : public Singleton<StraightLineDrive> {
         
         // Debug info for display
         struct DebugInfo {
-            int64_t leftCounts = 0;
-            int64_t rightCounts = 0;
-            int64_t countError = 0;
+            float initialHeading = 0.0f;
+            float currentHeading = 0.0f;
+            float headingError = 0.0f;
             int16_t leftSpeed = 0;
             int16_t rightSpeed = 0;
             int16_t correction = 0;
@@ -31,15 +31,17 @@ class StraightLineDrive : public Singleton<StraightLineDrive> {
         StraightLineDrive() = default;
         
         // Straight driving state
-        bool _straightDrivingEnabled = false; 
-        int64_t _initialLeftCount = 0;
-        int64_t _initialRightCount = 0;
+        bool _straightDrivingEnabled = false;
+        float _initialHeading = 0.0f;
         
         // Debug info for display
         DebugInfo _debugInfo;
 
-        // Proportional control constants (from SLD)
-        static constexpr float KP_COUNTS_TO_PWM = 0.5f;  // Same as SLD
-        static constexpr int16_t MAX_CORRECTION_PWM = 40;  // Same as SLD
-        static constexpr int16_t MIN_FORWARD_SPEED = 10;   // Minimum speed to maintain forward motion
+        // Helper methods
+        float calculateHeadingError(float currentHeading, float targetHeading);
+
+        // Control constants
+        static constexpr float KP_HEADING_TO_PWM = 3.0f;  // Proportional gain for heading error (degrees to PWM)
+        static constexpr int16_t MIN_FORWARD_SPEED = 20;   // Minimum speed to maintain forward motion
+        static constexpr float DEAD_ZONE_DEGREES = 1.0f;  // Ignore heading errors smaller than this (reduces oscillation)
 };
