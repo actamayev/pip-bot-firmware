@@ -1,6 +1,7 @@
 #include "display_screen.h"
 #include "career_quest/career_quest_triggers.h"
 #include "demos/straight_line_drive.h"
+#include "demos/turning_manager.h"
 
 // Initialize the display with explicit Wire reference
 bool DisplayScreen::init(bool showStartup) {
@@ -208,6 +209,38 @@ void DisplayScreen::generateContentToBuffer() {
         display.setCursor(0, 50);
         display.printf("Correction: %d", debugInfo.correction);
         
+        // Copy display buffer to staging buffer
+        uint8_t* displayBuffer = display.getBuffer();
+        memcpy(stagingBuffer, displayBuffer, DISPLAY_BUFFER_SIZE);
+    } else if (TurningManager::getInstance().isActive()) {
+        display.clearDisplay();
+
+        const auto& debugInfo = TurningManager::getInstance().getDebugInfo();
+
+        // Title
+        drawCenteredText("Turning Manager", 0, 1);
+
+        // Target angle
+        display.setCursor(0, 10);
+        display.printf("Target: %.1f deg", debugInfo.targetAngle);
+
+        // Cumulative rotation
+        display.setCursor(0, 20);
+        display.printf("Rotation: %.1f deg", debugInfo.cumulativeRotation);
+
+        // Current error
+        display.setCursor(0, 30);
+        display.printf("Error: %.1f deg", debugInfo.currentError);
+
+        // Velocity and PWM
+        display.setCursor(0, 40);
+        display.printf("Vel: %.1f d/s", debugInfo.currentVelocity);
+
+        // PWM limits and status
+        display.setCursor(0, 50);
+        display.printf("PWM: %d-%d %s", debugInfo.currentMinPWM, debugInfo.currentMaxPWM,
+                      debugInfo.inSafetyPause ? "SAFE" : "");
+
         // Copy display buffer to staging buffer
         uint8_t* displayBuffer = display.getBuffer();
         memcpy(stagingBuffer, displayBuffer, DISPLAY_BUFFER_SIZE);

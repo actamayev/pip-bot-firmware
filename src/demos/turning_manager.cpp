@@ -38,8 +38,18 @@ void TurningManager::initializeTurn() {
 
 void TurningManager::update() {
     if (currentState == TurningState::IDLE) return;
-    
+
     updateVelocity();
+
+    // Update debug info
+    _debugInfo.targetAngle = TARGET_TURN_ANGLE;
+    _debugInfo.cumulativeRotation = cumulativeRotation;
+    _debugInfo.currentError = currentError;
+    _debugInfo.currentVelocity = currentVelocity;
+    _debugInfo.currentMinPWM = currentMinPWM;
+    _debugInfo.currentMaxPWM = currentMaxPWM;
+    _debugInfo.directionChanges = turnDirectionChanges;
+    _debugInfo.inSafetyPause = inSafetyPause;
     
     // Handle safety pause
     if (inSafetyPause) {
