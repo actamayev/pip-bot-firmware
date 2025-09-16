@@ -176,7 +176,6 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             // End program execution
             pc = programSize; // Set PC past the end to stop execution
             isPaused = PROGRAM_FINISHED;
-            resetStateVariables(false); // ← FIX: Clean up state immediately
             break;
 
         case OP_WAIT: {
