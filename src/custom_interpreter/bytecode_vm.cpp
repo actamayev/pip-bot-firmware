@@ -688,12 +688,10 @@ void BytecodeVM::updateDistanceMovement() {
     // Distance reached - brake motors and clear any pending commands
     motorDriver.resetCommandState(true);
 
-    // **ADD THIS LINE:** Disable straight line drive when distance movement completes
-    StraightLineDrive::getInstance().disable();
-    vTaskDelay(pdMS_TO_TICKS(250));
-
     // Reset distance movement state
     distanceMovementInProgress = false;
+    targetDistanceIn = 0.0f;
+    startingDistanceIn = 0.0f;
 }
 
 void BytecodeVM::stopProgram() {
@@ -710,11 +708,11 @@ void BytecodeVM::resetStateVariables(bool isFullReset) {
     // Reset TurningManager state
     TurningManager::getInstance().completeNavigation(false);
     StraightLineDrive::getInstance().disable();
-    // StraightLineDrive::getInstance().disable();
     timedMotorMovementInProgress = false;
     distanceMovementInProgress = false;
     motorMovementEndTime = 0;
     targetDistanceIn = 0.0f;
+    startingDistanceIn = 0.0f;
     waitingForButtonPressToStart = false;
 
     // ADD THESE USB safety resets:

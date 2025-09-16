@@ -86,7 +86,6 @@ void TurningManager::update() {
                 SerialQueueManager::getInstance().queueMessage("Turn completed");
             }
         }
-        vTaskDelay(pdMS_TO_TICKS(250));
         return;
     }
     
@@ -306,9 +305,18 @@ void TurningManager::completeNavigation(bool absoluteBrake) {
     currentState = TurningState::IDLE;
     turnCompletionStartTime = 0;
     turnCompletionConfirmed = false;
-    
+
     // Reset rotation tracking
     cumulativeRotation = 0.0;
     rotationTrackingInitialized = false;
     TARGET_TURN_ANGLE = 0.0f;
+
+    // Reset control variables to prevent restart loops
+    currentError = 0.0f;
+    currentVelocity = 0.0f;
+    lastHeading = 0.0f;
+    lastTime = 0;
+    turnDirectionChanges = 0;
+    inSafetyPause = false;
+    lastHeadingForRotation = 0.0f;
 }
