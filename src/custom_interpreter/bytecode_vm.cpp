@@ -64,12 +64,19 @@ bool BytecodeVM::loadProgram(const uint8_t* byteCode, uint16_t size) {
 
 void BytecodeVM::update() {
     checkUsbSafetyConditions();
-    if (!program || isPaused == PauseState::PAUSED) return;
+    if (!program || isPaused == PauseState::PAUSED || isPaused == PauseState::PROGRAM_FINISHED) return;
+    
+    // Your existing debug log
+    SerialQueueManager::getInstance().queueMessage(
+        "VM Update: PC=" + String(pc) + ", timedMotor=" + String(timedMotorMovementInProgress) + 
+        ", state=" + String((int)isPaused)
+    );
 
     // Check if program has naturally completed (pc reached or exceeded program size)
     if (pc >= programSize) {
         if (isPaused != PROGRAM_FINISHED) {
             isPaused = PROGRAM_FINISHED;
+            resetStateVariables(false);
         }
         return;
     }
@@ -173,6 +180,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             // End program execution
             pc = programSize; // Set PC past the end to stop execution
             isPaused = PROGRAM_FINISHED;
+            resetStateVariables(false); // ← FIX: Clean up state immediately
             break;
 
         case OP_WAIT: {
@@ -559,6 +567,9 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
                 SerialQueueManager::getInstance().queueMessage("Invalid time value for backward movement");
                 break;
             }
+            SerialQueueManager::getInstance().queueMessage(
+                "Executing MOTOR_BACKWARD_TIME at PC=" + String(pc)
+            );
             
             if (throttlePercent > 100) {
                 throttlePercent = 100;  // Clamp to valid range
@@ -707,7 +718,7 @@ void BytecodeVM::resetStateVariables(bool isFullReset) {
     
     // Reset TurningManager state
     TurningManager::getInstance().completeNavigation(false);
-    StraightLineDrive::getInstance().disable();
+    // StraightLineDrive::getInstance().disable();
     timedMotorMovementInProgress = false;
     distanceMovementInProgress = false;
     motorMovementEndTime = 0;
@@ -775,9 +786,11 @@ void BytecodeVM::resumeProgram() {
     if (programSize > 0 && program[0].opcode == OP_WAIT_FOR_BUTTON) {
         SerialQueueManager::getInstance().queueMessage("Resuming program - skipping initial wait for button");
         pc = 1; // Start after the wait for button instruction
+        waitingForButtonPressToStart = false; // ← FIX: Clear the flag!
     } else {
         SerialQueueManager::getInstance().queueMessage("Resuming program from beginning");
         pc = 0; // Start from the beginning for scripts without a start block
+        waitingForButtonPressToStart = false; // ← FIX: Clear here too for consistency
     }
 }
 
