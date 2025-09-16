@@ -185,7 +185,7 @@ void TaskManager::sensorLoggerTask(void* parameter) {
     // Main logging loop
     for(;;) {
         // Call each frequency logger function
-        // imuLogger();
+        imuLogger();
         // multizoneTofLogger();
         // sideTofLogger();
         // colorSensorLogger();

@@ -1,11 +1,7 @@
 #include "straight_line_drive.h"
 
-constexpr float StraightLineDrive::KP_HEADING_TO_PWM;
 constexpr int16_t StraightLineDrive::MAX_CORRECTION_PWM;
 constexpr int16_t StraightLineDrive::MIN_FORWARD_SPEED;
-constexpr float StraightLineDrive::MAX_HEADING_ERROR;
-constexpr float StraightLineDrive::MIN_CORRECTION_SCALE;
-constexpr float StraightLineDrive::MAX_CORRECTION_SCALE;
 constexpr int16_t StraightLineDrive::SPEED_SCALE_THRESHOLD;
 
 void StraightLineDrive::enable() {
@@ -16,7 +12,8 @@ void StraightLineDrive::enable() {
     
     // Initialize debug info
     _debugInfo.initialHeading = _initialHeading;
-    
+    _smoothedHeading = _initialHeading;
+
     SerialQueueManager::getInstance().queueMessage("StraightLineDrive enabled (IMU-based)");
 }
 
@@ -31,21 +28,21 @@ void StraightLineDrive::update(int16_t& leftSpeed, int16_t& rightSpeed) {
     // Only apply corrections if both motors are moving forward in the same direction
     if (!(leftSpeed > 0 && rightSpeed > 0)) return;
 
-    // Get current yaw heading (negative for consistency with turning manager)
-    float currentHeading = -SensorDataBuffer::getInstance().getLatestYaw();
+    // Get current yaw heading and apply smoothing
+    float rawHeading = -SensorDataBuffer::getInstance().getLatestYaw();
+    _smoothedHeading = HEADING_SMOOTH_FACTOR * _smoothedHeading + (1.0f - HEADING_SMOOTH_FACTOR) * rawHeading;
     
     // Calculate heading error with wrap-around handling
-    float headingError = calculateHeadingError(currentHeading, _initialHeading);
+    float headingError = calculateHeadingError(_smoothedHeading, _initialHeading);
+    
+    // Apply dead zone - skip tiny corrections that cause oscillation
+    if (abs(headingError) < DEAD_ZONE_DEGREES) {
+        return; // No correction needed for small errors
+    }
     
     // Update debug info
-    _debugInfo.currentHeading = currentHeading;
+    _debugInfo.currentHeading = _smoothedHeading;
     _debugInfo.headingError = headingError;
-    
-    // Skip correction if heading error is too large (probably a sensor glitch or manual intervention)
-    if (abs(headingError) > MAX_HEADING_ERROR) {
-        SerialQueueManager::getInstance().queueMessage("Warning: Large heading error detected, skipping correction");
-        return;
-    }
     
     // Calculate speed-adaptive correction scaling
     float correctionScale = calculateCorrectionScale(leftSpeed, rightSpeed);

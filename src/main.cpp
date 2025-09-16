@@ -97,7 +97,7 @@ void setup() {
     
     // Note: StackMonitor can be enabled for debugging
     // TaskManager::createStackMonitorTask();
-    // TaskManager::createSensorLoggerTask();
+    TaskManager::createSensorLoggerTask();
 }
 
 // Main loop runs on Core 1

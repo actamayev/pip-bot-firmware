@@ -34,6 +34,7 @@ class StraightLineDrive : public Singleton<StraightLineDrive> {
         // Straight driving state
         bool _straightDrivingEnabled = false; 
         float _initialHeading = 0.0f;
+        float _smoothedHeading = 0.0f;  // For smoothing heading readings
         
         // Debug info for display
         DebugInfo _debugInfo;
@@ -43,10 +44,11 @@ class StraightLineDrive : public Singleton<StraightLineDrive> {
         float calculateCorrectionScale(int16_t leftSpeed, int16_t rightSpeed);
 
         // Control constants
-        static constexpr float KP_HEADING_TO_PWM = 2.0f;  // Proportional gain for heading error (degrees to PWM)
-        static constexpr int16_t MAX_CORRECTION_PWM = 40;  // Maximum correction PWM
+        static constexpr float KP_HEADING_TO_PWM = 8.0f;  // More aggressive proportional gain for heading error (degrees to PWM)
+        static constexpr int16_t MAX_CORRECTION_PWM = 80;  // Increased maximum correction PWM for more aggressive corrections
         static constexpr int16_t MIN_FORWARD_SPEED = 10;   // Minimum speed to maintain forward motion
-        static constexpr float MAX_HEADING_ERROR = 20.0f;  // Maximum heading error to apply corrections (degrees)
+        static constexpr float DEAD_ZONE_DEGREES = 0.5f;  // Ignore heading errors smaller than this (reduces oscillation)
+        static constexpr float HEADING_SMOOTH_FACTOR = 0.8f;  // Exponential smoothing factor (0.8 = heavy smoothing)
         
         // Speed-adaptive correction constants
         static constexpr float MIN_CORRECTION_SCALE = 0.3f;  // Minimum correction scaling at low speeds
