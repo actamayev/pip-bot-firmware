@@ -39,6 +39,7 @@ class WiFiManager : public Singleton<WiFiManager> {
 		bool startAsyncScan();
 		void checkAsyncScanProgress();
 		bool isAsyncScanInProgress() const { return _asyncScanInProgress; }
+		bool isConnectedToSSID(const String& ssid) const;
 
 	private:
 		WiFiManager();

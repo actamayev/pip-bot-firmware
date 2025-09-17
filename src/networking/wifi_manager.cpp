@@ -2,10 +2,10 @@
 
 WiFiManager::WiFiManager() {
     // Hard-coding Wifi creds during initialization
+    storeWiFiCredentials("MSTest", "!haftr2024!", 0);
     // storeWiFiCredentials("Another Dimension", "Iforgotit123", 0);
     // storeWiFiCredentials("NETGEAR08", "breezyshoe123", 1);
-    // storeWiFiCredentials("iPhone", "12345678", 0);
-    storeWiFiCredentials("MSTest", "!haftr2024!", 0);
+    // storeWiFiCredentials("iPhone", "12345678", 2);
 
     WiFi.setTxPower(WIFI_POWER_19_5dBm);
     connectToStoredWiFi();
@@ -402,4 +402,8 @@ void WiFiManager::clearNetworksIfStale() {
     ) return;
     _availableNetworks.clear();
     SerialQueueManager::getInstance().queueMessage("WiFi scan results cleared (stale > 30 min)");
+}
+
+bool WiFiManager::isConnectedToSSID(const String& ssid) const {
+    return WiFi.status() == WL_CONNECTED && WiFi.SSID() == ssid;
 }

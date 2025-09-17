@@ -546,6 +546,41 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
                 }
             }
         }
+        case DataMessageType::FORGET_NETWORK: {
+            if (length < 2) {
+                SerialQueueManager::getInstance().queueMessage("Invalid forget network message length");
+                SerialManager::getInstance().sendNetworkDeletedResponse(false);
+                break;
+            }
+            
+            uint8_t ssidLength = data[1];
+            if (ssidLength == 0 || 2 + ssidLength != length) {
+                SerialQueueManager::getInstance().queueMessage("Invalid SSID length in forget network message");
+                SerialManager::getInstance().sendNetworkDeletedResponse(false);
+                break;
+            }
+            
+            String ssid = "";
+            for (uint8_t i = 0; i < ssidLength; i++) {
+                ssid += (char)data[2 + i];
+            }
+            
+            // Check if we're trying to forget the currently connected network
+            if (WiFiManager::getInstance().isConnectedToSSID(ssid)) {
+                if (!SerialManager::getInstance().isSerialConnected()) {
+                    SerialQueueManager::getInstance().queueMessage("Cannot forget currently connected network without serial connection");
+                    SerialManager::getInstance().sendNetworkDeletedResponse(false);
+                    break;
+                }
+                // Disconnect from WiFi before forgetting
+                WiFi.disconnect(true);
+            }
+            
+            // Attempt to forget the network
+            bool success = PreferencesManager::getInstance().forgetWiFiNetwork(ssid);
+            SerialManager::getInstance().sendNetworkDeletedResponse(success);
+            break;
+        }
         default:
             break;
     }

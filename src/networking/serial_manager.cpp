@@ -314,3 +314,17 @@ void SerialManager::sendDinoScore(int score) {
     
     SerialQueueManager::getInstance().queueMessage(jsonString, SerialPriority::CRITICAL);
 }
+
+void SerialManager::sendNetworkDeletedResponse(bool success) {
+    if (!isConnected) return;
+    
+    StaticJsonDocument<256> doc;
+    doc["route"] = routeToString(RouteType::WIFI_DELETED_NETWORK);
+    JsonObject payload = doc.createNestedObject("payload");
+    payload["status"] = success;
+    
+    String jsonString;
+    serializeJson(doc, jsonString);
+    
+    SerialQueueManager::getInstance().queueMessage(jsonString, SerialPriority::CRITICAL);
+}
