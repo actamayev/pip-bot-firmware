@@ -200,30 +200,94 @@ uint8_t TurningManager::calculatePIDSpeed() {
     uint8_t targetPWM = currentMinPWM + (sigmoidValue * maxResponse);
     targetPWM = constrain(targetPWM, currentMinPWM, currentMaxPWM);
     
-    // Final approach boost for friction surfaces
-    if (abs(currentError) > DEAD_ZONE && abs(currentError) < 8.0f) {
-        uint8_t frictionMinPWM = currentMinPWM + 5; // Boost minimum for final approach
+    // IMPROVED: Enhanced final approach logic for rough surfaces
+    if (abs(currentError) > DEAD_ZONE && abs(currentError) < 15.0f) {
+        // Detect stiction in final approach
+        detectStiction();
+        
+        // Base friction boost - more aggressive than before
+        uint8_t baseFrictionBoost = 8; // Increased from 5
+        
+        // Additional stiction boost if detected
+        uint8_t stictionBoost = stictionDetected ? (stictionBoostLevel * 4) : 0;
+        
+        // For very final approach, be even more aggressive
+        if (abs(currentError) < 8.0f) {
+            baseFrictionBoost += 5; // Extra boost for final degrees
+        }
+        
+        uint8_t totalBoost = baseFrictionBoost + stictionBoost;
+        uint8_t frictionMinPWM = min(255, currentMinPWM + totalBoost);
         targetPWM = max(targetPWM, frictionMinPWM);
         targetPWM = min(targetPWM, currentMaxPWM); // Still respect max limit
+        
+        // If we're still stuck with boosted PWM, force higher PWM
+        if (stictionDetected && targetPWM == currentMaxPWM) {
+            targetPWM = min(255, currentMaxPWM + 10); // Exceed normal max temporarily
+        }
+    } else {
+        // Reset stiction detection when not in final approach
+        resetStictionDetection();
     }
     
     return targetPWM;
 }
 
+void TurningManager::detectStiction() {
+    unsigned long currentTime = millis();
+    bool isStuck = (abs(currentVelocity) < STICTION_VELOCITY_THRESHOLD);
+    
+    if (isStuck) {
+        if (stictionDetectionStartTime == 0) {
+            stictionDetectionStartTime = currentTime;
+        } else if (currentTime - stictionDetectionStartTime > STICTION_DETECTION_TIME) {
+            if (!stictionDetected) {
+                stictionDetected = true;
+                stictionBoostLevel = 1;
+                SerialQueueManager::getInstance().queueMessage("Stiction detected - applying boost");
+            } else {
+                // Gradually increase boost level for persistent stiction
+                if (currentTime - stictionDetectionStartTime > STICTION_DETECTION_TIME * (stictionBoostLevel + 1)) {
+                    stictionBoostLevel = min(5, stictionBoostLevel + 1);
+                }
+            }
+        }
+    } else {
+        // Moving well, reset detection timer but keep boost for a bit
+        stictionDetectionStartTime = 0;
+        if (abs(currentVelocity) > STICTION_VELOCITY_THRESHOLD * 2) {
+            // Only clear stiction flag if we're moving well
+            stictionDetected = false;
+            stictionBoostLevel = 0;
+        }
+    }
+}
+
+void TurningManager::resetStictionDetection() {
+    stictionDetected = false;
+    stictionBoostLevel = 0;
+    stictionDetectionStartTime = 0;
+}
+
 void TurningManager::adaptPWMLimits(uint8_t commandedPWM) {
     unsigned long currentTime = millis();
     
-    if (abs(currentError) < 15.0f) return;
+    // REMOVED: if (abs(currentError) < 15.0f) return;
     // Rate limit adaptations to prevent oscillation
     if (currentTime - lastAdaptationTime < ADAPTATION_RATE_LIMIT) return;
     
     float absVelocity = abs(currentVelocity);
     bool adapted = false;
     
+    // IMPROVED: More aggressive adaptation in final approach
+    bool inFinalApproach = abs(currentError) < 15.0f;
+    uint8_t adaptationRate = inFinalApproach ? 4 : 2; // Faster adaptation in final approach
+    uint8_t maxIncrease = inFinalApproach ? 8 : 5;    // Larger jumps in final approach
+    
     // Increase limits if commanding high PWM but velocity too low
     if (commandedPWM >= currentMaxPWM * 0.9f && absVelocity < targetMinVelocity) {
-        currentMaxPWM = min(255, currentMaxPWM + 5);
-        currentMinPWM = min(currentMaxPWM - 10, currentMinPWM + 2);
+        currentMaxPWM = min(255, currentMaxPWM + maxIncrease);
+        currentMinPWM = min(currentMaxPWM - 10, currentMinPWM + adaptationRate);
         adapted = true;
     }
     // Decrease max if commanding max PWM but velocity too high
@@ -231,14 +295,31 @@ void TurningManager::adaptPWMLimits(uint8_t commandedPWM) {
         currentMaxPWM = max(currentMinPWM + 10, currentMaxPWM - 3);
         adapted = true;
     }
-    // Increase min if commanding min PWM but velocity too low
+    // IMPROVED: More aggressive min PWM increase when stuck in final approach
     else if (commandedPWM <= currentMinPWM * 1.1f && absVelocity < targetMinVelocity) {
-        currentMinPWM = min(currentMaxPWM - 10, currentMinPWM + 3);
+        uint8_t minIncrease = inFinalApproach ? 5 : 3; // More aggressive in final approach
+        currentMinPWM = min(currentMaxPWM - 10, currentMinPWM + minIncrease);
+        adapted = true;
+    }
+    // NEW: Special case for final approach stiction
+    else if (inFinalApproach && stictionDetected && absVelocity < STICTION_VELOCITY_THRESHOLD) {
+        // Force increase both limits when stiction is detected
+        currentMinPWM = min(currentMaxPWM - 5, currentMinPWM + 6);
+        currentMaxPWM = min(255, currentMaxPWM + 4);
         adapted = true;
     }
     
     if (adapted) {
         lastAdaptationTime = currentTime;
+        
+        // Debug logging for final approach
+        if (inFinalApproach) {
+            char logMessage[80];
+            snprintf(logMessage, sizeof(logMessage), 
+                "Final PWM adapt: min=%d, max=%d, vel=%.1f, err=%.1f", 
+                currentMinPWM, currentMaxPWM, currentVelocity, currentError);
+            SerialQueueManager::getInstance().queueMessage(logMessage);
+        }
     }
 }
 

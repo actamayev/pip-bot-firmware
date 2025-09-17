@@ -94,11 +94,21 @@ class TurningManager : public Singleton<TurningManager> {
         
         // Constants
         static constexpr float DEAD_ZONE = 1.0f;
-        static constexpr unsigned long COMPLETION_CONFIRMATION_TIME = 100; // ms
-        static constexpr unsigned long SAFETY_PAUSE_DURATION = 20; // ms
+        static constexpr unsigned long COMPLETION_CONFIRMATION_TIME = 250; // ms
+        static constexpr unsigned long SAFETY_PAUSE_DURATION = 50; // ms
         static constexpr uint8_t MAX_DIRECTION_CHANGES = 3;
         static constexpr unsigned long ADAPTATION_RATE_LIMIT = 20; // ms
 
         // Debug info
         mutable DebugInfo _debugInfo;
+
+        bool stictionDetected = false;
+        uint8_t stictionBoostLevel = 0;
+        unsigned long stictionDetectionStartTime = 0;
+        static constexpr unsigned long STICTION_DETECTION_TIME = 200; // ms
+        static constexpr float STICTION_VELOCITY_THRESHOLD = 5.0f; // degrees/sec
+
+        // Add these methods to private section
+        void detectStiction();
+        void resetStictionDetection();
 };
