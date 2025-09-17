@@ -29,6 +29,7 @@ class PreferencesManager : public Singleton<PreferencesManager> {
         void storeSideTofCalibration(uint8_t sensorAddress, uint16_t baseline, bool useHardwareCalibration);
         uint16_t getSideTofBaseline(uint8_t sensorAddress);
         bool getSideTofUseHardwareCalibration(uint8_t sensorAddress);
+        bool forgetWiFiNetwork(const String& targetSSID);
 
     private:
         PreferencesManager() = default;
