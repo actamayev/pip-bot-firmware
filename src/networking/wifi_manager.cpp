@@ -2,10 +2,10 @@
 
 WiFiManager::WiFiManager() {
     // Hard-coding Wifi creds during initialization
+    storeWiFiCredentials("MSTest", "!haftr2024!", 0);
     // storeWiFiCredentials("Another Dimension", "Iforgotit123", 0);
     // storeWiFiCredentials("NETGEAR08", "breezyshoe123", 1);
     // storeWiFiCredentials("iPhone", "12345678", 2);
-    // storeWiFiCredentials("MSTest", "!haftr2024!", 3);
 
     WiFi.setTxPower(WIFI_POWER_19_5dBm);
     connectToStoredWiFi();
