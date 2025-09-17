@@ -112,6 +112,7 @@ const char* routeToString(RouteType route) {
         case RouteType::BATTERY_MONITOR_DATA_FULL: return "/battery-monitor-data-full";
         case RouteType::PIP_TURNING_OFF: return "/pip-turning-off";
         case RouteType::DINO_SCORE: return "/dino-score";
+        case RouteType::WIFI_DELETED_NETWORK: return "/wifi-deleted-network";
         default: return "";
     }
 }

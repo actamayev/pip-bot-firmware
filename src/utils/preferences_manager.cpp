@@ -180,3 +180,47 @@ bool PreferencesManager::getSideTofUseHardwareCalibration(uint8_t sensorAddress)
     
     return preferences.getBool(hwCalibKey, false);
 }
+
+bool PreferencesManager::forgetWiFiNetwork(const String& targetSSID) {
+    if (!beginNamespace(NS_WIFI)) return false;
+    
+    // Get all current networks
+    std::vector<WiFiCredentials> allNetworks = getAllStoredWiFiNetworks();
+    
+    // Filter out networks matching targetSSID
+    std::vector<WiFiCredentials> filteredNetworks;
+    for (const auto& network : allNetworks) {
+        if (network.ssid != targetSSID) {
+            filteredNetworks.push_back(network);
+        }
+    }
+    
+    // If no networks were removed, return false
+    if (filteredNetworks.size() == allNetworks.size()) {
+        return false; // Network not found
+    }
+    
+    // Clear all existing network data
+    int currentCount = preferences.getInt(WIFI_COUNT, 0);
+    for (int i = 0; i < currentCount; i++) {
+        char ssidKey[128], passwordKey[128];
+        sprintf(ssidKey, "ssid_%d", i);
+        sprintf(passwordKey, "pwd_%d", i);
+        preferences.remove(ssidKey);
+        preferences.remove(passwordKey);
+    }
+    
+    // Re-store filtered networks with contiguous indices
+    for (size_t i = 0; i < filteredNetworks.size(); i++) {
+        char ssidKey[128], passwordKey[128];
+        sprintf(ssidKey, "ssid_%d", (int)i);
+        sprintf(passwordKey, "pwd_%d", (int)i);
+        preferences.putString(ssidKey, filteredNetworks[i].ssid);
+        preferences.putString(passwordKey, filteredNetworks[i].password);
+    }
+    
+    // Update wifi_count
+    preferences.putInt(WIFI_COUNT, filteredNetworks.size());
+    
+    return true;
+}
