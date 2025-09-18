@@ -181,70 +181,71 @@ void DisplayScreen::generateContentToBuffer() {
     // If display is off, don't generate any content
     if (displayOff) return;
 
-    if (StraightLineDrive::getInstance().isEnabled()) {
-        display.clearDisplay();
+    // if (StraightLineDrive::getInstance().isEnabled()) {
+    //     display.clearDisplay();
         
-        const auto& debugInfo = StraightLineDrive::getInstance().getDebugInfo();
+    //     const auto& debugInfo = StraightLineDrive::getInstance().getDebugInfo();
         
-        // Title
-        drawCenteredText("Straight Line Drive", 0, 1);
+    //     // Title
+    //     drawCenteredText("Straight Line Drive", 0, 1);
         
-        // Motor speeds (int16_t -> %d)
-        display.setCursor(0, 10);
-        display.printf("L: %d  R: %d", debugInfo.leftSpeed, debugInfo.rightSpeed);
+    //     // Motor speeds (int16_t -> %d)
+    //     display.setCursor(0, 10);
+    //     display.printf("L: %d  R: %d", debugInfo.leftSpeed, debugInfo.rightSpeed);
         
-        // Initial heading (float -> %.1f)
-        display.setCursor(0, 20);
-        display.printf("Init heading: %.1f", debugInfo.initialHeading);
+    //     // Initial heading (float -> %.1f)
+    //     display.setCursor(0, 20);
+    //     display.printf("Init heading: %.1f", debugInfo.initialHeading);
         
-        // Current heading (float -> %.1f)
-        display.setCursor(0, 30);
-        display.printf("Curr heading: %.1f", debugInfo.currentHeading);
+    //     // Current heading (float -> %.1f)
+    //     display.setCursor(0, 30);
+    //     display.printf("Curr heading: %.1f", debugInfo.currentHeading);
 
-        // Heading error (float -> %.1f)
-        display.setCursor(0, 40);
-        display.printf("Err: %.1f deg", debugInfo.headingError);
+    //     // Heading error (float -> %.1f)
+    //     display.setCursor(0, 40);
+    //     display.printf("Err: %.1f deg", debugInfo.headingError);
         
-        // Correction (int16_t -> %d)
-        display.setCursor(0, 50);
-        display.printf("Correction: %d", debugInfo.correction);
+    //     // Correction (int16_t -> %d)
+    //     display.setCursor(0, 50);
+    //     display.printf("Correction: %d", debugInfo.correction);
         
-        // Copy display buffer to staging buffer
-        uint8_t* displayBuffer = display.getBuffer();
-        memcpy(stagingBuffer, displayBuffer, DISPLAY_BUFFER_SIZE);
-    } else if (TurningManager::getInstance().isActive()) {
-        display.clearDisplay();
+    //     // Copy display buffer to staging buffer
+    //     uint8_t* displayBuffer = display.getBuffer();
+    //     memcpy(stagingBuffer, displayBuffer, DISPLAY_BUFFER_SIZE);
+    // } else if (TurningManager::getInstance().isActive()) {
+    //     display.clearDisplay();
 
-        const auto& debugInfo = TurningManager::getInstance().getDebugInfo();
+    //     const auto& debugInfo = TurningManager::getInstance().getDebugInfo();
 
-        // Title
-        drawCenteredText("Turning Manager", 0, 1);
+    //     // Title
+    //     drawCenteredText("Turning Manager", 0, 1);
 
-        // Target angle
-        display.setCursor(0, 10);
-        display.printf("Target: %.1f deg", debugInfo.targetAngle);
+    //     // Target angle
+    //     display.setCursor(0, 10);
+    //     display.printf("Target: %.1f deg", debugInfo.targetAngle);
 
-        // Cumulative rotation
-        display.setCursor(0, 20);
-        display.printf("Rotation: %.1f deg", debugInfo.cumulativeRotation);
+    //     // Cumulative rotation
+    //     display.setCursor(0, 20);
+    //     display.printf("Rotation: %.1f deg", debugInfo.cumulativeRotation);
 
-        // Current error
-        display.setCursor(0, 30);
-        display.printf("Error: %.1f deg", debugInfo.currentError);
+    //     // Current error
+    //     display.setCursor(0, 30);
+    //     display.printf("Error: %.1f deg", debugInfo.currentError);
 
-        // Velocity and PWM
-        display.setCursor(0, 40);
-        display.printf("Vel: %.1f d/s", debugInfo.currentVelocity);
+    //     // Velocity and PWM
+    //     display.setCursor(0, 40);
+    //     display.printf("Vel: %.1f d/s", debugInfo.currentVelocity);
 
-        // PWM limits and status
-        display.setCursor(0, 50);
-        display.printf("PWM: %d-%d %s", debugInfo.currentMinPWM, debugInfo.currentMaxPWM,
-                      debugInfo.inSafetyPause ? "SAFE" : "");
+    //     // PWM limits and status
+    //     display.setCursor(0, 50);
+    //     display.printf("PWM: %d-%d %s", debugInfo.currentMinPWM, debugInfo.currentMaxPWM,
+    //                   debugInfo.inSafetyPause ? "SAFE" : "");
 
-        // Copy display buffer to staging buffer
-        uint8_t* displayBuffer = display.getBuffer();
-        memcpy(stagingBuffer, displayBuffer, DISPLAY_BUFFER_SIZE);
-    } else if (careerQuestTriggers.isS3P3Active()) {
+    //     // Copy display buffer to staging buffer
+    //     uint8_t* displayBuffer = display.getBuffer();
+    //     memcpy(stagingBuffer, displayBuffer, DISPLAY_BUFFER_SIZE);
+    // }
+    if (careerQuestTriggers.isS3P3Active()) {
         careerQuestTriggers.renderS3P3Animation();
         // Copy display buffer to staging buffer
         uint8_t* displayBuffer = display.getBuffer();
