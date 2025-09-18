@@ -41,7 +41,7 @@ class StraightLineDrive : public Singleton<StraightLineDrive> {
         float calculateHeadingError(float currentHeading, float targetHeading);
 
         // Control constants
-        static constexpr float KP_HEADING_TO_PWM = 3.0f;  // Proportional gain for heading error (degrees to PWM)
+        static constexpr float KP_HEADING_TO_PWM = 4.0f;  // Proportional gain for heading error (degrees to PWM)
         static constexpr int16_t MIN_FORWARD_SPEED = 20;   // Minimum speed to maintain forward motion
-        static constexpr float DEAD_ZONE_DEGREES = 1.0f;  // Ignore heading errors smaller than this (reduces oscillation)
+        static constexpr float DEAD_ZONE_DEGREES = 0.5f;  // Ignore heading errors smaller than this (reduces oscillation)
 };

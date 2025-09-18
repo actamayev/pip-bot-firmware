@@ -10,7 +10,8 @@ class MotorDriver {
     friend class TurningManager;
     friend class BalanceController;
     friend class TaskManager;
-    
+    friend class BytecodeVM;
+
     public:
         MotorDriver();  // Constructor to initialize pins
         void stop_both_motors();

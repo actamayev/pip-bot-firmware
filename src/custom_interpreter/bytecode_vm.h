@@ -129,4 +129,11 @@ class BytecodeVM : public Singleton<BytecodeVM> {
         void scanProgramForMotors();
         void checkUsbSafetyConditions();
         void handleUsbConnect();
+
+        // Add these with your other distance movement variables
+        int16_t initialDistancePwm = 0;  // Store initial PWM for deceleration calculation
+
+        // Deceleration constants (add near your other constants)
+        static constexpr float DECELERATION_RATE = 2000.0f;  // PWM²/inch - tune this value
+        static constexpr int16_t MIN_DECELERATION_PWM = 40;  // Minimum PWM during deceleration
 };

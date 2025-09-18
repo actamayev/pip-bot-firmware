@@ -606,7 +606,8 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             // Set up distance movement
             distanceMovementInProgress = true;
             targetDistanceIn = distanceIn;
-
+            initialDistancePwm = motorSpeed;  // ADD THIS LINE - Store initial PWM
+            
             // Set motors to forward motion
             motorDriver.updateMotorPwm(motorSpeed, motorSpeed);
             
@@ -636,7 +637,8 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             // Set up distance movement
             distanceMovementInProgress = true;
             targetDistanceIn = distanceIn;
-            
+            initialDistancePwm = -motorSpeed;  // ADD THIS LINE - Store as negative for backward
+
             // Set motors to backward motion
             motorDriver.updateMotorPwm(-motorSpeed, -motorSpeed);
             
@@ -685,19 +687,59 @@ void BytecodeVM::updateTimedMotorMovement() {
 void BytecodeVM::updateDistanceMovement() {
     // Get distance traveled from sensor data buffer (relative to starting point)
     float totalDistance = SensorDataBuffer::getInstance().getLatestDistanceTraveledIn();
-    float currentDistance = totalDistance - startingDistanceIn;
+    float currentDistance = abs(totalDistance - startingDistanceIn);
+    float remainingDistance = targetDistanceIn - currentDistance;
     
-    // Check if we've reached or exceeded the target distance (with small tolerance for overshoot)
-    float tolerance = 0.5f; // 0.5cm tolerance to prevent overshoot issues
-    if (abs(currentDistance) < (targetDistanceIn - tolerance)) return;
+    // Check if we've reached the target distance
+    if (remainingDistance <= 0.0f) {
+        // Distance reached - brake motors and clear any pending commands
+        motorDriver.resetCommandState(true);
+        
+        // Reset distance movement state
+        distanceMovementInProgress = false;
+        targetDistanceIn = 0.0f;
+        startingDistanceIn = 0.0f;
+        initialDistancePwm = 0;
+        vTaskDelay(pdMS_TO_TICKS(250));
+        return;
+    }
     
-    // Distance reached - brake motors and clear any pending commands
-    motorDriver.resetCommandState(true);
+    // Calculate braking distance using physics equation
+    int16_t absPwm = abs(initialDistancePwm);
+    float brakingDistance = (absPwm * absPwm - MIN_DECELERATION_PWM * MIN_DECELERATION_PWM) / (2.0f * DECELERATION_RATE);
+    SerialQueueManager::getInstance().queueMessage("brakingDistance" + String(brakingDistance));
+    
+    // Ensure braking distance doesn't exceed total distance (edge case for short distances)
+    if (brakingDistance > targetDistanceIn) {
+        brakingDistance = targetDistanceIn;
+    }
+    
+    // Determine target PWM based on remaining distance
+    int16_t targetPwm;
+    
+    if (remainingDistance <= brakingDistance) {
+        // We're in the deceleration zone - apply inverse sigmoid
+        float normalizedPosition = remainingDistance / brakingDistance;  // 1.0 at start of braking, 0.0 at end
+        
+        // Inverse sigmoid: gentle at start, aggressive near end
+        float k = 10.0f / brakingDistance;  // Steepness factor
+        float sigmoidValue = 1.0f / (1.0f + exp(k * (brakingDistance/2.0f - remainingDistance)));
+        
+        // Calculate PWM using sigmoid curve
+        targetPwm = MIN_DECELERATION_PWM + (absPwm - MIN_DECELERATION_PWM) * sigmoidValue;
+        
+        // Maintain direction (forward/backward)
+        if (initialDistancePwm < 0) {
+            targetPwm = -targetPwm;
+        }
 
-    // Reset distance movement state
-    distanceMovementInProgress = false;
-    targetDistanceIn = 0.0f;
-    startingDistanceIn = 0.0f;
+        SerialQueueManager::getInstance().queueMessage("sigmoidValue" + String(sigmoidValue));
+        SerialQueueManager::getInstance().queueMessage("targetPwm" + String(targetPwm));
+        
+        // Set motor speeds directly without ramping
+        motorDriver.set_motor_speeds(targetPwm, targetPwm, false);
+    }
+    // If not in deceleration zone, continue at initial speed (StraightLineDrive will handle heading)
 }
 
 void BytecodeVM::stopProgram() {
@@ -716,6 +758,7 @@ void BytecodeVM::resetStateVariables(bool isFullReset) {
     StraightLineDrive::getInstance().disable();
     timedMotorMovementInProgress = false;
     distanceMovementInProgress = false;
+    initialDistancePwm = 0;
     motorMovementEndTime = 0;
     targetDistanceIn = 0.0f;
     startingDistanceIn = 0.0f;
