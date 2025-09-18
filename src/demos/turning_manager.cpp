@@ -180,27 +180,37 @@ void TurningManager::updateVelocity() {
 }
 
 uint8_t TurningManager::calculatePIDSpeed() {
-    const float k = 0.2f;
-    const float midpoint = 60.0f;
+    const float k = 0.25f;  // Slightly steeper curve
+    const float midpoint = 45.0f;  // Lower midpoint for better mid-range response
 
     float sigmoidValue = 1.0f / (1.0f + exp(-k * (abs(currentError) - midpoint)));
-    
+
     // Check if we need active braking
     if (abs(currentError) < 5.0f && abs(currentVelocity) > 80.0f) {
         return 0;
     }
 
-    // Velocity-based approach: reduce speed if approaching target too fast
-    if (abs(currentError) < 20.0f && abs(currentVelocity) > 100.0f) {
-        sigmoidValue *= 0.6f;
+    // FIXED: Less aggressive velocity limiting in transition zone (25-15°)
+    if (abs(currentError) < 20.0f && abs(currentError) >= 15.0f && abs(currentVelocity) > 120.0f) {
+        sigmoidValue *= 0.75f;  // Less aggressive than before (was 0.6f)
+    } else if (abs(currentError) < 15.0f && abs(currentVelocity) > 100.0f) {
+        sigmoidValue *= 0.6f;   // Keep aggressive limiting only for final approach
     }
 
     const float maxResponse = currentMaxPWM - currentMinPWM;
     uint8_t targetPWM = currentMinPWM + (sigmoidValue * maxResponse);
+
+    // NEW: Transition zone handling (25-15°) - bridge the gap
+    if (abs(currentError) > 15.0f && abs(currentError) <= 30.0f) {
+        // Ensure minimum PWM in transition zone to prevent stiction
+        uint8_t transitionMinPWM = currentMinPWM + 15;  // Boost minimum
+        targetPWM = max(targetPWM, transitionMinPWM);
+    }
+
     targetPWM = constrain(targetPWM, currentMinPWM, currentMaxPWM);
-    
-    // IMPROVED: Enhanced final approach logic for rough surfaces
-    if (abs(currentError) > DEAD_ZONE && abs(currentError) < 15.0f) {
+
+    // EXTENDED: Enhanced approach logic now starts at 30° (was 15°)
+    if (abs(currentError) > DEAD_ZONE && abs(currentError) < 30.0f) {
         // Detect stiction in final approach
         detectStiction();
         
@@ -278,8 +288,8 @@ void TurningManager::adaptPWMLimits() {
     float absVelocity = abs(currentVelocity);
     bool adapted = false;
     
-    // IMPROVED: More aggressive adaptation in final approach
-    bool inFinalApproach = abs(currentError) < 15.0f;
+    // IMPROVED: More aggressive adaptation in extended approach zone
+    bool inFinalApproach = abs(currentError) < 30.0f;  // Extended from 15° to 30°
     uint8_t adaptationRate = inFinalApproach ? 4 : 2; // Faster adaptation in final approach
     uint8_t maxIncrease = inFinalApproach ? 8 : 5;    // Larger jumps in final approach
 
@@ -364,9 +374,9 @@ void TurningManager::startTurnMotors() {
 }
 
 void TurningManager::setTurnSpeed(uint8_t speed) {
-    // Check if we're in final approach where stiction is problematic
-    bool inFinalApproach = (abs(currentError) > DEAD_ZONE && abs(currentError) < 8.0f);
-    bool needsStictionFighting = inFinalApproach && abs(currentVelocity) < 10.0f; // Very low velocity indicates stiction
+    // Check if we're in extended approach where stiction is problematic
+    bool inFinalApproach = (abs(currentError) > DEAD_ZONE && abs(currentError) < 25.0f);  // Extended range
+    bool needsStictionFighting = inFinalApproach && abs(currentVelocity) < 15.0f; // Slightly higher threshold
     
     if (needsStictionFighting) {
         // Use immediate control with boosted minimum PWM to fight stiction
