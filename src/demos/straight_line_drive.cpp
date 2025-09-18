@@ -19,7 +19,7 @@ void StraightLineDrive::disable() {
 
     // Reset all member variables to clean state
     _initialHeading = 0.0f;
-    // _debugInfo = DebugInfo{}; // Reset debug info to default values
+    _debugInfo = DebugInfo{}; // Reset debug info to default values
 
     SerialQueueManager::getInstance().queueMessage("StraightLineDrive disabled");
 }
