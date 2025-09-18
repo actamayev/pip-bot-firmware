@@ -70,8 +70,7 @@ void TurningManager::update() {
     // Update error based on current mode
     updateCumulativeRotation();
     getRotationError();
-    
-    adaptPWMLimits(calculatePIDSpeed());
+    adaptPWMLimits();
     
     // Check if we're close enough to brake
     if (abs(currentError) > DEAD_ZONE) {
@@ -206,14 +205,14 @@ uint8_t TurningManager::calculatePIDSpeed() {
         detectStiction();
         
         // Base friction boost - more aggressive than before
-        uint8_t baseFrictionBoost = 8; // Increased from 5
-        
+        uint8_t baseFrictionBoost = 18; // Increased from 8
+
         // Additional stiction boost if detected
         uint8_t stictionBoost = stictionDetected ? (stictionBoostLevel * 4) : 0;
-        
+
         // For very final approach, be even more aggressive
         if (abs(currentError) < 8.0f) {
-            baseFrictionBoost += 5; // Extra boost for final degrees
+            baseFrictionBoost += 12; // Extra boost for final degrees
         }
         
         uint8_t totalBoost = baseFrictionBoost + stictionBoost;
@@ -223,7 +222,7 @@ uint8_t TurningManager::calculatePIDSpeed() {
         
         // If we're still stuck with boosted PWM, force higher PWM
         if (stictionDetected && targetPWM == currentMaxPWM) {
-            targetPWM = min(255, currentMaxPWM + 10); // Exceed normal max temporarily
+            targetPWM = min(255, currentMaxPWM + 15); // Exceed normal max temporarily
         }
     } else {
         // Reset stiction detection when not in final approach
@@ -269,7 +268,7 @@ void TurningManager::resetStictionDetection() {
     stictionDetectionStartTime = 0;
 }
 
-void TurningManager::adaptPWMLimits(uint8_t commandedPWM) {
+void TurningManager::adaptPWMLimits() {
     unsigned long currentTime = millis();
     
     // REMOVED: if (abs(currentError) < 15.0f) return;
@@ -283,6 +282,8 @@ void TurningManager::adaptPWMLimits(uint8_t commandedPWM) {
     bool inFinalApproach = abs(currentError) < 15.0f;
     uint8_t adaptationRate = inFinalApproach ? 4 : 2; // Faster adaptation in final approach
     uint8_t maxIncrease = inFinalApproach ? 8 : 5;    // Larger jumps in final approach
+
+    uint8_t commandedPWM = calculatePIDSpeed();
     
     // Increase limits if commanding high PWM but velocity too low
     if (commandedPWM >= currentMaxPWM * 0.9f && absVelocity < targetMinVelocity) {

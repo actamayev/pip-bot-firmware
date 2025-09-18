@@ -47,7 +47,7 @@ class TurningManager : public Singleton<TurningManager> {
         void getRotationError();
         void updateVelocity();
         uint8_t calculatePIDSpeed();
-        void adaptPWMLimits(uint8_t commandedPWM);
+        void adaptPWMLimits();
         
         // Safety system
         bool checkSafetyTriggers();
@@ -75,8 +75,8 @@ class TurningManager : public Singleton<TurningManager> {
         unsigned long lastTime = 0;
         
         // Adaptive PWM limits
-        uint8_t currentMaxPWM = 60;
-        uint8_t currentMinPWM = 25;
+        uint8_t currentMaxPWM = 90;
+        uint8_t currentMinPWM = 40;
         float targetMaxVelocity = 400.0f;
         float targetMinVelocity = 40.0f;
         unsigned long lastAdaptationTime = 0;
@@ -106,7 +106,7 @@ class TurningManager : public Singleton<TurningManager> {
         uint8_t stictionBoostLevel = 0;
         unsigned long stictionDetectionStartTime = 0;
         static constexpr unsigned long STICTION_DETECTION_TIME = 200; // ms
-        static constexpr float STICTION_VELOCITY_THRESHOLD = 5.0f; // degrees/sec
+        static constexpr float STICTION_VELOCITY_THRESHOLD = 40.0f; // degrees/sec
 
         // Add these methods to private section
         void detectStiction();
