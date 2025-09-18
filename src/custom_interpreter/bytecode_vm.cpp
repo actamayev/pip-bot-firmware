@@ -700,6 +700,7 @@ void BytecodeVM::updateDistanceMovement() {
         targetDistanceIn = 0.0f;
         startingDistanceIn = 0.0f;
         initialDistancePwm = 0;
+        vTaskDelay(pdMS_TO_TICKS(250));
         return;
     }
     

@@ -180,66 +180,25 @@ void TurningManager::updateVelocity() {
 }
 
 uint8_t TurningManager::calculatePIDSpeed() {
-    const float k = 0.25f;  // Slightly steeper curve
-    const float midpoint = 45.0f;  // Lower midpoint for better mid-range response
-
+    const float k = 0.4f;
+    const float midpoint = 50.0f;
     float sigmoidValue = 1.0f / (1.0f + exp(-k * (abs(currentError) - midpoint)));
-
-    // Check if we need active braking
-    if (abs(currentError) < 5.0f && abs(currentVelocity) > 80.0f) {
-        return 0;
-    }
-
-    // FIXED: Less aggressive velocity limiting in transition zone (25-15°)
-    if (abs(currentError) < 20.0f && abs(currentError) >= 15.0f && abs(currentVelocity) > 120.0f) {
-        sigmoidValue *= 0.75f;  // Less aggressive than before (was 0.6f)
-    } else if (abs(currentError) < 15.0f && abs(currentVelocity) > 100.0f) {
-        sigmoidValue *= 0.6f;   // Keep aggressive limiting only for final approach
-    }
-
-    const float maxResponse = currentMaxPWM - currentMinPWM;
-    uint8_t targetPWM = currentMinPWM + (sigmoidValue * maxResponse);
-
-    // NEW: Transition zone handling (25-15°) - bridge the gap
-    if (abs(currentError) > 15.0f && abs(currentError) <= 30.0f) {
-        // Ensure minimum PWM in transition zone to prevent stiction
-        uint8_t transitionMinPWM = currentMinPWM + 15;  // Boost minimum
-        targetPWM = max(targetPWM, transitionMinPWM);
-    }
-
-    targetPWM = constrain(targetPWM, currentMinPWM, currentMaxPWM);
-
-    // EXTENDED: Enhanced approach logic now starts at 30° (was 15°)
-    if (abs(currentError) > DEAD_ZONE && abs(currentError) < 30.0f) {
-        // Detect stiction in final approach
-        detectStiction();
-        
-        // Base friction boost - more aggressive than before
-        uint8_t baseFrictionBoost = 18; // Increased from 8
-
-        // Additional stiction boost if detected
-        uint8_t stictionBoost = stictionDetected ? (stictionBoostLevel * 4) : 0;
-
-        // For very final approach, be even more aggressive
-        if (abs(currentError) < 8.0f) {
-            baseFrictionBoost += 12; // Extra boost for final degrees
-        }
-        
-        uint8_t totalBoost = baseFrictionBoost + stictionBoost;
-        uint8_t frictionMinPWM = min(255, currentMinPWM + totalBoost);
-        targetPWM = max(targetPWM, frictionMinPWM);
-        targetPWM = min(targetPWM, currentMaxPWM); // Still respect max limit
-        
-        // If we're still stuck with boosted PWM, force higher PWM
-        if (stictionDetected && targetPWM == currentMaxPWM) {
-            targetPWM = min(255, currentMaxPWM + 15); // Exceed normal max temporarily
-        }
-    } else {
-        // Reset stiction detection when not in final approach
-        resetStictionDetection();
+    
+    // Simple velocity limiting (less aggressive)
+    if (abs(currentError) < 15.0f && abs(currentVelocity) > 120.0f) {
+        sigmoidValue *= 0.7f;  // Only in final 15°
     }
     
-    return targetPWM;
+    const float maxResponse = currentMaxPWM - currentMinPWM;
+    uint8_t targetPWM = currentMinPWM + (sigmoidValue * maxResponse);
+    
+    // **SIMPLE FIX: Ensure minimum PWM in approach zone**
+    if (abs(currentError) < 45.0f && abs(currentError) > DEAD_ZONE) {
+        uint8_t minApproachPWM = currentMinPWM + 20;  // Always enough to move
+        targetPWM = max(targetPWM, minApproachPWM);
+    }
+    
+    return constrain(targetPWM, currentMinPWM, currentMaxPWM);
 }
 
 void TurningManager::detectStiction() {
