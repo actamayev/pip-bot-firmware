@@ -102,27 +102,12 @@ void SerialManager::pollSerial() {
     }
 }
 
-// TODO: Investigate if we can remove all this handshake stuff, and just do the sendPipIdMessage instead
-void SerialManager::sendHandshakeConfirmation() {
-    StaticJsonDocument<256> doc;
-    doc["status"] = "connected";
-    doc["message"] = "ESP32 Web Serial connection established";
-
-    String jsonString;
-    serializeJson(doc, jsonString);
-
-    // Use CRITICAL priority for browser responses
-    SerialQueueManager::getInstance().queueMessage(jsonString, SerialPriority::CRITICAL);
-
-    sendPipIdMessage();
-}
-
 void SerialManager::sendPipIdMessage() {
     if (!isConnected) return;
 
     auto doc = makeBaseMessageSerial<256>(ToSerialMessage::PIP_ID);
-    doc["pipId"] = PreferencesManager::getInstance().getPipId();
-    doc["payload"] = nullptr;
+    JsonObject payload = doc.createNestedObject("payload");
+    payload["pipId"] = PreferencesManager::getInstance().getPipId();
 
     String jsonString;
     serializeJson(doc, jsonString);
