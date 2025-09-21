@@ -51,7 +51,9 @@ void WebSocketManager::handleBinaryMessage(WebsocketsMessage message) {
         } else {
             SerialQueueManager::getInstance().queueMessage("Invalid framed message (bad end marker or length)");
         }
-    } else {
+    }
+    // TODO 9/20/25: See if we can delete this:
+    else {
         // For backward compatibility: handle legacy non-framed messages
         MessageProcessor::getInstance().processBinaryMessage(data, length);
     }
@@ -70,6 +72,7 @@ void WebSocketManager::connectToWebSocket() {
                 this->lastPingTime = millis(); // Initialize ping time
                 rgbLed.set_led_blue();
                 ledAnimations.stopAnimation();
+                this->sendInitialData();
                 break;
             case WebsocketsEvent::ConnectionClosed:
                 SerialQueueManager::getInstance().queueMessage("WebSocket disconnected");
@@ -92,24 +95,23 @@ void WebSocketManager::connectToWebSocket() {
 
 void WebSocketManager::sendInitialData() {
     SerialQueueManager::getInstance().queueMessage("WebSocket connected. Sending initial data...");
-    StaticJsonDocument<256> initDoc;
-    initDoc["route"] = routeToString(RouteType::REGISTER);
+    auto initDoc = makeBaseMessageServer<256>(ToServerMessage::DEVICE_INITIAL_DATA);
     JsonObject payload = initDoc.createNestedObject("payload");
-    payload["pipUUID"] = PreferencesManager::getInstance().getPipId();
     payload["firmwareVersion"] = FirmwareVersionTracker::getInstance().getFirmwareVersion();
+
     String jsonString;
     serializeJson(initDoc, jsonString);
-
     WiFi.mode(WIFI_STA);
     wsClient.send(jsonString);
+
+    sendBatteryMonitorData();
 }
 
 void WebSocketManager::sendBatteryMonitorData() {
     const BatteryState& batteryState = BatteryMonitor::getInstance().getBatteryState();
     if (!batteryState.isInitialized) return;
 
-    StaticJsonDocument<256> batteryDoc;
-    batteryDoc["route"] = routeToString(RouteType::BATTERY_MONITOR_DATA_FULL);
+    auto batteryDoc = makeBaseMessageServer<256>(ToServerMessage::BATTERY_MONITOR_DATA_FULL);
     JsonObject payload = batteryDoc.createNestedObject("payload");
     payload["batteryData"]["stateOfCharge"] = static_cast<int>(round(batteryState.displayedStateOfCharge));
     payload["batteryData"]["voltage"] = batteryState.voltage;
@@ -151,6 +153,9 @@ void WebSocketManager::pollWebSocket() {
         lastConnectionAttempt = currentTime;
         
         SerialQueueManager::getInstance().queueMessage("Attempting to connect to WebSocket...");
+
+        String pipId = PreferencesManager::getInstance().getPipId();
+        wsClient.addHeader("X-Pip-Id", pipId);
         
         if (!wsClient.connect(getWsServerUrl())) {
             SerialQueueManager::getInstance().queueMessage("WebSocket connection failed. Will try again in 3 seconds");
@@ -188,8 +193,7 @@ void WebSocketManager::killWiFiProcesses() {
 
 void WebSocketManager::sendPipTurningOff() {
     if (!wsConnected) return;
-    StaticJsonDocument<256> pipTurningOffDoc;
-    pipTurningOffDoc["route"] = routeToString(RouteType::PIP_TURNING_OFF);
+    auto pipTurningOffDoc = makeBaseMessageServer<256>(ToServerMessage::PIP_TURNING_OFF);
     JsonObject payload = pipTurningOffDoc.createNestedObject("payload");
     payload["reason"] = "PIP is turning off";
     String jsonString;
@@ -199,9 +203,8 @@ void WebSocketManager::sendPipTurningOff() {
 
 void WebSocketManager::sendDinoScore(int score) {
     if (!wsConnected) return;
-    
-    StaticJsonDocument<256> doc;
-    doc["route"] = routeToString(RouteType::DINO_SCORE);
+
+    auto doc = makeBaseMessageCommon<256>(ToCommonMessage::DINO_SCORE);
     JsonObject payload = doc.createNestedObject("payload");
     payload["score"] = score;
     

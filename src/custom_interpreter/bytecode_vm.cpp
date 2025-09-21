@@ -981,6 +981,6 @@ bool BytecodeVM::canStartProgram() {
     // Block start if program contains motors and USB is connected
     if (!programContainsMotors || !SerialManager::getInstance().isSerialConnected()) return true;
 
-    SerialManager::getInstance().sendJsonMessage(RouteType::MOTORS_DISABLED_USB, "Cannot start motor program while USB connected - disconnect USB first");
+    SerialManager::getInstance().sendJsonMessage(ToSerialMessage::MOTORS_DISABLED_USB, "Cannot start motor program while USB connected - disconnect USB first");
     return false;
 }

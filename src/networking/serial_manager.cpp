@@ -102,37 +102,41 @@ void SerialManager::pollSerial() {
     }
 }
 
+// TODO: Investigate if we can remove all this handshake stuff, and just do the sendPipIdMessage instead
 void SerialManager::sendHandshakeConfirmation() {
+    StaticJsonDocument<256> doc;
+    doc["status"] = "connected";
+    doc["message"] = "ESP32 Web Serial connection established";
+
+    String jsonString;
+    serializeJson(doc, jsonString);
+
     // Use CRITICAL priority for browser responses
-    SerialQueueManager::getInstance().queueMessage(
-        "{\"status\":\"connected\",\"message\":\"ESP32 Web Serial connection established\"}", 
-        SerialPriority::CRITICAL
-    );
+    SerialQueueManager::getInstance().queueMessage(jsonString, SerialPriority::CRITICAL);
+
     sendPipIdMessage();
 }
 
 void SerialManager::sendPipIdMessage() {
     if (!isConnected) return;
-    
-    String pipId = PreferencesManager::getInstance().getPipId();
-    
-    StaticJsonDocument<256> doc;
-    doc["route"] = routeToString(RouteType::PIP_ID);
-    JsonObject payload = doc.createNestedObject("payload");
-    payload["pipId"] = pipId;
-    
+
+    auto doc = makeBaseMessageSerial<256>(ToSerialMessage::PIP_ID);
+    doc["pipId"] = PreferencesManager::getInstance().getPipId();
+    doc["payload"] = nullptr;
+
     String jsonString;
     serializeJson(doc, jsonString);
-    
-    // Use CRITICAL priority for browser communication
-    SerialQueueManager::getInstance().queueMessage(jsonString, SerialPriority::CRITICAL);
+
+    SerialQueueManager::getInstance().queueMessage(
+        jsonString,
+        SerialPriority::CRITICAL
+    );
 }
 
-void SerialManager::sendJsonMessage(RouteType route, const String& status) {
+void SerialManager::sendJsonMessage(ToSerialMessage route, const String& status) {
     if (!isConnected) return;
 
-    StaticJsonDocument<256> doc;
-    doc["route"] = routeToString(route);
+    auto doc = makeBaseMessageSerial<256>(route);
     JsonObject payload = doc.createNestedObject("payload");
     payload["status"] = status;
     
@@ -147,8 +151,7 @@ void SerialManager::sendSavedNetworksResponse(const std::vector<WiFiCredentials>
     if (!isConnected) return;
     
     // Build JSON response
-    StaticJsonDocument<1024> doc;
-    doc["route"] = routeToString(RouteType::SAVED_NETWORKS);
+    auto doc = makeBaseMessageSerial<1024>(ToSerialMessage::SAVED_NETWORKS);
     JsonArray payload = doc.createNestedArray("payload");
     
     for (size_t i = 0; i < networks.size(); i++) {
@@ -159,8 +162,7 @@ void SerialManager::sendSavedNetworksResponse(const std::vector<WiFiCredentials>
     
     String jsonString;
     serializeJson(doc, jsonString);
-    
-    // Use CRITICAL priority for browser responses
+
     SerialQueueManager::getInstance().queueMessage(jsonString, SerialPriority::CRITICAL);
 }
 
@@ -169,8 +171,7 @@ void SerialManager::sendScanResultsResponse(const std::vector<WiFiNetworkInfo>& 
 
     // Send each network as individual message
     for (size_t i = 0; i < networks.size(); i++) {
-        StaticJsonDocument<256> doc;
-        doc["route"] = routeToString(RouteType::SCAN_RESULT_ITEM);
+        auto doc = makeBaseMessageSerial<256>(ToSerialMessage::SCAN_RESULT_ITEM);
         JsonObject payload = doc.createNestedObject("payload");
         payload["ssid"] = networks[i].ssid;
         payload["rssi"] = networks[i].rssi;
@@ -183,8 +184,7 @@ void SerialManager::sendScanResultsResponse(const std::vector<WiFiNetworkInfo>& 
     }
     
     // Send completion message
-    StaticJsonDocument<128> completeDoc;
-    completeDoc["route"] = routeToString(RouteType::SCAN_COMPLETE);
+    auto completeDoc = makeBaseMessageSerial<256>(ToSerialMessage::SCAN_COMPLETE);
     JsonObject completePayload = completeDoc.createNestedObject("payload");
     completePayload["totalNetworks"] = networks.size();
     
@@ -197,8 +197,7 @@ void SerialManager::sendScanResultsResponse(const std::vector<WiFiNetworkInfo>& 
 void SerialManager::sendScanStartedMessage() {
     if (!isConnected) return;
     
-    StaticJsonDocument<128> doc;
-    doc["route"] = routeToString(RouteType::SCAN_STARTED);
+    auto doc = makeBaseMessageSerial<256>(ToSerialMessage::SCAN_STARTED);
     JsonObject payload = doc.createNestedObject("payload");
     payload["scanning"] = true;
     
@@ -229,9 +228,7 @@ void SerialManager::sendBatteryMonitorData() {
     sendBatteryDataItem("estimatedTimeToEmpty", batteryState.estimatedTimeToEmpty);
     sendBatteryDataItem("estimatedTimeToFull", batteryState.estimatedTimeToFull);
     
-    // Send completion message
-    StaticJsonDocument<128> completeDoc;
-    completeDoc["route"] = routeToString(RouteType::BATTERY_MONITOR_DATA_COMPLETE);
+    auto completeDoc = makeBaseMessageSerial<256>(ToSerialMessage::BATTERY_MONITOR_DATA_COMPLETE);
     JsonObject completePayload = completeDoc.createNestedObject("payload");
     completePayload["totalItems"] = 13; // Number of battery data fields sent
     
@@ -244,8 +241,7 @@ void SerialManager::sendBatteryMonitorData() {
 void SerialManager::sendBatteryDataItem(const String& key, int value) {
     if (!isConnected) return;
     
-    StaticJsonDocument<256> doc;
-    doc["route"] = routeToString(RouteType::BATTERY_MONITOR_DATA_ITEM);
+    auto doc = makeBaseMessageSerial<256>(ToSerialMessage::BATTERY_MONITOR_DATA_ITEM);
     JsonObject payload = doc.createNestedObject("payload");
     payload["key"] = key;
     payload["value"] = value;
@@ -259,8 +255,7 @@ void SerialManager::sendBatteryDataItem(const String& key, int value) {
 void SerialManager::sendBatteryDataItem(const String& key, unsigned int value) {
     if (!isConnected) return;
     
-    StaticJsonDocument<256> doc;
-    doc["route"] = routeToString(RouteType::BATTERY_MONITOR_DATA_ITEM);
+    auto doc = makeBaseMessageSerial<256>(ToSerialMessage::BATTERY_MONITOR_DATA_ITEM);
     JsonObject payload = doc.createNestedObject("payload");
     payload["key"] = key;
     payload["value"] = value;
@@ -274,8 +269,7 @@ void SerialManager::sendBatteryDataItem(const String& key, unsigned int value) {
 void SerialManager::sendBatteryDataItem(const String& key, float value) {
     if (!isConnected) return;
     
-    StaticJsonDocument<256> doc;
-    doc["route"] = routeToString(RouteType::BATTERY_MONITOR_DATA_ITEM);
+    auto doc = makeBaseMessageSerial<256>(ToSerialMessage::BATTERY_MONITOR_DATA_ITEM);
     JsonObject payload = doc.createNestedObject("payload");
     payload["key"] = key;
     payload["value"] = value;
@@ -289,8 +283,7 @@ void SerialManager::sendBatteryDataItem(const String& key, float value) {
 void SerialManager::sendBatteryDataItem(const String& key, bool value) {
     if (!isConnected) return;
     
-    StaticJsonDocument<256> doc;
-    doc["route"] = routeToString(RouteType::BATTERY_MONITOR_DATA_ITEM);
+    auto doc = makeBaseMessageSerial<256>(ToSerialMessage::BATTERY_MONITOR_DATA_ITEM);
     JsonObject payload = doc.createNestedObject("payload");
     payload["key"] = key;
     payload["value"] = value;
@@ -304,8 +297,7 @@ void SerialManager::sendBatteryDataItem(const String& key, bool value) {
 void SerialManager::sendDinoScore(int score) {
     if (!isConnected) return;
     
-    StaticJsonDocument<256> doc;
-    doc["route"] = routeToString(RouteType::DINO_SCORE);
+    auto doc = makeBaseMessageCommon<256>(ToCommonMessage::DINO_SCORE);
     JsonObject payload = doc.createNestedObject("payload");
     payload["score"] = score;
     
@@ -318,8 +310,7 @@ void SerialManager::sendDinoScore(int score) {
 void SerialManager::sendNetworkDeletedResponse(bool success) {
     if (!isConnected) return;
     
-    StaticJsonDocument<256> doc;
-    doc["route"] = routeToString(RouteType::WIFI_DELETED_NETWORK);
+    auto doc = makeBaseMessageSerial<256>(ToSerialMessage::WIFI_DELETED_NETWORK);
     JsonObject payload = doc.createNestedObject("payload");
     payload["status"] = success;
     
