@@ -6,6 +6,8 @@
 WebSocketManager::WebSocketManager() {
     wsConnected = false;
     lastConnectionAttempt = 0;
+    String pipId = PreferencesManager::getInstance().getPipId();
+    wsClient.addHeader("X-Pip-Id", pipId);
     if (DEFAULT_ENVIRONMENT == "local") return;
     wsClient.setCACert(rootCACertificate);
 }
@@ -153,9 +155,6 @@ void WebSocketManager::pollWebSocket() {
         lastConnectionAttempt = currentTime;
         
         SerialQueueManager::getInstance().queueMessage("Attempting to connect to WebSocket...");
-
-        String pipId = PreferencesManager::getInstance().getPipId();
-        wsClient.addHeader("X-Pip-Id", pipId);
         
         if (!wsClient.connect(getWsServerUrl())) {
             SerialQueueManager::getInstance().queueMessage("WebSocket connection failed. Will try again in 3 seconds");
@@ -169,13 +168,12 @@ void WebSocketManager::pollWebSocket() {
     }
 
     // Only poll if connected
-    if (wsConnected) {
-        try {
-            wsClient.poll();
-        } catch (const std::exception& e) {
-            // SerialQueueManager::getInstance().queueMessage("Error during WebSocket poll: %s\n", e.what());
-            wsConnected = false;  // Mark as disconnected to trigger reconnect
-        }
+    if (!wsConnected) return;
+    try {
+        wsClient.poll();
+    } catch (const std::exception& e) {
+        // SerialQueueManager::getInstance().queueMessage("Error during WebSocket poll: %s\n", e.what());
+        wsConnected = false;  // Mark as disconnected to trigger reconnect
     }
 }
 
