@@ -54,11 +54,6 @@ void WebSocketManager::handleBinaryMessage(WebsocketsMessage message) {
             SerialQueueManager::getInstance().queueMessage("Invalid framed message (bad end marker or length)");
         }
     }
-    // TODO 9/20/25: See if we can delete this:
-    else {
-        // For backward compatibility: handle legacy non-framed messages
-        MessageProcessor::getInstance().processBinaryMessage(data, length);
-    }
 }
 
 void WebSocketManager::connectToWebSocket() {
