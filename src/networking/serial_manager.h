@@ -15,10 +15,9 @@ class SerialManager : public Singleton<SerialManager> {
 
     public:
         void pollSerial();
-        void sendHandshakeConfirmation();
         bool isSerialConnected() const { return isConnected; }
         unsigned long lastActivityTime = 0;
-        void sendJsonMessage(RouteType route, const String& status);
+        void sendJsonMessage(ToSerialMessage route, const String& status);
         void sendPipIdMessage();
         void sendSavedNetworksResponse(const std::vector<WiFiCredentials>& networks);
         void sendScanResultsResponse(const std::vector<WiFiNetworkInfo>& networks);

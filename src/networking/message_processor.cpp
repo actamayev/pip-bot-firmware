@@ -245,7 +245,7 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             }
             SerialManager::getInstance().isConnected = true;
             SerialManager::getInstance().lastActivityTime = millis();
-            SerialManager::getInstance().sendHandshakeConfirmation();
+            SerialManager::getInstance().sendPipIdMessage();
 
             // Send initial battery data on handshake
             const BatteryState& batteryState = BatteryMonitor::getInstance().getBatteryState();

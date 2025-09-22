@@ -93,26 +93,39 @@ float calculateCircularMean(const float angles[], uint8_t count) {
     return meanAngle;
 }
 
-const char* routeToString(RouteType route) {
+const char* routeToStringCommon(ToCommonMessage route) {
     switch (route) {
-        case RouteType::REGISTER: return "/register";
-        case RouteType::SENSOR_DATA: return "/sensor-data";
-        case RouteType::SENSOR_DATA_MZ: return "/sensor-data-mz";
-        case RouteType::BYTECODE_STATUS: return "/bytecode-status";
-        case RouteType::WIFI_CONNECTION_RESULT: return "/wifi-connection-result";
-        case RouteType::PIP_ID: return "/pip-id";
-        case RouteType::SAVED_NETWORKS: return "/saved-networks";
-        case RouteType::SCAN_RESULT_ITEM: return "/scan-result-item";
-        case RouteType::SCAN_COMPLETE: return "/scan-complete";
-        case RouteType::SCAN_STARTED: return "/scan-started";
-        case RouteType::MOTORS_DISABLED_USB: return "/motors-disabled-usb";
-        case RouteType::PROGRAM_PAUSED_USB: return "/program-paused-usb";
-        case RouteType::BATTERY_MONITOR_DATA_ITEM: return "/battery-monitor-data-item";
-        case RouteType::BATTERY_MONITOR_DATA_COMPLETE: return "/battery-monitor-data-complete";
-        case RouteType::BATTERY_MONITOR_DATA_FULL: return "/battery-monitor-data-full";
-        case RouteType::PIP_TURNING_OFF: return "/pip-turning-off";
-        case RouteType::DINO_SCORE: return "/dino-score";
-        case RouteType::WIFI_DELETED_NETWORK: return "/wifi-deleted-network";
+        case ToCommonMessage::SENSOR_DATA: return "/sensor-data";
+        case ToCommonMessage::SENSOR_DATA_MZ: return "/sensor-data-mz";
+        case ToCommonMessage::DINO_SCORE: return "/dino-score";
+        default: return "";
+    }
+}
+
+const char* routeToStringServer(ToServerMessage route) {
+    switch (route) {
+        case ToServerMessage::DEVICE_INITIAL_DATA: return "/device-initial-data";
+        case ToServerMessage::BATTERY_MONITOR_DATA_FULL: return "/battery-monitor-data-full";
+        case ToServerMessage::PIP_TURNING_OFF: return "/pip-turning-off";
+        default: return "";
+    }
+}
+
+const char* routeToStringSerial(ToSerialMessage route) {
+    switch (route) {
+        case ToSerialMessage::BYTECODE_STATUS: return "/bytecode-status";
+        case ToSerialMessage::WIFI_CONNECTION_RESULT: return "/wifi-connection-result";
+        case ToSerialMessage::PIP_ID: return "/pip-id";
+        case ToSerialMessage::SAVED_NETWORKS: return "/saved-networks";
+        case ToSerialMessage::SCAN_RESULT_ITEM: return "/scan-result-item";
+        case ToSerialMessage::SCAN_COMPLETE: return "/scan-complete";
+        case ToSerialMessage::SCAN_STARTED: return "/scan-started";
+        case ToSerialMessage::MOTORS_DISABLED_USB: return "/motors-disabled-usb";
+        case ToSerialMessage::PROGRAM_PAUSED_USB: return "/program-paused-usb";
+        case ToSerialMessage::PLAY_FUN_SOUND: return "/play-fun-sound";
+        case ToSerialMessage::BATTERY_MONITOR_DATA_ITEM: return "/battery-monitor-data-item";
+        case ToSerialMessage::BATTERY_MONITOR_DATA_COMPLETE: return "/battery-monitor-data-complete";
+        case ToSerialMessage::WIFI_DELETED_NETWORK: return "/wifi-deleted-network";
         default: return "";
     }
 }

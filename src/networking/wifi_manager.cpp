@@ -3,7 +3,7 @@
 WiFiManager::WiFiManager() {
     // Hard-coding Wifi creds during initialization
     storeWiFiCredentials("MSTest", "!haftr2024!", 0);
-    // storeWiFiCredentials("Another Dimension", "Iforgotit123", 0);
+    // storeWiFiCredentials("Another Dimension", "Iforgotit123", 1);
     // storeWiFiCredentials("NETGEAR08", "breezyshoe123", 1);
     // storeWiFiCredentials("iPhone", "12345678", 2);
 
@@ -214,16 +214,16 @@ void WiFiManager::processWiFiCredentialTest() {
         
         if (websocketConnected) {
             storeWiFiCredentials(_testSSID, _testPassword, 0);
-            SerialManager::getInstance().sendJsonMessage(RouteType::WIFI_CONNECTION_RESULT, "success");
+            SerialManager::getInstance().sendJsonMessage(ToSerialMessage::WIFI_CONNECTION_RESULT, "success");
         } else {
             WiFi.setAutoReconnect(false);
             WiFi.disconnect(true);
-            SerialManager::getInstance().sendJsonMessage(RouteType::WIFI_CONNECTION_RESULT, "wifi_only");
+            SerialManager::getInstance().sendJsonMessage(ToSerialMessage::WIFI_CONNECTION_RESULT, "wifi_only");
         }
     } else {
         WiFi.setAutoReconnect(false);
         WiFi.disconnect(true);
-        SerialManager::getInstance().sendJsonMessage(RouteType::WIFI_CONNECTION_RESULT, "failed");
+        SerialManager::getInstance().sendJsonMessage(ToSerialMessage::WIFI_CONNECTION_RESULT, "failed");
     }
     
     // Clear test credentials
