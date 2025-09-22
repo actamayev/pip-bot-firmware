@@ -182,6 +182,7 @@ void WebSocketManager::killWiFiProcesses() {
     SensorDataBuffer::getInstance().stopPollingAllSensors();
     motorDriver.resetCommandState(false);
     rgbLed.set_led_red();
+    rgbLed.turn_headlights_off();
     ledAnimations.startBreathing();
     hasKilledWiFiProcesses = true;
     userConnectedToThisPip = false;
@@ -213,6 +214,7 @@ void WebSocketManager::setIsUserConnectedToThisPip(bool newIsUserConnectedToThis
     userConnectedToThisPip = newIsUserConnectedToThisPip;
     if (newIsUserConnectedToThisPip) return;
     ledAnimations.fadeOut();
+    rgbLed.turn_headlights_off();
     motorDriver.resetCommandState(true);
     Speaker::getInstance().stopAllSounds();
     DisplayScreen::getInstance().showStartScreen();

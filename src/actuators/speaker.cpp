@@ -354,7 +354,7 @@ void Speaker::stopAllSounds() {
         
         // Stop LED sequence and turn off LEDs
         isLedSequencePlaying = false;
-        rgbLed.turn_main_board_leds_off();
+        rgbLed.turn_all_leds_off();
         
         SerialQueueManager::getInstance().queueMessage("Stopped entertainer melody and LED sync");
         
@@ -427,7 +427,7 @@ void Speaker::updateMelody() {
             currentLedStep++;
             if (currentLedStep >= ENTERTAINER_LED_SEQUENCE_LENGTH) {
                 isLedSequencePlaying = false;
-                rgbLed.turn_main_board_leds_off();
+                rgbLed.turn_all_leds_off();
             } else {
                 const MelodyNote& note = entertainerLedSequence[currentLedStep];
                 rgbLed.set_main_board_leds_to_color(note.ledR, note.ledG, note.ledB);
@@ -441,7 +441,7 @@ void Speaker::updateMelody() {
         if (!rtttlGenerator->loop()) {
             isMelodyPlaying = false;
             isLedSequencePlaying = false;
-            rgbLed.turn_main_board_leds_off();
+            rgbLed.turn_all_leds_off();
             SerialQueueManager::getInstance().queueMessage("Entertainer melody completed");
             if (rtttlSource) { delete rtttlSource; rtttlSource = nullptr; }
         }
