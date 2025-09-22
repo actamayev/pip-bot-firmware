@@ -157,7 +157,6 @@ void WebSocketManager::pollWebSocket() {
             SerialQueueManager::getInstance().queueMessage("WebSocket connected successfully");
             wsConnected = true;
             sendInitialData();
-            sendBatteryMonitorData();
         }
         return;
     }
