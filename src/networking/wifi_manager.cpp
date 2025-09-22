@@ -5,15 +5,16 @@ WiFiManager::WiFiManager() {
     storeWiFiCredentials("MSTest", "!haftr2024!", 0);
     // storeWiFiCredentials("Another Dimension", "Iforgotit123", 1);
     // storeWiFiCredentials("NETGEAR08", "breezyshoe123", 1);
-    // storeWiFiCredentials("iPhone", "12345678", 2);
+    // storeWiFiCredentials("iPhone", "12345678", 1);
 
-    WiFi.setTxPower(WIFI_POWER_19_5dBm);
+    WiFi.setSleep(false);                    // Disable WiFi sleep mode
+    esp_wifi_set_ps(WIFI_PS_NONE);          // Disable power saving completely
+    WiFi.setTxPower(WIFI_POWER_19_5dBm);    // Your existing line
     connectToStoredWiFi();
 
-    // TODO: 8/15/25: Possibly implement this (this was done in the WiFi + ESP NOW to substantially decrease the ESP-now latency when connected to WiFi)
-    // In receiver setup(), after WiFi connects:
-    // WiFi.setSleep(false);  // Disable WiFi power saving
-    // esp_wifi_set_ps(WIFI_PS_NONE);  // Disable power saving completely
+    // TODO: Consider implementing auto reconnect for when we lose wifi connection (need to be careful to not autoreconnect to networks that we failed)
+    // WiFi.setAutoConnect(false);              // Disable auto-connect (use your custom logic)
+    // WiFi.setAutoReconnect(true);             // Enable automatic reconnection
 }
 
 void WiFiManager::connectToStoredWiFi() {
@@ -193,7 +194,11 @@ void WiFiManager::processWiFiCredentialTest() {
     _isTestingCredentials = false;
 
     // Directly attempt connection without scanning
-    if (testConnectionOnly(_testSSID, _testPassword)) {
+    if (!testConnectionOnly(_testSSID, _testPassword)) {
+        WiFi.setAutoReconnect(false);
+        WiFi.disconnect(true);
+        SerialManager::getInstance().sendJsonMessage(ToSerialMessage::WIFI_CONNECTION_RESULT, "failed");
+    } else {
         SerialQueueManager::getInstance().queueMessage("WiFi connection successful - testing WebSocket...");
         
         // Test WebSocket connection
@@ -220,10 +225,6 @@ void WiFiManager::processWiFiCredentialTest() {
             WiFi.disconnect(true);
             SerialManager::getInstance().sendJsonMessage(ToSerialMessage::WIFI_CONNECTION_RESULT, "wifi_only");
         }
-    } else {
-        WiFi.setAutoReconnect(false);
-        WiFi.disconnect(true);
-        SerialManager::getInstance().sendJsonMessage(ToSerialMessage::WIFI_CONNECTION_RESULT, "failed");
     }
     
     // Clear test credentials

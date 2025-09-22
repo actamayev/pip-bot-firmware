@@ -135,7 +135,11 @@ void WebSocketManager::pollWebSocket() {
     lastPollTime = currentTime;
     
     if (WiFi.status() != WL_CONNECTED) {
-        SerialQueueManager::getInstance().queueMessage("WiFi disconnected, cannot connect to WebSocket");
+        if (wsConnected) {
+            SerialQueueManager::getInstance().queueMessage("WiFi lost during WebSocket session");
+            wsConnected = false;
+            killWiFiProcesses();
+        }
         return;
     }
 
