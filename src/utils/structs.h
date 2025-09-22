@@ -111,10 +111,20 @@ struct BatteryState {
     float displayedStateOfCharge = 0;      // Battery percentage (0-100%)
 };
 
-enum class RouteType {
-    REGISTER,
+// Can go to both Serial and Server
+enum class ToCommonMessage {
     SENSOR_DATA,
-    SENSOR_DATA_MZ, // Multizone ToF chunked data
+    SENSOR_DATA_MZ,
+    DINO_SCORE
+};
+
+enum class ToServerMessage {
+    DEVICE_INITIAL_DATA,
+    BATTERY_MONITOR_DATA_FULL,
+    PIP_TURNING_OFF
+};
+
+enum class ToSerialMessage {
     BYTECODE_STATUS,
     WIFI_CONNECTION_RESULT,
     PIP_ID,
@@ -124,10 +134,8 @@ enum class RouteType {
     SCAN_STARTED,
     MOTORS_DISABLED_USB,
     PROGRAM_PAUSED_USB,
+    PLAY_FUN_SOUND,
     BATTERY_MONITOR_DATA_ITEM,
     BATTERY_MONITOR_DATA_COMPLETE,
-    BATTERY_MONITOR_DATA_FULL, // This is for sending data over WS
-    PIP_TURNING_OFF,
-    DINO_SCORE,
     WIFI_DELETED_NETWORK
 };

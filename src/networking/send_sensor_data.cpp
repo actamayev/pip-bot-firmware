@@ -90,10 +90,7 @@ void SendSensorData::sendSensorDataToServer() {
     if (currentTime - lastSendTime < SEND_INTERVAL) return;
 
     // Create a JSON document with both routing information and payload
-    StaticJsonDocument<256> doc;
-
-    // Add routing information
-    doc["route"] = routeToString(RouteType::SENSOR_DATA);
+    auto doc = makeBaseMessageCommon<256>(ToCommonMessage::SENSOR_DATA);
 
     // Add the actual payload
     JsonObject payload = doc.createNestedObject("payload");
@@ -139,8 +136,7 @@ void SendSensorData::sendMultizoneData() {
     
     // Send 8 messages (one per row) in burst mode
     for (int row = 0; row < 8; row++) {
-        StaticJsonDocument<128> doc;
-        doc["route"] = routeToString(RouteType::SENSOR_DATA_MZ);
+        auto doc = makeBaseMessageCommon<128>(ToCommonMessage::SENSOR_DATA_MZ);
         JsonObject payload = doc.createNestedObject("payload");
         payload["row"] = row;
         
