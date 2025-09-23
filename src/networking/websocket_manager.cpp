@@ -190,9 +190,9 @@ void WebSocketManager::killWiFiProcesses() {
 
 void WebSocketManager::sendPipTurningOff() {
     if (!wsConnected) return;
-    auto pipTurningOffDoc = makeBaseMessageServer<256>(ToServerMessage::PIP_TURNING_OFF);
+    auto pipTurningOffDoc = makeBaseMessageCommon<256>(ToCommonMessage::PIP_TURNING_OFF);
     JsonObject payload = pipTurningOffDoc.createNestedObject("payload");
-    payload["reason"] = "PIP is turning off";
+    payload["reason"] = "Pip is turning off";
     String jsonString;
     serializeJson(pipTurningOffDoc, jsonString);
     wsClient.send(jsonString);
