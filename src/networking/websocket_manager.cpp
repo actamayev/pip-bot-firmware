@@ -181,9 +181,11 @@ void WebSocketManager::killWiFiProcesses() {
     if (hasKilledWiFiProcesses) return;
     SensorDataBuffer::getInstance().stopPollingAllSensors();
     motorDriver.resetCommandState(false);
-    rgbLed.set_led_red();
     rgbLed.turn_headlights_off();
-    ledAnimations.startBreathing();
+    if (!SerialManager::getInstance().isSerialConnected()) {
+        rgbLed.set_led_red();
+        ledAnimations.startBreathing();
+    }
     hasKilledWiFiProcesses = true;
     userConnectedToThisPip = false;
 }
