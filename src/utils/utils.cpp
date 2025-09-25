@@ -98,6 +98,7 @@ const char* routeToStringCommon(ToCommonMessage route) {
         case ToCommonMessage::SENSOR_DATA: return "/sensor-data";
         case ToCommonMessage::SENSOR_DATA_MZ: return "/sensor-data-mz";
         case ToCommonMessage::DINO_SCORE: return "/dino-score";
+        case ToCommonMessage::PIP_TURNING_OFF: return "/pip-turning-off";
         default: return "";
     }
 }
@@ -106,7 +107,6 @@ const char* routeToStringServer(ToServerMessage route) {
     switch (route) {
         case ToServerMessage::DEVICE_INITIAL_DATA: return "/device-initial-data";
         case ToServerMessage::BATTERY_MONITOR_DATA_FULL: return "/battery-monitor-data-full";
-        case ToServerMessage::PIP_TURNING_OFF: return "/pip-turning-off";
         default: return "";
     }
 }

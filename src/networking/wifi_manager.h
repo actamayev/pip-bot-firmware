@@ -1,5 +1,6 @@
 #pragma once
 
+#include "esp_wifi.h"
 #include <WiFi.h>
 #include <vector>
 #include <algorithm>

@@ -115,13 +115,13 @@ struct BatteryState {
 enum class ToCommonMessage {
     SENSOR_DATA,
     SENSOR_DATA_MZ,
-    DINO_SCORE
+    DINO_SCORE,
+    PIP_TURNING_OFF
 };
 
 enum class ToServerMessage {
     DEVICE_INITIAL_DATA,
     BATTERY_MONITOR_DATA_FULL,
-    PIP_TURNING_OFF
 };
 
 enum class ToSerialMessage {

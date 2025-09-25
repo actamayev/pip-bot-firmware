@@ -401,6 +401,7 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
                                 DisplayScreen::getInstance().turnDisplayOff();
                                 Speaker::getInstance().stopAllSounds();
                                 ledAnimations.fadeOut();
+                                rgbLed.turn_headlights_off();
                                 break;
                             case MeetPipTriggerType::S2_P1_ENTER:
                                 careerQuestTriggers.startS2P1Sequence();

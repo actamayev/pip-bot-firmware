@@ -304,3 +304,16 @@ void SerialManager::sendNetworkDeletedResponse(bool success) {
     
     SerialQueueManager::getInstance().queueMessage(jsonString, SerialPriority::CRITICAL);
 }
+
+void SerialManager::sendPipTurningOff() {
+    if (!isConnected) return;
+
+    auto pipTurningOffDoc = makeBaseMessageCommon<256>(ToCommonMessage::PIP_TURNING_OFF);
+    JsonObject payload = pipTurningOffDoc.createNestedObject("payload");
+    payload["reason"] = "PIP is turning off";
+
+    String jsonString;
+    serializeJson(pipTurningOffDoc, jsonString);
+
+    SerialQueueManager::getInstance().queueMessage(jsonString, SerialPriority::CRITICAL);
+}

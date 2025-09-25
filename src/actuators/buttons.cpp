@@ -180,8 +180,12 @@ void Buttons::setupDeepSleep() {
 }
 
 void Buttons::enterDeepSleep() {
-    // Configure both buttons as wake-up sources
-    WebSocketManager::getInstance().sendPipTurningOff();
+    if (SerialManager::getInstance().isSerialConnected()) {
+        SerialManager::getInstance().sendPipTurningOff();
+    } else if (WebSocketManager::getInstance().isWsConnected()) {
+        WebSocketManager::getInstance().sendPipTurningOff();
+    }
+
     digitalWrite(PWR_EN, LOW);
     vTaskDelay(pdMS_TO_TICKS(20));
 
