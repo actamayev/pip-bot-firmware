@@ -25,6 +25,7 @@ class SerialManager : public Singleton<SerialManager> {
         void sendBatteryMonitorData();
         void sendDinoScore(int score);
         void sendNetworkDeletedResponse(bool success);
+        void sendPipTurningOff();
 
     private:
         SerialManager() = default;  // Make constructor private and implement it

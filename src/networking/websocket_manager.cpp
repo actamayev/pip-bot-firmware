@@ -135,7 +135,11 @@ void WebSocketManager::pollWebSocket() {
     lastPollTime = currentTime;
     
     if (WiFi.status() != WL_CONNECTED) {
-        SerialQueueManager::getInstance().queueMessage("WiFi disconnected, cannot connect to WebSocket");
+        if (wsConnected) {
+            SerialQueueManager::getInstance().queueMessage("WiFi lost during WebSocket session");
+            wsConnected = false;
+            killWiFiProcesses();
+        }
         return;
     }
 
@@ -177,17 +181,20 @@ void WebSocketManager::killWiFiProcesses() {
     if (hasKilledWiFiProcesses) return;
     SensorDataBuffer::getInstance().stopPollingAllSensors();
     motorDriver.resetCommandState(false);
-    rgbLed.set_led_red();
-    ledAnimations.startBreathing();
+    rgbLed.turn_headlights_off();
+    if (!SerialManager::getInstance().isSerialConnected()) {
+        rgbLed.set_led_red();
+        ledAnimations.startBreathing();
+    }
     hasKilledWiFiProcesses = true;
     userConnectedToThisPip = false;
 }
 
 void WebSocketManager::sendPipTurningOff() {
     if (!wsConnected) return;
-    auto pipTurningOffDoc = makeBaseMessageServer<256>(ToServerMessage::PIP_TURNING_OFF);
+    auto pipTurningOffDoc = makeBaseMessageCommon<256>(ToCommonMessage::PIP_TURNING_OFF);
     JsonObject payload = pipTurningOffDoc.createNestedObject("payload");
-    payload["reason"] = "PIP is turning off";
+    payload["reason"] = "Pip is turning off";
     String jsonString;
     serializeJson(pipTurningOffDoc, jsonString);
     wsClient.send(jsonString);
@@ -209,6 +216,7 @@ void WebSocketManager::setIsUserConnectedToThisPip(bool newIsUserConnectedToThis
     userConnectedToThisPip = newIsUserConnectedToThisPip;
     if (newIsUserConnectedToThisPip) return;
     ledAnimations.fadeOut();
+    rgbLed.turn_headlights_off();
     motorDriver.resetCommandState(true);
     Speaker::getInstance().stopAllSounds();
     DisplayScreen::getInstance().showStartScreen();
