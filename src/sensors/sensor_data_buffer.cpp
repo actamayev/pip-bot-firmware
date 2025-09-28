@@ -1,8 +1,10 @@
 #include "sensor_data_buffer.h"
-#include "sensor_data_buffer.h"
 #include "networking/serial_manager.h"
-#include "networking/websocket_manager.h" 
+#include "networking/websocket_manager.h"
 #include "custom_interpreter/bytecode_vm.h"
+
+// Use ColorType from ColorTypes namespace
+using ColorTypes::ColorType;
 
 // IMU update methods (existing)
 void SensorDataBuffer::updateQuaternion(const QuaternionData& quaternion) {
@@ -505,4 +507,87 @@ bool SensorDataBuffer::shouldEnableQuaternionExtended() const {
     bool userConnected = WebSocketManager::getInstance().isUserConnectedToThisPip();
     
     return withinTimeout || serialConnected || programLoaded || userConnected;
+}
+
+// Add these new methods
+
+ColorType SensorDataBuffer::classifyCurrentColor() {
+    uint8_t r = currentColorData.redValue;
+    uint8_t g = currentColorData.greenValue;
+    uint8_t b = currentColorData.blueValue;
+    
+    if (!currentColorData.isValid) return ColorType::COLOR_NONE;
+    
+    // White: All components bright
+    if (r > 130 && g > 130 && b > 130) {
+        return ColorType::COLOR_WHITE;
+    }
+
+    // Red: R dominant and bright enough
+    if (r > 80 && r > (g + 30) && r > (b + 30)) {
+        return ColorType::COLOR_RED;
+    }
+    
+    // Green: G dominant and bright enough  
+    if (g > 80 && g > (r + 30) && g > (b + 30)) {
+        return ColorType::COLOR_GREEN;
+    }
+    
+    // Blue: B dominant and bright enough
+    if (b > 65 && b > (r + 20) && b > (g + 20)) {
+        return ColorType::COLOR_BLUE;
+    }
+    
+    // Black: All components dark
+    if (r < 60 && g < 60 && b < 60) {
+        return ColorType::COLOR_BLACK;
+    }
+    
+    return ColorType::COLOR_NONE;
+}
+
+void SensorDataBuffer::updateColorHistory(ColorType color) {
+    colorHistory[colorHistoryIndex] = color;
+    colorHistoryIndex = (colorHistoryIndex + 1) % 5;
+}
+
+bool SensorDataBuffer::checkColorConsistency(ColorType targetColor) {
+    // Count how many of the last 5 classifications match the target
+    uint8_t matchCount = 0;
+    for (int i = 0; i < 5; i++) {
+        if (colorHistory[i] == targetColor) {
+            matchCount++;
+        }
+    }
+    return matchCount >= 4; // Need 4 out of 5 to confirm
+}
+
+bool SensorDataBuffer::isObjectRed() {
+    timeouts.color_last_request.store(millis());
+    updateColorHistory(classifyCurrentColor());
+    return checkColorConsistency(ColorType::COLOR_RED);
+}
+
+bool SensorDataBuffer::isObjectGreen() {
+    timeouts.color_last_request.store(millis());
+    updateColorHistory(classifyCurrentColor());
+    return checkColorConsistency(ColorType::COLOR_GREEN);
+}
+
+bool SensorDataBuffer::isObjectBlue() {
+    timeouts.color_last_request.store(millis());
+    updateColorHistory(classifyCurrentColor());
+    return checkColorConsistency(ColorType::COLOR_BLUE);
+}
+
+bool SensorDataBuffer::isObjectWhite() {
+    timeouts.color_last_request.store(millis());
+    updateColorHistory(classifyCurrentColor());
+    return checkColorConsistency(ColorType::COLOR_WHITE);
+}
+
+bool SensorDataBuffer::isObjectBlack() {
+    timeouts.color_last_request.store(millis());
+    updateColorHistory(classifyCurrentColor());
+    return checkColorConsistency(ColorType::COLOR_BLACK);
 }

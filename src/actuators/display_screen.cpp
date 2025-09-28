@@ -245,6 +245,46 @@ void DisplayScreen::generateContentToBuffer() {
     //     uint8_t* displayBuffer = display.getBuffer();
     //     memcpy(stagingBuffer, displayBuffer, DISPLAY_BUFFER_SIZE);
     // }
+    // display.clearDisplay();
+
+    // // Get current color sensor data
+    // const ColorData& colorData = SensorDataBuffer::getInstance().getLatestColorData();
+
+    // // Title
+    // drawCenteredText("RGB Sensor Test", 0, 1);
+
+    // if (colorData.isValid) {
+    //     // RGB values
+    //     display.setCursor(0, 15);
+    //     display.printf("R: %3d", colorData.redValue);
+
+    //     display.setCursor(0, 25);
+    //     display.printf("G: %3d", colorData.greenValue);
+
+    //     display.setCursor(0, 35);
+    //     display.printf("B: %3d", colorData.blueValue);
+
+    //     // Show detected color
+    //     ColorTypes::ColorType detectedColor = SensorDataBuffer::getInstance().classifyCurrentColor();
+    //     display.setCursor(0, 50);
+    //     display.print("Color: ");
+    //     switch (detectedColor) {
+    //         case ColorTypes::COLOR_RED:   display.print("RED"); break;
+    //         case ColorTypes::COLOR_GREEN: display.print("GREEN"); break;
+    //         case ColorTypes::COLOR_BLUE:  display.print("BLUE"); break;
+    //         case ColorTypes::COLOR_WHITE: display.print("WHITE"); break;
+    //         case ColorTypes::COLOR_BLACK: display.print("BLACK"); break;
+    //         case ColorTypes::COLOR_NONE:  display.print("NONE"); break;
+    //     }
+    // } else {
+    //     display.setCursor(0, 20);
+    //     display.print("No color data");
+    // }
+
+    // // Copy display buffer to staging buffer
+    // uint8_t* displayBuffer = display.getBuffer();
+    // memcpy(stagingBuffer, displayBuffer, DISPLAY_BUFFER_SIZE);
+    // return;
     if (careerQuestTriggers.isS3P3Active()) {
         careerQuestTriggers.renderS3P3Animation();
         // Copy display buffer to staging buffer
