@@ -292,6 +292,12 @@ class SensorDataBuffer : public Singleton<SensorDataBuffer> {
 
         bool shouldEnableQuaternionExtended() const;
 
+        bool isObjectRed();
+        bool isObjectGreen();
+        bool isObjectBlue();
+        bool isObjectWhite();
+        bool isObjectBlack();
+
     private:
         SensorDataBuffer() = default;
         
@@ -341,4 +347,12 @@ class SensorDataBuffer : public Singleton<SensorDataBuffer> {
         void markColorDataUpdated();  // Separate method for color sensor timestamp
         void markIrDataUpdated();  // Separate method for IR timestamp
         void markEncoderDataUpdated();  // Separate method for encoder timestamp
+
+        ColorType colorHistory[5] = {ColorType::NONE}; // Circular buffer for last 5 classifications
+        uint8_t colorHistoryIndex = 0;
+        
+        // Helper methods
+        ColorType classifyCurrentColor();
+        void updateColorHistory(ColorType color);
+        bool checkColorConsistency(ColorType targetColor);
 };

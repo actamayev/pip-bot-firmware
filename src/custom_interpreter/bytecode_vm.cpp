@@ -298,6 +298,46 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
                         skipDefaultAssignment = true;  // Set flag
                         break;
                     }
+                    case SENSOR_COLOR_RED: {
+                        bool isRed = SensorDataBuffer::getInstance().isObjectRed();
+                        registers[regId].asBool = isRed;
+                        registerTypes[regId] = VAR_BOOL;
+                        registerInitialized[regId] = true;
+                        skipDefaultAssignment = true;
+                        break;
+                    }
+                    case SENSOR_COLOR_GREEN: {
+                        bool isGreen = SensorDataBuffer::getInstance().isObjectGreen();
+                        registers[regId].asBool = isGreen;
+                        registerTypes[regId] = VAR_BOOL;
+                        registerInitialized[regId] = true;
+                        skipDefaultAssignment = true;
+                        break;
+                    }
+                    case SENSOR_COLOR_BLUE: {
+                        bool isBlue = SensorDataBuffer::getInstance().isObjectBlue();
+                        registers[regId].asBool = isBlue;
+                        registerTypes[regId] = VAR_BOOL;
+                        registerInitialized[regId] = true;
+                        skipDefaultAssignment = true;
+                        break;
+                    }
+                    case SENSOR_COLOR_WHITE: {
+                        bool isWhite = SensorDataBuffer::getInstance().isObjectWhite();
+                        registers[regId].asBool = isWhite;
+                        registerTypes[regId] = VAR_BOOL;
+                        registerInitialized[regId] = true;
+                        skipDefaultAssignment = true;
+                        break;
+                    }
+                    case SENSOR_COLOR_BLACK: {
+                        bool isBlack = SensorDataBuffer::getInstance().isObjectBlack();
+                        registers[regId].asBool = isBlack;
+                        registerTypes[regId] = VAR_BOOL;
+                        registerInitialized[regId] = true;
+                        skipDefaultAssignment = true;
+                        break;
+                    }
                     default: {
                         char logMessage[32];
                         snprintf(logMessage, sizeof(logMessage), "Unknown sensor type: %u", sensorType);

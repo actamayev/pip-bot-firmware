@@ -506,3 +506,86 @@ bool SensorDataBuffer::shouldEnableQuaternionExtended() const {
     
     return withinTimeout || serialConnected || programLoaded || userConnected;
 }
+
+// Add these new methods
+
+ColorType SensorDataBuffer::classifyCurrentColor() {
+    uint8_t r = currentColorData.redValue;
+    uint8_t g = currentColorData.greenValue;
+    uint8_t b = currentColorData.blueValue;
+    
+    if (!currentColorData.isValid) return ColorType::NONE;
+    
+    // Red: R dominant and bright enough
+    if (r > 120 && r > (g + 30) && r > (b + 30)) {
+        return ColorType::RED;
+    }
+    
+    // Green: G dominant and bright enough  
+    if (g > 120 && g > (r + 30) && g > (b + 30)) {
+        return ColorType::GREEN;
+    }
+    
+    // Blue: B dominant and bright enough
+    if (b > 120 && b > (r + 30) && b > (g + 30)) {
+        return ColorType::BLUE;
+    }
+    
+    // White: All components bright
+    if (r > 180 && g > 180 && b > 180) {
+        return ColorType::WHITE;
+    }
+    
+    // Black: All components dark
+    if (r < 60 && g < 60 && b < 60) {
+        return ColorType::BLACK;
+    }
+    
+    return ColorType::NONE;
+}
+
+void SensorDataBuffer::updateColorHistory(ColorType color) {
+    colorHistory[colorHistoryIndex] = color;
+    colorHistoryIndex = (colorHistoryIndex + 1) % 5;
+}
+
+bool SensorDataBuffer::checkColorConsistency(ColorType targetColor) {
+    // Count how many of the last 5 classifications match the target
+    uint8_t matchCount = 0;
+    for (int i = 0; i < 5; i++) {
+        if (colorHistory[i] == targetColor) {
+            matchCount++;
+        }
+    }
+    return matchCount >= 4; // Need 4 out of 5 to confirm
+}
+
+bool SensorDataBuffer::isObjectRed() {
+    timeouts.color_last_request.store(millis());
+    updateColorHistory(classifyCurrentColor());
+    return checkColorConsistency(ColorType::RED);
+}
+
+bool SensorDataBuffer::isObjectGreen() {
+    timeouts.color_last_request.store(millis());
+    updateColorHistory(classifyCurrentColor());
+    return checkColorConsistency(ColorType::GREEN);
+}
+
+bool SensorDataBuffer::isObjectBlue() {
+    timeouts.color_last_request.store(millis());
+    updateColorHistory(classifyCurrentColor());
+    return checkColorConsistency(ColorType::BLUE);
+}
+
+bool SensorDataBuffer::isObjectWhite() {
+    timeouts.color_last_request.store(millis());
+    updateColorHistory(classifyCurrentColor());
+    return checkColorConsistency(ColorType::WHITE);
+}
+
+bool SensorDataBuffer::isObjectBlack() {
+    timeouts.color_last_request.store(millis());
+    updateColorHistory(classifyCurrentColor());
+    return checkColorConsistency(ColorType::BLACK);
+}
