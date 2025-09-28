@@ -6,6 +6,10 @@
 #include "utils/structs.h"
 #include "utils/singleton.h"
 #include "networking/serial_queue_manager.h"
+#include "custom_interpreter/bytecode_structs.h"
+
+// Use ColorType from ColorTypes namespace
+using ColorTypes::ColorType;
 
 // Forward declarations instead of includes
 class SerialManager;
@@ -292,6 +296,13 @@ class SensorDataBuffer : public Singleton<SensorDataBuffer> {
 
         bool shouldEnableQuaternionExtended() const;
 
+        bool isObjectRed();
+        bool isObjectGreen();
+        bool isObjectBlue();
+        bool isObjectWhite();
+        bool isObjectBlack();
+        ColorType classifyCurrentColor();
+
     private:
         SensorDataBuffer() = default;
         
@@ -341,4 +352,11 @@ class SensorDataBuffer : public Singleton<SensorDataBuffer> {
         void markColorDataUpdated();  // Separate method for color sensor timestamp
         void markIrDataUpdated();  // Separate method for IR timestamp
         void markEncoderDataUpdated();  // Separate method for encoder timestamp
+
+        ColorType colorHistory[5] = {ColorType::COLOR_NONE}; // Circular buffer for last 5 classifications
+        uint8_t colorHistoryIndex = 0;
+        
+        // Helper methods
+        void updateColorHistory(ColorType color);
+        bool checkColorConsistency(ColorType targetColor);
 };

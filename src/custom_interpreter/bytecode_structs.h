@@ -1,4 +1,5 @@
 #pragma once
+#include <Arduino.h>
 
 // Operation codes (opcodes)
 enum BytecodeOpCode : uint32_t {
@@ -71,7 +72,12 @@ enum BytecodeSensorType : uint8_t {
     SENSOR_MAG_FIELD_Z = 12,
     SENSOR_SIDE_LEFT_PROXIMITY = 13,
     SENSOR_SIDE_RIGHT_PROXIMITY = 14,
-    SENSOR_FRONT_PROXIMITY = 15
+    SENSOR_FRONT_PROXIMITY = 15,
+    SENSOR_COLOR_RED = 16,
+    SENSOR_COLOR_GREEN = 17,
+    SENSOR_COLOR_BLUE = 18,
+    SENSOR_COLOR_WHITE = 19,
+    SENSOR_COLOR_BLACK = 20
 };
 
 enum BytecodeVarType : uint8_t {
@@ -101,3 +107,14 @@ struct BytecodeInstruction {
     float operand3;       // 4 bytes
     float operand4;       // 4 bytes
 };
+
+namespace ColorTypes {
+    enum ColorType {
+        COLOR_RED,
+        COLOR_GREEN,
+        COLOR_BLUE,
+        COLOR_WHITE,
+        COLOR_BLACK,
+        COLOR_NONE  // No clear color detected
+    };
+}
