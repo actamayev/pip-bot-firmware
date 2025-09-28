@@ -3,7 +3,7 @@
 WiFiManager::WiFiManager() {
     // Hard-coding Wifi creds during initialization
     // storeWiFiCredentials("MSTest", "!haftr2024!", 0);
-    storeWiFiCredentials("Another Dimension", "Iforgotit123", 1);
+    // storeWiFiCredentials("Another Dimension", "Iforgotit123", 1);
     // storeWiFiCredentials("NETGEAR08", "breezyshoe123", 1);
     // storeWiFiCredentials("iPhone", "12345678", 1);
 
