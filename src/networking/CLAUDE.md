@@ -24,8 +24,8 @@ Comprehensive communication system handling WiFi, WebSocket, and serial protocol
 - **Connection resilience**: Automatic reconnection with backoff
 - **Certificate validation**: Pinned root CA for secure connections
 - **Environment URLs**: 
-  - Staging: `wss://staging-api.bluedotrobots.com/esp32`
-  - Production: `wss://production-api.bluedotrobots.com/esp32`
+  - Staging: `wss://staging-api.leverlabs.com/esp32`
+  - Production: `wss://production-api.leverlabs.com/esp32`
 
 ### Serial Communication
 

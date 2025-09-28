@@ -33,8 +33,8 @@ LEFT_BUTTON_PIN = 11, RIGHT_BUTTON_PIN = 12;
 const char* getWsServerUrl() {
     // Returns local/staging/production URLs based on build
     if (env == "local") return "ws://10.76.59.40:8080/esp32"; // Changes with my local IP
-    if (env == "staging") return "wss://staging-api.bluedotrobots.com/esp32";
-    return "wss://production-api.bluedotrobots.com/esp32";
+    if (env == "staging") return "wss://staging-api.leverlab.com/esp32";
+    return "wss://production-api.leverlabs.com/esp32";
 }
 ```
 
