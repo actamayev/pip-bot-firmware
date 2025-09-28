@@ -882,13 +882,29 @@ void BytecodeVM::activateSensorsForProgram() {
     bool needMagnetometer = false;
     bool needTof = false;
     bool needSideTof = false;
+    bool needColorSensor = false;
     
     // Scan through the entire program
     for (uint16_t i = 0; i < programSize; i++) {
         const BytecodeInstruction& instr = program[i];
         
         // Handle OP_READ_SENSOR dynamically based on sensor type
-        if (instr.opcode == OP_READ_SENSOR) {
+        if (instr.opcode != OP_READ_SENSOR) {
+            // Handle other opcodes using the static mapping
+            auto it = opcodeToSensors.find(instr.opcode);
+            if (it != opcodeToSensors.end()) {
+                for (SensorType sensorType : it->second) {
+                    switch (sensorType) {
+                        case SENSOR_QUATERNION: needQuaternion = true; break;
+                        case SENSOR_ACCELEROMETER: needAccelerometer = true; break;
+                        case SENSOR_GYROSCOPE: needGyroscope = true; break;
+                        case SENSOR_MAGNETOMETER: needMagnetometer = true; break;
+                        case SENSOR_TOF: needTof = true; break;
+                        case SENSOR_SIDE_TOF: needSideTof = true; break;
+                    }
+                }
+            }
+        } else {
             BytecodeSensorType sensorType = static_cast<BytecodeSensorType>(instr.operand1);
             
             switch (sensorType) {
@@ -920,21 +936,12 @@ void BytecodeVM::activateSensorsForProgram() {
                 case SENSOR_FRONT_PROXIMITY:
                     needTof = true;
                     break;
-            }
-        } else {
-            // Handle other opcodes using the static mapping
-            auto it = opcodeToSensors.find(instr.opcode);
-            if (it != opcodeToSensors.end()) {
-                for (SensorType sensorType : it->second) {
-                    switch (sensorType) {
-                        case SENSOR_QUATERNION: needQuaternion = true; break;
-                        case SENSOR_ACCELEROMETER: needAccelerometer = true; break;
-                        case SENSOR_GYROSCOPE: needGyroscope = true; break;
-                        case SENSOR_MAGNETOMETER: needMagnetometer = true; break;
-                        case SENSOR_TOF: needTof = true; break;
-                        case SENSOR_SIDE_TOF: needSideTof = true; break;
-                    }
-                }
+                case SENSOR_COLOR_RED:
+                case SENSOR_COLOR_BLACK:
+                case SENSOR_COLOR_BLUE:
+                case SENSOR_COLOR_GREEN:
+                case SENSOR_COLOR_WHITE:
+                    needColorSensor = true;
             }
         }
     }
@@ -967,6 +974,10 @@ void BytecodeVM::activateSensorsForProgram() {
     if (needSideTof) {
         timeouts.side_tof_last_request.store(currentTime);
         SerialQueueManager::getInstance().queueMessage("Activated side TOF for program");
+    }
+    if (needColorSensor) {
+        timeouts.color_last_request.store(currentTime);
+        SerialQueueManager::getInstance().queueMessage("Activated colors Sensors for program");
     }
 }
 

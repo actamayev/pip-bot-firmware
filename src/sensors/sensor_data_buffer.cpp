@@ -1,8 +1,10 @@
 #include "sensor_data_buffer.h"
-#include "sensor_data_buffer.h"
 #include "networking/serial_manager.h"
-#include "networking/websocket_manager.h" 
+#include "networking/websocket_manager.h"
 #include "custom_interpreter/bytecode_vm.h"
+
+// Use ColorType from ColorTypes namespace
+using ColorTypes::ColorType;
 
 // IMU update methods (existing)
 void SensorDataBuffer::updateQuaternion(const QuaternionData& quaternion) {
@@ -514,34 +516,34 @@ ColorType SensorDataBuffer::classifyCurrentColor() {
     uint8_t g = currentColorData.greenValue;
     uint8_t b = currentColorData.blueValue;
     
-    if (!currentColorData.isValid) return ColorType::NONE;
+    if (!currentColorData.isValid) return ColorType::COLOR_NONE;
     
     // Red: R dominant and bright enough
-    if (r > 120 && r > (g + 30) && r > (b + 30)) {
-        return ColorType::RED;
+    if (r > 80 && r > (g + 30) && r > (b + 30)) {
+        return ColorType::COLOR_RED;
     }
     
     // Green: G dominant and bright enough  
-    if (g > 120 && g > (r + 30) && g > (b + 30)) {
-        return ColorType::GREEN;
+    if (g > 80 && g > (r + 30) && g > (b + 30)) {
+        return ColorType::COLOR_GREEN;
     }
     
     // Blue: B dominant and bright enough
-    if (b > 120 && b > (r + 30) && b > (g + 30)) {
-        return ColorType::BLUE;
+    if (b > 80 && b > (r + 30) && b > (g + 30)) {
+        return ColorType::COLOR_BLUE;
     }
     
     // White: All components bright
-    if (r > 180 && g > 180 && b > 180) {
-        return ColorType::WHITE;
+    if (r > 150 && g > 150 && b > 150) {
+        return ColorType::COLOR_WHITE;
     }
     
     // Black: All components dark
     if (r < 60 && g < 60 && b < 60) {
-        return ColorType::BLACK;
+        return ColorType::COLOR_BLACK;
     }
     
-    return ColorType::NONE;
+    return ColorType::COLOR_NONE;
 }
 
 void SensorDataBuffer::updateColorHistory(ColorType color) {
@@ -563,29 +565,29 @@ bool SensorDataBuffer::checkColorConsistency(ColorType targetColor) {
 bool SensorDataBuffer::isObjectRed() {
     timeouts.color_last_request.store(millis());
     updateColorHistory(classifyCurrentColor());
-    return checkColorConsistency(ColorType::RED);
+    return checkColorConsistency(ColorType::COLOR_RED);
 }
 
 bool SensorDataBuffer::isObjectGreen() {
     timeouts.color_last_request.store(millis());
     updateColorHistory(classifyCurrentColor());
-    return checkColorConsistency(ColorType::GREEN);
+    return checkColorConsistency(ColorType::COLOR_GREEN);
 }
 
 bool SensorDataBuffer::isObjectBlue() {
     timeouts.color_last_request.store(millis());
     updateColorHistory(classifyCurrentColor());
-    return checkColorConsistency(ColorType::BLUE);
+    return checkColorConsistency(ColorType::COLOR_BLUE);
 }
 
 bool SensorDataBuffer::isObjectWhite() {
     timeouts.color_last_request.store(millis());
     updateColorHistory(classifyCurrentColor());
-    return checkColorConsistency(ColorType::WHITE);
+    return checkColorConsistency(ColorType::COLOR_WHITE);
 }
 
 bool SensorDataBuffer::isObjectBlack() {
     timeouts.color_last_request.store(millis());
     updateColorHistory(classifyCurrentColor());
-    return checkColorConsistency(ColorType::BLACK);
+    return checkColorConsistency(ColorType::COLOR_BLACK);
 }

@@ -119,7 +119,8 @@ class BytecodeVM : public Singleton<BytecodeVM> {
             SENSOR_GYROSCOPE,
             SENSOR_MAGNETOMETER,
             SENSOR_TOF,
-            SENSOR_SIDE_TOF
+            SENSOR_SIDE_TOF,
+            SENSOR_COLOR_SENSOR
         };
 
         void activateSensorsForProgram();

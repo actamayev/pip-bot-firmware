@@ -245,37 +245,78 @@ void DisplayScreen::generateContentToBuffer() {
     //     uint8_t* displayBuffer = display.getBuffer();
     //     memcpy(stagingBuffer, displayBuffer, DISPLAY_BUFFER_SIZE);
     // }
-    if (careerQuestTriggers.isS3P3Active()) {
-        careerQuestTriggers.renderS3P3Animation();
-        // Copy display buffer to staging buffer
-        uint8_t* displayBuffer = display.getBuffer();
-        memcpy(stagingBuffer, displayBuffer, DISPLAY_BUFFER_SIZE);
-    } else if (!customScreenActive) {
-        display.clearDisplay();
-        
-        // Draw company name (smaller)
-        drawCenteredText("Blue Dot Robots", 2, 1.5);
+            display.clearDisplay();
 
-        // Show PipID below circle if WebSocket connected
-        if (
-            WebSocketManager::getInstance().isWsConnected() &&
-            !WebSocketManager::getInstance().isUserConnectedToThisPip()
-        ) {
-            String pipId = PreferencesManager::getInstance().getPipId();
-            drawCenteredText(pipId, 30, 3);
-        } else if (
-            WebSocketManager::getInstance().isWsConnected() &&
-            WebSocketManager::getInstance().isUserConnectedToThisPip()
-        ) {
-            drawCenteredText("Connected!", 30, 2);
+        // Get current color sensor data
+        const ColorData& colorData = SensorDataBuffer::getInstance().getLatestColorData();
+
+        // Title
+        drawCenteredText("RGB Sensor Test", 0, 1);
+
+        if (colorData.isValid) {
+            // RGB values
+            display.setCursor(0, 15);
+            display.printf("R: %3d", colorData.redValue);
+
+            display.setCursor(0, 25);
+            display.printf("G: %3d", colorData.greenValue);
+
+            display.setCursor(0, 35);
+            display.printf("B: %3d", colorData.blueValue);
+
+            // Show detected color
+            ColorTypes::ColorType detectedColor = SensorDataBuffer::getInstance().classifyCurrentColor();
+            display.setCursor(0, 50);
+            display.print("Color: ");
+            switch (detectedColor) {
+                case ColorTypes::COLOR_RED:   display.print("RED"); break;
+                case ColorTypes::COLOR_GREEN: display.print("GREEN"); break;
+                case ColorTypes::COLOR_BLUE:  display.print("BLUE"); break;
+                case ColorTypes::COLOR_WHITE: display.print("WHITE"); break;
+                case ColorTypes::COLOR_BLACK: display.print("BLACK"); break;
+                case ColorTypes::COLOR_NONE:  display.print("NONE"); break;
+            }
         } else {
-            display.fillCircle(display.width()/2, 40, 10, SSD1306_WHITE);
+            display.setCursor(0, 20);
+            display.print("No color data");
         }
-        
+
         // Copy display buffer to staging buffer
         uint8_t* displayBuffer = display.getBuffer();
         memcpy(stagingBuffer, displayBuffer, DISPLAY_BUFFER_SIZE);
-    }
+        return;
+    // if (careerQuestTriggers.isS3P3Active()) {
+    //     careerQuestTriggers.renderS3P3Animation();
+    //     // Copy display buffer to staging buffer
+    //     uint8_t* displayBuffer = display.getBuffer();
+    //     memcpy(stagingBuffer, displayBuffer, DISPLAY_BUFFER_SIZE);
+    // } else if (!customScreenActive) {
+    //     display.clearDisplay();
+        
+    //     // Draw company name (smaller)
+    //     drawCenteredText("Blue Dot Robots", 2, 1.5);
+
+    //     // Show PipID below circle if WebSocket connected
+    //     if (
+    //         WebSocketManager::getInstance().isWsConnected() &&
+    //         !WebSocketManager::getInstance().isUserConnectedToThisPip()
+    //     ) {
+    //         String pipId = PreferencesManager::getInstance().getPipId();
+    //         drawCenteredText(pipId, 30, 3);
+    //     } else if (
+    //         WebSocketManager::getInstance().isWsConnected() &&
+    //         WebSocketManager::getInstance().isUserConnectedToThisPip()
+    //     ) {
+    //         drawCenteredText("Connected!", 30, 2);
+    //     } else {
+    //         display.fillCircle(display.width()/2, 40, 10, SSD1306_WHITE);
+    //     }
+        
+    //     // Copy display buffer to staging buffer
+    //     uint8_t* displayBuffer = display.getBuffer();
+    //     memcpy(stagingBuffer, displayBuffer, DISPLAY_BUFFER_SIZE);
+    // }
+
 }
 
 bool DisplayScreen::hasContentChanged() {

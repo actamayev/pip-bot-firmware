@@ -110,11 +110,11 @@ struct BytecodeInstruction {
 
 namespace ColorTypes {
     enum ColorType {
-        RED,
-        GREEN, 
-        BLUE,
-        WHITE,
-        BLACK,
-        NONE  // No clear color detected
+        COLOR_RED,
+        COLOR_GREEN,
+        COLOR_BLUE,
+        COLOR_WHITE,
+        COLOR_BLACK,
+        COLOR_NONE  // No clear color detected
     };
 }
