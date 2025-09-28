@@ -518,6 +518,11 @@ ColorType SensorDataBuffer::classifyCurrentColor() {
     
     if (!currentColorData.isValid) return ColorType::COLOR_NONE;
     
+    // White: All components bright
+    if (r > 130 && g > 130 && b > 130) {
+        return ColorType::COLOR_WHITE;
+    }
+
     // Red: R dominant and bright enough
     if (r > 80 && r > (g + 30) && r > (b + 30)) {
         return ColorType::COLOR_RED;
@@ -529,13 +534,8 @@ ColorType SensorDataBuffer::classifyCurrentColor() {
     }
     
     // Blue: B dominant and bright enough
-    if (b > 80 && b > (r + 30) && b > (g + 30)) {
+    if (b > 65 && b > (r + 20) && b > (g + 20)) {
         return ColorType::COLOR_BLUE;
-    }
-    
-    // White: All components bright
-    if (r > 150 && g > 150 && b > 150) {
-        return ColorType::COLOR_WHITE;
     }
     
     // Black: All components dark
