@@ -33,6 +33,9 @@ class Buttons: public Singleton<Buttons> {
         // Check if either button is currently pressed
         bool isEitherButtonPressed();
 
+        // Check if specific button is currently pressed
+        bool isRightButtonPressed();
+
     private:
         Button2 leftButton;
         Button2 rightButton;

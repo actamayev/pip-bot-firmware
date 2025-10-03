@@ -8,6 +8,7 @@ enum BytecodeOpCode : uint32_t {
     OP_END = 0x01,      // End sequence
     OP_WAIT = 0x02,    // Delay (s)
     OP_WAIT_FOR_BUTTON = 0x03,
+    CHECK_RIGHT_BUTTON_PRESS = 0x04,
 
     // LED operations
     OP_SET_LED = 0x10,  // Set specific LED
@@ -44,6 +45,7 @@ enum BytecodeOpCode : uint32_t {
     OP_MOTOR_FORWARD_DISTANCE = 0x56,
     OP_MOTOR_BACKWARD_DISTANCE = 0x57,
     PLAY_SOUND = 0x60,
+    PLAY_TONE = 0x61,
 };
 
 // Comparison operators
@@ -78,6 +80,16 @@ enum BytecodeSensorType : uint8_t {
     SENSOR_COLOR_BLUE = 18,
     SENSOR_COLOR_WHITE = 19,
     SENSOR_COLOR_BLACK = 20
+};
+
+enum ToneType : uint8_t {
+    TONE_A = 1,
+    TONE_B = 2,
+    TONE_C = 3,
+    TONE_D = 4,
+    TONE_E = 5,
+    TONE_F = 6,
+    TONE_G = 7
 };
 
 enum BytecodeVarType : uint8_t {

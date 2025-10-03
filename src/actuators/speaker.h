@@ -6,6 +6,7 @@
 #include "actuators/led/rgb_led.h"
 #include "networking/protocol.h"
 #include "networking/serial_queue_manager.h"
+#include "custom_interpreter/bytecode_structs.h"
 #include "AudioFileSourceLittleFS.h"
 #include "AudioFileSourceID3.h"
 #include "AudioGeneratorMP3.h"
@@ -23,6 +24,8 @@ class Speaker : public Singleton<Speaker> {
         void setVolume(float volume); // 0.0 to 4.0
         void stopAllSounds();
         void startEntertainerMelody();
+        void playTone(ToneType tone);
+        void stopTone();
 
     private:
         Speaker() = default;
@@ -117,4 +120,17 @@ class Speaker : public Singleton<Speaker> {
         const uint8_t I2S_DOUT = 13;
         const uint8_t I2S_BCLK = 14;
         const uint8_t I2S_LRC = 21;
+
+        bool isPlayingTone = false;
+        ToneType currentTone = ToneType::TONE_A;
+
+        // RTTTL objects for tone playback (separate from melody)
+        AudioGeneratorRTTTL* toneGenerator = nullptr;
+        AudioFileSourcePROGMEM* toneSource = nullptr;
+
+        void updateContinuousTone();
+        const char* getToneRTTTL(ToneType tone);
+
+        unsigned long lastToneRefreshTime = 0;
+        static const unsigned long TONE_AUTO_STOP_MS = 200; // Stop if not refreshed within 200ms
 };

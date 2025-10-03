@@ -696,13 +696,44 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             // Extract sound ID from operand1
             uint8_t soundId = static_cast<uint8_t>(instr.operand1);
             SoundType soundType = static_cast<SoundType>(soundId);
-            
+
             // Validate sound type is within valid range
-            if (soundId >= static_cast<uint8_t>(SoundType::CHIME) && 
+            if (soundId >= static_cast<uint8_t>(SoundType::CHIME) &&
                 soundId <= static_cast<uint8_t>(SoundType::ROBOT)) {
                 Speaker::getInstance().playFile(soundType);
             } else {
                 SerialQueueManager::getInstance().queueMessage("Invalid sound ID: " + String(soundId));
+            }
+            break;
+        }
+
+        case CHECK_RIGHT_BUTTON_PRESS: {
+            uint16_t regId = instr.operand1;       // Register to store result
+
+            if (regId < MAX_REGISTERS) {
+                bool isPressed = Buttons::getInstance().isRightButtonPressed();
+                SerialQueueManager::getInstance().queueMessage("Is Right button pressed: " + String(isPressed));
+
+                registers[regId].asBool = isPressed;
+                registerTypes[regId] = VAR_BOOL;
+                registerInitialized[regId] = true;
+            }
+            break;
+        }
+
+        case PLAY_TONE: {
+            uint8_t toneValue = static_cast<uint8_t>(instr.operand1);
+            
+            // ADD THESE DEBUG LINES:
+            SerialQueueManager::getInstance().queueMessage("PLAY_TONE opcode hit with value: " + String(toneValue));
+            
+            // toneValue = 0 means stop, 1-7 are valid tones
+            if (toneValue <= 7) {
+                ToneType toneType = static_cast<ToneType>(toneValue);
+                SerialQueueManager::getInstance().queueMessage("Calling Speaker::playTone()");
+                Speaker::getInstance().playTone(toneType);
+            } else {
+                SerialQueueManager::getInstance().queueMessage("Invalid tone value: " + String(toneValue));
             }
             break;
         }

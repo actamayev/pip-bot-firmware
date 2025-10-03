@@ -122,13 +122,14 @@ void Buttons::setRightButtonClickHandler(std::function<void(Button2&)> callback)
             return; // Don't call the original callback in this case
         }
         
-        BytecodeVM& vm = BytecodeVM::getInstance();
+        // TODO 10/3: Figure out the right way to handle this. We did this to be able to check if (is_right_button_pressed) in bytecode_interpreter
+        // BytecodeVM& vm = BytecodeVM::getInstance();
         
-        // Handle pause for running programs
-        if (vm.isPaused == BytecodeVM::RUNNING || vm.isPaused == BytecodeVM::PROGRAM_FINISHED) {
-            vm.pauseProgram();
-            return;
-        }
+        // // Handle pause for running programs
+        // if (vm.isPaused == BytecodeVM::RUNNING || vm.isPaused == BytecodeVM::PROGRAM_FINISHED) {
+        //     vm.pauseProgram();
+        //     return;
+        // }
         
         // Otherwise, proceed with normal click handling - check games first
         if (GameManager::getInstance().isAnyGameActive()) {
@@ -209,4 +210,8 @@ void Buttons::setHoldToWakeMode(bool enabled) {
 
 bool Buttons::isEitherButtonPressed() {
     return leftButton.isPressed() || rightButton.isPressed();
+}
+
+bool Buttons::isRightButtonPressed() {
+    return rightButton.isPressed();
 }
