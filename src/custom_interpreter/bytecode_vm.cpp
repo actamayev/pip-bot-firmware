@@ -721,6 +721,20 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             break;
         }
 
+        case CHECK_RIGHT_BUTTON_PRESS: {
+            uint16_t regId = instr.operand1;       // Register to store result
+
+            if (regId < MAX_REGISTERS) {
+                bool isPressed = Buttons::getInstance().isRightButtonPressed();
+                SerialQueueManager::getInstance().queueMessage("Is Right button pressed: " + String(isPressed));
+
+                registers[regId].asBool = isPressed;
+                registerTypes[regId] = VAR_BOOL;
+                registerInitialized[regId] = true;
+            }
+            break;
+        }
+
         default:
             // Unknown opcode, stop execution
             pc = programSize;
