@@ -707,20 +707,6 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             break;
         }
 
-        case PLAY_TONE: {
-            // Extract tone ID from operand1
-            uint8_t toneId = static_cast<uint8_t>(instr.operand1);
-
-            // Validate tone type is within valid range (1-7 for A-G)
-            if (toneId >= static_cast<uint8_t>(ToneType::TONE_A) &&
-                toneId <= static_cast<uint8_t>(ToneType::TONE_G)) {
-                Speaker::getInstance().playTone(toneId);
-            } else {
-                SerialQueueManager::getInstance().queueMessage("Invalid tone ID: " + String(toneId));
-            }
-            break;
-        }
-
         case CHECK_RIGHT_BUTTON_PRESS: {
             uint16_t regId = instr.operand1;       // Register to store result
 
@@ -731,6 +717,23 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
                 registers[regId].asBool = isPressed;
                 registerTypes[regId] = VAR_BOOL;
                 registerInitialized[regId] = true;
+            }
+            break;
+        }
+
+        case PLAY_TONE: {
+            uint8_t toneValue = static_cast<uint8_t>(instr.operand1);
+            
+            // ADD THESE DEBUG LINES:
+            SerialQueueManager::getInstance().queueMessage("PLAY_TONE opcode hit with value: " + String(toneValue));
+            
+            // toneValue = 0 means stop, 1-7 are valid tones
+            if (toneValue <= 7) {
+                ToneType toneType = static_cast<ToneType>(toneValue);
+                SerialQueueManager::getInstance().queueMessage("Calling Speaker::playTone()");
+                Speaker::getInstance().playTone(toneType);
+            } else {
+                SerialQueueManager::getInstance().queueMessage("Invalid tone value: " + String(toneValue));
             }
             break;
         }
