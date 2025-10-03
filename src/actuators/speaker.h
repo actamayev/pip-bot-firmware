@@ -23,6 +23,7 @@ class Speaker : public Singleton<Speaker> {
         void setVolume(float volume); // 0.0 to 4.0
         void stopAllSounds();
         void startEntertainerMelody();
+        void playTone(uint8_t toneType);
 
     private:
         Speaker() = default;

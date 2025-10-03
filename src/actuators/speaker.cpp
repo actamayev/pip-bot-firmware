@@ -487,3 +487,82 @@ void Speaker::startEntertainerMelody() {
 
     xSemaphoreGive(audioMutex);
 }
+
+void Speaker::playTone(uint8_t toneType) {
+    if (muted || isMelodyPlaying) return;
+
+    // Take mutex for RTTTL creation and start
+    if (!audioMutex || xSemaphoreTake(audioMutex, pdMS_TO_TICKS(200)) != pdTRUE) {
+        SerialQueueManager::getInstance().queueMessage("✗ Failed to acquire audio mutex for tone play");
+        return;
+    }
+
+    // RTTTL strings for individual tones (eighth notes at octave 5, same as entertainer)
+    const uint8_t* rtttlString = nullptr;
+    switch (toneType) {
+        case 1: { // TONE_A
+            static const uint8_t toneA[] = "ToneA:d=8,o=5,b=140:a";
+            rtttlString = toneA;
+            break;
+        }
+        case 2: { // TONE_B
+            static const uint8_t toneB[] = "ToneB:d=8,o=5,b=140:b";
+            rtttlString = toneB;
+            break;
+        }
+        case 3: { // TONE_C
+            static const uint8_t toneC[] = "ToneC:d=8,o=5,b=140:c";
+            rtttlString = toneC;
+            break;
+        }
+        case 4: { // TONE_D
+            static const uint8_t toneD[] = "ToneD:d=8,o=5,b=140:d";
+            rtttlString = toneD;
+            break;
+        }
+        case 5: { // TONE_E
+            static const uint8_t toneE[] = "ToneE:d=8,o=5,b=140:e";
+            rtttlString = toneE;
+            break;
+        }
+        case 6: { // TONE_F
+            static const uint8_t toneF[] = "ToneF:d=8,o=5,b=140:f";
+            rtttlString = toneF;
+            break;
+        }
+        case 7: { // TONE_G
+            static const uint8_t toneG[] = "ToneG:d=8,o=5,b=140:g";
+            rtttlString = toneG;
+            break;
+        }
+        default:
+            SerialQueueManager::getInstance().queueMessage("Invalid tone type: " + String(toneType));
+            xSemaphoreGive(audioMutex);
+            return;
+    }
+
+    if (!rtttlGenerator) {
+        rtttlGenerator = new AudioGeneratorRTTTL();
+    }
+    if (rtttlSource) {
+        delete rtttlSource;
+        rtttlSource = nullptr;
+    }
+
+    // Calculate size for the RTTTL string
+    size_t rtttlSize = strlen((const char*)rtttlString) + 1;
+    rtttlSource = new AudioFileSourcePROGMEM(rtttlString, rtttlSize);
+
+    if (audioOutput && rtttlGenerator->begin(rtttlSource, audioOutput)) {
+        isMelodyPlaying = true;
+        SerialQueueManager::getInstance().queueMessage("✓ Tone playback started");
+    } else {
+        SerialQueueManager::getInstance().queueMessage("✗ Failed to start tone playback");
+        if (rtttlSource) {
+            delete rtttlSource;
+            rtttlSource = nullptr;
+        }
+    }
+
+    xSemaphoreGive(audioMutex);
+}
