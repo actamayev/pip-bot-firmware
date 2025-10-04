@@ -867,6 +867,7 @@ void BytecodeVM::resetStateVariables(bool isFullReset) {
     }
     rgbLed.turn_all_leds_off();
     Speaker::getInstance().stopAllSounds();
+    SensorDataBuffer::getInstance().stopPollingAllSensors();
 }
 
 void BytecodeVM::pauseProgram() {

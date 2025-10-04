@@ -656,4 +656,5 @@ void CareerQuestTriggers::stopAllCareerQuestTriggers() {
     DanceManager::getInstance().stopDance();
     GameManager::getInstance().stopCurrentGame();
     DisplayScreen::getInstance().showStartScreen();
+    SensorDataBuffer::getInstance().stopPollingAllSensors();
 }
