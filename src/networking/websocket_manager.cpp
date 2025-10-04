@@ -215,9 +215,6 @@ void WebSocketManager::sendDinoScore(int score) {
 void WebSocketManager::setIsUserConnectedToThisPip(bool newIsUserConnectedToThisPip) {
     userConnectedToThisPip = newIsUserConnectedToThisPip;
     if (newIsUserConnectedToThisPip) return;
-    ledAnimations.fadeOut();
-    rgbLed.turn_headlights_off();
     motorDriver.resetCommandState(true);
-    Speaker::getInstance().stopAllSounds();
-    DisplayScreen::getInstance().showStartScreen();
+    careerQuestTriggers.stopAllCareerQuestTriggers();
 }
