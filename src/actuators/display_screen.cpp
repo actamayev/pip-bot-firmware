@@ -68,7 +68,7 @@ void DisplayScreen::showStartScreen() {
     display.clearDisplay();
 
     // Draw company name (smaller)
-    drawCenteredText("Lever Labs", 2, 1);
+    drawCenteredText("Lever Labs", 2, 2);
 
     // Draw circle underneath
     display.fillCircle(display.width()/2, 40, 10, SSD1306_WHITE);
@@ -294,7 +294,7 @@ void DisplayScreen::generateContentToBuffer() {
         display.clearDisplay();
         
         // Draw company name (smaller)
-        drawCenteredText("Lever Labs", 2, 1.5);
+        drawCenteredText("Lever Labs", 2, 2);
 
         // Show PipID below circle if WebSocket connected
         if (
