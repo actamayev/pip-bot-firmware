@@ -67,8 +67,8 @@ void WebSocketManager::connectToWebSocket() {
                 this->wsConnected = true;
                 this->hasKilledWiFiProcesses = false; // Reset the flag
                 this->lastPingTime = millis(); // Initialize ping time
-                rgbLed.set_led_blue();
                 ledAnimations.stopAnimation();
+                rgbLed.turn_all_leds_off();
                 this->sendInitialData();
                 break;
             case WebsocketsEvent::ConnectionClosed:

@@ -239,10 +239,6 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             break;
         }
         case DataMessageType::SERIAL_HANDSHAKE: {
-            if (!Buttons::getInstance().isEitherButtonPressed()) {
-                // When waking up from deep sleep mode, and connected to USB, we don't want the flash of blue
-                rgbLed.set_led_blue();
-            }
             SerialManager::getInstance().isConnected = true;
             SerialManager::getInstance().lastActivityTime = millis();
             SerialManager::getInstance().sendPipIdMessage();
