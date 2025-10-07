@@ -36,6 +36,7 @@ class WebSocketManager : public Singleton<WebSocketManager> {
         websockets::WebsocketsClient wsClient;
         void handleBinaryMessage(WebsocketsMessage message);
         void sendInitialData();
+        void addBatteryDataToPayload(JsonObject& payload);
 
         unsigned long lastPollTime = 0;
         const unsigned long POLL_INTERVAL = 40; // Poll every 40ms

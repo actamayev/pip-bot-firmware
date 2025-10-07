@@ -367,13 +367,6 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             Speaker::getInstance().stopAllSounds();
             break;
         }
-        case DataMessageType::REQUEST_BATTERY_MONITOR_DATA: { // This comes from the server when the user reloads the page (user requests battery data for each pip)
-            if (length != 1) {
-                SerialQueueManager::getInstance().queueMessage("Invalid request battery monitor data message length");
-            } else {
-                BatteryMonitor::getInstance().sendBatteryMonitorDataOverWebSocket();
-            }
-        }
         case DataMessageType::UPDATE_DISPLAY: {
             if (length != 1025) { // 1 byte for type + 1024 bytes for buffer
                 SerialQueueManager::getInstance().queueMessage("Invalid display buffer message length");
@@ -540,6 +533,8 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
                     WebSocketManager::getInstance().setIsUserConnectedToThisPip(false);
                 } else {
                     WebSocketManager::getInstance().setIsUserConnectedToThisPip(true);
+                    BatteryMonitor::getInstance().sendBatteryMonitorDataOverWebSocket();
+
                 }
             }
             break;
