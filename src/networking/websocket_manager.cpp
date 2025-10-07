@@ -160,7 +160,6 @@ void WebSocketManager::pollWebSocket() {
         } else {
             SerialQueueManager::getInstance().queueMessage("WebSocket connected successfully");
             wsConnected = true;
-            sendInitialData();
         }
         return;
     }
