@@ -72,7 +72,7 @@ void WebSocketManager::connectToWebSocket() {
                 this->sendInitialData();
                 break;
             case WebsocketsEvent::ConnectionClosed:
-                SerialQueueManager::getInstance().queueMessage("WebSocket disconnected");
+                SerialQueueManager::getInstance().queueMessage("WebSocket disconnected", SerialPriority::CRITICAL);
                 killWiFiProcesses();
                 this->wsConnected = false;
                 break;
@@ -136,7 +136,7 @@ void WebSocketManager::pollWebSocket() {
     
     if (WiFi.status() != WL_CONNECTED) {
         if (wsConnected) {
-            SerialQueueManager::getInstance().queueMessage("WiFi lost during WebSocket session");
+            SerialQueueManager::getInstance().queueMessage("WiFi lost during WebSocket session", SerialPriority::CRITICAL);
             wsConnected = false;
             killWiFiProcesses();
         }
@@ -144,7 +144,7 @@ void WebSocketManager::pollWebSocket() {
     }
 
     if (wsConnected && (currentTime - lastPingTime >= WS_TIMEOUT)) {
-        SerialQueueManager::getInstance().queueMessage("WebSocket ping timeout - connection lost");
+        SerialQueueManager::getInstance().queueMessage("WebSocket ping timeout - connection lost", SerialPriority::CRITICAL);
         wsConnected = false;
         killWiFiProcesses();
     }

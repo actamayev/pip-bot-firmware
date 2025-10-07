@@ -542,6 +542,7 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
                     WebSocketManager::getInstance().setIsUserConnectedToThisPip(true);
                 }
             }
+            break;
         }
         case DataMessageType::FORGET_NETWORK: {
             if (length < 2) {
@@ -579,6 +580,7 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             break;
         }
         default:
+            SerialQueueManager::getInstance().queueMessage("Received unknown message type: " + String(static_cast<int>(messageType)));
             break;
     }
 }
