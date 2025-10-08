@@ -5,10 +5,9 @@ constexpr const Speaker::MelodyNote Speaker::entertainerLedSequence[];
 
 Speaker::~Speaker() {
     cleanup();
-    if (audioMutex) {
-        vSemaphoreDelete(audioMutex);
-        audioMutex = nullptr;
-    }
+    if (!audioMutex) return;
+    vSemaphoreDelete(audioMutex);
+    audioMutex = nullptr;
 }
 
 bool Speaker::initialize() {
