@@ -201,42 +201,6 @@ uint8_t TurningManager::calculatePIDSpeed() {
     return constrain(targetPWM, currentMinPWM, currentMaxPWM);
 }
 
-void TurningManager::detectStiction() {
-    unsigned long currentTime = millis();
-    bool isStuck = (abs(currentVelocity) < STICTION_VELOCITY_THRESHOLD);
-    
-    if (isStuck) {
-        if (stictionDetectionStartTime == 0) {
-            stictionDetectionStartTime = currentTime;
-        } else if (currentTime - stictionDetectionStartTime > STICTION_DETECTION_TIME) {
-            if (!stictionDetected) {
-                stictionDetected = true;
-                stictionBoostLevel = 1;
-                SerialQueueManager::getInstance().queueMessage("Stiction detected - applying boost");
-            } else {
-                // Gradually increase boost level for persistent stiction
-                if (currentTime - stictionDetectionStartTime > STICTION_DETECTION_TIME * (stictionBoostLevel + 1)) {
-                    stictionBoostLevel = min(5, stictionBoostLevel + 1);
-                }
-            }
-        }
-    } else {
-        // Moving well, reset detection timer but keep boost for a bit
-        stictionDetectionStartTime = 0;
-        if (abs(currentVelocity) > STICTION_VELOCITY_THRESHOLD * 2) {
-            // Only clear stiction flag if we're moving well
-            stictionDetected = false;
-            stictionBoostLevel = 0;
-        }
-    }
-}
-
-void TurningManager::resetStictionDetection() {
-    stictionDetected = false;
-    stictionBoostLevel = 0;
-    stictionDetectionStartTime = 0;
-}
-
 void TurningManager::adaptPWMLimits() {
     unsigned long currentTime = millis();
     
@@ -272,7 +236,7 @@ void TurningManager::adaptPWMLimits() {
         adapted = true;
     }
     // NEW: Special case for final approach stiction
-    else if (inFinalApproach && stictionDetected && absVelocity < STICTION_VELOCITY_THRESHOLD) {
+    else if (inFinalApproach && absVelocity < STICTION_VELOCITY_THRESHOLD) {
         // Force increase both limits when stiction is detected
         currentMinPWM = min(currentMaxPWM - 5, currentMinPWM + 6);
         currentMaxPWM = min(255, currentMaxPWM + 4);

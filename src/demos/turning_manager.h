@@ -101,14 +101,5 @@ class TurningManager : public Singleton<TurningManager> {
 
         // Debug info
         mutable DebugInfo _debugInfo;
-
-        bool stictionDetected = false;
-        uint8_t stictionBoostLevel = 0;
-        unsigned long stictionDetectionStartTime = 0;
-        static constexpr unsigned long STICTION_DETECTION_TIME = 200; // ms
         static constexpr float STICTION_VELOCITY_THRESHOLD = 40.0f; // degrees/sec
-
-        // Add these methods to private section
-        void detectStiction();
-        void resetStictionDetection();
 };
