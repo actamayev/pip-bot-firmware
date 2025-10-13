@@ -37,7 +37,7 @@ class MotorDriver {
         int16_t _actualLeftPwm = 0;
         int16_t _actualRightPwm = 0;
         bool _shouldRampUp = true;
-        static constexpr int16_t SPEED_RAMP_STEP = 50;
+        static constexpr int16_t SPEED_RAMP_STEP = 600;
 
         void left_motor_forward(uint16_t speed = MAX_MOTOR_PWM);
         void left_motor_backward(uint16_t speed = MAX_MOTOR_PWM);

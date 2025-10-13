@@ -136,5 +136,5 @@ class BytecodeVM : public Singleton<BytecodeVM> {
 
         // Deceleration constants (add near your other constants)
         static constexpr float DECELERATION_RATE = 2000.0f;  // PWM²/inch - tune this value
-        static constexpr int16_t MIN_DECELERATION_PWM = 40;  // Minimum PWM during deceleration
+        static constexpr int16_t MIN_DECELERATION_PWM = 600;  // Minimum PWM during deceleration
 };

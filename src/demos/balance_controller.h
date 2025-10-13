@@ -58,5 +58,5 @@ class BalanceController : public Singleton<BalanceController> {
         float DEADBAND_ANGLE = 1.0f;
         float MAX_STABLE_ROTATION = 0.1f; // degrees/second
 
-        float MIN_EFFECTIVE_PWM = 44;  // TODO 7/23/25: Can be changed with new 6V motors
+        float MIN_EFFECTIVE_PWM = 330;
 };
