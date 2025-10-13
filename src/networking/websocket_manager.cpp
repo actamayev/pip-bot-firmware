@@ -194,6 +194,7 @@ void WebSocketManager::killWiFiProcesses() {
         rgbLed.set_led_red();
         ledAnimations.startBreathing();
     }
+    Speaker::getInstance().stopAllSounds();
     hasKilledWiFiProcesses = true;
     userConnectedToThisPip = false;
 }
