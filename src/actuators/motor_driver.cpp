@@ -27,11 +27,13 @@ void MotorDriver::stop_both_motors() {
 void MotorDriver::left_motor_forward(uint16_t speed) {
     ledcWrite(LEFT_MOTOR_CH_2, 0); // Explicitly clear forward pin
     ledcWrite(LEFT_MOTOR_CH_1, speed);
+    _leftBrakeActive = false;
 }
 
 void MotorDriver::left_motor_backward(uint16_t speed) {
     ledcWrite(LEFT_MOTOR_CH_1, 0); // Explicitly clear backward pin
     ledcWrite(LEFT_MOTOR_CH_2, speed);
+    _leftBrakeActive = false;
 }
 
 void MotorDriver::left_motor_stop() {
@@ -42,11 +44,13 @@ void MotorDriver::left_motor_stop() {
 void MotorDriver::right_motor_forward(uint16_t speed) {
     ledcWrite(RIGHT_MOTOR_CH_2, 0); // Explicitly clear forward pin
     ledcWrite(RIGHT_MOTOR_CH_1, speed);
+    _rightBrakeActive = false;
 }
 
 void MotorDriver::right_motor_backward(uint16_t speed) {
     ledcWrite(RIGHT_MOTOR_CH_1, 0); // Explicitly clear backward pin
     ledcWrite(RIGHT_MOTOR_CH_2, speed);
+    _rightBrakeActive = false;
 }
 
 void MotorDriver::right_motor_stop() {
@@ -58,11 +62,15 @@ void MotorDriver::right_motor_stop() {
 void MotorDriver::brake_left_motor() {
     ledcWrite(LEFT_MOTOR_CH_1, MAX_MOTOR_PWM);
     ledcWrite(LEFT_MOTOR_CH_2, MAX_MOTOR_PWM);
+    _leftBrakeActive = true;
+    _leftBrakeStartTime = millis();
 }
 
 void MotorDriver::brake_right_motor() {
     ledcWrite(RIGHT_MOTOR_CH_1, MAX_MOTOR_PWM);
     ledcWrite(RIGHT_MOTOR_CH_2, MAX_MOTOR_PWM);
+    _rightBrakeActive = true;
+    _rightBrakeStartTime = millis();
 }
 
 void MotorDriver::brake_both_motors() {
@@ -97,6 +105,19 @@ void MotorDriver::set_motor_speeds(int16_t leftTarget, int16_t rightTarget, bool
 }
 
 void MotorDriver::update() {
+    // Check brake timers first
+    unsigned long currentTime = millis();
+
+    if (_leftBrakeActive && (currentTime - _leftBrakeStartTime >= BRAKE_RELEASE_TIME_MS)) {
+        left_motor_stop();
+        _leftBrakeActive = false;
+    }
+
+    if (_rightBrakeActive && (currentTime - _rightBrakeStartTime >= BRAKE_RELEASE_TIME_MS)) {
+        right_motor_stop();
+        _rightBrakeActive = false;
+    }
+
     bool speedsChanged = false;
 
     if (_shouldRampUp) {

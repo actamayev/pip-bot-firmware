@@ -74,6 +74,13 @@ class MotorDriver {
         int16_t nextLeftPwm = 0;
         int16_t nextRightPwm = 0;
 
+        // Brake timer state variables
+        bool _leftBrakeActive = false;
+        bool _rightBrakeActive = false;
+        unsigned long _leftBrakeStartTime = 0;
+        unsigned long _rightBrakeStartTime = 0;
+        static constexpr unsigned long BRAKE_RELEASE_TIME_MS = 1000; // 1 second brake hold time
+
         // Constants
         static constexpr uint8_t MIN_ENCODER_PULSES = 10;
         static constexpr uint16_t MOTOR_PWM_FREQ = 500;
