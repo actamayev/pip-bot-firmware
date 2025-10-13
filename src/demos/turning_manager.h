@@ -24,7 +24,7 @@ class TurningManager : public Singleton<TurningManager> {
         bool startTurn(float degrees);
         void update();
         void completeNavigation();
-        const bool isActive() { return currentState == TurningState::TURNING; };
+        const bool isActive() { return currentState != TurningState::IDLE; };
 
         // Debug info structure
         struct DebugInfo {

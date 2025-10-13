@@ -11,22 +11,22 @@ void MessageProcessor::handleMotorControl(const uint8_t* data) {
 void MessageProcessor::handleBalanceCommand(BalanceStatus status) {
     if (status == BalanceStatus::BALANCED) {
         DemoManager::getInstance().startDemo(Demo::BALANCE_CONTROLLER);
-    } else {
-        // If balance controller is currently running, stop it
-        if (DemoManager::getInstance().getCurrentDemo() == Demo::BALANCE_CONTROLLER) {
-            DemoManager::getInstance().stopCurrentDemo();
-        }
+        return;
+    } 
+    // If balance controller is currently running, stop it
+    if (DemoManager::getInstance().getCurrentDemo() == Demo::BALANCE_CONTROLLER) {
+        DemoManager::getInstance().stopCurrentDemo();
     }
 }
 
 void MessageProcessor::handleObstacleAvoidanceCommand(ObstacleAvoidanceStatus status) {
     if (status == ObstacleAvoidanceStatus::AVOID) {
         DemoManager::getInstance().startDemo(Demo::OBSTACLE_AVOIDER);
-    } else {
-        // If obstacle avoider is currently running, stop it
-        if (DemoManager::getInstance().getCurrentDemo() == Demo::OBSTACLE_AVOIDER) {
-            DemoManager::getInstance().stopCurrentDemo();
-        }
+        return;
+    }
+    // If obstacle avoider is currently running, stop it
+    if (DemoManager::getInstance().getCurrentDemo() == Demo::OBSTACLE_AVOIDER) {
+        DemoManager::getInstance().stopCurrentDemo();
     }
 }
 
