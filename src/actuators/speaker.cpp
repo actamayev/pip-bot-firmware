@@ -719,13 +719,13 @@ const char* Speaker::getToneRTTTL(ToneType tone) {
     // Format: name:settings:notes
     // d=1 means whole note (slowest), o=5 is middle octave, b=60 is slow tempo
     switch (tone) {
-        case ToneType::TONE_A: return "ToneA:d=1,o=5,b=15:a";
-        case ToneType::TONE_B: return "ToneB:d=1,o=5,b=15:b";
-        case ToneType::TONE_C: return "ToneC:d=1,o=5,b=15:c";
-        case ToneType::TONE_D: return "ToneD:d=1,o=5,b=15:d";
-        case ToneType::TONE_E: return "ToneE:d=1,o=5,b=15:e";
-        case ToneType::TONE_F: return "ToneF:d=1,o=5,b=15:f";
-        case ToneType::TONE_G: return "ToneG:d=1,o=5,b=15:g";
+        case ToneType::TONE_A: return "ToneA:d=1,o=5,b=10:a";
+        case ToneType::TONE_B: return "ToneB:d=1,o=5,b=10:b";
+        case ToneType::TONE_C: return "ToneC:d=1,o=5,b=10:c";
+        case ToneType::TONE_D: return "ToneD:d=1,o=5,b=10:d";
+        case ToneType::TONE_E: return "ToneE:d=1,o=5,b=10:e";
+        case ToneType::TONE_F: return "ToneF:d=1,o=5,b=10:f";
+        case ToneType::TONE_G: return "ToneG:d=1,o=5,b=10:g";
         default: return nullptr;
     }
 }
