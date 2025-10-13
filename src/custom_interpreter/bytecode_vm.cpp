@@ -530,7 +530,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
         case OP_MOTOR_FORWARD: {
             // Convert percentage (0-100) to motor speed (0-MAX_MOTOR_PWM)
             uint8_t throttlePercent = constrain(static_cast<uint8_t>(instr.operand1), 0, 100);
-            uint8_t motorSpeed = map(throttlePercent, 0, 100, 0, MAX_MOTOR_PWM);
+            uint16_t motorSpeed = map(throttlePercent, 0, 100, 0, MAX_MOTOR_PWM);
             
             // Set both motors to forward at calculated speed
             motorDriver.updateMotorPwm(motorSpeed, motorSpeed);
@@ -540,7 +540,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
         case OP_MOTOR_BACKWARD: {
             // Convert percentage (0-100) to motor speed (0-MAX_MOTOR_PWM)
             uint8_t throttlePercent = constrain(static_cast<uint8_t>(instr.operand1), 0, 100);
-            uint8_t motorSpeed = map(throttlePercent, 0, 100, 0, MAX_MOTOR_PWM);
+            uint16_t motorSpeed = map(throttlePercent, 0, 100, 0, MAX_MOTOR_PWM);
             
             // Set both motors to backward (negative speed)
             motorDriver.updateMotorPwm(-motorSpeed, -motorSpeed);
@@ -581,7 +581,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             }
             
             // Convert percentage to motor speed
-            uint8_t motorSpeed = map(throttlePercent, 0, 100, 0, MAX_MOTOR_PWM);
+            uint16_t motorSpeed = map(throttlePercent, 0, 100, 0, MAX_MOTOR_PWM);
             
             // Set motors to forward motion
             motorDriver.updateMotorPwm(motorSpeed, motorSpeed);
@@ -611,7 +611,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             }
             
             // Convert percentage to motor speed
-            uint8_t motorSpeed = map(throttlePercent, 0, 100, 0, MAX_MOTOR_PWM);
+            uint16_t motorSpeed = map(throttlePercent, 0, 100, 0, MAX_MOTOR_PWM);
             
             // Set motors to backward motion
             motorDriver.updateMotorPwm(-motorSpeed, -motorSpeed);
@@ -638,7 +638,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             }
             
             // Convert percentage to motor speed
-            uint8_t motorSpeed = map(throttlePercent, 0, 100, 0, MAX_MOTOR_PWM);
+            uint16_t motorSpeed = map(throttlePercent, 0, 100, 0, MAX_MOTOR_PWM);
             
             // Reset distance tracking - store current distance as starting point
             startingDistanceIn = SensorDataBuffer::getInstance().getLatestDistanceTraveledIn();
@@ -669,7 +669,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             }
             
             // Convert percentage to motor speed
-            uint8_t motorSpeed = map(throttlePercent, 0, 100, 0, MAX_MOTOR_PWM);
+            uint16_t motorSpeed = map(throttlePercent, 0, 100, 0, MAX_MOTOR_PWM);
             
             // Reset distance tracking - store current distance as starting point
             startingDistanceIn = SensorDataBuffer::getInstance().getLatestDistanceTraveledIn();

@@ -37,7 +37,7 @@ class BytecodeVM : public Singleton<BytecodeVM> {
         BytecodeVM() = default;
         ~BytecodeVM();
         // Constants:
-        static const uint16_t MAX_REGISTERS = 512; // Changed from uint8_t to uint16_t
+        static const uint16_t MAX_REGISTERS = 1024; // Changed from uint8_t to uint16_t
                                         // to handle values > 255
 
         static const uint8_t INSTRUCTION_SIZE = 20;
