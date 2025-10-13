@@ -39,6 +39,13 @@ void Buttons::setLeftButtonClickHandler(std::function<void(Button2&)> callback) 
     leftButton.setPressedHandler([this, originalCallback](Button2& btn) {
         // Reset timeout on any button activity
         TimeoutManager::getInstance().resetActivity();
+
+        BytecodeVM& vm = BytecodeVM::getInstance();
+        // Handle resume for paused programs (only if we didn't just pause)
+        if (vm.isPaused == BytecodeVM::RUNNING || vm.isPaused == BytecodeVM::PROGRAM_FINISHED) {
+            vm.pauseProgram();
+            return;
+        }
     });
 
     // Move program start logic to release handler
