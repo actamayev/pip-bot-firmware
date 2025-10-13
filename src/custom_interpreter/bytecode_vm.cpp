@@ -712,7 +712,6 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
 
             if (regId < MAX_REGISTERS) {
                 bool isPressed = Buttons::getInstance().isRightButtonPressed();
-                SerialQueueManager::getInstance().queueMessage("Is Right button pressed: " + String(isPressed));
 
                 registers[regId].asBool = isPressed;
                 registerTypes[regId] = VAR_BOOL;
