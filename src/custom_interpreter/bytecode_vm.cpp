@@ -825,7 +825,6 @@ void BytecodeVM::resetStateVariables(bool isFullReset) {
     
     // Reset TurningManager state
     TurningManager::getInstance().completeNavigation();
-    StraightLineDrive::getInstance().disable();
     timedMotorMovementInProgress = false;
     distanceMovementInProgress = false;
     initialDistancePwm = 0;
