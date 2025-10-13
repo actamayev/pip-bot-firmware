@@ -344,10 +344,9 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             } else {
                 HornSoundStatus status = static_cast<HornSoundStatus>(data[1]);
                 if (status == HornSoundStatus::ON) {
-                    // TODO 10/13/25: Fix this: implement horn
-                    rgbLed.turn_headlights_on();
+                    Speaker::getInstance().startHorn();
                 } else {
-                    rgbLed.turn_headlights_off();
+                    Speaker::getInstance().stopHorn();
                 }
             }
             break;

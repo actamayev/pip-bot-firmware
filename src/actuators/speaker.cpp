@@ -648,14 +648,14 @@ void Speaker::updateContinuousTone() {
     if (!audioMutex || xSemaphoreTake(audioMutex, pdMS_TO_TICKS(100)) != pdTRUE) {
         return;
     }
-    
+
     if (!isPlayingTone || !toneGenerator) {
         xSemaphoreGive(audioMutex);
         return;
     }
-    
-    // ADD THIS: Auto-stop if tone hasn't been refreshed recently
-    if (millis() - lastToneRefreshTime > TONE_AUTO_STOP_MS) {
+
+    // Auto-stop if tone hasn't been refreshed recently (unless in horn mode)
+    if (!isHornMode && millis() - lastToneRefreshTime > TONE_AUTO_STOP_MS) {
         SerialQueueManager::getInstance().queueMessage("Tone auto-stopped (not refreshed)");
         if (toneGenerator->isRunning()) {
             toneGenerator->stop();
@@ -697,4 +697,16 @@ const char* Speaker::getToneRTTTL(ToneType tone) {
         case ToneType::TONE_G: return "ToneG:d=1,o=5,b=240:g";
         default: return nullptr;
     }
+}
+
+void Speaker::startHorn() {
+    SerialQueueManager::getInstance().queueMessage("Starting horn (continuous F tone)");
+    isHornMode = true;
+    playTone(ToneType::TONE_F);
+}
+
+void Speaker::stopHorn() {
+    SerialQueueManager::getInstance().queueMessage("Stopping horn");
+    isHornMode = false;
+    stopTone();
 }
