@@ -2,6 +2,7 @@
 #include <Arduino.h>
 #include "sensors/sensor_data_buffer.h"
 #include "actuators/motor_driver.h"
+#include "networking/serial_queue_manager.h"
 
 enum class TurningDirection {
     NONE,

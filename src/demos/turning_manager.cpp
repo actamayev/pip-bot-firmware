@@ -1,5 +1,4 @@
 #include "turning_manager.h"
-#include "networking/serial_queue_manager.h"
 
 bool TurningManager::startTurn(float degrees) {
     if (currentState != TurningState::IDLE) {
@@ -107,6 +106,27 @@ void TurningManager::update() {
     _debugInfo.inOvershootBraking = (currentState == TurningState::OVERSHOOT_BRAKING);
 }
 
+void TurningManager::updateVelocity() {
+    float currentHeading = -SensorDataBuffer::getInstance().getLatestYaw();
+    unsigned long currentTime = millis();
+
+    if (lastTime != 0) {
+        float deltaTime = (currentTime - lastTime) / 1000.0f;
+        if (deltaTime > 0) {
+            float deltaHeading = currentHeading - lastHeading;
+
+            // Handle wrap-around
+            while (deltaHeading > 180.0f) deltaHeading -= 360.0f;
+            while (deltaHeading < -180.0f) deltaHeading += 360.0f;
+
+            currentVelocity = deltaHeading / deltaTime;
+        }
+    }
+
+    lastHeading = currentHeading;
+    lastTime = currentTime;
+}
+
 void TurningManager::updateCumulativeRotation() {
     float currentHeading = -SensorDataBuffer::getInstance().getLatestYaw();
     
@@ -148,27 +168,6 @@ float TurningManager::calculateTargetVelocity(float remainingAngle) const {
 
 float TurningManager::calculateVelocityError() const {
     return targetVelocity - currentVelocity;
-}
-
-void TurningManager::updateVelocity() {
-    float currentHeading = -SensorDataBuffer::getInstance().getLatestYaw();
-    unsigned long currentTime = millis();
-
-    if (lastTime != 0) {
-        float deltaTime = (currentTime - lastTime) / 1000.0f;
-        if (deltaTime > 0) {
-            float deltaHeading = currentHeading - lastHeading;
-
-            // Handle wrap-around
-            while (deltaHeading > 180.0f) deltaHeading -= 360.0f;
-            while (deltaHeading < -180.0f) deltaHeading += 360.0f;
-
-            currentVelocity = deltaHeading / deltaTime;
-        }
-    }
-
-    lastHeading = currentHeading;
-    lastTime = currentTime;
 }
 
 uint16_t TurningManager::calculatePWM(float velocityError) {
@@ -239,6 +238,35 @@ bool TurningManager::checkCompletion() {
     return false;
 }
 
+void TurningManager::applyMotorControl(uint16_t pwm, float velocityError) {
+    // Determine required direction from TARGET velocity sign (not error sign!)
+    TurningDirection requiredDirection = (targetVelocity > 0) ? TurningDirection::CLOCKWISE : TurningDirection::COUNTER_CLOCKWISE;
+
+    // If target velocity is essentially zero, stop
+    if (abs(targetVelocity) < 1.0f) {
+        motorDriver.brake_both_motors();
+        return;
+    }
+
+    // Allow direction changes when needed (overshoot correction)
+    if (requiredDirection != currentDirection && currentDirection != TurningDirection::NONE) {
+        SerialQueueManager::getInstance().queueMessage("Direction change (overshoot correction)");
+
+        // Stop briefly before changing direction
+        motorDriver.stop_both_motors();
+        vTaskDelay(pdMS_TO_TICKS(50));
+    }
+
+    // Apply motor commands
+    currentDirection = requiredDirection;
+
+    if (requiredDirection == TurningDirection::CLOCKWISE) {
+        motorDriver.set_motor_speeds_immediate(pwm, -pwm);
+    } else {
+        motorDriver.set_motor_speeds_immediate(-pwm, pwm);
+    }
+}
+
 bool TurningManager::checkOvershoot(float remainingAngle) {
     // Backup: reactive check for actual overshoot
     bool movingAwayFromTarget = (remainingAngle > 0 && currentVelocity < 0) ||
@@ -262,38 +290,6 @@ bool TurningManager::checkOvershoot(float remainingAngle) {
     }
 
     return false;
-}
-
-void TurningManager::applyMotorControl(uint16_t pwm, float velocityError) {
-    // Determine required direction from TARGET velocity sign (not error sign!)
-    TurningDirection requiredDirection = (targetVelocity > 0) ? TurningDirection::CLOCKWISE : TurningDirection::COUNTER_CLOCKWISE;
-
-    // If target velocity is essentially zero, stop
-    if (abs(targetVelocity) < 1.0f) {
-        motorDriver.brake_both_motors();
-        return;
-    }
-
-    // Allow direction changes when needed (overshoot correction)
-    if (requiredDirection != currentDirection && currentDirection != TurningDirection::NONE) {
-        SerialQueueManager::getInstance().queueMessage("Direction change (overshoot correction)");
-
-        // Stop briefly before changing direction
-        motorDriver.stop_both_motors();
-        vTaskDelay(pdMS_TO_TICKS(50));
-    }
-
-    // Apply motor commands
-    currentDirection = requiredDirection;
-
-    // Convert PWM to int16_t for motor driver (which expects signed values)
-    int16_t motorPWM = (int16_t)constrain(pwm, 0, MAX_MOTOR_PWM);
-
-    if (requiredDirection == TurningDirection::CLOCKWISE) {
-        motorDriver.set_motor_speeds_immediate(motorPWM, -motorPWM);
-    } else {
-        motorDriver.set_motor_speeds_immediate(-motorPWM, motorPWM);
-    }
 }
 
 void TurningManager::resetTurnState() {
