@@ -2,11 +2,17 @@
 #include "networking/serial_queue_manager.h"
 
 bool TurningManager::startTurn(float degrees) {
-    if (currentState != TurningState::IDLE) return false; // Turn already in progress
+    if (currentState != TurningState::IDLE) {
+        SerialQueueManager::getInstance().queueMessage("Turn already in progress!");
+        return false; // Turn already in progress
+    }
     
-    if (abs(degrees) < 0.1f) return false; // Invalid turn angle
+    if (abs(degrees) < 0.1f) {
+        SerialQueueManager::getInstance().queueMessage("Invalid turn angle!");
+        return false; // Invalid turn angle
+    }
     
-    TARGET_TURN_ANGLE = degrees;
+    targetTurnAngle = degrees;
     initializeTurn();
     return true;
 }
@@ -18,6 +24,7 @@ void TurningManager::initializeTurn() {
     currentVelocity = 0.0f;
     targetVelocity = 0.0f;
     lastHeading = 0.0f;
+    lastHeadingForRotation = 0.0f;
     lastTime = 0;
     completionStartTime = 0;
     completionConfirmed = false;
@@ -32,7 +39,7 @@ void TurningManager::initializeTurn() {
     currentState = TurningState::TURNING;
 
     char logMessage[64];
-    snprintf(logMessage, sizeof(logMessage), "Starting turn: %.1f degrees", TARGET_TURN_ANGLE);
+    snprintf(logMessage, sizeof(logMessage), "Starting turn: %.1f degrees", targetTurnAngle);
     SerialQueueManager::getInstance().queueMessage(logMessage);
 }
 
@@ -88,7 +95,7 @@ void TurningManager::update() {
     }
 
     // Update debug info
-    _debugInfo.targetAngle = TARGET_TURN_ANGLE;
+    _debugInfo.targetAngle = targetTurnAngle;
     _debugInfo.cumulativeRotation = cumulativeRotation;
     _debugInfo.remainingAngle = remainingAngle;
     _debugInfo.currentVelocity = currentVelocity;
@@ -120,7 +127,7 @@ void TurningManager::updateCumulativeRotation() {
 }
 
 float TurningManager::calculateRemainingAngle() const {
-    return TARGET_TURN_ANGLE - cumulativeRotation;
+    return targetTurnAngle - cumulativeRotation;
 }
 
 float TurningManager::calculateTargetVelocity(float remainingAngle) const {
@@ -293,17 +300,13 @@ void TurningManager::resetTurnState() {
     motorDriver.brake_both_motors();
     currentState = TurningState::IDLE;
     currentDirection = TurningDirection::NONE;
-    targetDirection = TurningDirection::NONE;
-    TARGET_TURN_ANGLE = 0.0f;
-
-    // Reset rotation tracking
+    targetTurnAngle = 0.0f;
     cumulativeRotation = 0.0f;
     rotationTrackingInitialized = false;
-
-    // Reset control variables
     currentVelocity = 0.0f;
     targetVelocity = 0.0f;
     lastHeading = 0.0f;
+    lastHeadingForRotation = 0.0f;
     lastTime = 0;
     completionStartTime = 0;
     completionConfirmed = false;

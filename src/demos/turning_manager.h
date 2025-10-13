@@ -60,9 +60,8 @@ class TurningManager : public Singleton<TurningManager> {
         // State variables
         TurningState currentState = TurningState::IDLE;
         TurningDirection currentDirection = TurningDirection::NONE;
-        TurningDirection targetDirection = TurningDirection::NONE;
         
-        float TARGET_TURN_ANGLE = 0;
+        float targetTurnAngle = 0;
         // Turn parameters
         float cumulativeRotation = 0.0f;
         float lastHeadingForRotation = 0.0f;
