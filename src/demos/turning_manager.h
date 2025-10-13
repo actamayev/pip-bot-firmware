@@ -11,7 +11,8 @@ enum class TurningDirection {
 
 enum class TurningState {
     IDLE,
-    TURNING
+    TURNING,
+    OVERSHOOT_BRAKING
 };
 
 class TurningManager : public Singleton<TurningManager> {
@@ -28,12 +29,14 @@ class TurningManager : public Singleton<TurningManager> {
         struct DebugInfo {
             float targetAngle = 0.0f;
             float cumulativeRotation = 0.0f;
-            float currentError = 0.0f;
+            float remainingAngle = 0.0f;
             float currentVelocity = 0.0f;
-            uint8_t currentMinPWM = 0;
-            uint8_t currentMaxPWM = 0;
-            uint8_t directionChanges = 0;
-            bool inSafetyPause = false;
+            float targetVelocity = 0.0f;
+            float velocityError = 0.0f;
+            uint16_t currentPWM = 0;
+            float kpContribution = 0.0f;
+            float kiContribution = 0.0f;
+            bool inOvershootBraking = false;
         };
         const DebugInfo& getDebugInfo() const { return _debugInfo; }
 
@@ -44,18 +47,15 @@ class TurningManager : public Singleton<TurningManager> {
         // Core turning logic
         void initializeTurn();
         void updateCumulativeRotation();
-        void getRotationError();
         void updateVelocity();
-        uint8_t calculatePIDSpeed();
-        void adaptPWMLimits();
-        
-        // Safety system
-        bool checkSafetyTriggers();
-        void triggerSafetyPause();
-        
-        // Motor control helpers
-        void startTurnMotors();
-        void setTurnSpeed(uint8_t speed);
+        float calculateRemainingAngle() const;
+        float calculateTargetVelocity(float remainingAngle) const;
+        float calculateVelocityError() const;
+        uint16_t calculatePWM(float velocityError);
+        bool checkCompletion();
+        bool checkOvershoot(float remainingAngle);
+        void applyMotorControl(uint16_t pwm, float velocityError);
+        void resetTurnState();
         
         // State variables
         TurningState currentState = TurningState::IDLE;
@@ -68,38 +68,36 @@ class TurningManager : public Singleton<TurningManager> {
         float lastHeadingForRotation = 0.0f;
         bool rotationTrackingInitialized = false;
         
-        // Control parameters
-        float currentError = 0.0f;
+        // Velocity tracking
         float currentVelocity = 0.0f;
+        float targetVelocity = 0.0f;
         float lastHeading = 0.0f;
         unsigned long lastTime = 0;
+        unsigned long lastIntegralTime = 0;
+
+        // Control
+        uint16_t currentPWM = 0;
+        float integralTerm = 0.0f;
+        float kpContribution = 0.0f;
+        float kiContribution = 0.0f;
+
+        // Completion detection
+        unsigned long completionStartTime = 0;
+        bool completionConfirmed = false;
+
+        // Overshoot braking
+        unsigned long overshootBrakeStartTime = 0;
         
-        // Adaptive PWM limits
-        uint8_t currentMaxPWM = 90;
-        uint8_t currentMinPWM = 40;
-        float targetMaxVelocity = 400.0f;
-        float targetMinVelocity = 40.0f;
-        unsigned long lastAdaptationTime = 0;
-        
-        // Completion tracking
-        unsigned long turnCompletionStartTime = 0;
-        bool turnCompletionConfirmed = false;
-        
-        // Safety system
-        uint8_t turnDirectionChanges = 0;
-        unsigned long safetyPauseStartTime = 0;
-        bool inSafetyPause = false;
-        uint8_t safetyDefaultMinPWM = 25;
-        uint8_t safetyDefaultMaxPWM = 45;
-        
-        // Constants
-        static constexpr float DEAD_ZONE = 1.0f;
-        static constexpr unsigned long COMPLETION_CONFIRMATION_TIME = 250; // ms
-        static constexpr unsigned long SAFETY_PAUSE_DURATION = 50; // ms
-        static constexpr uint8_t MAX_DIRECTION_CHANGES = 3;
-        static constexpr unsigned long ADAPTATION_RATE_LIMIT = 20; // ms
+        // Constants - imported from new_turning
+        static constexpr float CRUISE_VELOCITY = 45.0f;      // degrees/second
+        static constexpr float MIN_VELOCITY = 20.0f;          // degrees/second
+        static constexpr float KP_VELOCITY = 4.0f;                   // Proportional gain
+        static constexpr float KI_VELOCITY = 12.0f;                   // Integral gain
+        static constexpr float COMPLETION_POSITION_THRESHOLD = 1.0f;  // degrees
+        static constexpr float COMPLETION_VELOCITY_THRESHOLD = 1.0f;  // degrees/second
+        static constexpr unsigned long COMPLETION_CONFIRMATION_TIME = 100;         // milliseconds
+        static constexpr unsigned long OVERSHOOT_BRAKE_DURATION = 100; // milliseconds
 
         // Debug info
         mutable DebugInfo _debugInfo;
-        static constexpr float STICTION_VELOCITY_THRESHOLD = 40.0f; // degrees/sec
 };

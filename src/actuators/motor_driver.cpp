@@ -3,11 +3,20 @@
 MotorDriver motorDriver;
 
 MotorDriver::MotorDriver() {
-    // Initialize motor pins
-    pinMode(LEFT_MOTOR_PIN_IN_1, OUTPUT);
-    pinMode(LEFT_MOTOR_PIN_IN_2, OUTPUT);
-    pinMode(RIGHT_MOTOR_PIN_IN_1, OUTPUT);
-    pinMode(RIGHT_MOTOR_PIN_IN_2, OUTPUT);
+  // Configure LEDC timer and channels
+  ledcSetup(LEFT_MOTOR_CH_1, MOTOR_PWM_FREQ, MOTOR_PWM_RES);
+  ledcSetup(LEFT_MOTOR_CH_2, MOTOR_PWM_FREQ, MOTOR_PWM_RES);
+  ledcSetup(RIGHT_MOTOR_CH_1, MOTOR_PWM_FREQ, MOTOR_PWM_RES);
+  ledcSetup(RIGHT_MOTOR_CH_2, MOTOR_PWM_FREQ, MOTOR_PWM_RES);
+
+  // Attach channels to pins
+  ledcAttachPin(LEFT_MOTOR_PIN_IN_1, LEFT_MOTOR_CH_1);
+  ledcAttachPin(LEFT_MOTOR_PIN_IN_2, LEFT_MOTOR_CH_2);
+  ledcAttachPin(RIGHT_MOTOR_PIN_IN_1, RIGHT_MOTOR_CH_1);
+  ledcAttachPin(RIGHT_MOTOR_PIN_IN_2, RIGHT_MOTOR_CH_2);
+
+  Serial.printf("Motor PWM initialized: %d Hz, %d-bit resolution\n",
+                MOTOR_PWM_FREQ, MOTOR_PWM_RES);
 }
 
 void MotorDriver::stop_both_motors() {
@@ -15,45 +24,45 @@ void MotorDriver::stop_both_motors() {
     right_motor_stop();
 }
 
-void MotorDriver::left_motor_forward(uint8_t speed) {
-    analogWrite(LEFT_MOTOR_PIN_IN_2, 0); // Explicitly clear forward pin
-    analogWrite(LEFT_MOTOR_PIN_IN_1, speed);
+void MotorDriver::left_motor_forward(uint16_t speed) {
+    ledcWrite(LEFT_MOTOR_CH_2, 0); // Explicitly clear forward pin
+    ledcWrite(LEFT_MOTOR_CH_1, speed);
 }
 
-void MotorDriver::left_motor_backward(uint8_t speed) {
-    analogWrite(LEFT_MOTOR_PIN_IN_1, 0); // Explicitly clear backward pin
-    analogWrite(LEFT_MOTOR_PIN_IN_2, speed);
+void MotorDriver::left_motor_backward(uint16_t speed) {
+    ledcWrite(LEFT_MOTOR_CH_1, 0); // Explicitly clear backward pin
+    ledcWrite(LEFT_MOTOR_CH_2, speed);
 }
 
 void MotorDriver::left_motor_stop() {
-    analogWrite(LEFT_MOTOR_PIN_IN_1, 0);
-    analogWrite(LEFT_MOTOR_PIN_IN_2, 0);
+    ledcWrite(LEFT_MOTOR_CH_1, 0);
+    ledcWrite(LEFT_MOTOR_CH_2, 0);
 }
 
-void MotorDriver::right_motor_forward(uint8_t speed) {
-    analogWrite(RIGHT_MOTOR_PIN_IN_2, 0); // Explicitly clear forward pin
-    analogWrite(RIGHT_MOTOR_PIN_IN_1, speed);
+void MotorDriver::right_motor_forward(uint16_t speed) {
+    ledcWrite(RIGHT_MOTOR_CH_2, 0); // Explicitly clear forward pin
+    ledcWrite(RIGHT_MOTOR_CH_1, speed);
 }
 
-void MotorDriver::right_motor_backward(uint8_t speed) {
-    analogWrite(RIGHT_MOTOR_PIN_IN_1, 0); // Explicitly clear backward pin
-    analogWrite(RIGHT_MOTOR_PIN_IN_2, speed);
+void MotorDriver::right_motor_backward(uint16_t speed) {
+    ledcWrite(RIGHT_MOTOR_CH_1, 0); // Explicitly clear backward pin
+    ledcWrite(RIGHT_MOTOR_CH_2, speed);
 }
 
 void MotorDriver::right_motor_stop() {
-    analogWrite(RIGHT_MOTOR_PIN_IN_1, 0);
-    analogWrite(RIGHT_MOTOR_PIN_IN_2, 0);
+    ledcWrite(RIGHT_MOTOR_CH_1, 0);
+    ledcWrite(RIGHT_MOTOR_CH_2, 0);
 }
 
 // These methods explicitly hold the motor in brake.
 void MotorDriver::brake_left_motor() {
-    analogWrite(LEFT_MOTOR_PIN_IN_1, 255);
-    analogWrite(LEFT_MOTOR_PIN_IN_2, 255);
+    ledcWrite(LEFT_MOTOR_CH_1, MAX_MOTOR_PWM);
+    ledcWrite(LEFT_MOTOR_CH_2, MAX_MOTOR_PWM);
 }
 
 void MotorDriver::brake_right_motor() {
-    analogWrite(RIGHT_MOTOR_PIN_IN_1, 255);
-    analogWrite(RIGHT_MOTOR_PIN_IN_2, 255);
+    ledcWrite(RIGHT_MOTOR_CH_1, MAX_MOTOR_PWM);
+    ledcWrite(RIGHT_MOTOR_CH_2, MAX_MOTOR_PWM);
 }
 
 void MotorDriver::brake_both_motors() {
@@ -82,8 +91,8 @@ void MotorDriver::brake_if_moving() {
 // The next command is used to make sure the current command is fully complete (ie for micro-turns in the garage)
 void MotorDriver::set_motor_speeds(int16_t leftTarget, int16_t rightTarget, bool shouldRampUp) {
     // Store target speeds but don't change actual speeds immediately
-    _targetLeftPwm = constrain(leftTarget, -MAX_MOTOR_SPEED, MAX_MOTOR_SPEED);
-    _targetRightPwm = constrain(rightTarget, -MAX_MOTOR_SPEED, MAX_MOTOR_SPEED);
+    _targetLeftPwm = constrain(leftTarget, -MAX_MOTOR_PWM, MAX_MOTOR_PWM);
+    _targetRightPwm = constrain(rightTarget, -MAX_MOTOR_PWM, MAX_MOTOR_PWM);
     _shouldRampUp = shouldRampUp;
 }
 
@@ -151,8 +160,8 @@ void MotorDriver::update() {
 
 void MotorDriver::set_motor_speeds_immediate(int16_t leftTarget, int16_t rightTarget) {
     // Constrain speeds
-    int16_t leftConstrained = constrain(leftTarget, -MAX_MOTOR_SPEED, MAX_MOTOR_SPEED);
-    int16_t rightConstrained = constrain(rightTarget, -MAX_MOTOR_SPEED, MAX_MOTOR_SPEED);
+    int16_t leftConstrained = constrain(leftTarget, -MAX_MOTOR_PWM, MAX_MOTOR_PWM);
+    int16_t rightConstrained = constrain(rightTarget, -MAX_MOTOR_PWM, MAX_MOTOR_PWM);
     
     // Apply immediately without any ramping or state management
     if (leftConstrained == 0) {
@@ -174,8 +183,8 @@ void MotorDriver::set_motor_speeds_immediate(int16_t leftTarget, int16_t rightTa
 
 void MotorDriver::updateMotorPwm(int16_t leftPwm, int16_t rightPwm) {
     // Constrain speeds
-    leftPwm = constrain(leftPwm, -MAX_MOTOR_SPEED, MAX_MOTOR_SPEED);
-    rightPwm = constrain(rightPwm, -MAX_MOTOR_SPEED, MAX_MOTOR_SPEED);
+    leftPwm = constrain(leftPwm, -MAX_MOTOR_PWM, MAX_MOTOR_PWM);
+    rightPwm = constrain(rightPwm, -MAX_MOTOR_PWM, MAX_MOTOR_PWM);
     
     // Check if straight-line driving should be active
     if (leftPwm > 0 && rightPwm > 0 && leftPwm == rightPwm) {

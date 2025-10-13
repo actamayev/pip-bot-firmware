@@ -6,6 +6,12 @@
 #include "demos/demo_manager.h"
 #include "networking/serial_queue_manager.h"
 
+// LEDC channel assignments (ESP32-S3 has 8 channels: 0-7)
+#define LEFT_MOTOR_CH_1   0
+#define LEFT_MOTOR_CH_2   1
+#define RIGHT_MOTOR_CH_1  2
+#define RIGHT_MOTOR_CH_2  3
+
 class MotorDriver {
     friend class TurningManager;
     friend class BalanceController;
@@ -33,10 +39,10 @@ class MotorDriver {
         bool _shouldRampUp = true;
         static constexpr int16_t SPEED_RAMP_STEP = 50;
 
-        void left_motor_forward(uint8_t speed = MAX_MOTOR_SPEED);
-        void left_motor_backward(uint8_t speed = MAX_MOTOR_SPEED);
-        void right_motor_forward(uint8_t speed = MAX_MOTOR_SPEED);
-        void right_motor_backward(uint8_t speed = MAX_MOTOR_SPEED);
+        void left_motor_forward(uint16_t speed = MAX_MOTOR_PWM);
+        void left_motor_backward(uint16_t speed = MAX_MOTOR_PWM);
+        void right_motor_forward(uint16_t speed = MAX_MOTOR_PWM);
+        void right_motor_backward(uint16_t speed = MAX_MOTOR_PWM);
 
         void left_motor_stop();
         void right_motor_stop();
@@ -70,6 +76,8 @@ class MotorDriver {
 
         // Constants
         static constexpr uint8_t MIN_ENCODER_PULSES = 10;
+        static constexpr uint16_t MOTOR_PWM_FREQ = 500;
+        static constexpr uint8_t MOTOR_PWM_RES = 12;        // 12-bit (0-4095)
 };
 
 extern MotorDriver motorDriver;
