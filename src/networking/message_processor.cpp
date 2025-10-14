@@ -12,7 +12,7 @@ void MessageProcessor::handleBalanceCommand(BalanceStatus status) {
     if (status == BalanceStatus::BALANCED) {
         DemoManager::getInstance().startDemo(Demo::BALANCE_CONTROLLER);
         return;
-    } 
+    }
     // If balance controller is currently running, stop it
     if (DemoManager::getInstance().getCurrentDemo() == Demo::BALANCE_CONTROLLER) {
         DemoManager::getInstance().stopCurrentDemo();
@@ -259,6 +259,7 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             rgbLed.turn_all_leds_off();
             SerialManager::getInstance().isConnected = false;
             SensorDataBuffer::getInstance().stopPollingAllSensors();
+            Speaker::getInstance().stopAllSounds();
             break;
         }
         case DataMessageType::UPDATE_HEADLIGHTS: {

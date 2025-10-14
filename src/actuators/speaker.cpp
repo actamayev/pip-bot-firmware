@@ -357,6 +357,7 @@ void Speaker::setVolume(float volume) {
 
 void Speaker::stopAllSounds() {
     stopTone();
+    stopHorn();
     if (initialized && isCurrentlyPlaying) {
         safeStopPlayback();
     }
@@ -517,8 +518,6 @@ void Speaker::startEntertainerMelody() {
 }
 
 void Speaker::playTone(ToneType tone) {
-    SerialQueueManager::getInstance().queueMessage("playTone() called with tone: " + String(static_cast<uint8_t>(tone)));
-    
     if (!initialized) {
         SerialQueueManager::getInstance().queueMessage("ERROR: Speaker not initialized!");
         return;
