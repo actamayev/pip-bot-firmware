@@ -193,10 +193,6 @@ void WebSocketManager::killWiFiProcesses() {
     Speaker::getInstance().stopAllSounds();
     hasKilledWiFiProcesses = true;
     userConnectedToThisPip = false;
-    if (!SerialManager::getInstance().isSerialConnected()) {
-        rgbLed.set_led_red();
-        ledAnimations.startBreathing();
-    }
 }
 
 void WebSocketManager::sendPipTurningOff() {
