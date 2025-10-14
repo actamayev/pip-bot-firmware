@@ -190,13 +190,13 @@ void WebSocketManager::killWiFiProcesses() {
     SensorDataBuffer::getInstance().stopPollingAllSensors();
     motorDriver.resetCommandState(false);
     rgbLed.turn_headlights_off();
+    Speaker::getInstance().stopAllSounds();
+    hasKilledWiFiProcesses = true;
+    userConnectedToThisPip = false;
     if (!SerialManager::getInstance().isSerialConnected()) {
         rgbLed.set_led_red();
         ledAnimations.startBreathing();
     }
-    Speaker::getInstance().stopAllSounds();
-    hasKilledWiFiProcesses = true;
-    userConnectedToThisPip = false;
 }
 
 void WebSocketManager::sendPipTurningOff() {
