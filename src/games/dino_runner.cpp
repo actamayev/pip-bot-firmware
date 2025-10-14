@@ -124,7 +124,6 @@ void DinoRunner::update() {
         memset(buffer, 0, DISPLAY_BUFFER_SIZE);
         drawToBuffer(buffer);
         DisplayScreen::getInstance().showCustomBuffer(buffer);
-        
     } else if (gameState == GameState::GAME_OVER) {
         if (rightButtonPressed) {
             resetGame();
@@ -147,11 +146,10 @@ void DinoRunner::updateDino(float dt) {
     dinoY += dinoVY;
     
     // Ground collision
-    if (dinoY >= (GROUND_Y - DINO_H)) {
-        dinoY = (GROUND_Y - DINO_H);
-        dinoVY = 0.0f;
-        onGround = true;
-    }
+    if (dinoY < (GROUND_Y - DINO_H)) return;
+    dinoY = (GROUND_Y - DINO_H);
+    dinoVY = 0.0f;
+    onGround = true;
 }
 
 void DinoRunner::spawnObstacle() {
@@ -268,16 +266,16 @@ void DinoRunner::drawDinoSprite(int x, int y, bool onGround, Adafruit_SSD1306& d
     display.fillRect(x + 6, y + 1, 1, 2, SSD1306_WHITE);
     
     // Legs (animated when on ground)
-    if (onGround) {
-        if (animFrame == 0) {
-            display.fillRect(x + 5, y + 8, 2, 3, SSD1306_WHITE);
-            display.fillRect(x + 9, y + 8, 2, 3, SSD1306_WHITE);
-        } else {
-            display.fillRect(x + 5, y + 9, 2, 2, SSD1306_WHITE);
-            display.fillRect(x + 9, y + 7, 2, 4, SSD1306_WHITE);
-        }
-    } else {
+    if (!onGround) {
         display.fillRect(x + 6, y + 8, 3, 2, SSD1306_WHITE);
+        return;
+    }
+    if (animFrame == 0) {
+        display.fillRect(x + 5, y + 8, 2, 3, SSD1306_WHITE);
+        display.fillRect(x + 9, y + 8, 2, 3, SSD1306_WHITE);
+    } else {
+        display.fillRect(x + 5, y + 9, 2, 2, SSD1306_WHITE);
+        display.fillRect(x + 9, y + 7, 2, 4, SSD1306_WHITE);
     }
 }
 

@@ -20,7 +20,7 @@ I2C_CLOCK_SPEED = 100000;               // 100kHz for IMU stability
 // Motor Configuration  
 LEFT_MOTOR: IN1=40, IN2=39, ENC_A=47, ENC_B=48
 RIGHT_MOTOR: IN1=42, IN2=41, ENC_A=2, ENC_B=1
-MAX_MOTOR_SPEED = 255;
+MAX_MOTOR_PWM = 4095;
 
 // Display & UI
 SCREEN_WIDTH = 128, SCREEN_HEIGHT = 64;

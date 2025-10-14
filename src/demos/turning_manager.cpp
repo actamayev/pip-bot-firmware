@@ -1,133 +1,130 @@
 #include "turning_manager.h"
-#include "networking/serial_queue_manager.h"
 
 bool TurningManager::startTurn(float degrees) {
-    if (currentState != TurningState::IDLE) return false; // Turn already in progress
+    if (currentState != TurningState::IDLE) {
+        SerialQueueManager::getInstance().queueMessage("Turn already in progress!");
+        return false; // Turn already in progress
+    }
     
-    if (abs(degrees) < 0.1f) return false; // Invalid turn angle
+    if (abs(degrees) < 0.1f) {
+        SerialQueueManager::getInstance().queueMessage("Invalid turn angle!");
+        return false; // Invalid turn angle
+    }
     
-    TARGET_TURN_ANGLE = degrees;
+    targetTurnAngle = degrees;
     initializeTurn();
     return true;
 }
 
 void TurningManager::initializeTurn() {
-    // Reset all state
-    turnDirectionChanges = 0;
+    // Initialize turn
     cumulativeRotation = 0.0f;
     rotationTrackingInitialized = false;
-    currentError = 0.0f;
     currentVelocity = 0.0f;
+    targetVelocity = 0.0f;
+    lastHeading = 0.0f;
+    lastHeadingForRotation = 0.0f;
     lastTime = 0;
-    turnCompletionStartTime = 0;
-    turnCompletionConfirmed = false;
-    inSafetyPause = false;
-    getRotationError();
-    
-    // Determine direction from sign of degrees
-    targetDirection = (TARGET_TURN_ANGLE > 0) ? TurningDirection::CLOCKWISE : TurningDirection::COUNTER_CLOCKWISE;
-    
+    completionStartTime = 0;
+    completionConfirmed = false;
+    currentDirection = TurningDirection::NONE;
+    currentPWM = 0;
+    integralTerm = 0.0f;
+    lastIntegralTime = 0;
+    kpContribution = 0.0f;
+    kiContribution = 0.0f;
+    overshootBrakeStartTime = 0;
+
     currentState = TurningState::TURNING;
-    startTurnMotors();
-    
-    // char logMessage[64];
-    // snprintf(logMessage, sizeof(logMessage), "Starting turn: %.1f degrees %s", 
-    //          degrees, (degrees > 0) ? "CW" : "CCW");
-    // SerialQueueManager::getInstance().queueMessage(logMessage);
+
+    char logMessage[64];
+    snprintf(logMessage, sizeof(logMessage), "Starting turn: %.1f degrees", targetTurnAngle);
+    SerialQueueManager::getInstance().queueMessage(logMessage);
 }
 
 void TurningManager::update() {
     if (currentState == TurningState::IDLE) return;
 
+    // Update velocity and rotation tracking
     updateVelocity();
+    updateCumulativeRotation();
+
+    // Handle overshoot braking
+    if (currentState == TurningState::OVERSHOOT_BRAKING) {
+        if (millis() - overshootBrakeStartTime >= OVERSHOOT_BRAKE_DURATION) {
+            currentState = TurningState::TURNING;
+            SerialQueueManager::getInstance().queueMessage("Overshoot braking complete - resuming");
+        } else {
+            motorDriver.brake_both_motors();
+            return;
+        }
+    }
+
+    // Calculate remaining angle
+    float remainingAngle = calculateRemainingAngle();
+
+    // Check for overshoot at high speed
+    if (checkOvershoot(remainingAngle)) {
+        char logMessage[80];
+        snprintf(logMessage, sizeof(logMessage), "High-speed overshoot detected! Braking for %dms", (int)OVERSHOOT_BRAKE_DURATION);
+        SerialQueueManager::getInstance().queueMessage(logMessage);
+        currentState = TurningState::OVERSHOOT_BRAKING;
+        overshootBrakeStartTime = millis();
+        motorDriver.brake_both_motors();
+        return;
+    }
+
+    // Calculate target velocity based on remaining angle
+    targetVelocity = calculateTargetVelocity(remainingAngle);
+
+    // Calculate velocity error
+    float velocityError = calculateVelocityError();
+
+    // Calculate PWM
+    currentPWM = calculatePWM(velocityError);
+
+    // Apply motor control
+    applyMotorControl(currentPWM, velocityError);
+
+    // Check completion
+    if (checkCompletion()) {
+        resetTurnState();
+        SerialQueueManager::getInstance().queueMessage("Turn completed");
+        return;
+    }
 
     // Update debug info
-    _debugInfo.targetAngle = TARGET_TURN_ANGLE;
+    _debugInfo.targetAngle = targetTurnAngle;
     _debugInfo.cumulativeRotation = cumulativeRotation;
-    _debugInfo.currentError = currentError;
+    _debugInfo.remainingAngle = remainingAngle;
     _debugInfo.currentVelocity = currentVelocity;
-    _debugInfo.currentMinPWM = currentMinPWM;
-    _debugInfo.currentMaxPWM = currentMaxPWM;
-    _debugInfo.directionChanges = turnDirectionChanges;
-    _debugInfo.inSafetyPause = inSafetyPause;
-    
-    // Handle safety pause
-    if (inSafetyPause) {
-        if (millis() - safetyPauseStartTime < SAFETY_PAUSE_DURATION) return;
-        inSafetyPause = false;
-        turnDirectionChanges = 0; // Reset counter - give fresh chance
-        SerialQueueManager::getInstance().queueMessage("Safety pause complete - resuming turn");
-    }
-    
-    // Check for safety triggers (only when not already paused)
-    if (!inSafetyPause && checkSafetyTriggers()) {
-        triggerSafetyPause();
-        return;
-    }
+    _debugInfo.targetVelocity = targetVelocity;
+    _debugInfo.velocityError = velocityError;
+    _debugInfo.currentPWM = currentPWM;
+    _debugInfo.kpContribution = kpContribution;
+    _debugInfo.kiContribution = kiContribution;
+    _debugInfo.inOvershootBraking = (currentState == TurningState::OVERSHOOT_BRAKING);
+}
 
+void TurningManager::updateVelocity() {
+    float currentHeading = -SensorDataBuffer::getInstance().getLatestYaw();
     unsigned long currentTime = millis();
-    
-    // Update error based on current mode
-    updateCumulativeRotation();
-    getRotationError();
-    adaptPWMLimits();
-    
-    // Check if we're close enough to brake
-    if (abs(currentError) > DEAD_ZONE) {
-        // Reset confirmation timer if we move out of dead zone
-        if (turnCompletionStartTime != 0) {
-            turnCompletionStartTime = 0;
-            turnCompletionConfirmed = false;
+
+    if (lastTime != 0) {
+        float deltaTime = (currentTime - lastTime) / 1000.0f;
+        if (deltaTime > 0) {
+            float deltaHeading = currentHeading - lastHeading;
+
+            // Handle wrap-around
+            while (deltaHeading > 180.0f) deltaHeading -= 360.0f;
+            while (deltaHeading < -180.0f) deltaHeading += 360.0f;
+
+            currentVelocity = deltaHeading / deltaTime;
         }
-    } else {
-        motorDriver.brake_both_motors();
-        
-        // Start confirmation timer if not already started
-        if (turnCompletionStartTime == 0) {
-            turnCompletionStartTime = currentTime;
-        }
-        
-        // Check if we've been in dead zone for confirmation time AND velocity has settled
-        if (currentTime - turnCompletionStartTime >= COMPLETION_CONFIRMATION_TIME) {
-            if (!turnCompletionConfirmed && abs(currentVelocity) < 20.0f) {
-                turnCompletionConfirmed = true;
-                completeNavigation();
-                SerialQueueManager::getInstance().queueMessage("Turn completed");
-            }
-        }
-        return;
-    }
-    
-    // Determine required direction
-    TurningDirection requiredDirection = (currentError > 0) ? TurningDirection::CLOCKWISE : TurningDirection::COUNTER_CLOCKWISE;
-    
-    // Calculate base PID speed
-    uint8_t newPidSpeed = calculatePIDSpeed();
-    
-    if (newPidSpeed == 0) {
-        motorDriver.brake_both_motors();
-        vTaskDelay(pdMS_TO_TICKS(20));
-        return;
     }
 
-    // Change direction if needed
-    if (requiredDirection == currentDirection) {
-        setTurnSpeed(newPidSpeed);
-    } else {
-        // Add small delay when changing direction to reduce oscillation
-        if (currentDirection != TurningDirection::NONE) {
-            motorDriver.stop_both_motors();
-            vTaskDelay(pdMS_TO_TICKS(50));
-        }
-        
-        // Track direction changes for safety
-        if (currentDirection != TurningDirection::NONE) {
-            turnDirectionChanges++;
-        }
-        
-        currentDirection = requiredDirection;
-        setTurnSpeed(newPidSpeed);
-    }
+    lastHeading = currentHeading;
+    lastTime = currentTime;
 }
 
 void TurningManager::updateCumulativeRotation() {
@@ -149,232 +146,174 @@ void TurningManager::updateCumulativeRotation() {
     lastHeadingForRotation = currentHeading;
 }
 
-void TurningManager::getRotationError() {
-    float remainingRotation = TARGET_TURN_ANGLE - cumulativeRotation;
-    
-    // For the final approach, we want to slow down
-    currentError = remainingRotation;
-    
-    // Determine direction based on remaining rotation
-    if (abs(remainingRotation) < DEAD_ZONE) {
-        currentError = 0.0f;  // Close enough
-    }
+float TurningManager::calculateRemainingAngle() const {
+    return targetTurnAngle - cumulativeRotation;
 }
 
-void TurningManager::updateVelocity() {
-    float currentHeading = -SensorDataBuffer::getInstance().getLatestYaw();
+float TurningManager::calculateTargetVelocity(float remainingAngle) const {
+    float absRemaining = abs(remainingAngle);
+    float targetVel;
+
+    if (absRemaining > 5.0f) {
+        // Use cruise velocity when far from target
+        targetVel = CRUISE_VELOCITY;
+    } else {
+        // Use minimum velocity when close to target
+        targetVel = MIN_VELOCITY;
+    }
+
+    // Apply correct sign based on remaining angle direction
+    return (remainingAngle > 0) ? targetVel : -targetVel;
+}
+
+float TurningManager::calculateVelocityError() const {
+    return targetVelocity - currentVelocity;
+}
+
+uint16_t TurningManager::calculatePWM(float velocityError) {
+    // Calculate deltaTime for integral term
     unsigned long currentTime = millis();
-    
-    if (lastTime != 0) {
-        float deltaTime = (currentTime - lastTime) / 1000.0f;
-        float deltaHeading = currentHeading - lastHeading;
-        
-        // Handle wrap-around
-        while (deltaHeading > 180.0f) deltaHeading -= 360.0f;
-        while (deltaHeading < -180.0f) deltaHeading += 360.0f;
-        
-        currentVelocity = deltaHeading / deltaTime;
+    float deltaTime = 0.0f;
+
+    if (lastIntegralTime != 0) {
+        deltaTime = (currentTime - lastIntegralTime) / 1000.0f;
+
+        // Accumulate integral term
+        integralTerm += velocityError * deltaTime;
+
+        // Integral windup protection
+        float maxIntegral =  MAX_MOTOR_PWM / KI_VELOCITY;
+        integralTerm = constrain(integralTerm, -maxIntegral, maxIntegral);
     }
-    lastHeading = currentHeading;
-    lastTime = currentTime;
+
+    lastIntegralTime = currentTime;
+
+    // Calculate individual contributions
+    kpContribution = KP_VELOCITY * velocityError;
+    kiContribution = KI_VELOCITY * integralTerm;
+
+    // PID control
+    float pwm = kpContribution + kiContribution;
+    pwm = abs(pwm);
+
+    return constrain((int)pwm, 0, MAX_MOTOR_PWM);
 }
 
-uint8_t TurningManager::calculatePIDSpeed() {
-    const float k = 0.4f;
-    const float midpoint = 50.0f;
-    float sigmoidValue = 1.0f / (1.0f + exp(-k * (abs(currentError) - midpoint)));
-    
-    // Simple velocity limiting (less aggressive)
-    if (abs(currentError) < 15.0f && abs(currentVelocity) > 120.0f) {
-        sigmoidValue *= 0.7f;  // Only in final 15°
-    }
-    
-    const float maxResponse = currentMaxPWM - currentMinPWM;
-    uint8_t targetPWM = currentMinPWM + (sigmoidValue * maxResponse);
-    
-    // **SIMPLE FIX: Ensure minimum PWM in approach zone**
-    if (abs(currentError) < 45.0f && abs(currentError) > DEAD_ZONE) {
-        uint8_t minApproachPWM = currentMinPWM + 20;  // Always enough to move
-        targetPWM = max(targetPWM, minApproachPWM);
-    }
-    
-    return constrain(targetPWM, currentMinPWM, currentMaxPWM);
-}
+bool TurningManager::checkCompletion() {
+    float remainingAngle = calculateRemainingAngle();
 
-void TurningManager::detectStiction() {
-    unsigned long currentTime = millis();
-    bool isStuck = (abs(currentVelocity) < STICTION_VELOCITY_THRESHOLD);
-    
-    if (isStuck) {
-        if (stictionDetectionStartTime == 0) {
-            stictionDetectionStartTime = currentTime;
-        } else if (currentTime - stictionDetectionStartTime > STICTION_DETECTION_TIME) {
-            if (!stictionDetected) {
-                stictionDetected = true;
-                stictionBoostLevel = 1;
-                SerialQueueManager::getInstance().queueMessage("Stiction detected - applying boost");
-            } else {
-                // Gradually increase boost level for persistent stiction
-                if (currentTime - stictionDetectionStartTime > STICTION_DETECTION_TIME * (stictionBoostLevel + 1)) {
-                    stictionBoostLevel = min(5, stictionBoostLevel + 1);
-                }
+    // Check if within position and velocity thresholds
+    if (abs(remainingAngle) <= COMPLETION_POSITION_THRESHOLD &&
+        abs(currentVelocity) <= COMPLETION_VELOCITY_THRESHOLD) {
+
+        // Start confirmation timer if not already started
+        if (completionStartTime == 0) {
+            completionStartTime = millis();
+            char logMessage[80];
+            snprintf(logMessage, sizeof(logMessage), "Approaching completion: Remaining=%.2f°, Vel=%.2f°/s",
+                     remainingAngle, currentVelocity);
+            SerialQueueManager::getInstance().queueMessage(logMessage);
+        }
+
+        // Check if we've been in completion zone for required time
+        if (millis() - completionStartTime >= COMPLETION_CONFIRMATION_TIME) {
+            if (!completionConfirmed) {
+                completionConfirmed = true;
+                motorDriver.brake_both_motors();
+                char logMessage[80];
+                snprintf(logMessage, sizeof(logMessage), "Turn complete! Final error: %.2f°", remainingAngle);
+                SerialQueueManager::getInstance().queueMessage(logMessage);
+                return true;
             }
         }
     } else {
-        // Moving well, reset detection timer but keep boost for a bit
-        stictionDetectionStartTime = 0;
-        if (abs(currentVelocity) > STICTION_VELOCITY_THRESHOLD * 2) {
-            // Only clear stiction flag if we're moving well
-            stictionDetected = false;
-            stictionBoostLevel = 0;
+        // Reset completion timer if we move out of zone
+        if (completionStartTime != 0) {
+            completionStartTime = 0;
+            completionConfirmed = false;
+            SerialQueueManager::getInstance().queueMessage("Moved out of completion zone, resetting timer");
         }
     }
-}
 
-void TurningManager::resetStictionDetection() {
-    stictionDetected = false;
-    stictionBoostLevel = 0;
-    stictionDetectionStartTime = 0;
-}
-
-void TurningManager::adaptPWMLimits() {
-    unsigned long currentTime = millis();
-    
-    // REMOVED: if (abs(currentError) < 15.0f) return;
-    // Rate limit adaptations to prevent oscillation
-    if (currentTime - lastAdaptationTime < ADAPTATION_RATE_LIMIT) return;
-    
-    float absVelocity = abs(currentVelocity);
-    bool adapted = false;
-    
-    // IMPROVED: More aggressive adaptation in extended approach zone
-    bool inFinalApproach = abs(currentError) < 30.0f;  // Extended from 15° to 30°
-    uint8_t adaptationRate = inFinalApproach ? 4 : 2; // Faster adaptation in final approach
-    uint8_t maxIncrease = inFinalApproach ? 8 : 5;    // Larger jumps in final approach
-
-    uint8_t commandedPWM = calculatePIDSpeed();
-    
-    // Increase limits if commanding high PWM but velocity too low
-    if (commandedPWM >= currentMaxPWM * 0.9f && absVelocity < targetMinVelocity) {
-        currentMaxPWM = min(255, currentMaxPWM + maxIncrease);
-        currentMinPWM = min(currentMaxPWM - 10, currentMinPWM + adaptationRate);
-        adapted = true;
-    }
-    // Decrease max if commanding max PWM but velocity too high
-    else if (commandedPWM >= currentMaxPWM * 0.9f && absVelocity > targetMaxVelocity) {
-        currentMaxPWM = max(currentMinPWM + 10, currentMaxPWM - 3);
-        adapted = true;
-    }
-    // IMPROVED: More aggressive min PWM increase when stuck in final approach
-    else if (commandedPWM <= currentMinPWM * 1.1f && absVelocity < targetMinVelocity) {
-        uint8_t minIncrease = inFinalApproach ? 5 : 3; // More aggressive in final approach
-        currentMinPWM = min(currentMaxPWM - 10, currentMinPWM + minIncrease);
-        adapted = true;
-    }
-    // NEW: Special case for final approach stiction
-    else if (inFinalApproach && stictionDetected && absVelocity < STICTION_VELOCITY_THRESHOLD) {
-        // Force increase both limits when stiction is detected
-        currentMinPWM = min(currentMaxPWM - 5, currentMinPWM + 6);
-        currentMaxPWM = min(255, currentMaxPWM + 4);
-        adapted = true;
-    }
-    
-    if (adapted) {
-        lastAdaptationTime = currentTime;
-        
-        // Debug logging for final approach
-        if (inFinalApproach) {
-            char logMessage[80];
-            snprintf(logMessage, sizeof(logMessage), 
-                "Final PWM adapt: min=%d, max=%d, vel=%.1f, err=%.1f", 
-                currentMinPWM, currentMaxPWM, currentVelocity, currentError);
-            SerialQueueManager::getInstance().queueMessage(logMessage);
-        }
-    }
-}
-
-bool TurningManager::checkSafetyTriggers() {
-    // Check high approach velocity
-    if (abs(currentVelocity) > 1.0f) {
-        float timeToTarget = abs(currentError) / abs(currentVelocity) * 1000.0f; // Convert to ms
-        if (timeToTarget < 75.0f && abs(currentError) > 2.0f) {
-            SerialQueueManager::getInstance().queueMessage("Safety: Approaching too fast!");
-            return true;
-        }
-    }
-    
-    // Check direction changes
-    if (turnDirectionChanges >= MAX_DIRECTION_CHANGES) {
-        char logMessage[48];
-        snprintf(logMessage, sizeof(logMessage), "Safety: Too many direction changes (%d)", turnDirectionChanges);
-        SerialQueueManager::getInstance().queueMessage(logMessage);
-        return true;
-    }
-    
     return false;
 }
 
-void TurningManager::triggerSafetyPause() {
-    inSafetyPause = true;
-    safetyPauseStartTime = millis();
-    motorDriver.brake_both_motors();
-    
-    // Reset PWM to safe defaults
-    currentMinPWM = safetyDefaultMinPWM;
-    currentMaxPWM = safetyDefaultMaxPWM;
-    
-    SerialQueueManager::getInstance().queueMessage("Safety pause activated - resetting PWM and braking");
-}
+void TurningManager::applyMotorControl(uint16_t pwm, float velocityError) {
+    // Determine required direction from TARGET velocity sign (not error sign!)
+    TurningDirection requiredDirection = (targetVelocity > 0) ? TurningDirection::CLOCKWISE : TurningDirection::COUNTER_CLOCKWISE;
 
-void TurningManager::startTurnMotors() {
-    uint8_t speed = calculatePIDSpeed();
-    currentDirection = targetDirection;
-    setTurnSpeed(speed);
-}
+    // If target velocity is essentially zero, stop
+    if (abs(targetVelocity) < 1.0f) {
+        motorDriver.brake_both_motors();
+        return;
+    }
 
-void TurningManager::setTurnSpeed(uint8_t speed) {
-    // Check if we're in extended approach where stiction is problematic
-    bool inFinalApproach = (abs(currentError) > DEAD_ZONE && abs(currentError) < 25.0f);  // Extended range
-    bool needsStictionFighting = inFinalApproach && abs(currentVelocity) < 15.0f; // Slightly higher threshold
-    
-    if (needsStictionFighting) {
-        // Use immediate control with boosted minimum PWM to fight stiction
-        uint8_t stictionSpeed = max(speed, static_cast<uint8_t>(currentMinPWM + 10));
-        if (currentDirection == TurningDirection::CLOCKWISE) {
-            motorDriver.set_motor_speeds_immediate(stictionSpeed, -stictionSpeed);
-        } else if (currentDirection == TurningDirection::COUNTER_CLOCKWISE) {
-            motorDriver.set_motor_speeds_immediate(-stictionSpeed, stictionSpeed);
-        }
+    // Allow direction changes when needed (overshoot correction)
+    if (requiredDirection != currentDirection && currentDirection != TurningDirection::NONE) {
+        SerialQueueManager::getInstance().queueMessage("Direction change (overshoot correction)");
+
+        // Stop briefly before changing direction
+        motorDriver.stop_both_motors();
+        vTaskDelay(pdMS_TO_TICKS(50));
+    }
+
+    // Apply motor commands
+    currentDirection = requiredDirection;
+
+    if (requiredDirection == TurningDirection::CLOCKWISE) {
+        motorDriver.set_motor_speeds_immediate(pwm, -pwm);
     } else {
-        // Use immediate control for all turning - no ramping needed for turns
-        if (currentDirection == TurningDirection::CLOCKWISE) {
-            motorDriver.set_motor_speeds_immediate(speed, -speed);
-        } else if (currentDirection == TurningDirection::COUNTER_CLOCKWISE) {
-            motorDriver.set_motor_speeds_immediate(-speed, speed);
-        }
+        motorDriver.set_motor_speeds_immediate(-pwm, pwm);
     }
 }
 
-void TurningManager::completeNavigation() {
-    // Note: We are not doing brake_if_moving because 
+bool TurningManager::checkOvershoot(float remainingAngle) {
+    // Backup: reactive check for actual overshoot
+    bool movingAwayFromTarget = (remainingAngle > 0 && currentVelocity < 0) ||
+                               (remainingAngle < 0 && currentVelocity > 0);
+    if (movingAwayFromTarget) {
+        SerialQueueManager::getInstance().queueMessage("REACTIVE: Already overshot!");
+        return true;
+    }
+
+    // Predictive: time-to-target approach
+    if (abs(currentVelocity) > MIN_VELOCITY) {
+        float timeToTarget = abs(remainingAngle) / abs(currentVelocity) * 1000.0f; // ms
+
+        if (timeToTarget < 10.0f && abs(remainingAngle) > COMPLETION_POSITION_THRESHOLD + 1.0f) {
+            char logMessage[120];
+            snprintf(logMessage, sizeof(logMessage), "PREDICTIVE: Too fast! Time to target: %.1fms, Remaining: %.1f°, Vel: %.1f°/s",
+                     timeToTarget, remainingAngle, currentVelocity);
+            SerialQueueManager::getInstance().queueMessage(logMessage);
+            return true;
+        }
+    }
+
+    return false;
+}
+
+void TurningManager::resetTurnState() {
     motorDriver.brake_both_motors();
-    currentDirection = TurningDirection::NONE;
-    targetDirection = TurningDirection::NONE;
     currentState = TurningState::IDLE;
-    turnCompletionStartTime = 0;
-    turnCompletionConfirmed = false;
-
-    // Reset rotation tracking
-    cumulativeRotation = 0.0;
+    currentDirection = TurningDirection::NONE;
+    targetTurnAngle = 0.0f;
+    cumulativeRotation = 0.0f;
     rotationTrackingInitialized = false;
-    TARGET_TURN_ANGLE = 0.0f;
-
-    // Reset control variables to prevent restart loops
-    currentError = 0.0f;
     currentVelocity = 0.0f;
+    targetVelocity = 0.0f;
     lastHeading = 0.0f;
-    lastTime = 0;
-    turnDirectionChanges = 0;
-    inSafetyPause = false;
     lastHeadingForRotation = 0.0f;
+    lastTime = 0;
+    completionStartTime = 0;
+    completionConfirmed = false;
+    currentPWM = 0;
+    integralTerm = 0.0f;
+    lastIntegralTime = 0;
+    kpContribution = 0.0f;
+    kiContribution = 0.0f;
+    overshootBrakeStartTime = 0;
+}
+
+void TurningManager::completeNavigation() {
+    resetTurnState();
 }

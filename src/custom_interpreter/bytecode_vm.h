@@ -37,7 +37,7 @@ class BytecodeVM : public Singleton<BytecodeVM> {
         BytecodeVM() = default;
         ~BytecodeVM();
         // Constants:
-        static const uint16_t MAX_REGISTERS = 512; // Changed from uint8_t to uint16_t
+        static const uint16_t MAX_REGISTERS = 1024; // Changed from uint8_t to uint16_t
                                         // to handle values > 255
 
         static const uint8_t INSTRUCTION_SIZE = 20;
@@ -136,5 +136,5 @@ class BytecodeVM : public Singleton<BytecodeVM> {
 
         // Deceleration constants (add near your other constants)
         static constexpr float DECELERATION_RATE = 2000.0f;  // PWM²/inch - tune this value
-        static constexpr int16_t MIN_DECELERATION_PWM = 40;  // Minimum PWM during deceleration
+        static constexpr int16_t MIN_DECELERATION_PWM = 600;  // Minimum PWM during deceleration
 };

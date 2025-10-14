@@ -67,8 +67,8 @@ void WebSocketManager::connectToWebSocket() {
                 this->wsConnected = true;
                 this->hasKilledWiFiProcesses = false; // Reset the flag
                 this->lastPingTime = millis(); // Initialize ping time
-                rgbLed.set_led_blue();
                 ledAnimations.stopAnimation();
+                rgbLed.turn_all_leds_off();
                 this->sendInitialData();
                 break;
             case WebsocketsEvent::ConnectionClosed:
@@ -90,39 +90,48 @@ void WebSocketManager::connectToWebSocket() {
     lastConnectionAttempt = 0; // Force an immediate connection attempt in the next poll
 }
 
+void WebSocketManager::addBatteryDataToPayload(JsonObject& payload) {
+    const BatteryState& batteryState = BatteryMonitor::getInstance().getBatteryState();
+    if (!batteryState.isInitialized) return;
+
+    JsonObject batteryData = payload.createNestedObject("batteryData");
+    batteryData["stateOfCharge"] = static_cast<int>(round(batteryState.displayedStateOfCharge));
+    batteryData["voltage"] = batteryState.voltage;
+    batteryData["current"] = batteryState.current;
+    batteryData["power"] = batteryState.power;
+    batteryData["remainingCapacity"] = batteryState.remainingCapacity;
+    batteryData["fullCapacity"] = batteryState.fullCapacity;
+    batteryData["health"] = batteryState.health;
+    batteryData["isCharging"] = batteryState.isCharging;
+    batteryData["isDischarging"] = batteryState.isDischarging;
+    batteryData["isLowBattery"] = batteryState.isLowBattery;
+    batteryData["isCriticalBattery"] = batteryState.isCriticalBattery;
+    batteryData["estimatedTimeToEmpty"] = batteryState.estimatedTimeToEmpty;
+    batteryData["estimatedTimeToFull"] = batteryState.estimatedTimeToFull;
+}
+
 void WebSocketManager::sendInitialData() {
     SerialQueueManager::getInstance().queueMessage("WebSocket connected. Sending initial data...");
     auto initDoc = makeBaseMessageServer<256>(ToServerMessage::DEVICE_INITIAL_DATA);
     JsonObject payload = initDoc.createNestedObject("payload");
     payload["firmwareVersion"] = FirmwareVersionTracker::getInstance().getFirmwareVersion();
 
+    // Add battery data to the same request
+    addBatteryDataToPayload(payload);
+
     String jsonString;
     serializeJson(initDoc, jsonString);
     WiFi.mode(WIFI_STA);
     wsClient.send(jsonString);
-
-    sendBatteryMonitorData();
 }
 
 void WebSocketManager::sendBatteryMonitorData() {
-    const BatteryState& batteryState = BatteryMonitor::getInstance().getBatteryState();
-    if (!batteryState.isInitialized) return;
+    if (!wsConnected) return;
 
     auto batteryDoc = makeBaseMessageServer<256>(ToServerMessage::BATTERY_MONITOR_DATA_FULL);
     JsonObject payload = batteryDoc.createNestedObject("payload");
-    payload["batteryData"]["stateOfCharge"] = static_cast<int>(round(batteryState.displayedStateOfCharge));
-    payload["batteryData"]["voltage"] = batteryState.voltage;
-    payload["batteryData"]["current"] = batteryState.current;
-    payload["batteryData"]["power"] = batteryState.power;
-    payload["batteryData"]["remainingCapacity"] = batteryState.remainingCapacity;
-    payload["batteryData"]["fullCapacity"] = batteryState.fullCapacity;
-    payload["batteryData"]["health"] = batteryState.health;
-    payload["batteryData"]["isCharging"] = batteryState.isCharging;
-    payload["batteryData"]["isDischarging"] = batteryState.isDischarging;
-    payload["batteryData"]["isLowBattery"] = batteryState.isLowBattery;
-    payload["batteryData"]["isCriticalBattery"] = batteryState.isCriticalBattery;
-    payload["batteryData"]["estimatedTimeToEmpty"] = batteryState.estimatedTimeToEmpty;
-    payload["batteryData"]["estimatedTimeToFull"] = batteryState.estimatedTimeToFull;
+    addBatteryDataToPayload(payload);
+
     String jsonString;
     serializeJson(batteryDoc, jsonString);
     wsClient.send(jsonString);
@@ -136,7 +145,7 @@ void WebSocketManager::pollWebSocket() {
     
     if (WiFi.status() != WL_CONNECTED) {
         if (wsConnected) {
-            SerialQueueManager::getInstance().queueMessage("WiFi lost during WebSocket session");
+            SerialQueueManager::getInstance().queueMessage("WiFi lost during WebSocket session", SerialPriority::HIGH_PRIO);
             wsConnected = false;
             killWiFiProcesses();
         }
@@ -144,7 +153,7 @@ void WebSocketManager::pollWebSocket() {
     }
 
     if (wsConnected && (currentTime - lastPingTime >= WS_TIMEOUT)) {
-        SerialQueueManager::getInstance().queueMessage("WebSocket ping timeout - connection lost");
+        SerialQueueManager::getInstance().queueMessage("WebSocket ping timeout - connection lost", SerialPriority::HIGH_PRIO);
         wsConnected = false;
         killWiFiProcesses();
     }
@@ -160,7 +169,6 @@ void WebSocketManager::pollWebSocket() {
         } else {
             SerialQueueManager::getInstance().queueMessage("WebSocket connected successfully");
             wsConnected = true;
-            sendInitialData();
         }
         return;
     }
@@ -186,6 +194,7 @@ void WebSocketManager::killWiFiProcesses() {
         rgbLed.set_led_red();
         ledAnimations.startBreathing();
     }
+    Speaker::getInstance().stopAllSounds();
     hasKilledWiFiProcesses = true;
     userConnectedToThisPip = false;
 }
@@ -215,9 +224,6 @@ void WebSocketManager::sendDinoScore(int score) {
 void WebSocketManager::setIsUserConnectedToThisPip(bool newIsUserConnectedToThisPip) {
     userConnectedToThisPip = newIsUserConnectedToThisPip;
     if (newIsUserConnectedToThisPip) return;
-    ledAnimations.fadeOut();
-    rgbLed.turn_headlights_off();
     motorDriver.resetCommandState(true);
-    Speaker::getInstance().stopAllSounds();
-    DisplayScreen::getInstance().showStartScreen();
+    careerQuestTriggers.stopAllCareerQuestTriggers();
 }

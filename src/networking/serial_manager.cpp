@@ -5,6 +5,9 @@ void SerialManager::pollSerial() {
         // Check for timeout if we're connected but haven't received data for a while
         if (isConnected && (millis() - lastActivityTime > SERIAL_CONNECTION_TIMEOUT)) {
             isConnected = false;
+            if (!WebSocketManager::getInstance().isWsConnected()) {
+                SensorDataBuffer::getInstance().stopPollingAllSensors();
+            }
         }
         return;
     }
@@ -13,7 +16,9 @@ void SerialManager::pollSerial() {
 
     if (!isConnected) {
         isConnected = true;
-        ledAnimations.turnOff();
+        // If we were previously trying to connect to wifi (breathing red), we should turn it off when connecting to serial
+        ledAnimations.stopAnimation();
+        rgbLed.turn_all_leds_off();
     }
 
     // Read available bytes and process according to the current state
