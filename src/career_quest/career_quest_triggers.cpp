@@ -634,8 +634,8 @@ void CareerQuestTriggers::stopAllCareerQuestTriggers() {
     
     // Stop all LED animations (but don't force LEDs off - let career quest fades complete)
     ledAnimations.stopAnimation();
-    ledAnimations.fadeOut();
     rgbLed.turn_headlights_off();
+    ledAnimations.fadeOut();
 
     // Stop all audio
     Speaker::getInstance().stopAllSounds();
@@ -656,4 +656,5 @@ void CareerQuestTriggers::stopAllCareerQuestTriggers() {
     DanceManager::getInstance().stopDance();
     GameManager::getInstance().stopCurrentGame();
     DisplayScreen::getInstance().showStartScreen();
+    SensorDataBuffer::getInstance().stopPollingAllSensors();
 }

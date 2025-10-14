@@ -11,22 +11,22 @@ void MessageProcessor::handleMotorControl(const uint8_t* data) {
 void MessageProcessor::handleBalanceCommand(BalanceStatus status) {
     if (status == BalanceStatus::BALANCED) {
         DemoManager::getInstance().startDemo(Demo::BALANCE_CONTROLLER);
-    } else {
-        // If balance controller is currently running, stop it
-        if (DemoManager::getInstance().getCurrentDemo() == Demo::BALANCE_CONTROLLER) {
-            DemoManager::getInstance().stopCurrentDemo();
-        }
+        return;
+    }
+    // If balance controller is currently running, stop it
+    if (DemoManager::getInstance().getCurrentDemo() == Demo::BALANCE_CONTROLLER) {
+        DemoManager::getInstance().stopCurrentDemo();
     }
 }
 
 void MessageProcessor::handleObstacleAvoidanceCommand(ObstacleAvoidanceStatus status) {
     if (status == ObstacleAvoidanceStatus::AVOID) {
         DemoManager::getInstance().startDemo(Demo::OBSTACLE_AVOIDER);
-    } else {
-        // If obstacle avoider is currently running, stop it
-        if (DemoManager::getInstance().getCurrentDemo() == Demo::OBSTACLE_AVOIDER) {
-            DemoManager::getInstance().stopCurrentDemo();
-        }
+        return;
+    }
+    // If obstacle avoider is currently running, stop it
+    if (DemoManager::getInstance().getCurrentDemo() == Demo::OBSTACLE_AVOIDER) {
+        DemoManager::getInstance().stopCurrentDemo();
     }
 }
 
@@ -239,10 +239,6 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             break;
         }
         case DataMessageType::SERIAL_HANDSHAKE: {
-            if (!Buttons::getInstance().isEitherButtonPressed()) {
-                // When waking up from deep sleep mode, and connected to USB, we don't want the flash of blue
-                rgbLed.set_led_blue();
-            }
             SerialManager::getInstance().isConnected = true;
             SerialManager::getInstance().lastActivityTime = millis();
             SerialManager::getInstance().sendPipIdMessage();
@@ -263,6 +259,7 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             rgbLed.turn_all_leds_off();
             SerialManager::getInstance().isConnected = false;
             SensorDataBuffer::getInstance().stopPollingAllSensors();
+            Speaker::getInstance().stopAllSounds();
             break;
         }
         case DataMessageType::UPDATE_HEADLIGHTS: {
@@ -348,10 +345,9 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             } else {
                 HornSoundStatus status = static_cast<HornSoundStatus>(data[1]);
                 if (status == HornSoundStatus::ON) {
-                    // TODO: Fix this
-                    rgbLed.turn_headlights_on();
+                    Speaker::getInstance().startHorn();
                 } else {
-                    rgbLed.turn_headlights_off();
+                    Speaker::getInstance().stopHorn();
                 }
             }
             break;
@@ -370,13 +366,6 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
         case DataMessageType::STOP_SOUND: {
             Speaker::getInstance().stopAllSounds();
             break;
-        }
-        case DataMessageType::REQUEST_BATTERY_MONITOR_DATA: { // This comes from the server when the user reloads the page (user requests battery data for each pip)
-            if (length != 1) {
-                SerialQueueManager::getInstance().queueMessage("Invalid request battery monitor data message length");
-            } else {
-                BatteryMonitor::getInstance().sendBatteryMonitorDataOverWebSocket();
-            }
         }
         case DataMessageType::UPDATE_DISPLAY: {
             if (length != 1025) { // 1 byte for type + 1024 bytes for buffer
@@ -528,13 +517,13 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             break;
         }
         case DataMessageType::SHOW_DISPLAY_START_SCREEN: {
-                if (length != 1) {
-                    SerialQueueManager::getInstance().queueMessage("Invalid show display start screen message length");
-                } else {
-                    DisplayScreen::getInstance().showStartScreen();
-                }
-                break;
+            if (length != 1) {
+                SerialQueueManager::getInstance().queueMessage("Invalid show display start screen message length");
+            } else {
+                DisplayScreen::getInstance().showStartScreen();
             }
+            break;
+        }
         case DataMessageType::IS_USER_CONNECTED_TO_PIP: {
             if (length != 2) {
                 SerialQueueManager::getInstance().queueMessage("Invalid Is user connected to pip length");
@@ -544,8 +533,11 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
                     WebSocketManager::getInstance().setIsUserConnectedToThisPip(false);
                 } else {
                     WebSocketManager::getInstance().setIsUserConnectedToThisPip(true);
+                    BatteryMonitor::getInstance().sendBatteryMonitorDataOverWebSocket();
+
                 }
             }
+            break;
         }
         case DataMessageType::FORGET_NETWORK: {
             if (length < 2) {
@@ -583,6 +575,7 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             break;
         }
         default:
+            SerialQueueManager::getInstance().queueMessage("Received unknown message type: " + String(static_cast<int>(messageType)));
             break;
     }
 }

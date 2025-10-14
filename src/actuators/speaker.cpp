@@ -5,10 +5,9 @@ constexpr const Speaker::MelodyNote Speaker::entertainerLedSequence[];
 
 Speaker::~Speaker() {
     cleanup();
-    if (audioMutex) {
-        vSemaphoreDelete(audioMutex);
-        audioMutex = nullptr;
-    }
+    if (!audioMutex) return;
+    vSemaphoreDelete(audioMutex);
+    audioMutex = nullptr;
 }
 
 bool Speaker::initialize() {
@@ -358,6 +357,7 @@ void Speaker::setVolume(float volume) {
 
 void Speaker::stopAllSounds() {
     stopTone();
+    stopHorn();
     if (initialized && isCurrentlyPlaying) {
         safeStopPlayback();
     }
@@ -518,8 +518,6 @@ void Speaker::startEntertainerMelody() {
 }
 
 void Speaker::playTone(ToneType tone) {
-    SerialQueueManager::getInstance().queueMessage("playTone() called with tone: " + String(static_cast<uint8_t>(tone)));
-    
     if (!initialized) {
         SerialQueueManager::getInstance().queueMessage("ERROR: Speaker not initialized!");
         return;
@@ -649,14 +647,14 @@ void Speaker::updateContinuousTone() {
     if (!audioMutex || xSemaphoreTake(audioMutex, pdMS_TO_TICKS(100)) != pdTRUE) {
         return;
     }
-    
+
     if (!isPlayingTone || !toneGenerator) {
         xSemaphoreGive(audioMutex);
         return;
     }
-    
-    // ADD THIS: Auto-stop if tone hasn't been refreshed recently
-    if (millis() - lastToneRefreshTime > TONE_AUTO_STOP_MS) {
+
+    // Auto-stop if tone hasn't been refreshed recently (unless in horn mode)
+    if (!isHornMode && millis() - lastToneRefreshTime > TONE_AUTO_STOP_MS) {
         SerialQueueManager::getInstance().queueMessage("Tone auto-stopped (not refreshed)");
         if (toneGenerator->isRunning()) {
             toneGenerator->stop();
@@ -668,17 +666,48 @@ void Speaker::updateContinuousTone() {
     
     if (toneGenerator->isRunning()) {
         if (!toneGenerator->loop()) {
-            // Tone finished, restart it for continuous play
-            SerialQueueManager::getInstance().queueMessage("Tone cycle complete - restarting");
+            // Tone finished - restart it QUICKLY to minimize gap
             
+            // OPTIMIZATION: Pre-get the RTTTL string before any deletions
             const char* rtttlString = getToneRTTTL(currentTone);
-            if (rtttlString) {
-                // Recreate source and restart
-                if (toneSource) delete toneSource;
-                toneSource = new AudioFileSourcePROGMEM(rtttlString, strlen(rtttlString) + 1);
-                toneGenerator->begin(toneSource, audioOutput);
+            if (!rtttlString) {
+                SerialQueueManager::getInstance().queueMessage("Failed to get RTTTL for restart");
+                isPlayingTone = false;
+                xSemaphoreGive(audioMutex);
+                return;
             }
+            
+            // OPTIMIZATION: Create new source BEFORE deleting old one
+            AudioFileSourcePROGMEM* newSource = new AudioFileSourcePROGMEM(
+                rtttlString, 
+                strlen(rtttlString) + 1
+            );
+            
+            // Now delete the old source
+            if (toneSource) {
+                delete toneSource;
+            }
+            toneSource = newSource;
+            
+            // Restart immediately - no delay between delete and begin
+            if (!toneGenerator->begin(toneSource, audioOutput)) {
+                SerialQueueManager::getInstance().queueMessage("Failed to restart tone");
+                isPlayingTone = false;
+                if (toneSource) {
+                    delete toneSource;
+                    toneSource = nullptr;
+                }
+                if (toneGenerator) {
+                    delete toneGenerator;
+                    toneGenerator = nullptr;
+                }
+            }
+            // If successful, tone continues seamlessly (with minimal 20-50ms gap)
         }
+    } else {
+        // Tone unexpectedly stopped
+        SerialQueueManager::getInstance().queueMessage("Tone stopped unexpectedly");
+        isPlayingTone = false;
     }
     
     xSemaphoreGive(audioMutex);
@@ -689,13 +718,25 @@ const char* Speaker::getToneRTTTL(ToneType tone) {
     // Format: name:settings:notes
     // d=1 means whole note (slowest), o=5 is middle octave, b=60 is slow tempo
     switch (tone) {
-        case ToneType::TONE_A: return "ToneA:d=1,o=5,b=240:a";
-        case ToneType::TONE_B: return "ToneB:d=1,o=5,b=240:b";
-        case ToneType::TONE_C: return "ToneC:d=1,o=5,b=240:c";
-        case ToneType::TONE_D: return "ToneD:d=1,o=5,b=240:d";
-        case ToneType::TONE_E: return "ToneE:d=1,o=5,b=240:e";
-        case ToneType::TONE_F: return "ToneF:d=1,o=5,b=240:f";
-        case ToneType::TONE_G: return "ToneG:d=1,o=5,b=240:g";
+        case ToneType::TONE_A: return "ToneA:d=1,o=5,b=10:a";
+        case ToneType::TONE_B: return "ToneB:d=1,o=5,b=10:b";
+        case ToneType::TONE_C: return "ToneC:d=1,o=5,b=10:c";
+        case ToneType::TONE_D: return "ToneD:d=1,o=5,b=10:d";
+        case ToneType::TONE_E: return "ToneE:d=1,o=5,b=10:e";
+        case ToneType::TONE_F: return "ToneF:d=1,o=5,b=10:f";
+        case ToneType::TONE_G: return "ToneG:d=1,o=5,b=10:g";
         default: return nullptr;
     }
+}
+
+void Speaker::startHorn() {
+    SerialQueueManager::getInstance().queueMessage("Starting horn (continuous F tone)");
+    isHornMode = true;
+    playTone(ToneType::TONE_F);
+}
+
+void Speaker::stopHorn() {
+    SerialQueueManager::getInstance().queueMessage("Stopping horn");
+    isHornMode = false;
+    stopTone();
 }

@@ -66,8 +66,8 @@ void StraightLineDrive::update(int16_t& leftSpeed, int16_t& rightSpeed) {
     rightSpeed = max(rightSpeed, MIN_FORWARD_SPEED);
     
     // Constrain to valid motor speed range
-    leftSpeed = constrain(leftSpeed, -MAX_MOTOR_SPEED, MAX_MOTOR_SPEED);
-    rightSpeed = constrain(rightSpeed, -MAX_MOTOR_SPEED, MAX_MOTOR_SPEED);
+    leftSpeed = constrain(leftSpeed, -MAX_MOTOR_PWM, MAX_MOTOR_PWM);
+    rightSpeed = constrain(rightSpeed, -MAX_MOTOR_PWM, MAX_MOTOR_PWM);
     
     // Update debug info with final speeds and correction
     _debugInfo.leftSpeed = leftSpeed;

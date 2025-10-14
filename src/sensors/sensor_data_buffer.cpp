@@ -529,7 +529,7 @@ ColorType SensorDataBuffer::classifyCurrentColor() {
     }
     
     // Green: G dominant and bright enough  
-    if (g > 80 && g > (r + 30) && g > (b + 30)) {
+    if (g > 65 && g > (r + 20) && g > (b + 20)) {
         return ColorType::COLOR_GREEN;
     }
     

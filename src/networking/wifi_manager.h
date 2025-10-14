@@ -11,7 +11,6 @@
 #include "serial_queue_manager.h"
 #include "actuators/led/rgb_led.h"
 #include "sensors/encoder_manager.h"
-#include "wifi_selection/wifi_selection_manager.h"
 
 class WiFiManager : public Singleton<WiFiManager> {
     friend class Singleton<WiFiManager>;
