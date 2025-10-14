@@ -106,8 +106,8 @@ void BalanceController::update() {
 
     int16_t motorPower = constrain(
         (int16_t)(proportionalTerm + integralTerm + derivativeTerm),
-        -MAX_BALANCE_POWER, 
-        MAX_BALANCE_POWER
+        -MAX_MOTOR_PWM, 
+        MAX_MOTOR_PWM
     );
 
     int adjustedPWM = motorPower;

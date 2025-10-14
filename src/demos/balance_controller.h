@@ -41,7 +41,6 @@ class BalanceController : public Singleton<BalanceController> {
 
         // Limits and safety parameters
         float MAX_SAFE_ANGLE_DEVIATION = 30.0f;
-        static constexpr int16_t MAX_BALANCE_POWER = MAX_MOTOR_PWM;
         unsigned long UPDATE_INTERVAL = 3; // 3ms (333Hz)
 
         // Filtering buffers
