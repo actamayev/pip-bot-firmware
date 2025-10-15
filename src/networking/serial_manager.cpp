@@ -6,7 +6,7 @@ void SerialManager::pollSerial() {
         if (isConnected && (millis() - lastActivityTime > SERIAL_CONNECTION_TIMEOUT)) {
             isConnected = false;
             if (!WebSocketManager::getInstance().isWsConnected()) {
-                SensorDataBuffer::getInstance().stopPollingAllSensors();
+                careerQuestTriggers.stopAllCareerQuestTriggers();
             }
         }
         return;
