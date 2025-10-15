@@ -65,17 +65,20 @@ void setup() {
     // 11. Motor (high priority, fast updates)
     TaskManager::createMotorTask();
 
-    // 7. Network (Management task creates Communication task)
+    // 7. Network (Management task creates SendSensorData task)
     TaskManager::createNetworkManagementTask();
+
+    // 8. WebSocket polling (separate from communication for non-blocking sensor data)
+    TaskManager::createWebSocketPollingTask();
     
-    // 8. LEDs (moved later in sequence)
+    // 9. LEDs (moved later in sequence)
     rgbLed.turn_all_leds_off(); // Still turn off LEDs early for safety
     TaskManager::createLedTask();
     
-    // 9. Initialize all sensors centrally to avoid I2C conflicts
+    // 10. Initialize all sensors centrally to avoid I2C conflicts
     SensorInitializer::getInstance(); // This triggers centralized initialization
-    
-    // 10. Individual Sensor Tasks (wait for centralized init, then poll independently)
+
+    // 11. Individual Sensor Tasks (wait for centralized init, then poll independently)
     TaskManager::createImuSensorTask();
     TaskManager::createEncoderSensorTask();
     TaskManager::createMultizoneTofSensorTask();
@@ -92,7 +95,7 @@ void setup() {
     // 14. CareerQuest (trigger system)
     TaskManager::createCareerQuestTask();
 
-    // 14. BytecodeVM
+    // 15. BytecodeVM
     TaskManager::createBytecodeVMTask();
     
     // Note: StackMonitor can be enabled for debugging

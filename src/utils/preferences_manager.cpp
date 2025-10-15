@@ -32,14 +32,13 @@ bool PreferencesManager::beginNamespace(const char* ns) {
 
 // PIP ID methods
 String PreferencesManager::getPipId() {
-    if (!beginNamespace(NS_PIP_ID)) return String(DEFAULT_PIP_ID);  // Fallback to default if can't access preferences
+    if (!beginNamespace(NS_PIP_ID)) return String(getDefaultPipId());  // Changed this line
 
-    // Check if PIP ID exists in preferences
     String pipId = preferences.getString(KEY_PIP_ID, "");
 
     if (pipId.length() == 0) {
         // First boot - initialize with the compile-time default
-        pipId = String(DEFAULT_PIP_ID);
+        pipId = String(getDefaultPipId());  // Changed this line
         preferences.putString(KEY_PIP_ID, pipId);
     }
     

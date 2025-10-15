@@ -39,14 +39,6 @@ bool WiFiManager::attemptDirectConnectionToSavedNetworks() {
     // Get all saved networks
     std::vector<WiFiCredentials> savedNetworks = PreferencesManager::getInstance().getAllStoredWiFiNetworks();
 
-    // if (
-    //     (ledAnimations.getCurrentAnimation() != LedTypes::BREATHING) &&
-    //     (BytecodeVM::getInstance().isPaused == BytecodeVM::getInstance().PROGRAM_NOT_STARTED)
-    // ) {
-    //     rgbLed.set_led_red();
-    //     ledAnimations.startBreathing();
-    // }
-
     SerialQueueManager::getInstance().queueMessage("Attempting direct connection to saved networks...");
     
     // Try to connect to each saved network without scanning first
@@ -310,10 +302,6 @@ bool WiFiManager::startAsyncScan() {
     WiFi.scanDelete();
     vTaskDelay(pdMS_TO_TICKS(100));
     WiFi.mode(WIFI_STA);
-
-    // Set LED to indicate scanning
-    rgbLed.set_led_purple();
-    ledAnimations.startBreathing();
 
     // Start async scan
     int16_t result = WiFi.scanNetworks(true); // true = async

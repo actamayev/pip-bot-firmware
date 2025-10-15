@@ -3,4 +3,4 @@ Run `Upload and Monitor` under the esp32-s3-devkitc-1/General folders
 
 If getting `Linking .pio/build/local/firmware.elf` errors, run `Full Clean` in platformio
 
-To create a Pip with a new Pip_ID, change the DDEFAULT_PIP_ID in the `platformio.ini` file
+To create a Pip with a new Pip_ID, change the DDEFAULT_PIP_ID in the `pip_config.h` file

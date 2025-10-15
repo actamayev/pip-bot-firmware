@@ -19,7 +19,8 @@ TaskHandle_t TaskManager::irSensorTaskHandle = NULL;
 TaskHandle_t TaskManager::sensorLoggerTaskHandle = NULL;
 TaskHandle_t TaskManager::displayTaskHandle = NULL;
 TaskHandle_t TaskManager::networkManagementTaskHandle = NULL;
-TaskHandle_t TaskManager::networkCommunicationTaskHandle = NULL;
+TaskHandle_t TaskManager::sendSensorDataTaskHandle = NULL;
+TaskHandle_t TaskManager::webSocketPollingTaskHandle = NULL;
 TaskHandle_t TaskManager::serialQueueTaskHandle = NULL;
 TaskHandle_t TaskManager::batteryMonitorTaskHandle = NULL;
 TaskHandle_t TaskManager::speakerTaskHandle = NULL;
@@ -203,10 +204,10 @@ void TaskManager::networkManagementTask(void* parameter) {
     WiFiManager::getInstance();
     FirmwareVersionTracker::getInstance();
     
-    // Create the communication task now that management is initialized
-    bool commTaskCreated = createNetworkCommunicationTask();
+    // Create the sensor data transmission task now that management is initialized
+    bool commTaskCreated = createSendSensorDataTask();
     if (!commTaskCreated) {
-        SerialQueueManager::getInstance().queueMessage("ERROR: Failed to create NetworkCommunication task!");
+        SerialQueueManager::getInstance().queueMessage("ERROR: Failed to create SendSensorData task!");
     }
 
     // Main management loop - unified approach
@@ -228,16 +229,26 @@ void TaskManager::networkManagementTask(void* parameter) {
     }
 }
 
-void TaskManager::networkCommunicationTask(void* parameter) {
-    SerialQueueManager::getInstance().queueMessage("Network communication task started");
-    
-    // Main communication loop - unified approach
+void TaskManager::webSocketPollingTask(void* parameter) {
+    SerialQueueManager::getInstance().queueMessage("WebSocket polling task started");
+
+    // Main WebSocket polling loop
     for(;;) {
-        // Always poll WebSocket if WiFi is connected
+        // Only poll WebSocket if WiFi is connected
         if (WiFi.status() == WL_CONNECTED) {
             WebSocketManager::getInstance().pollWebSocket();
         }
-        
+
+        // Fast update rate for real-time WebSocket communication
+        vTaskDelay(pdMS_TO_TICKS(5));
+    }
+}
+
+void TaskManager::sendSensorDataTask(void* parameter) {
+    SerialQueueManager::getInstance().queueMessage("Send sensor data task started");
+
+    // Main sensor data transmission loop
+    for(;;) {
         // Always attempt sensor data transmission (SendSensorData will handle routing)
         SendSensorData::getInstance().sendSensorDataToServer();
         SendSensorData::getInstance().sendMultizoneData();
@@ -367,9 +378,14 @@ bool TaskManager::createNetworkManagementTask() {
                      Priority::COMMUNICATION, Core::CORE_1, &networkManagementTaskHandle);
 }
 
-bool TaskManager::createNetworkCommunicationTask() {
-    return createTask("NetworkComm", networkCommunicationTask, NETWORK_COMMUNICATION_STACK_SIZE,
-                     Priority::REALTIME_COMM, Core::CORE_1, &networkCommunicationTaskHandle);
+bool TaskManager::createSendSensorDataTask() {
+    return createTask("SendSensorData", sendSensorDataTask, SEND_SENSOR_DATA_STACK_SIZE,
+                     Priority::REALTIME_COMM, Core::CORE_1, &sendSensorDataTaskHandle);
+}
+
+bool TaskManager::createWebSocketPollingTask() {
+    return createTask("WebSocketPoll", webSocketPollingTask, WEBSOCKET_POLLING_STACK_SIZE,
+                     Priority::REALTIME_COMM, Core::CORE_1, &webSocketPollingTaskHandle);
 }
 
 bool TaskManager::createSerialQueueTask() {
@@ -526,7 +542,8 @@ void TaskManager::printStackUsage() {
         // Other tasks
         {displayTaskHandle, "Display", DISPLAY_STACK_SIZE},
         {networkManagementTaskHandle, "NetworkMgmt", NETWORK_MANAGEMENT_STACK_SIZE},
-        {networkCommunicationTaskHandle, "NetworkComm", NETWORK_COMMUNICATION_STACK_SIZE},
+        {sendSensorDataTaskHandle, "SendSensorData", SEND_SENSOR_DATA_STACK_SIZE},
+        {webSocketPollingTaskHandle, "WebSocketPoll", WEBSOCKET_POLLING_STACK_SIZE},
         {serialQueueTaskHandle, "SerialQueue", SERIAL_QUEUE_STACK_SIZE},
         {batteryMonitorTaskHandle, "BatteryMonitor", BATTERY_MONITOR_STACK_SIZE},
         {speakerTaskHandle, "Speaker", SPEAKER_STACK_SIZE},

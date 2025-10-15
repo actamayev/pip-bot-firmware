@@ -253,7 +253,7 @@ void TurningManager::applyMotorControl(uint16_t pwm, float velocityError) {
         SerialQueueManager::getInstance().queueMessage("Direction change (overshoot correction)");
 
         // Stop briefly before changing direction
-        motorDriver.stop_both_motors();
+        motorDriver.brake_both_motors();
         vTaskDelay(pdMS_TO_TICKS(50));
     }
 

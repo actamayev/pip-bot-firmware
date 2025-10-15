@@ -187,14 +187,8 @@ void WebSocketManager::killWiFiProcesses() {
     // This method activates when the ESP has been disconnected from WS.
     // Should only run once.
     if (hasKilledWiFiProcesses) return;
-    SensorDataBuffer::getInstance().stopPollingAllSensors();
+    careerQuestTriggers.stopAllCareerQuestTriggers();
     motorDriver.resetCommandState(false);
-    rgbLed.turn_headlights_off();
-    if (!SerialManager::getInstance().isSerialConnected()) {
-        rgbLed.set_led_red();
-        ledAnimations.startBreathing();
-    }
-    Speaker::getInstance().stopAllSounds();
     hasKilledWiFiProcesses = true;
     userConnectedToThisPip = false;
 }
