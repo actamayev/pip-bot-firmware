@@ -3,6 +3,7 @@
 #include <vector>
 #include <Arduino.h>
 #include <Preferences.h>
+#include "pip_config.h"
 #include "utils/structs.h"
 #include "utils/singleton.h"
 #include "networking/serial_queue_manager.h"
