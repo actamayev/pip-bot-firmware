@@ -21,6 +21,3 @@ inline const char* getDefaultPipId() {
     // Default to local
     return PIP_ID_LOCAL;
 }
-
-// Keep this for backwards compatibility if needed elsewhere
-#define DEFAULT_PIP_ID getDefaultPipId()
