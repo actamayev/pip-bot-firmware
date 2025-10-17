@@ -274,6 +274,7 @@ void DisplayScreen::generateContentToBuffer() {
     //         case ColorTypes::COLOR_BLUE:  display.print("BLUE"); break;
     //         case ColorTypes::COLOR_WHITE: display.print("WHITE"); break;
     //         case ColorTypes::COLOR_BLACK: display.print("BLACK"); break;
+    //         case ColorTypes::COLOR_YELLOW: display.print("YELLOW"); break;
     //         case ColorTypes::COLOR_NONE:  display.print("NONE"); break;
     //     }
     // } else {

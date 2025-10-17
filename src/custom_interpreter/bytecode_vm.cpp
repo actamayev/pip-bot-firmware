@@ -338,6 +338,14 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
                         skipDefaultAssignment = true;
                         break;
                     }
+                    case SENSOR_COLOR_YELLOW: {
+                        bool isYellow = SensorDataBuffer::getInstance().isObjectYellow();
+                        registers[regId].asBool = isYellow;
+                        registerTypes[regId] = VAR_BOOL;
+                        registerInitialized[regId] = true;
+                        skipDefaultAssignment = true;
+                        break;
+                    }
                     default: {
                         char logMessage[32];
                         snprintf(logMessage, sizeof(logMessage), "Unknown sensor type: %u", sensorType);
@@ -971,6 +979,7 @@ void BytecodeVM::activateSensorsForProgram() {
                 case SENSOR_COLOR_BLUE:
                 case SENSOR_COLOR_GREEN:
                 case SENSOR_COLOR_WHITE:
+                case SENSOR_COLOR_YELLOW:
                     needColorSensor = true;
             }
         }

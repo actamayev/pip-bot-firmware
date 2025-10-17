@@ -79,7 +79,8 @@ enum BytecodeSensorType : uint8_t {
     SENSOR_COLOR_GREEN = 17,
     SENSOR_COLOR_BLUE = 18,
     SENSOR_COLOR_WHITE = 19,
-    SENSOR_COLOR_BLACK = 20
+    SENSOR_COLOR_BLACK = 20,
+    SENSOR_COLOR_YELLOW = 21,
 };
 
 enum ToneType : uint8_t {
@@ -127,6 +128,7 @@ namespace ColorTypes {
         COLOR_BLUE,
         COLOR_WHITE,
         COLOR_BLACK,
+        COLOR_YELLOW,
         COLOR_NONE  // No clear color detected
     };
 }
