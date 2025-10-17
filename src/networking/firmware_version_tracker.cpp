@@ -1,6 +1,7 @@
 #include "firmware_version_tracker.h"
 
 FirmwareVersionTracker::FirmwareVersionTracker() {
+    firmwareVersion = PreferencesManager::getInstance().getFirmwareVersion();
     // Format it into a message
     char message[64];
     snprintf(message, sizeof(message), "Firmware Version: %d", firmwareVersion);
