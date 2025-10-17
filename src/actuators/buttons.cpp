@@ -72,6 +72,10 @@ void Buttons::setLeftButtonClickHandler(std::function<void(Button2&)> callback) 
 
         // Handle program start on button release
         if (vm.waitingForButtonPressToStart) {
+            if (this->justPausedOnPress) {
+                this->justPausedOnPress = false;
+                return; // Skip start on same press/release cycle
+            }
             if (!vm.canStartProgram()) return;
             vm.isPaused = BytecodeVM::RUNNING;
             vm.waitingForButtonPressToStart = false;

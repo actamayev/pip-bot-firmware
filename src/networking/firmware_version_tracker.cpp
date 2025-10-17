@@ -1,8 +1,13 @@
 #include "firmware_version_tracker.h"
 
 FirmwareVersionTracker::FirmwareVersionTracker() {
-    firmwareVersion = PreferencesManager::getInstance().getFirmwareVersion(); // used to set the class' firmwareVersion
-    
+    // Format it into a message
+    char message[64];
+    snprintf(message, sizeof(message), "Firmware Version: %d", firmwareVersion);
+
+    // Queue the message via SerialQueueManager
+    SerialQueueManager::getInstance().queueMessage(message, SerialPriority::NORMAL);
+
     // Configure HTTPUpdate instance
     httpUpdate.onProgress([this](int curr, int total) {
         this->updateProgressLeds(curr, total);
@@ -27,6 +32,11 @@ void FirmwareVersionTracker::retrieveLatestFirmwareFromServer(uint16_t newVersio
         SerialQueueManager::getInstance().queueMessage("Cannot update: Either already updating or WiFi not connected");
         return;
     }
+
+    // Format it into a message
+    char message[64];
+    snprintf(message, sizeof(message), "New Firmware Version: %d", newVersion);
+    SerialQueueManager::getInstance().queueMessage(message, SerialPriority::NORMAL);
 
     if (firmwareVersion >= newVersion) {
         char buffer[128];

@@ -301,6 +301,7 @@ class SensorDataBuffer : public Singleton<SensorDataBuffer> {
         bool isObjectBlue();
         bool isObjectWhite();
         bool isObjectBlack();
+        bool isObjectYellow();
         ColorType classifyCurrentColor();
 
     private:

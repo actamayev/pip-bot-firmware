@@ -523,6 +523,11 @@ ColorType SensorDataBuffer::classifyCurrentColor() {
         return ColorType::COLOR_WHITE;
     }
 
+    // Yellow: Red and Green strong, Blue weak
+    if (r > 120 && g > 120 && b < 100) {
+        return ColorType::COLOR_YELLOW;
+    }
+
     // Red: R dominant and bright enough
     if (r > 80 && r > (g + 30) && r > (b + 30)) {
         return ColorType::COLOR_RED;
@@ -590,4 +595,10 @@ bool SensorDataBuffer::isObjectBlack() {
     timeouts.color_last_request.store(millis());
     updateColorHistory(classifyCurrentColor());
     return checkColorConsistency(ColorType::COLOR_BLACK);
+}
+
+bool SensorDataBuffer::isObjectYellow() {
+    timeouts.color_last_request.store(millis());
+    updateColorHistory(classifyCurrentColor());
+    return checkColorConsistency(ColorType::COLOR_YELLOW);
 }
