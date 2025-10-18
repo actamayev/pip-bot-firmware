@@ -2,8 +2,8 @@
 #include <cstring>  // Add this for strcmp
 
 // PIP IDs for each environment
-#define PIP_ID_LOCAL "9YhsJ"
-#define PIP_ID_STAGING "bax2P"  // or "EZ2mS" as noted in your config
+#define PIP_ID_LOCAL "dQf4R"
+#define PIP_ID_STAGING "3EqZj"
 #define PIP_ID_PRODUCTION "PmKJZ"
 
 // Returns the appropriate PIP ID based on the build environment
