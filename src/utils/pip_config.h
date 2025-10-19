@@ -3,7 +3,7 @@
 
 // PIP IDs for each environment
 #define PIP_ID_LOCAL "dQf4R"
-#define PIP_ID_STAGING "CKhrY"
+#define PIP_ID_STAGING "FPDyy"
 #define PIP_ID_PRODUCTION "PmKJZ"
 
 // Returns the appropriate PIP ID based on the build environment
