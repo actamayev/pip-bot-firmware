@@ -8,6 +8,7 @@
 #include "utils/preferences_manager.h"
 #include "sensors/sensor_data_buffer.h"
 #include "networking/serial_queue_manager.h"
+#include "career_quest/career_quest_triggers.h"
 
 class FirmwareVersionTracker : public Singleton<FirmwareVersionTracker> {
     friend class Singleton<FirmwareVersionTracker>;
