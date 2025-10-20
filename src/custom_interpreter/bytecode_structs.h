@@ -34,16 +34,12 @@ enum BytecodeOpCode : uint32_t {
     OP_DECLARE_VAR = 0x40,
     OP_SET_VAR = 0x41,
 
-    OP_MOTOR_FORWARD = 0x50,   // Forward movement at specified throttle
-    OP_MOTOR_BACKWARD = 0x51,  // Backward movement at specified throttle
+    OP_MOTOR_GO = 0x50,   // Forward movement at specified throttle
     OP_MOTOR_STOP = 0x52,      // Stop all motors
     OP_MOTOR_TURN = 0x53,      // Turn by specified degrees
+    OP_MOTOR_GO_TIME = 0x54,
+    OP_MOTOR_GO_DISTANCE = 0x56,
 
-    OP_MOTOR_FORWARD_TIME = 0x54,
-    OP_MOTOR_BACKWARD_TIME = 0x55,
-
-    OP_MOTOR_FORWARD_DISTANCE = 0x56,
-    OP_MOTOR_BACKWARD_DISTANCE = 0x57,
     PLAY_SOUND = 0x60,
     PLAY_TONE = 0x61,
 };

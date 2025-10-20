@@ -4,12 +4,9 @@
 const std::map<BytecodeOpCode, std::vector<BytecodeVM::SensorType>> BytecodeVM::opcodeToSensors = {
     // This map is to control what sensors need to be polled for various OpCodes
     // Ie: For motor turn, we need to poll encoders, and quaternion
-    {OP_MOTOR_FORWARD, {SENSOR_QUATERNION}},
-    {OP_MOTOR_BACKWARD, {SENSOR_QUATERNION}},
-    {OP_MOTOR_FORWARD_TIME, {SENSOR_QUATERNION}},
-    {OP_MOTOR_BACKWARD_TIME, {SENSOR_QUATERNION}},
-    {OP_MOTOR_FORWARD_DISTANCE, {SENSOR_QUATERNION}},
-    {OP_MOTOR_BACKWARD_DISTANCE, {SENSOR_QUATERNION}},
+    {OP_MOTOR_GO, {SENSOR_QUATERNION}},
+    {OP_MOTOR_GO_TIME, {SENSOR_QUATERNION}},
+    {OP_MOTOR_GO_DISTANCE, {SENSOR_QUATERNION}},
     {OP_MOTOR_TURN, {SENSOR_QUATERNION}}
 };
 
@@ -535,23 +532,19 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             break;
         }
 
-        case OP_MOTOR_FORWARD: {
-            // Convert percentage (0-100) to motor speed (0-MAX_MOTOR_PWM)
-            uint8_t throttlePercent = constrain(static_cast<uint8_t>(instr.operand1), 0, 100);
+        case OP_MOTOR_GO: {
+            // operand1: direction (0=backward, 1=forward)
+            // operand2: throttle percentage (0-100)
+            bool isForward = (instr.operand1 > 0.5f);  // > 0.5 to handle float precision
+            uint8_t throttlePercent = constrain(static_cast<uint8_t>(instr.operand2), 0, 100);
             uint16_t motorSpeed = map(throttlePercent, 0, 100, 0, MAX_MOTOR_PWM);
-            
-            // Set both motors to forward at calculated speed
-            motorDriver.updateMotorPwm(motorSpeed, motorSpeed);
-            break;
-        }
-        
-        case OP_MOTOR_BACKWARD: {
-            // Convert percentage (0-100) to motor speed (0-MAX_MOTOR_PWM)
-            uint8_t throttlePercent = constrain(static_cast<uint8_t>(instr.operand1), 0, 100);
-            uint16_t motorSpeed = map(throttlePercent, 0, 100, 0, MAX_MOTOR_PWM);
-            
-            // Set both motors to backward (negative speed)
-            motorDriver.updateMotorPwm(-motorSpeed, -motorSpeed);
+
+            // Set both motors based on direction
+            if (isForward) {
+                motorDriver.updateMotorPwm(motorSpeed, motorSpeed);
+            } else {
+                motorDriver.updateMotorPwm(-motorSpeed, -motorSpeed);
+            }
             break;
         }
         
@@ -574,122 +567,78 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             break;
         }
 
-        case OP_MOTOR_FORWARD_TIME: {
-            float seconds = instr.operand1;
-            uint8_t throttlePercent = constrain(static_cast<uint8_t>(instr.operand2), 0, 100);
-            
+        case OP_MOTOR_GO_TIME: {
+            // operand1: direction (0=backward, 1=forward)
+            // operand2: time in seconds
+            // operand3: throttle percentage (0-100)
+            bool isForward = (instr.operand1 > 0.5f);  // > 0.5 to handle float precision
+            float seconds = instr.operand2;
+            uint8_t throttlePercent = constrain(static_cast<uint8_t>(instr.operand3), 0, 100);
+
             // Validate parameters
             if (seconds <= 0.0f) {
-                SerialQueueManager::getInstance().queueMessage("Invalid time value for forward movement");
+                SerialQueueManager::getInstance().queueMessage("Invalid time value for timed movement");
                 break;
             }
-            
+
             if (throttlePercent > 100) {
                 throttlePercent = 100;  // Clamp to valid range
             }
-            
+
             // Convert percentage to motor speed
             uint16_t motorSpeed = map(throttlePercent, 0, 100, 0, MAX_MOTOR_PWM);
-            
-            // Set motors to forward motion
-            motorDriver.updateMotorPwm(motorSpeed, motorSpeed);
-            
+
+            // Set motors based on direction
+            if (isForward) {
+                motorDriver.updateMotorPwm(motorSpeed, motorSpeed);
+            } else {
+                motorDriver.updateMotorPwm(-motorSpeed, -motorSpeed);
+            }
+
             // Set up timed movement
             timedMotorMovementInProgress = true;
             motorMovementEndTime = millis() + static_cast<unsigned long>(seconds * 1000.0f);
-            
+
             break;
         }
 
-        case OP_MOTOR_BACKWARD_TIME: {
-            float seconds = instr.operand1;
-            uint8_t throttlePercent = constrain(static_cast<uint8_t>(instr.operand2), 0, 100);
-            
-            // Validate parameters
-            if (seconds <= 0.0f) {
-                SerialQueueManager::getInstance().queueMessage("Invalid time value for backward movement");
-                break;
-            }
-            SerialQueueManager::getInstance().queueMessage(
-                "Executing MOTOR_BACKWARD_TIME at PC=" + String(pc)
-            );
-            
-            if (throttlePercent > 100) {
-                throttlePercent = 100;  // Clamp to valid range
-            }
-            
-            // Convert percentage to motor speed
-            uint16_t motorSpeed = map(throttlePercent, 0, 100, 0, MAX_MOTOR_PWM);
-            
-            // Set motors to backward motion
-            motorDriver.updateMotorPwm(-motorSpeed, -motorSpeed);
-            
-            // Set up timed movement
-            timedMotorMovementInProgress = true;
-            motorMovementEndTime = millis() + static_cast<unsigned long>(seconds * 1000.0f);
-            
-            break;
-        }
+        case OP_MOTOR_GO_DISTANCE: {
+            // operand1: direction (0=backward, 1=forward)
+            // operand2: distance in inches
+            // operand3: throttle percentage (0-100)
+            bool isForward = (instr.operand1 > 0.5f);  // > 0.5 to handle float precision
+            float distanceIn = instr.operand2;
+            uint8_t throttlePercent = constrain(static_cast<uint8_t>(instr.operand3), 0, 100);
 
-        case OP_MOTOR_FORWARD_DISTANCE: {
-            float distanceIn = instr.operand1;
-            uint8_t throttlePercent = constrain(static_cast<uint8_t>(instr.operand2), 0, 100);
-            
             // Validate parameters
             if (distanceIn <= 0.0f) {
-                SerialQueueManager::getInstance().queueMessage("Invalid distance value for forward movement");
+                SerialQueueManager::getInstance().queueMessage("Invalid distance value for distance movement");
                 break;
             }
-            
+
             if (throttlePercent > 100) {
                 throttlePercent = 100;  // Clamp to valid range
             }
-            
+
             // Convert percentage to motor speed
             uint16_t motorSpeed = map(throttlePercent, 0, 100, 0, MAX_MOTOR_PWM);
-            
+
             // Reset distance tracking - store current distance as starting point
             startingDistanceIn = SensorDataBuffer::getInstance().getLatestDistanceTraveledIn();
-            
+
             // Set up distance movement
             distanceMovementInProgress = true;
             targetDistanceIn = distanceIn;
-            initialDistancePwm = motorSpeed;  // ADD THIS LINE - Store initial PWM
-            
-            // Set motors to forward motion
-            motorDriver.updateMotorPwm(motorSpeed, motorSpeed);
-            
-            break;
-        }
 
-        case OP_MOTOR_BACKWARD_DISTANCE: {
-            float distanceIn = instr.operand1;
-            uint8_t throttlePercent = constrain(static_cast<uint8_t>(instr.operand2), 0, 100);
-            
-            // Validate parameters
-            if (distanceIn <= 0.0f) {
-                SerialQueueManager::getInstance().queueMessage("Invalid distance value for backward movement");
-                break;
+            // Set motors based on direction and store initial PWM with correct sign
+            if (isForward) {
+                initialDistancePwm = motorSpeed;
+                motorDriver.updateMotorPwm(motorSpeed, motorSpeed);
+            } else {
+                initialDistancePwm = -motorSpeed;  // Store as negative for backward
+                motorDriver.updateMotorPwm(-motorSpeed, -motorSpeed);
             }
-            
-            if (throttlePercent > 100) {
-                throttlePercent = 100;  // Clamp to valid range
-            }
-            
-            // Convert percentage to motor speed
-            uint16_t motorSpeed = map(throttlePercent, 0, 100, 0, MAX_MOTOR_PWM);
-            
-            // Reset distance tracking - store current distance as starting point
-            startingDistanceIn = SensorDataBuffer::getInstance().getLatestDistanceTraveledIn();
-            
-            // Set up distance movement
-            distanceMovementInProgress = true;
-            targetDistanceIn = distanceIn;
-            initialDistancePwm = -motorSpeed;  // ADD THIS LINE - Store as negative for backward
 
-            // Set motors to backward motion
-            motorDriver.updateMotorPwm(-motorSpeed, -motorSpeed);
-            
             break;
         }
 
@@ -1027,14 +976,11 @@ void BytecodeVM::scanProgramForMotors() {
     
     // Define all motor opcodes that should block USB execution
     const BytecodeOpCode motorOpcodes[] = {
-        OP_MOTOR_FORWARD,
-        OP_MOTOR_BACKWARD, 
+        OP_MOTOR_GO,
         OP_MOTOR_STOP,
         OP_MOTOR_TURN,
-        OP_MOTOR_FORWARD_TIME,
-        OP_MOTOR_BACKWARD_TIME,
-        OP_MOTOR_FORWARD_DISTANCE,
-        OP_MOTOR_BACKWARD_DISTANCE
+        OP_MOTOR_GO_TIME,
+        OP_MOTOR_GO_DISTANCE
     };
     
     // Scan entire program for any motor commands
