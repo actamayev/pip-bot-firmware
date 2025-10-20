@@ -4,7 +4,7 @@
 // PIP IDs for each environment
 #define PIP_ID_LOCAL "dQf4R"
 #define PIP_ID_STAGING "FPDyy"
-#define PIP_ID_PRODUCTION "ie37n"
+#define PIP_ID_PRODUCTION "PQ9Dp"
 
 // Returns the appropriate PIP ID based on the build environment
 inline const char* getDefaultPipId() {
