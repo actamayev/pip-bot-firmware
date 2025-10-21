@@ -108,26 +108,26 @@ void SideTimeOfFlightSensor::Basic_Initialization_Auto_Mode() {
 void SideTimeOfFlightSensor::loadCalibrationFromPreferences() {
     PreferencesManager& prefs = PreferencesManager::getInstance();
     
-    if (prefs.hasSideTofCalibration(sensorAddress)) {
-        baselineValue = prefs.getSideTofBaseline(sensorAddress);
-        useHardwareCalibration = prefs.getSideTofUseHardwareCalibration(sensorAddress);
-        isCalibrated = true;
-        
-        char logMessage[128];
-        snprintf(logMessage, sizeof(logMessage), 
-                "Loaded calibration for sensor 0x%02X: baseline=%u, hw_calib=%s", 
-                sensorAddress, baselineValue, useHardwareCalibration ? "true" : "false");
-        SerialQueueManager::getInstance().queueMessage(logMessage);
-        
-        if (useHardwareCalibration) {
-            applyHardwareCalibration(baselineValue);
-        }
-    } else {
+    if (!prefs.hasSideTofCalibration(sensorAddress)) {
         isCalibrated = false;
         char logMessage[128];
         snprintf(logMessage, sizeof(logMessage), 
                 "No stored calibration found for sensor 0x%02X", sensorAddress);
         SerialQueueManager::getInstance().queueMessage(logMessage);
+        return;
+    }
+    baselineValue = prefs.getSideTofBaseline(sensorAddress);
+    useHardwareCalibration = prefs.getSideTofUseHardwareCalibration(sensorAddress);
+    isCalibrated = true;
+    
+    char logMessage[128];
+    snprintf(logMessage, sizeof(logMessage), 
+            "Loaded calibration for sensor 0x%02X: baseline=%u, hw_calib=%s", 
+            sensorAddress, baselineValue, useHardwareCalibration ? "true" : "false");
+    SerialQueueManager::getInstance().queueMessage(logMessage);
+    
+    if (useHardwareCalibration) {
+        applyHardwareCalibration(baselineValue);
     }
 }
 
@@ -158,8 +158,7 @@ bool SideTimeOfFlightSensor::performCalibration() {
     }
     
     // Store calibration in NVS
-    PreferencesManager& prefs = PreferencesManager::getInstance();
-    prefs.storeSideTofCalibration(sensorAddress, baselineValue, useHardwareCalibration);
+    PreferencesManager::getInstance().storeSideTofCalibration(sensorAddress, baselineValue, useHardwareCalibration);
     
     isCalibrated = true;
     
