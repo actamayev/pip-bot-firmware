@@ -30,97 +30,132 @@ bool PreferencesManager::beginNamespace(const char* ns) {
     return success;
 }
 
+// Cache loading methods
+void PreferencesManager::loadPipIdCache() {
+    if (cache.pipIdLoaded) return;
+
+    if (!beginNamespace(NS_PIP_ID)) {
+        cache.pipId = String(getDefaultPipId());
+        cache.pipIdLoaded = true;
+        return;
+    }
+
+    cache.pipId = preferences.getString(KEY_PIP_ID, "");
+
+    if (cache.pipId.length() == 0) {
+        cache.pipId = String(getDefaultPipId());
+        preferences.putString(KEY_PIP_ID, cache.pipId);
+    }
+
+    cache.pipIdLoaded = true;
+}
+
+void PreferencesManager::loadFirmwareVersionCache() {
+    if (cache.firmwareVersionLoaded) return;
+
+    if (!beginNamespace(NS_FIRMWARE)) {
+        cache.firmwareVersion = 0;
+        cache.firmwareVersionLoaded = true;
+        return;
+    }
+
+    cache.firmwareVersion = preferences.getInt(KEY_FW_VERSION, 0);
+    cache.firmwareVersionLoaded = true;
+}
+
+void PreferencesManager::loadWifiDataCache() {
+    if (cache.wifiDataLoaded) return;
+
+    cache.wifiNetworks.clear();
+
+    if (!beginNamespace(NS_WIFI)) {
+        cache.wifiCount = 0;
+        cache.wifiDataLoaded = true;
+        return;
+    }
+
+    cache.wifiCount = 0;
+    if (preferences.isKey(WIFI_COUNT)) {
+        cache.wifiCount = preferences.getInt(WIFI_COUNT, 0);
+    }
+
+    for (int i = 0; i < cache.wifiCount; i++) {
+        WiFiCredentials creds;
+
+        char ssidKey[128], passwordKey[128];
+        sprintf(ssidKey, "ssid_%d", i);
+        sprintf(passwordKey, "pwd_%d", i);
+
+        creds.ssid = preferences.getString(ssidKey, "");
+        creds.password = preferences.getString(passwordKey, "");
+
+        if (!creds.ssid.isEmpty()) {
+            cache.wifiNetworks.push_back(creds);
+        }
+    }
+
+    cache.wifiDataLoaded = true;
+}
+
 // PIP ID methods
 String PreferencesManager::getPipId() {
-    if (!beginNamespace(NS_PIP_ID)) return String(getDefaultPipId());  // Changed this line
-
-    String pipId = preferences.getString(KEY_PIP_ID, "");
-
-    if (pipId.length() == 0) {
-        // First boot - initialize with the compile-time default
-        pipId = String(getDefaultPipId());  // Changed this line
-        preferences.putString(KEY_PIP_ID, pipId);
-    }
-    
-    return pipId;
+    loadPipIdCache();
+    return cache.pipId;
 }
 
 // Firmware version methods
 int PreferencesManager::getFirmwareVersion() {
-    if (!beginNamespace(NS_FIRMWARE)) return 0;  // Fallback to 0 if can't access preferences
-    
-    return preferences.getInt(KEY_FW_VERSION, 0);
+    loadFirmwareVersionCache();
+    return cache.firmwareVersion;
 }
 
 void PreferencesManager::setFirmwareVersion(int version) {
     if (!beginNamespace(NS_FIRMWARE)) return;  // Can't access preferences
 
     preferences.putInt(KEY_FW_VERSION, version);
+
+    // Update cache
+    cache.firmwareVersion = version;
+    cache.firmwareVersionLoaded = true;
 }
 
 // WiFi methods
 void PreferencesManager::storeWiFiCredentials(const String& ssid, const String& password, int index) {
     if (!beginNamespace(NS_WIFI)) return;  // Can't access preferences
-    
+
     // Generate keys with index
     char ssidKey[128], passwordKey[128];
     sprintf(ssidKey, "ssid_%d", index);
     sprintf(passwordKey, "pwd_%d", index);
-    
+
     preferences.putString(ssidKey, ssid);
     preferences.putString(passwordKey, password);
-    
+
     // Initialize wifi_count if it doesn't exist, or update if necessary
     int currentCount = 0;
     if (preferences.isKey(WIFI_COUNT)) {
         currentCount = preferences.getInt(WIFI_COUNT, 0);
     }
-    
+
     if (index >= currentCount) {
         preferences.putInt(WIFI_COUNT, index + 1);
     }
+
+    // Invalidate WiFi cache to force reload
+    cache.wifiDataLoaded = false;
+    cache.wifiNetworks.clear();
+    cache.wifiCount = 0;
 }
 
 bool PreferencesManager::hasStoredWiFiNetworks() {
-    if (!beginNamespace(NS_WIFI)) return false;
-    
-    // Check if wifi_count key exists and is greater than 0
-    if (preferences.isKey(WIFI_COUNT)) {
-        return preferences.getInt(WIFI_COUNT, 0) > 0;
-    }
-    return false;
+    loadWifiDataCache();
+    return cache.wifiCount > 0;
 }
 
 // Updated getAllStoredWiFiNetworks method:
 std::vector<WiFiCredentials> PreferencesManager::getAllStoredWiFiNetworks() {
-    std::vector<WiFiCredentials> networks;
-    
-    if (!beginNamespace(NS_WIFI)) return networks;  // Return empty vector if can't access preferences
-    
-    // Check if wifi_count key exists before trying to read it
-    int count = 0;
-    if (preferences.isKey(WIFI_COUNT)) {
-        count = preferences.getInt(WIFI_COUNT, 0);
-    }
-    // If key doesn't exist, count remains 0 and we return empty vector
-    
-    for (int i = 0; i < count; i++) {
-        WiFiCredentials creds;
-        
-        // Create keys with the SAME format as in storeWiFiCredentials
-        char ssidKey[128], passwordKey[128];
-        sprintf(ssidKey, "ssid_%d", i);
-        sprintf(passwordKey, "pwd_%d", i);
-        
-        creds.ssid = preferences.getString(ssidKey, "");
-        creds.password = preferences.getString(passwordKey, "");
-        
-        if (!creds.ssid.isEmpty()) {
-            networks.push_back(creds);
-        }
-    }
-    
-    return networks;
+    loadWifiDataCache();
+    return cache.wifiNetworks;
 }
 
 // Side TOF calibration methods
@@ -164,10 +199,10 @@ bool PreferencesManager::getSideTofUseHardwareCalibration(uint8_t sensorAddress)
 
 bool PreferencesManager::forgetWiFiNetwork(const String& targetSSID) {
     if (!beginNamespace(NS_WIFI)) return false;
-    
+
     // Get all current networks
     std::vector<WiFiCredentials> allNetworks = getAllStoredWiFiNetworks();
-    
+
     // Filter out networks matching targetSSID
     std::vector<WiFiCredentials> filteredNetworks;
     for (const auto& network : allNetworks) {
@@ -175,12 +210,12 @@ bool PreferencesManager::forgetWiFiNetwork(const String& targetSSID) {
             filteredNetworks.push_back(network);
         }
     }
-    
+
     // If no networks were removed, return false
     if (filteredNetworks.size() == allNetworks.size()) {
         return false; // Network not found
     }
-    
+
     // Clear all existing network data
     int currentCount = preferences.getInt(WIFI_COUNT, 0);
     for (int i = 0; i < currentCount; i++) {
@@ -190,7 +225,7 @@ bool PreferencesManager::forgetWiFiNetwork(const String& targetSSID) {
         preferences.remove(ssidKey);
         preferences.remove(passwordKey);
     }
-    
+
     // Re-store filtered networks with contiguous indices
     for (size_t i = 0; i < filteredNetworks.size(); i++) {
         char ssidKey[128], passwordKey[128];
@@ -199,9 +234,14 @@ bool PreferencesManager::forgetWiFiNetwork(const String& targetSSID) {
         preferences.putString(ssidKey, filteredNetworks[i].ssid);
         preferences.putString(passwordKey, filteredNetworks[i].password);
     }
-    
+
     // Update wifi_count
     preferences.putInt(WIFI_COUNT, filteredNetworks.size());
-    
+
+    // Invalidate WiFi cache to force reload
+    cache.wifiDataLoaded = false;
+    cache.wifiNetworks.clear();
+    cache.wifiCount = 0;
+
     return true;
 }

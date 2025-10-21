@@ -8,6 +8,22 @@
 #include "utils/pip_config.h"
 #include "networking/serial_queue_manager.h"
 
+// Cache structure for frequently accessed preferences
+struct PreferencesCache {
+    // PIP ID cache
+    String pipId;
+    bool pipIdLoaded = false;
+
+    // Firmware version cache
+    int firmwareVersion = 0;
+    bool firmwareVersionLoaded = false;
+
+    // WiFi networks cache
+    std::vector<WiFiCredentials> wifiNetworks;
+    int wifiCount = 0;
+    bool wifiDataLoaded = false;
+};
+
 class PreferencesManager : public Singleton<PreferencesManager> {
     friend class Singleton<PreferencesManager>;
 
@@ -33,15 +49,23 @@ class PreferencesManager : public Singleton<PreferencesManager> {
     private:
         PreferencesManager() = default;
         ~PreferencesManager();
-        
+
         // Single preferences instance
         Preferences preferences;
-        
+
         // Current open namespace
         String currentNamespace = "";
-        
+
+        // Cache for frequently accessed data
+        PreferencesCache cache;
+
         // Method to ensure correct namespace is open
         bool beginNamespace(const char* ns);
+
+        // Cache loading methods
+        void loadPipIdCache();
+        void loadFirmwareVersionCache();
+        void loadWifiDataCache();
         
         // Namespace constants (akin to folders)
         static constexpr const char* NS_PIP_ID = "pip_id";
