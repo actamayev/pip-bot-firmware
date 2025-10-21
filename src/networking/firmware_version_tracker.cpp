@@ -75,6 +75,9 @@ void FirmwareVersionTracker::retrieveLatestFirmwareFromServer(uint16_t newVersio
 }
 
 void FirmwareVersionTracker::updateProgressLeds(int progress, int total) {
+    // Stop any active LED animations to prevent interference
+    ledAnimations.stopAnimation();
+
     // Calculate percentage (0-100)
     int percentage = (progress * 100) / total;
     

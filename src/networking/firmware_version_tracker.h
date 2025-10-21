@@ -9,6 +9,7 @@
 #include "sensors/sensor_data_buffer.h"
 #include "networking/serial_queue_manager.h"
 #include "career_quest/career_quest_triggers.h"
+#include "actuators/led/led_animations.h"
 
 class FirmwareVersionTracker : public Singleton<FirmwareVersionTracker> {
     friend class Singleton<FirmwareVersionTracker>;
