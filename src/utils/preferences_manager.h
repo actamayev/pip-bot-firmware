@@ -20,8 +20,6 @@ class PreferencesManager : public Singleton<PreferencesManager> {
         
         // WiFi methods
         void storeWiFiCredentials(const String& ssid, const String& password, int index);
-        String getWiFiSSID(int index = 0);
-        String getWiFiPassword(int index = 0);
         std::vector<WiFiCredentials> getAllStoredWiFiNetworks();
         bool hasStoredWiFiNetworks();  // Add this new method
 

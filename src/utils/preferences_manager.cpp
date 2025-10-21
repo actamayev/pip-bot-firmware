@@ -81,24 +81,6 @@ void PreferencesManager::storeWiFiCredentials(const String& ssid, const String& 
     }
 }
 
-String PreferencesManager::getWiFiSSID(int index) {
-    if (!beginNamespace(NS_WIFI)) return "";  // Can't access preferences
-
-    char ssidKey[128];
-    sprintf(ssidKey, "ssid_%d", index);
-    
-    return preferences.getString(ssidKey, "");
-}
-
-String PreferencesManager::getWiFiPassword(int index) {
-    if (!beginNamespace(NS_WIFI)) return "";  // Can't access preferences
-    
-    char passwordKey[128];
-    sprintf(passwordKey, "pwd_%d", index);
-    
-    return preferences.getString(passwordKey, "");
-}
-
 bool PreferencesManager::hasStoredWiFiNetworks() {
     if (!beginNamespace(NS_WIFI)) return false;
     
