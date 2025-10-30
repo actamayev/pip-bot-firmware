@@ -85,11 +85,15 @@ void MultizoneTofSensor::updateSensorData() {
     
     // Process obstacle detection with the raw data
     bool obstacleDetected = processObstacleDetection(rawData);
-    
+
+    // Calculate front distance from ROI zones
+    float frontDistance = calculateFrontDistance(rawData);
+
     // Create TofData structure and write to buffer
     TofData tofData;
     tofData.rawData = rawData;
     tofData.isObjectDetected = obstacleDetected;
+    tofData.frontDistance = frontDistance;
     tofData.isValid = true;
     tofData.timestamp = millis();
     
@@ -285,6 +289,42 @@ void MultizoneTofSensor::turnOffSensor() {
     sensorActive = false;
     sensorEnabled = false;
     isInitialized = false;
-    
+
     initializePointHistories();
+}
+
+float MultizoneTofSensor::calculateFrontDistance(const VL53L7CX_ResultsData& rawData) {
+    float minDistance = 9999.0f; // Start with very large value
+    bool foundValidReading = false;
+
+    // Scan through the ROI zones (rows 3-4, columns 1-6)
+    for (int rowIdx = 0; rowIdx < ROI_ROWS; rowIdx++) {
+        int row = rowIdx + 3;  // Convert to physical row (3-4)
+
+        for (int colIdx = 0; colIdx < ROI_COLS; colIdx++) {
+            int col = colIdx + 1;  // Convert to physical column (1-6)
+
+            // Calculate the actual index in the sensor data array
+            int index = row * 8 + col;
+
+            // Check if we have valid data for this point
+            if (rawData.nb_target_detected[index] > 0) {
+                uint16_t distance = rawData.distance_mm[index];
+                uint8_t status = rawData.target_status[index];
+
+                // Apply same filtering as obstacle detection
+                if (distance <= MAX_DISTANCE &&
+                    distance >= MIN_DISTANCE &&
+                    status >= SIGNAL_THRESHOLD) {
+
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        foundValidReading = true;
+                    }
+                }
+            }
+        }
+    }
+
+    return foundValidReading ? minDistance : -1.0f; // Return -1 if no valid readings
 }

@@ -109,6 +109,11 @@ bool SensorDataBuffer::isObjectDetectedTof() {
     return currentTofData.isObjectDetected && currentTofData.isValid;
 }
 
+float SensorDataBuffer::getFrontTofDistance() {
+    timeouts.tof_last_request.store(millis());
+    return currentTofData.frontDistance;
+}
+
 // Side TOF Read methods - reset timeouts when called (existing)
 SideTofData SensorDataBuffer::getLatestSideTofData() {
     timeouts.side_tof_last_request.store(millis());

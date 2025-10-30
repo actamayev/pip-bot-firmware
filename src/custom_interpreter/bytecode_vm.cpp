@@ -185,43 +185,6 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             break;
         }
 
-        case OP_SET_LED: {
-            // Set specific LED to color
-            BytecodeLedID ledId = static_cast<BytecodeLedID>(instr.operand1); // Cast to ensure range
-            uint8_t r = static_cast<uint8_t>(instr.operand2);     // Cast to uint8_t for
-            uint8_t g = static_cast<uint8_t>(instr.operand3);     // RGB values (0-255)
-            uint8_t b = static_cast<uint8_t>(instr.operand4);        
-
-            // Set the LED color
-            switch (ledId) {
-                case LED_TOP_LEFT:
-                    rgbLed.set_top_left_led(r, g, b);
-                    break;
-                case LED_TOP_RIGHT:
-                    rgbLed.set_top_right_led(r, g, b);
-                    break;
-                case LED_MIDDLE_LEFT:
-                    rgbLed.set_middle_left_led(r, g, b);
-                    break;
-                case LED_MIDDLE_RIGHT:
-                    rgbLed.set_middle_right_led(r, g, b);
-                    break;
-                case LED_BACK_LEFT:
-                    rgbLed.set_back_left_led(r, g, b);
-                    break;
-                case LED_BACK_RIGHT:
-                    rgbLed.set_back_right_led(r, g, b);
-                    break;
-                case LEFT_HEADLIGHT:
-                    rgbLed.set_left_headlight(r, g, b);
-                    break;
-                case RIGHT_HEADLIGHT:
-                    rgbLed.set_right_headlight(r, g, b);
-                    break;
-            }
-            break;
-        }
-
         case OP_READ_SENSOR: {
             BytecodeSensorType sensorType = static_cast<BytecodeSensorType>(instr.operand1);  // Which sensor to read
             uint16_t regId = instr.operand2;       // Register to store result
@@ -343,6 +306,9 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
                         skipDefaultAssignment = true;
                         break;
                     }
+                    case FRONT_TOF_DISTANCE:
+                        value = SensorDataBuffer::getInstance().getFrontTofDistance();
+                        break;
                     default: {
                         char logMessage[32];
                         snprintf(logMessage, sizeof(logMessage), "Unknown sensor type: %u", sensorType);
@@ -921,6 +887,7 @@ void BytecodeVM::activateSensorsForProgram() {
                     needSideTof = true;
                     break;
                 case SENSOR_FRONT_PROXIMITY:
+                case FRONT_TOF_DISTANCE:
                     needTof = true;
                     break;
                 case SENSOR_COLOR_RED:
