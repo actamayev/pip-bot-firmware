@@ -326,5 +326,5 @@ float MultizoneTofSensor::calculateFrontDistance(const VL53L7CX_ResultsData& raw
         }
     }
 
-    return foundValidReading ? minDistance : -1.0f; // Return -1 if no valid readings
+    return foundValidReading ? (minDistance / 25.4f) : -1.0f; // Convert mm to inches, return -1 if no valid readings
 }

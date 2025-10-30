@@ -21,7 +21,7 @@ struct TofData {
     VL53L7CX_ResultsData rawData;
     bool isObjectDetected;
     bool isValid;
-    float frontDistance;  // Minimum distance from front-facing zones (mm), -1 if invalid
+    float frontDistance;  // Minimum distance from front-facing zones (inches), -1 if invalid
     uint32_t timestamp;
 
     TofData() {
