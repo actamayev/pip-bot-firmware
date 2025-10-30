@@ -42,6 +42,7 @@ class MultizoneTofSensor : public Singleton<MultizoneTofSensor> {
         void updatePointHistory(int rowIdx, int colIdx, float distance);
         bool isPointObstacleConsistent(int rowIdx, int colIdx);
         bool processObstacleDetection(const VL53L7CX_ResultsData& rawData);
+        float calculateFrontDistance(const VL53L7CX_ResultsData& rawData);
 
         // Configuration parameters
         uint16_t MAX_DISTANCE = 1000;       // Maximum valid distance (mm)

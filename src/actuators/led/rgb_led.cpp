@@ -14,6 +14,11 @@ void RgbLed::turn_all_leds_off() {
         strip.setPixelColor(i, strip.Color(0, 0, 0));
     }
     strip.show();
+
+    // Reset stored RGB values to match the off state
+    currentRed = 0;
+    currentGreen = 0;
+    currentBlue = 0;
 }
 
 void RgbLed::set_led_red() {

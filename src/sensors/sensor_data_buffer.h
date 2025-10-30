@@ -21,11 +21,13 @@ struct TofData {
     VL53L7CX_ResultsData rawData;
     bool isObjectDetected;
     bool isValid;
+    float frontDistance;  // Minimum distance from front-facing zones (inches), -1 if invalid
     uint32_t timestamp;
-    
+
     TofData() {
         isObjectDetected = false;
         isValid = false;
+        frontDistance = -1.0f;
         timestamp = 0;
         // Initialize rawData to safe defaults
         memset(&rawData, 0, sizeof(VL53L7CX_ResultsData));
@@ -215,6 +217,7 @@ class SensorDataBuffer : public Singleton<SensorDataBuffer> {
         TofData getLatestTofData();
         VL53L7CX_ResultsData getLatestTofRawData();
         bool isObjectDetectedTof();
+        float getFrontTofDistance();
         
         // Side TOF Read methods (called from any core, resets timeouts)
         SideTofData getLatestSideTofData();

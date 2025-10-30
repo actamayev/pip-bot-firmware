@@ -107,18 +107,26 @@ void LedAnimations::stopAnimation() {
 }
 
 void LedAnimations::fadeOut() {
+    // Check if LEDs are already off (all stored RGB values are 0)
+    if (rgbLed.getCurrentRed() == 0 && rgbLed.getCurrentGreen() == 0 && rgbLed.getCurrentBlue() == 0) {
+        // LEDs are already off, no need to fade
+        return;
+    }
+
     // Set fade parameters
     breathMin[0] = 0;
     breathMin[1] = 0;
     breathMin[2] = 0;
-    
+
+    // Set max to current stored values
     breathMax[0] = rgbLed.getCurrentRed();
     breathMax[1] = rgbLed.getCurrentGreen();
     breathMax[2] = rgbLed.getCurrentBlue();
-    
-    breathProgress = 0.0;
+
+    // Start at 0.5 to begin fade from maximum brightness and go straight to min
+    breathProgress = 0.5;
     breathSpeed = 500; // Faster fade out
-    
+
     // Set to breathing for fade out
     currentAnimation = LedTypes::BREATHING;
     isFadingOut = true;
