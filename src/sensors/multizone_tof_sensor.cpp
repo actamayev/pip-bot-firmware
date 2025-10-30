@@ -126,7 +126,7 @@ bool MultizoneTofSensor::processObstacleDetection(const VL53L7CX_ResultsData& ra
     // First update all point histories with current readings
     for (int rowIdx = 0; rowIdx < ROI_ROWS; rowIdx++) {
         int row = rowIdx + 3;  // Convert to physical row (3-4)
-        
+
         for (int colIdx = 0; colIdx < ROI_COLS; colIdx++) {
             int col = colIdx + 1;  // Convert to physical column (1-6)
             
@@ -297,12 +297,12 @@ float MultizoneTofSensor::calculateFrontDistance(const VL53L7CX_ResultsData& raw
     float minDistance = 9999.0f; // Start with very large value
     bool foundValidReading = false;
 
-    // Scan through the ROI zones (rows 3-4, columns 1-6)
+    // Scan through the front-center zones (rows 3-4, columns 2-5)
     for (int rowIdx = 0; rowIdx < ROI_ROWS; rowIdx++) {
         int row = rowIdx + 3;  // Convert to physical row (3-4)
 
-        for (int colIdx = 0; colIdx < ROI_COLS; colIdx++) {
-            int col = colIdx + 1;  // Convert to physical column (1-6)
+        for (int colIdx = 0; colIdx < 4; colIdx++) {  // 4 columns (2-5)
+            int col = colIdx + 2;  // Convert to physical column (2-5)
 
             // Calculate the actual index in the sensor data array
             int index = row * 8 + col;

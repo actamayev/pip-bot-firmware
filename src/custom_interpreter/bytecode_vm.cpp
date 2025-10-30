@@ -306,9 +306,11 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
                         skipDefaultAssignment = true;
                         break;
                     }
-                    case FRONT_TOF_DISTANCE:
-                        value = SensorDataBuffer::getInstance().getFrontTofDistance();
+                    case FRONT_TOF_DISTANCE: {
+                        float frontDistance = SensorDataBuffer::getInstance().getFrontTofDistance();
+                        value = (frontDistance < 0) ? 999.0f : frontDistance; // Return 999 inches if no valid reading
                         break;
+                    }
                     default: {
                         char logMessage[32];
                         snprintf(logMessage, sizeof(logMessage), "Unknown sensor type: %u", sensorType);
