@@ -634,8 +634,7 @@ void CareerQuestTriggers::stopAllCareerQuestTriggers() {
     
     // Stop all LED animations (but don't force LEDs off - let career quest fades complete)
     ledAnimations.stopAnimation();
-    rgbLed.turn_headlights_off();
-    ledAnimations.fadeOut();
+    rgbLed.turn_all_leds_off();
 
     // Stop all audio
     Speaker::getInstance().stopAllSounds();

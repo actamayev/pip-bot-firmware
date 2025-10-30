@@ -10,8 +10,6 @@ enum BytecodeOpCode : uint32_t {
     OP_WAIT_FOR_BUTTON = 0x03,
     CHECK_RIGHT_BUTTON_PRESS = 0x04,
 
-    // LED operations
-    OP_SET_LED = 0x10,  // Set specific LED
     OP_SET_ALL_LEDS = 0x11, // Set all LEDs
     
     // Reserved for future extensions
@@ -77,6 +75,7 @@ enum BytecodeSensorType : uint8_t {
     SENSOR_COLOR_WHITE = 19,
     SENSOR_COLOR_BLACK = 20,
     SENSOR_COLOR_YELLOW = 21,
+    FRONT_TOF_DISTANCE = 22
 };
 
 enum ToneType : uint8_t {
@@ -93,19 +92,6 @@ enum BytecodeVarType : uint8_t {
     VAR_FLOAT = 0x01,
     VAR_INT = 0x02,
     VAR_BOOL = 0x03
-};
-
-// LED IDs
-enum BytecodeLedID : uint8_t {
-    LED_ALL = 0,
-    LED_TOP_LEFT = 1,
-    LED_TOP_RIGHT = 2,
-    LED_MIDDLE_LEFT = 3,
-    LED_MIDDLE_RIGHT = 4,
-    LED_BACK_LEFT = 5,
-    LED_BACK_RIGHT = 6,
-    LEFT_HEADLIGHT = 7,
-    RIGHT_HEADLIGHT = 8,
 };
 
 // A single bytecode instruction (10 bytes)
