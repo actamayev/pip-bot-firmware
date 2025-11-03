@@ -16,6 +16,8 @@
 #include "sensors/encoder_manager.h"
 #include "actuators/speaker.h"
 #include "demos/straight_line_drive.h"
+#include <freertos/FreeRTOS.h>
+#include <freertos/semphr.h>
 
 class BytecodeVM : public Singleton<BytecodeVM> {
     friend class Singleton<BytecodeVM>;
@@ -34,7 +36,7 @@ class BytecodeVM : public Singleton<BytecodeVM> {
         bool isProgramLoaded() const { return program != nullptr; }
 
     private:
-        BytecodeVM() = default;
+        BytecodeVM();
         ~BytecodeVM();
         // Constants:
         static const uint16_t MAX_REGISTERS = 1024; // Changed from uint8_t to uint16_t
@@ -137,4 +139,7 @@ class BytecodeVM : public Singleton<BytecodeVM> {
         // Deceleration constants (add near your other constants)
         static constexpr float DECELERATION_RATE = 2000.0f;  // PWM²/inch - tune this value
         static constexpr int16_t MIN_DECELERATION_PWM = 600;  // Minimum PWM during deceleration
+
+        // Thread synchronization
+        SemaphoreHandle_t programMutex = nullptr;
 };

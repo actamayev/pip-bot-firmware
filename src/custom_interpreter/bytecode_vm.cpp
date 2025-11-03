@@ -10,22 +10,45 @@ const std::map<BytecodeOpCode, std::vector<BytecodeVM::SensorType>> BytecodeVM::
     {OP_MOTOR_TURN, {SENSOR_QUATERNION}}
 };
 
+BytecodeVM::BytecodeVM() {
+    programMutex = xSemaphoreCreateMutex();
+    if (programMutex == nullptr) {
+        SerialQueueManager::getInstance().queueMessage("Failed to create BytecodeVM mutex");
+    }
+}
+
 BytecodeVM::~BytecodeVM() {
     resetStateVariables(true);
+    if (programMutex != nullptr) {
+        vSemaphoreDelete(programMutex);
+        programMutex = nullptr;
+    }
 }
 
 bool BytecodeVM::loadProgram(const uint8_t* byteCode, uint16_t size) {
-    // Free any existing program
-    stopProgram();
+    if (programMutex == nullptr) return false;
+
+    // Acquire mutex with timeout to prevent deadlock
+    if (xSemaphoreTake(programMutex, pdMS_TO_TICKS(100)) != pdTRUE) {
+        SerialQueueManager::getInstance().queueMessage("loadProgram: Failed to acquire mutex");
+        return false;
+    }
+
+    // Free any existing program (internal call - mutex already held)
+    resetStateVariables(true);
 
     // Validate bytecode size (must be multiple of 20 now)
     if (size % INSTRUCTION_SIZE != 0 || size / INSTRUCTION_SIZE > MAX_PROGRAM_SIZE) {
+        xSemaphoreGive(programMutex);
         return false;
     }
     
     programSize = size / INSTRUCTION_SIZE;
     program = new(std::nothrow) BytecodeInstruction[programSize];
-    if (!program) return false;
+    if (!program) {
+        xSemaphoreGive(programMutex);
+        return false;
+    }
 
     // Iterate through program indices (0 to programSize-1)
     for (uint16_t i = 0; i < programSize; i++) {
@@ -58,12 +81,23 @@ bool BytecodeVM::loadProgram(const uint8_t* byteCode, uint16_t size) {
     activateSensorsForProgram(); // Activate sensors needed by the program
     stoppedDueToUsbSafety = false; // Reset safety flag on new program load
 
+    xSemaphoreGive(programMutex);
     return true;
 }
 
 void BytecodeVM::update() {
+    if (programMutex == nullptr) return;
+
+    // Try to acquire mutex without blocking to avoid delays in real-time execution
+    if (xSemaphoreTake(programMutex, 0) != pdTRUE) {
+        return; // Skip this update cycle if mutex is locked
+    }
+
     checkUsbSafetyConditions();
-    if (!program || isPaused == PauseState::PAUSED || isPaused == PauseState::PROGRAM_FINISHED) return;
+    if (!program || isPaused == PauseState::PAUSED || isPaused == PauseState::PROGRAM_FINISHED) {
+        xSemaphoreGive(programMutex);
+        return;
+    }
 
     // Check if program has naturally completed (pc reached or exceeded program size)
     if (pc >= programSize) {
@@ -71,12 +105,14 @@ void BytecodeVM::update() {
             isPaused = PROGRAM_FINISHED;
             resetStateVariables(false);
         }
+        xSemaphoreGive(programMutex);
         return;
     }
 
     // Check if we're waiting for a delay to complete
     if (waitingForDelay) {
         if (millis() < delayUntil) {
+            xSemaphoreGive(programMutex);
             return; // Still waiting
         }
         waitingForDelay = false;
@@ -84,17 +120,20 @@ void BytecodeVM::update() {
     
     if (timedMotorMovementInProgress) {
         updateTimedMotorMovement();
+        xSemaphoreGive(programMutex);
         return; // Don't execute next instruction until movement is complete
     }
 
     // Handle turning operation if in progress
     if (TurningManager::getInstance().isActive()) {
         TurningManager::getInstance().update();
+        xSemaphoreGive(programMutex);
         return; // Don't execute next instruction until turn is complete
     }
 
     if (distanceMovementInProgress) {
         updateDistanceMovement();
+        xSemaphoreGive(programMutex);
         return; // Don't execute next instruction until movement is complete
     }
 
@@ -103,6 +142,8 @@ void BytecodeVM::update() {
     if (!waitingForButtonPressToStart) {
         pc++; // Move to next instruction
     }
+
+    xSemaphoreGive(programMutex);
 }
 
 bool BytecodeVM::compareValues(ComparisonOp op, float leftOperand, float rightOperand) {
@@ -738,7 +779,16 @@ void BytecodeVM::updateDistanceMovement() {
 }
 
 void BytecodeVM::stopProgram() {
+    if (programMutex == nullptr) return;
+
+    // Acquire mutex with timeout
+    if (xSemaphoreTake(programMutex, pdMS_TO_TICKS(100)) != pdTRUE) {
+        SerialQueueManager::getInstance().queueMessage("stopProgram: Failed to acquire mutex");
+        return;
+    }
+
     resetStateVariables(true);
+    xSemaphoreGive(programMutex);
     return;
 }
 
@@ -794,19 +844,41 @@ void BytecodeVM::resetStateVariables(bool isFullReset) {
 }
 
 void BytecodeVM::pauseProgram() {
-    if (!program || isPaused == PAUSED) return;
+    if (programMutex == nullptr) return;
 
-    resetStateVariables();    
-    isPaused = PAUSED;
-}
-
-void BytecodeVM::resumeProgram() {
-    if (!program || isPaused == RUNNING) {
-        SerialQueueManager::getInstance().queueMessage("resumeProgram: Not paused or no program");
+    if (xSemaphoreTake(programMutex, pdMS_TO_TICKS(100)) != pdTRUE) {
+        SerialQueueManager::getInstance().queueMessage("pauseProgram: Failed to acquire mutex");
         return;
     }
 
-    if (!canStartProgram()) return;
+    if (!program || isPaused == PAUSED) {
+        xSemaphoreGive(programMutex);
+        return;
+    }
+
+    resetStateVariables();
+    isPaused = PAUSED;
+    xSemaphoreGive(programMutex);
+}
+
+void BytecodeVM::resumeProgram() {
+    if (programMutex == nullptr) return;
+
+    if (xSemaphoreTake(programMutex, pdMS_TO_TICKS(100)) != pdTRUE) {
+        SerialQueueManager::getInstance().queueMessage("resumeProgram: Failed to acquire mutex");
+        return;
+    }
+
+    if (!program || isPaused == RUNNING) {
+        SerialQueueManager::getInstance().queueMessage("resumeProgram: Not paused or no program");
+        xSemaphoreGive(programMutex);
+        return;
+    }
+
+    if (!canStartProgram()) {
+        xSemaphoreGive(programMutex);
+        return;
+    }
 
     // Reset state variables for finished programs to start fresh
     if (isPaused == PROGRAM_FINISHED) {
@@ -814,7 +886,7 @@ void BytecodeVM::resumeProgram() {
     }
 
     isPaused = RUNNING;
-    
+
     // Check if the first instruction is a WAIT_FOR_BUTTON (start block)
     if (programSize > 0 && program[0].opcode == OP_WAIT_FOR_BUTTON) {
         SerialQueueManager::getInstance().queueMessage("Resuming program - skipping initial wait for button");
@@ -825,6 +897,8 @@ void BytecodeVM::resumeProgram() {
         pc = 0; // Start from the beginning for scripts without a start block
         waitingForButtonPressToStart = false; // ← FIX: Clear here too for consistency
     }
+
+    xSemaphoreGive(programMutex);
 }
 
 void BytecodeVM::activateSensorsForProgram() {
