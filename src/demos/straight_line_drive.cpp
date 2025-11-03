@@ -15,6 +15,8 @@ void StraightLineDrive::enable() {
 }
 
 void StraightLineDrive::disable() {
+    if (_straightDrivingEnabled == false) return;
+
     _straightDrivingEnabled = false;
 
     // Reset all member variables to clean state
