@@ -561,6 +561,31 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             motorDriver.resetCommandState(true);
             break;
         }
+
+        case MOTOR_SPIN: {
+            // operand1: direction (0=counterclockwise, 1=clockwise)
+            // operand2: speed percentage (0-100)
+            bool clockwise = (instr.operand1 > 0.5f);  // > 0.5 to handle float precision
+            uint8_t speedPercent = constrain(static_cast<uint8_t>(instr.operand2), 0, 100);
+
+            uint16_t motorSpeed;
+            if (speedPercent == 0) {
+                motorSpeed = 0;  // Stop motors completely at 0%
+            } else {
+                // Custom formula for speeds 1-100: ((MAX_MOTOR_PWM - MIN_MOTOR_PWM) / 100) * speed + MIN_MOTOR_PWM
+                motorSpeed = ((MAX_MOTOR_PWM - MIN_SPIN_PWM) * speedPercent / 100) + MIN_SPIN_PWM;
+            }
+
+            // Spin motors in opposite directions
+            if (clockwise) {
+                // Clockwise: left motor forward, right motor backward
+                motorDriver.updateMotorPwm(motorSpeed, -motorSpeed);
+            } else {
+                // Counterclockwise: left motor backward, right motor forward
+                motorDriver.updateMotorPwm(-motorSpeed, motorSpeed);
+            }
+            break;
+        }
         
         case OP_MOTOR_TURN: {
             bool clockwise = (instr.operand1 > 0);
@@ -1023,7 +1048,8 @@ void BytecodeVM::scanProgramForMotors() {
         OP_MOTOR_STOP,
         OP_MOTOR_TURN,
         OP_MOTOR_GO_TIME,
-        OP_MOTOR_GO_DISTANCE
+        OP_MOTOR_GO_DISTANCE,
+        MOTOR_SPIN
     };
     
     // Scan entire program for any motor commands

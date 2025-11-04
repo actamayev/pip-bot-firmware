@@ -26,6 +26,7 @@ constexpr uint8_t RIGHT_MOTOR_ENCODER_A = 2;
 constexpr uint8_t RIGHT_MOTOR_ENCODER_B = 1;
 
 constexpr uint16_t MAX_MOTOR_PWM = 4095;
+constexpr uint16_t MIN_SPIN_PWM = 400;
 
 // Display Screen
 constexpr uint8_t SCREEN_WIDTH = 128;
