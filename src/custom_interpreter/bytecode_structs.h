@@ -37,6 +37,7 @@ enum BytecodeOpCode : uint32_t {
     OP_MOTOR_TURN = 0x53,      // Turn by specified degrees
     OP_MOTOR_GO_TIME = 0x54,
     OP_MOTOR_GO_DISTANCE = 0x56,
+    MOTOR_SPIN = 0x57,        // Spin motors in opposite directions
 
     PLAY_SOUND = 0x60,
     PLAY_TONE = 0x61,
