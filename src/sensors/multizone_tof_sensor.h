@@ -46,7 +46,7 @@ class MultizoneTofSensor : public Singleton<MultizoneTofSensor> {
 
         // Configuration parameters
         uint16_t MAX_DISTANCE = 1000;       // Maximum valid distance (mm)
-        uint16_t MIN_DISTANCE = 10;         // Minimum distance threshold to filter out phantom readings
+        uint16_t MIN_DISTANCE = 1;         // Minimum distance threshold to filter out phantom readings
         uint8_t SIGNAL_THRESHOLD = 5;       // Minimum signal quality threshold (reduced for better hand detection)
         uint8_t TOF_RESOLUTION = VL53L7CX_RESOLUTION_8X8; // Sensor resolution
         uint8_t RANGING_FREQUENCY = 15; // Ranging frequency in Hz
