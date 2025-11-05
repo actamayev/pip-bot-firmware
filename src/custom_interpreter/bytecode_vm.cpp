@@ -572,8 +572,8 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             if (speedPercent == 0) {
                 motorSpeed = 0;  // Stop motors completely at 0%
             } else {
-                // Custom formula for speeds 1-100: ((MAX_MOTOR_PWM - MIN_MOTOR_PWM) / 100) * speed + MIN_MOTOR_PWM
-                motorSpeed = ((MAX_MOTOR_PWM - MIN_SPIN_PWM) * speedPercent / 100) + MIN_SPIN_PWM;
+                // Custom formula for speeds 1-100: ((MAX_SPIN_PWM - MIN_SPIN_PWM) / 100) * speed + MIN_SPIN_PWM
+                motorSpeed = ((MAX_SPIN_PWM - MIN_SPIN_PWM) * speedPercent / 100) + MIN_SPIN_PWM;
             }
 
             // Spin motors in opposite directions
