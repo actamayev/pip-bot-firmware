@@ -44,8 +44,8 @@ class BytecodeVM : public Singleton<BytecodeVM> {
 
         static const uint8_t INSTRUCTION_SIZE = 20;
 
-        static const uint16_t LEFT_PROXIMITY_THRESHOLD = 650;
-        static const uint16_t RIGHT_PROXIMITY_THRESHOLD = 650;
+        static const uint16_t LEFT_PROXIMITY_THRESHOLD = 50;
+        static const uint16_t RIGHT_PROXIMITY_THRESHOLD = 50;
         const int TURN_TIMEOUT = 2000; // 1 second timeout for turn operations
 
         BytecodeInstruction* program = nullptr;

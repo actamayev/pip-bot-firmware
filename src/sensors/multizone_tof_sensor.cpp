@@ -297,11 +297,11 @@ float MultizoneTofSensor::calculateFrontDistance(const VL53L7CX_ResultsData& raw
     float minDistance = 9999.0f; // Start with very large value
     bool foundValidReading = false;
 
-    // Scan through the front-center zones (row 5, columns 2-5)
+    // Scan through the front-center zones (row 5, columns 3-4)
     int row = 5;  // Only use row 5 (close to the top)
 
-    for (int colIdx = 0; colIdx < 4; colIdx++) {  // 4 columns (2-5)
-        int col = colIdx + 2;  // Convert to physical column (2-5)
+    for (int colIdx = 0; colIdx < 2; colIdx++) {  // 2 columns (3-4)
+        int col = colIdx + 3;  // Convert to physical column (3-4)
 
         // Calculate the actual index in the sensor data array
         int index = row * 8 + col;
