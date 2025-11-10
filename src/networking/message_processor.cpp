@@ -146,12 +146,12 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             }
             break;
         }
-        case DataMessageType::SOUND_COMMAND: {
+        case DataMessageType::TONE_COMMAND: {
             if (length != 2) {
                 SerialQueueManager::getInstance().queueMessage("Invalid sound command message length");
             } else {
-                SoundType soundType = static_cast<SoundType>(data[1]);
-                Speaker::getInstance().playFile(soundType);
+                ToneType toneType = static_cast<ToneType>(data[1]);
+                Speaker::getInstance().playTone(toneType);
             }
             break;
         }
@@ -339,12 +339,12 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             }
             break;
         }
-        case DataMessageType::UPDATE_HORN_SOUND: {
+        case DataMessageType::UPDATE_HORN_TONE: {
             if (length != 2) {
                 SerialQueueManager::getInstance().queueMessage("Invalid update horn message length");
             } else {
-                HornSoundStatus status = static_cast<HornSoundStatus>(data[1]);
-                if (status == HornSoundStatus::ON) {
+                HornToneStatus status = static_cast<HornToneStatus>(data[1]);
+                if (status == HornToneStatus::ON) {
                     Speaker::getInstance().startHorn();
                 } else {
                     Speaker::getInstance().stopHorn();
@@ -363,7 +363,7 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             }
             break;
         }
-        case DataMessageType::STOP_SOUND: {
+        case DataMessageType::STOP_TONE: {
             Speaker::getInstance().stopAllSounds();
             break;
         }

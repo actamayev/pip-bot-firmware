@@ -30,7 +30,7 @@ A sandboxed bytecode virtual machine for executing user programs safely on the E
 - **Motor control**: Direct speed and direction commands
 - **Sensor access**: Read IMU, ToF, color, and IR sensors
 - **LED control**: Individual LED color and animation control
-- **Audio commands**: Play sounds and control volume
+- **Audio commands**: Play tones and control volume
 - **Timing functions**: Delays and scheduling
 
 ### Safety Features

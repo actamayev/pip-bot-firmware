@@ -20,7 +20,6 @@ class Speaker : public Singleton<Speaker> {
 
     public:
         void setMuted(bool muted);
-        void playFile(SoundType file);
         void setVolume(float volume); // 0.0 to 4.0
         void stopAllSounds();
         void startEntertainerMelody();
@@ -71,11 +70,8 @@ class Speaker : public Singleton<Speaker> {
         bool initializeAudio();
         void cleanup();
         bool safeStopPlayback();
-        bool safeStartPlayback(SoundType file);
         bool recreateAudioObjects();
         bool validateAudioObjects();
-
-        const char* getFilePath(SoundType audioFile) const;
         
         // RTTTL melody methods
         void updateMelody();

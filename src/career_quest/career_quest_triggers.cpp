@@ -458,7 +458,7 @@ void CareerQuestTriggers::startS7P4ButtonDemo() {
     s7p4ExitFading = false;
     s7p4CurrentBrightness = 255;
     
-    // Set up button handlers for random color changes and sounds
+    // Set up button handlers for random color changes and tones
     Buttons::getInstance().setLeftButtonClickHandler([](Button2& btn) {
         // Generate random color
         uint8_t red = random(0, MAX_LED_BRIGHTNESS + 1);
@@ -468,9 +468,6 @@ void CareerQuestTriggers::startS7P4ButtonDemo() {
         // Fade to new color using breathing animation
         rgbLed.setDefaultColors(red, green, blue);
         ledAnimations.startBreathing(1000, 0.0f); // 1s fade from dark
-        
-        // Play chime sound
-        Speaker::getInstance().playFile(SoundType::CHIME);
     });
     
     Buttons::getInstance().setRightButtonClickHandler([](Button2& btn) {
@@ -482,9 +479,6 @@ void CareerQuestTriggers::startS7P4ButtonDemo() {
         // Fade to new color using breathing animation
         rgbLed.setDefaultColors(red, green, blue);
         ledAnimations.startBreathing(1000, 0.0f); // 1s fade from dark
-        
-        // Play robot sound
-        Speaker::getInstance().playFile(SoundType::FART);
     });
 }
 

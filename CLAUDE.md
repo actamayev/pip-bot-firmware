@@ -111,7 +111,6 @@ pio run -t upload -t monitor -e local --upload-port /dev/cu.usbmodem101
 
 ### 5. Audio System
 - **MP3 Playback**: Files stored in SPIFFS (LittleFS)
-- **Sound Library**: 12 different sound effects
 - **Volume Control**: Software-controlled audio levels
 
 ## Development Guidelines
