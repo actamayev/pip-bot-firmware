@@ -618,17 +618,19 @@ void CareerQuestTriggers::updateS5P4LedVisualization() {
     lastS5P4Update = now;
 }
 
-void CareerQuestTriggers::stopAllCareerQuestTriggers() {
+void CareerQuestTriggers::stopAllCareerQuestTriggers(bool shouldTurnLedsOff) {
     // Stop all active career quest triggers (these will start fade sequences)
     stopS2P1Sequence();
     stopS2P4LightShow();
     stopS3P3DisplayDemo();
     stopS7P4ButtonDemo();
     stopS5P4LedVisualization();
-    
-    // Stop all LED animations (but don't force LEDs off - let career quest fades complete)
-    ledAnimations.stopAnimation();
-    rgbLed.turn_all_leds_off();
+
+    if (shouldTurnLedsOff) {
+        // Stop all LED animations (but don't force LEDs off - let career quest fades complete)
+        ledAnimations.stopAnimation();
+        rgbLed.turn_all_leds_off();
+    }
 
     // Stop all audio
     Speaker::getInstance().stopAllSounds();
@@ -646,7 +648,7 @@ void CareerQuestTriggers::stopAllCareerQuestTriggers() {
     SendSensorData::getInstance().setEncoderDataEnabled(false);
     
     // Stop motors
-    DanceManager::getInstance().stopDance();
+    DanceManager::getInstance().stopDance(false);
     GameManager::getInstance().stopCurrentGame();
     DisplayScreen::getInstance().showStartScreen();
     SensorDataBuffer::getInstance().stopPollingAllSensors();

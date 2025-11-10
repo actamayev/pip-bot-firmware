@@ -482,7 +482,7 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
                                 DanceManager::getInstance().startDance();
                                 break;
                             case MeetPipTriggerType::S9_P3_EXIT:
-                                DanceManager::getInstance().stopDance();
+                                DanceManager::getInstance().stopDance(true);
                                 break;
                             case MeetPipTriggerType::S9_P6_ENTER:
                                 motorDriver.stop_both_motors(); // We need this to prevent students from turning against the motors.
@@ -512,7 +512,7 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             if (length != 1) {
                 SerialQueueManager::getInstance().queueMessage("Invalid stop career quest trigger message length");
             } else {
-                careerQuestTriggers.stopAllCareerQuestTriggers();
+                careerQuestTriggers.stopAllCareerQuestTriggers(true);
             }
             break;
         }
