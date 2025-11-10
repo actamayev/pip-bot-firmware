@@ -24,7 +24,7 @@ class CareerQuestTriggers {
         void stopS7P4ButtonDemo();
         void startS5P4LedVisualization();
         void stopS5P4LedVisualization();
-        void stopAllCareerQuestTriggers();
+        void stopAllCareerQuestTriggers(bool shouldTurnLedsOff);
         void update();
         
         bool isS2P1Active() const { return s2p1Active; }

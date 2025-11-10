@@ -3,7 +3,7 @@
 enum class DataMessageType : uint8_t {
     UPDATE_AVAILABLE = 0,
     MOTOR_CONTROL = 1,
-    SOUND_COMMAND = 2,
+    TONE_COMMAND = 2,
     SPEAKER_MUTE = 3,
     BALANCE_CONTROL = 4,
     UPDATE_BALANCE_PIDS = 5,
@@ -22,9 +22,8 @@ enum class DataMessageType : uint8_t {
     GET_SAVED_WIFI_NETWORKS = 18,
     SOFT_SCAN_WIFI_NETWORKS = 19,
     HARD_SCAN_WIFI_NETWORKS = 20, // This overrides the cache (will force a scan, even if there are available networks)
-    UPDATE_HORN_SOUND = 21,
     SPEAKER_VOLUME = 22,
-    STOP_SOUND = 23, // For stopping ongoing sounds (e.g. horn sound)
+    STOP_TONE = 23, // For stopping ongoing tone
     UPDATE_DISPLAY = 25,
     STOP_SENSOR_POLLING = 26,
     TRIGGER_MESSAGE = 27,
@@ -34,22 +33,6 @@ enum class DataMessageType : uint8_t {
     FORGET_NETWORK = 31
 };
 
-// Sound types
-enum class SoundType : uint8_t {
-    CHIME = 1,
-    CHIRP = 2,
-    POP = 3,
-    DROP = 4,
-    FART = 5,
-    MONKEY = 6,
-    ELEPHANT = 7,
-    PARTY = 8,
-    UFO = 9,
-    COUNTDOWN = 10,
-    ENGINE = 11,
-    ROBOT = 12
-};
-
 // Speaker status
 enum class SpeakerStatus : uint8_t {
     UNMUTED = 0,
@@ -57,11 +40,6 @@ enum class SpeakerStatus : uint8_t {
 };
 
 enum class HeadlightStatus {
-    OFF = 0,
-    ON = 1
-};
-
-enum class HornSoundStatus {
     OFF = 0,
     ON = 1
 };

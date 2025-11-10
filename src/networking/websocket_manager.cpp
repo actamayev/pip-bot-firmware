@@ -67,8 +67,6 @@ void WebSocketManager::connectToWebSocket() {
                 this->wsConnected = true;
                 this->hasKilledWiFiProcesses = false; // Reset the flag
                 this->lastPingTime = millis(); // Initialize ping time
-                ledAnimations.stopAnimation();
-                rgbLed.turn_all_leds_off();
                 this->sendInitialData();
                 break;
             case WebsocketsEvent::ConnectionClosed:
@@ -187,7 +185,7 @@ void WebSocketManager::killWiFiProcesses() {
     // This method activates when the ESP has been disconnected from WS.
     // Should only run once.
     if (hasKilledWiFiProcesses) return;
-    careerQuestTriggers.stopAllCareerQuestTriggers();
+    careerQuestTriggers.stopAllCareerQuestTriggers(false);
     motorDriver.resetCommandState(false);
     hasKilledWiFiProcesses = true;
     userConnectedToThisPip = false;
@@ -219,5 +217,5 @@ void WebSocketManager::setIsUserConnectedToThisPip(bool newIsUserConnectedToThis
     userConnectedToThisPip = newIsUserConnectedToThisPip;
     if (newIsUserConnectedToThisPip) return;
     motorDriver.resetCommandState(true);
-    careerQuestTriggers.stopAllCareerQuestTriggers();
+    careerQuestTriggers.stopAllCareerQuestTriggers(false);
 }

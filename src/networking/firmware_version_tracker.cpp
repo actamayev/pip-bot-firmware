@@ -51,7 +51,7 @@ void FirmwareVersionTracker::retrieveLatestFirmwareFromServer(uint16_t newVersio
 
     // Get endpoint
     String url = getServerFirmwareEndpoint();
-    careerQuestTriggers.stopAllCareerQuestTriggers();  // Stop all sensors, movement when updating
+    careerQuestTriggers.stopAllCareerQuestTriggers(true);  // Stop all sensors, movement when updating
 
     // Perform the update
     t_httpUpdate_return result = httpUpdate.update(*httpClient, url);

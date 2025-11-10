@@ -683,21 +683,6 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             return; // Return without incrementing PC
         }
 
-        case PLAY_SOUND: {
-            // Extract sound ID from operand1
-            uint8_t soundId = static_cast<uint8_t>(instr.operand1);
-            SoundType soundType = static_cast<SoundType>(soundId);
-
-            // Validate sound type is within valid range
-            if (soundId >= static_cast<uint8_t>(SoundType::CHIME) &&
-                soundId <= static_cast<uint8_t>(SoundType::ROBOT)) {
-                Speaker::getInstance().playFile(soundType);
-            } else {
-                SerialQueueManager::getInstance().queueMessage("Invalid sound ID: " + String(soundId));
-            }
-            break;
-        }
-
         case CHECK_RIGHT_BUTTON_PRESS: {
             uint16_t regId = instr.operand1;       // Register to store result
 

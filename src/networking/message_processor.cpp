@@ -146,12 +146,12 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             }
             break;
         }
-        case DataMessageType::SOUND_COMMAND: {
+        case DataMessageType::TONE_COMMAND: {
             if (length != 2) {
                 SerialQueueManager::getInstance().queueMessage("Invalid sound command message length");
             } else {
-                SoundType soundType = static_cast<SoundType>(data[1]);
-                Speaker::getInstance().playFile(soundType);
+                ToneType toneType = static_cast<ToneType>(data[1]);
+                Speaker::getInstance().playTone(toneType);
             }
             break;
         }
@@ -339,19 +339,6 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             }
             break;
         }
-        case DataMessageType::UPDATE_HORN_SOUND: {
-            if (length != 2) {
-                SerialQueueManager::getInstance().queueMessage("Invalid update horn message length");
-            } else {
-                HornSoundStatus status = static_cast<HornSoundStatus>(data[1]);
-                if (status == HornSoundStatus::ON) {
-                    Speaker::getInstance().startHorn();
-                } else {
-                    Speaker::getInstance().stopHorn();
-                }
-            }
-            break;
-        }
         case DataMessageType::SPEAKER_VOLUME: {
             if (length != 5) { // 1 byte for message type + 4 bytes for float32
                 SerialQueueManager::getInstance().queueMessage("Invalid speaker volume message length");
@@ -363,7 +350,7 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             }
             break;
         }
-        case DataMessageType::STOP_SOUND: {
+        case DataMessageType::STOP_TONE: {
             Speaker::getInstance().stopAllSounds();
             break;
         }
@@ -482,7 +469,7 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
                                 DanceManager::getInstance().startDance();
                                 break;
                             case MeetPipTriggerType::S9_P3_EXIT:
-                                DanceManager::getInstance().stopDance();
+                                DanceManager::getInstance().stopDance(true);
                                 break;
                             case MeetPipTriggerType::S9_P6_ENTER:
                                 motorDriver.stop_both_motors(); // We need this to prevent students from turning against the motors.
@@ -512,7 +499,7 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             if (length != 1) {
                 SerialQueueManager::getInstance().queueMessage("Invalid stop career quest trigger message length");
             } else {
-                careerQuestTriggers.stopAllCareerQuestTriggers();
+                careerQuestTriggers.stopAllCareerQuestTriggers(true);
             }
             break;
         }

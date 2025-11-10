@@ -37,7 +37,7 @@ void DanceManager::startDance() {
     }
 }
 
-void DanceManager::stopDance() {
+void DanceManager::stopDance(bool shouldTurnLedsOff) {
     if (!isCurrentlyDancing) return;
     
     SerialQueueManager::getInstance().queueMessage("Stopping dance sequence");
@@ -47,9 +47,11 @@ void DanceManager::stopDance() {
     // Stop motors immediately for safety
     motorDriver.stop_both_motors();
     
-    // Turn off LEDs
-    ledAnimations.turnOff();
-    rgbLed.turn_all_leds_off();
+    if (shouldTurnLedsOff) {
+        // Turn off LEDs
+        ledAnimations.turnOff();
+        rgbLed.turn_all_leds_off();
+    }
 }
 
 void DanceManager::update() {
@@ -70,7 +72,7 @@ void DanceManager::update() {
     
     // Check if dance is complete
     if (currentStep >= DANCE_SEQUENCE_LENGTH) {
-        stopDance();
+        stopDance(true);
         return;
     }
     

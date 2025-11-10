@@ -73,7 +73,7 @@ inline const char* getEnvironment() {
 inline const char* getServerFirmwareEndpoint() {
     std::string env = getEnvironment();
     if (env == "local") {
-        return "http://172.31.22.40:8080/pip/firmware-update";
+        return "http://10.158.4.40:8080/pip/firmware-update";
     } else if (env == "staging") {
         return "https://staging-api.leverlabs.com/pip/firmware-update";
     }
@@ -83,7 +83,7 @@ inline const char* getServerFirmwareEndpoint() {
 inline const char* getWsServerUrl() {
     std::string env = getEnvironment();
     if (env == "local") {
-        return "ws://172.31.22.40:8080/esp32";
+        return "ws://10.158.4.40:8080/esp32";
     } else if (env == "staging") {
         return "wss://staging-api.leverlabs.com/esp32";
     }

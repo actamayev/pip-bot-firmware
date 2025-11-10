@@ -53,7 +53,7 @@ void setup() {
     // 3. SerialInput: To communicate with the user over Serial (in the BrowserUI)
     TaskManager::createSerialInputTask();
     
-    // 4. Speaker: For the startup sound
+    // 4. Speaker
     TaskManager::createSpeakerTask();
 
     // 5. Buttons: We have this later the procedure because the user doesn't need button access during startup
