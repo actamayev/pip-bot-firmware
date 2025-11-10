@@ -458,7 +458,7 @@ void CareerQuestTriggers::startS7P4ButtonDemo() {
     s7p4ExitFading = false;
     s7p4CurrentBrightness = 255;
     
-    // Set up button handlers for random color changes and sounds
+    // Set up button handlers for random color changes and tones
     Buttons::getInstance().setLeftButtonClickHandler([](Button2& btn) {
         // Generate random color
         uint8_t red = random(0, MAX_LED_BRIGHTNESS + 1);
@@ -468,9 +468,6 @@ void CareerQuestTriggers::startS7P4ButtonDemo() {
         // Fade to new color using breathing animation
         rgbLed.setDefaultColors(red, green, blue);
         ledAnimations.startBreathing(1000, 0.0f); // 1s fade from dark
-        
-        // Play chime sound
-        Speaker::getInstance().playFile(SoundType::CHIME);
     });
     
     Buttons::getInstance().setRightButtonClickHandler([](Button2& btn) {
@@ -482,9 +479,6 @@ void CareerQuestTriggers::startS7P4ButtonDemo() {
         // Fade to new color using breathing animation
         rgbLed.setDefaultColors(red, green, blue);
         ledAnimations.startBreathing(1000, 0.0f); // 1s fade from dark
-        
-        // Play robot sound
-        Speaker::getInstance().playFile(SoundType::FART);
     });
 }
 
@@ -624,17 +618,19 @@ void CareerQuestTriggers::updateS5P4LedVisualization() {
     lastS5P4Update = now;
 }
 
-void CareerQuestTriggers::stopAllCareerQuestTriggers() {
+void CareerQuestTriggers::stopAllCareerQuestTriggers(bool shouldTurnLedsOff) {
     // Stop all active career quest triggers (these will start fade sequences)
     stopS2P1Sequence();
     stopS2P4LightShow();
     stopS3P3DisplayDemo();
     stopS7P4ButtonDemo();
     stopS5P4LedVisualization();
-    
-    // Stop all LED animations (but don't force LEDs off - let career quest fades complete)
-    ledAnimations.stopAnimation();
-    rgbLed.turn_all_leds_off();
+
+    if (shouldTurnLedsOff) {
+        // Stop all LED animations (but don't force LEDs off - let career quest fades complete)
+        ledAnimations.stopAnimation();
+        rgbLed.turn_all_leds_off();
+    }
 
     // Stop all audio
     Speaker::getInstance().stopAllSounds();
@@ -652,7 +648,7 @@ void CareerQuestTriggers::stopAllCareerQuestTriggers() {
     SendSensorData::getInstance().setEncoderDataEnabled(false);
     
     // Stop motors
-    DanceManager::getInstance().stopDance();
+    DanceManager::getInstance().stopDance(false);
     GameManager::getInstance().stopCurrentGame();
     DisplayScreen::getInstance().showStartScreen();
     SensorDataBuffer::getInstance().stopPollingAllSensors();

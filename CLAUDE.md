@@ -83,7 +83,7 @@ pio run -t upload -t monitor -e local --upload-port /dev/cu.usbmodem101
 - ArduinoWebsockets, ArduinoJson
 - Adafruit NeoPixel, BNO08x, SSD1306
 - ESP32Encoder, Button2
-- ESP8266Audio (MP3 playback)
+- ESP8266Audio
 
 ## Major Subsystems
 
@@ -110,8 +110,7 @@ pio run -t upload -t monitor -e local --upload-port /dev/cu.usbmodem101
 - **Program management**: Upload, pause, stop functionality
 
 ### 5. Audio System
-- **MP3 Playback**: Files stored in SPIFFS (LittleFS)
-- **Sound Library**: 12 different sound effects
+- **Tone Playback**:
 - **Volume Control**: Software-controlled audio levels
 
 ## Development Guidelines
@@ -126,7 +125,7 @@ pio run -t upload -t monitor -e local --upload-port /dev/cu.usbmodem101
 ### Memory Management
 - **Stack Sizes**: Carefully tuned per task (4KB-16KB)
 - **Serial Buffers**: Enlarged to 8KB for bytecode uploads
-- **Partition Layout**: Custom CSV for OTA + SPIFFS (LittleFS) storage
+- **Partition Layout**: Custom CSV for OTA + NVS storage
 
 ### Networking
 - **Environment URLs**: Local/staging/production endpoints

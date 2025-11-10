@@ -55,7 +55,7 @@ Comprehensive communication system handling WiFi, WebSocket, and serial protocol
 ```cpp
 enum class DataMessageType : uint8_t {
     MOTOR_CONTROL = 1,           // Robot movement commands
-    SOUND_COMMAND = 2,           // Audio playback control
+    TONE_COMMAND = 2,           // Tone control
     BALANCE_CONTROL = 4,         // Self-balancing demo
     UPDATE_LED_COLORS = 7,       // Individual LED control
     BYTECODE_PROGRAM = 8,        // User program upload
@@ -64,15 +64,6 @@ enum class DataMessageType : uint8_t {
     UPDATE_DISPLAY = 25,         // Screen content control
     // ... and 20+ more types
 }
-```
-
-#### Sound System
-```cpp
-enum class SoundType : uint8_t {
-    CHIME = 1, CHIRP = 2, POP = 3, DROP = 4,
-    FART = 5, MONKEY = 6, ELEPHANT = 7, PARTY = 8,
-    UFO = 9, COUNTDOWN = 10, ENGINE = 11, ROBOT = 12
-};
 ```
 
 ## Network State Management

@@ -122,7 +122,6 @@ const char* routeToStringSerial(ToSerialMessage route) {
         case ToSerialMessage::SCAN_STARTED: return "/scan-started";
         case ToSerialMessage::MOTORS_DISABLED_USB: return "/motors-disabled-usb";
         case ToSerialMessage::PROGRAM_PAUSED_USB: return "/program-paused-usb";
-        case ToSerialMessage::PLAY_FUN_SOUND: return "/play-fun-sound";
         case ToSerialMessage::BATTERY_MONITOR_DATA_ITEM: return "/battery-monitor-data-item";
         case ToSerialMessage::BATTERY_MONITOR_DATA_COMPLETE: return "/battery-monitor-data-complete";
         case ToSerialMessage::WIFI_DELETED_NETWORK: return "/wifi-deleted-network";

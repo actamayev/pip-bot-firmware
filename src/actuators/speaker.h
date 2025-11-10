@@ -1,5 +1,4 @@
 #pragma once
-#include <LittleFS.h>
 #include "Arduino.h"
 #include "utils/config.h"
 #include "utils/singleton.h"
@@ -7,9 +6,6 @@
 #include "networking/protocol.h"
 #include "networking/serial_queue_manager.h"
 #include "custom_interpreter/bytecode_structs.h"
-#include "AudioFileSourceLittleFS.h"
-#include "AudioFileSourceID3.h"
-#include "AudioGeneratorMP3.h"
 #include "AudioGeneratorRTTTL.h"
 #include "AudioFileSourcePROGMEM.h"
 #include "AudioOutputI2S.h"
@@ -20,14 +16,11 @@ class Speaker : public Singleton<Speaker> {
 
     public:
         void setMuted(bool muted);
-        void playFile(SoundType file);
         void setVolume(float volume); // 0.0 to 4.0
         void stopAllSounds();
         void startEntertainerMelody();
         void playTone(ToneType tone);
         void stopTone();
-        void startHorn();
-        void stopHorn();
 
     private:
         Speaker() = default;
@@ -41,41 +34,22 @@ class Speaker : public Singleton<Speaker> {
         float currentVolume = 3.9f;
         
         // Audio objects
-        AudioFileSourceLittleFS* audioFile = nullptr;
-        AudioFileSourceID3* audioID3 = nullptr;
-        AudioGeneratorMP3* audioMP3 = nullptr;
         AudioOutputI2S* audioOutput = nullptr;
         
         // RTTTL objects for melody playback
         AudioGeneratorRTTTL* rtttlGenerator = nullptr;
         AudioFileSourcePROGMEM* rtttlSource = nullptr;
         
-        // Simplified state management
-        bool isCurrentlyPlaying = false;
-        bool isStoppingPlayback = false;
-        unsigned long stopRequestTime = 0;
-        unsigned long lastPlaybackTime = 0;
-        static const unsigned long STOP_DELAY_MS = 200; // Increased delay for ESP32-S3
-        static const unsigned long MIN_PLAYBACK_INTERVAL_MS = 150; // Minimum interval between plays
-        
-        String currentFilename = "";
-        
         // Enhanced state management
         bool audioObjectsValid = false;
-        bool forceRecreateObjects = false;
         
         // Thread safety
         SemaphoreHandle_t audioMutex = nullptr;
         
-        bool initializeLittleFS();
         bool initializeAudio();
         void cleanup();
-        bool safeStopPlayback();
-        bool safeStartPlayback(SoundType file);
         bool recreateAudioObjects();
         bool validateAudioObjects();
-
-        const char* getFilePath(SoundType audioFile) const;
         
         // RTTTL melody methods
         void updateMelody();
@@ -124,7 +98,6 @@ class Speaker : public Singleton<Speaker> {
         const uint8_t I2S_LRC = 21;
 
         bool isPlayingTone = false;
-        bool isHornMode = false;
         ToneType currentTone = ToneType::TONE_A;
 
         // RTTTL objects for tone playback (separate from melody)
