@@ -389,16 +389,6 @@ void Speaker::updateContinuousTone() {
         return;
     }
 
-    // Auto-stop if tone hasn't been refreshed recently (unless in horn mode)
-    if (!isHornMode && millis() - lastToneRefreshTime > TONE_AUTO_STOP_MS) {
-        SerialQueueManager::getInstance().queueMessage("Tone auto-stopped (not refreshed)");
-        if (toneGenerator->isRunning()) {
-            toneGenerator->stop();
-        }
-        isPlayingTone = false;
-        xSemaphoreGive(audioMutex);
-        return;
-    }
     
     if (toneGenerator->isRunning()) {
         if (!toneGenerator->loop()) {
