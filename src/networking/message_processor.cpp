@@ -339,19 +339,6 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             }
             break;
         }
-        case DataMessageType::UPDATE_HORN_TONE: {
-            if (length != 2) {
-                SerialQueueManager::getInstance().queueMessage("Invalid update horn message length");
-            } else {
-                HornToneStatus status = static_cast<HornToneStatus>(data[1]);
-                if (status == HornToneStatus::ON) {
-                    Speaker::getInstance().startHorn();
-                } else {
-                    Speaker::getInstance().stopHorn();
-                }
-            }
-            break;
-        }
         case DataMessageType::SPEAKER_VOLUME: {
             if (length != 5) { // 1 byte for message type + 4 bytes for float32
                 SerialQueueManager::getInstance().queueMessage("Invalid speaker volume message length");

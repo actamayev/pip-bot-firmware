@@ -21,8 +21,6 @@ class Speaker : public Singleton<Speaker> {
         void startEntertainerMelody();
         void playTone(ToneType tone);
         void stopTone();
-        void startHorn();
-        void stopHorn();
 
     private:
         Speaker() = default;
@@ -100,7 +98,6 @@ class Speaker : public Singleton<Speaker> {
         const uint8_t I2S_LRC = 21;
 
         bool isPlayingTone = false;
-        bool isHornMode = false;
         ToneType currentTone = ToneType::TONE_A;
 
         // RTTTL objects for tone playback (separate from melody)

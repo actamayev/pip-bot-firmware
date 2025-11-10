@@ -22,9 +22,8 @@ enum class DataMessageType : uint8_t {
     GET_SAVED_WIFI_NETWORKS = 18,
     SOFT_SCAN_WIFI_NETWORKS = 19,
     HARD_SCAN_WIFI_NETWORKS = 20, // This overrides the cache (will force a scan, even if there are available networks)
-    UPDATE_HORN_TONE = 21,
     SPEAKER_VOLUME = 22,
-    STOP_TONE = 23, // For stopping ongoing tone (e.g. horn tone)
+    STOP_TONE = 23, // For stopping ongoing tone
     UPDATE_DISPLAY = 25,
     STOP_SENSOR_POLLING = 26,
     TRIGGER_MESSAGE = 27,
@@ -41,11 +40,6 @@ enum class SpeakerStatus : uint8_t {
 };
 
 enum class HeadlightStatus {
-    OFF = 0,
-    ON = 1
-};
-
-enum class HornToneStatus {
     OFF = 0,
     ON = 1
 };

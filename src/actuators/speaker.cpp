@@ -134,7 +134,6 @@ void Speaker::setVolume(float volume) {
 
 void Speaker::stopAllSounds() {
     stopTone();
-    stopHorn();
 
     SerialQueueManager::getInstance().queueMessage("Stopped playback");
 
@@ -272,15 +271,8 @@ void Speaker::playTone(ToneType tone) {
     
     uint8_t toneIndex = static_cast<uint8_t>(tone);
     
-    // tone = 0 means stop
-    if (toneIndex == 0) {
-        SerialQueueManager::getInstance().queueMessage("Stopping tone");
-        stopTone();
-        return;
-    }
-    
-    // Validate tone range
-    if (toneIndex > 7) {
+    // Validate tone range (1-8, where 8 is TONE_OFF)
+    if (toneIndex < 1 || toneIndex > 8) {
         SerialQueueManager::getInstance().queueMessage("Invalid tone: " + String(toneIndex));
         return;
     }
@@ -453,16 +445,4 @@ const char* Speaker::getToneRTTTL(ToneType tone) {
         case ToneType::TONE_G: return "ToneG:d=1,o=5,b=10:g";
         default: return nullptr;
     }
-}
-
-void Speaker::startHorn() {
-    SerialQueueManager::getInstance().queueMessage("Starting horn (continuous F tone)");
-    isHornMode = true;
-    playTone(ToneType::TONE_F);
-}
-
-void Speaker::stopHorn() {
-    SerialQueueManager::getInstance().queueMessage("Stopping horn");
-    isHornMode = false;
-    stopTone();
 }
