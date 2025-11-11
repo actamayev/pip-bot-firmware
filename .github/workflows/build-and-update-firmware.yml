@@ -109,7 +109,7 @@ jobs:
       - name: Notify server about new firmware
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging'
         run: |
-          response=$(curl -X POST ${{ env.API_ENDPOINT }}/internal/firmware-update \
+          response=$(curl -L -X POST ${{ env.API_ENDPOINT }}/internal/firmware-update \
             -H "Content-Type: application/json")
           
           echo "Response: $response"
@@ -117,3 +117,12 @@ jobs:
             echo "Firmware update notification failed"
             exit 1
           fi
+
+      - name: Notify server about new firmware
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging'
+        run: |
+          echo "Calling: ${{ env.API_ENDPOINT }}/internal/firmware-update"
+          response=$(curl -L -v -X POST ${{ env.API_ENDPOINT }}/internal/firmware-update \
+            -H "Content-Type: application/json")
+          
+          echo "Response: $response"
