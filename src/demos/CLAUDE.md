@@ -69,7 +69,7 @@ struct NewBalancePids {
 ## Obstacle Avoider (`obstacle_avoider.h/cpp`)
 
 ### Navigation System
-- **Multi-sensor fusion**: ToF sensors + IR sensors
+- **Multi-sensor fusion**: ToF sensors
 - **Dynamic path planning** around detected obstacles
 - **Speed adaptation** based on obstacle proximity
 - **Turning decisions** using sensor priority system
@@ -78,7 +78,6 @@ struct NewBalancePids {
 ### Sensor Integration
 - **Side ToF sensors**: Left/right proximity detection
 - **Multizone ToF**: 64-zone forward obstacle mapping
-- **IR sensor array**: Ground-based navigation and line following
 - **Sensor fusion**: Weighted decision making from multiple inputs
 
 ### Behavior States

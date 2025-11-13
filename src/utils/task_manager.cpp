@@ -15,7 +15,6 @@ TaskHandle_t TaskManager::encoderSensorTaskHandle = NULL;
 TaskHandle_t TaskManager::multizoneTofSensorTaskHandle = NULL;
 TaskHandle_t TaskManager::sideTofSensorTaskHandle = NULL;
 TaskHandle_t TaskManager::colorSensorTaskHandle = NULL;
-TaskHandle_t TaskManager::irSensorTaskHandle = NULL;
 TaskHandle_t TaskManager::sensorLoggerTaskHandle = NULL;
 TaskHandle_t TaskManager::displayTaskHandle = NULL;
 TaskHandle_t TaskManager::networkManagementTaskHandle = NULL;
@@ -161,22 +160,6 @@ void TaskManager::colorSensorTask(void* parameter) {
             ColorSensor::getInstance().updateSensorData();
         }
         vTaskDelay(pdMS_TO_TICKS(50));  // 20Hz target rate
-    }
-}
-
-void TaskManager::irSensorTask(void* parameter) {
-    SerialQueueManager::getInstance().queueMessage("IR sensor task started");
-    
-    // Initialize IR sensors directly (not I2C, no conflicts)
-    IrSensor::getInstance();  // Simple initialization - just creates instance
-    SerialQueueManager::getInstance().queueMessage("IR sensors initialized successfully");
-    
-    // Main polling loop
-    for(;;) {
-        if (IrSensor::getInstance().shouldBePolling()) {
-            IrSensor::getInstance().updateSensorData();
-        }
-        vTaskDelay(pdMS_TO_TICKS(20));  // 50Hz target rate
     }
 }
 
@@ -457,11 +440,6 @@ bool TaskManager::createColorSensorTask() {
                      Priority::SYSTEM_CONTROL, Core::CORE_0, &colorSensorTaskHandle);
 }
 
-bool TaskManager::createIrSensorTask() {
-    return createTask("IRSensor", irSensorTask, IR_SENSOR_STACK_SIZE,
-                     Priority::BACKGROUND, Core::CORE_0, &irSensorTaskHandle);
-}
-
 bool TaskManager::createSensorLoggerTask() {
     return createTask("SensorLogger", sensorLoggerTask, SENSOR_LOGGER_STACK_SIZE,
                      Priority::BACKGROUND, Core::CORE_1, &sensorLoggerTaskHandle);
@@ -538,7 +516,6 @@ void TaskManager::printStackUsage() {
         {multizoneTofSensorTaskHandle, "MultizoneTOF", MULTIZONE_TOF_STACK_SIZE},
         {sideTofSensorTaskHandle, "SideTOF", SIDE_TOF_STACK_SIZE},
         {colorSensorTaskHandle, "ColorSensor", COLOR_SENSOR_STACK_SIZE},
-        {irSensorTaskHandle, "IRSensor", IR_SENSOR_STACK_SIZE},
         // Other tasks
         {displayTaskHandle, "Display", DISPLAY_STACK_SIZE},
         {networkManagementTaskHandle, "NetworkMgmt", NETWORK_MANAGEMENT_STACK_SIZE},

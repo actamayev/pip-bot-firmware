@@ -6,7 +6,6 @@
 #include "sensors/multizone_tof_sensor.h"
 #include "sensors/imu.h"
 #include "sensors/side_tof_manager.h"
-#include "sensors/ir_sensor.h"
 #include "networking/serial_queue_manager.h"
 
 void multizoneTofLogger();

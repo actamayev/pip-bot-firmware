@@ -5,8 +5,6 @@
 #include "utils/config.h"
 #include "utils/singleton.h"
 #include "utils/structs.h"
-#include "sensors/ir_sensor.h"
-#include "sensors/ir_sensor.h"
 #include "sensors/color_sensor.h"
 #include "sensors/sensor_data_buffer.h"
 #include "networking/websocket_manager.h"
@@ -42,7 +40,6 @@ class SendSensorData : public Singleton<SendSensorData> {
         bool sendEncoderData = false;
         
         void attachRPMData(JsonObject& payload);
-        void attachIRData(JsonObject& payload);
         void attachColorSensorData(JsonObject& payload);
         void attachEulerData(JsonObject& payload);
         void attachAccelData(JsonObject& payload);
