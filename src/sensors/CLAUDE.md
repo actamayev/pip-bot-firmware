@@ -69,13 +69,6 @@ struct CalibrationValues {
 - **Safe normalization**: Constrained 0-255 output with overflow protection
 - **Fallback mode**: Simple 8-bit conversion when uncalibrated
 
-### IR Sensor Array (`ir_sensor.h/cpp`)
-- **Configuration**: 5 sensors via 74HC4051 multiplexer
-- **Multiplexer control**: Pins A0=17, A1=16, A2=15, OUT=7, EN=6
-- **Sensor channels**: S4-S8 for ground-based navigation
-- **Update rate**: 50Hz with 20ms delay between readings
-- **Applications**: Line following, edge detection, surface monitoring
-
 ### Wheel Encoders (`encoder_manager.h/cpp`)
 - **Sensors**: Quadrature encoders on both motors
 - **Pin mapping**: Left (47,48), Right (2,1)
@@ -123,7 +116,6 @@ ENCODER_SENSOR_STACK_SIZE = 4096;       // Fast, lightweight
 MULTIZONE_TOF_STACK_SIZE = 8192;        // Heavy processing, 64 zones
 SIDE_TOF_STACK_SIZE = 6144;             // Moderate processing
 COLOR_SENSOR_STACK_SIZE = 4096;         // Light processing
-IR_SENSOR_STACK_SIZE = 6144;            // Moderate (5 sensors)
 BATTERY_MONITOR_STACK_SIZE = 6144;      // I2C + calculations
 ```
 

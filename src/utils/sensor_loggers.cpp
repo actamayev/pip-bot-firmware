@@ -119,32 +119,6 @@ void log_motor_rpm() {
     lastPrintTime = millis();
 }
 
-void irSensorLogger() {
-    static unsigned long lastPrintTime = 0;
-    static unsigned long readingCount = 0;
-    static unsigned long lastResetTime = millis();
-    const unsigned long PRINT_INTERVAL = 1000; // Print frequency every 1 second
-    
-    // Count this as a reading attempt
-    readingCount++;
-    
-    if (millis() - lastPrintTime < PRINT_INTERVAL) return;
-    
-    // Calculate frequency
-    unsigned long timeElapsed = millis() - lastResetTime;
-    float readingsPerSecond = (float)readingCount * 1000.0 / (float)timeElapsed;
-    
-    char buffer[64];
-    snprintf(buffer, sizeof(buffer), "IR_SENSOR: %.2f Hz (%lu readings)", 
-             readingsPerSecond, readingCount);
-    SerialQueueManager::getInstance().queueMessage(buffer);
-    
-    // Reset counters for next measurement period
-    readingCount = 0;
-    lastResetTime = millis();
-    lastPrintTime = millis();
-}
-
 void displayPerformanceLogger() {
     static unsigned long lastPrintTime = 0;
     const unsigned long PRINT_INTERVAL = 1000; // Print frequency every 1 second

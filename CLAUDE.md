@@ -31,9 +31,6 @@ RIGHT_MOTOR: IN1=42, IN2=41, ENC_A=2, ENC_B=1
 // Audio (I2S)
 SPEAKER: DOUT=13, BCLK=14, LRC=21
 
-// IR Sensors (5 sensors via multiplexer)
-IR_MUX: A0=17, A1=16, A2=15, OUT=7, EN=6
-
 // LEDs & Lighting
 NEOPIXEL_STRIP=4 (8 LEDs), COLOR_LED=5
 
@@ -91,7 +88,6 @@ pio run -t upload -t monitor -e local --upload-port /dev/cu.usbmodem101
 - **IMU**: Quaternion, Euler angles, accelerometer data
 - **ToF Sensors**: Side (proximity) + multizone (64-zone mapping)
 - **Color Sensor**: RGB detection with calibration matrix
-- **IR Sensors**: 5-sensor array for line following
 - **Battery Monitor**: Voltage, current, health tracking
 
 ### 2. Demo System

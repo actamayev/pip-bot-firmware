@@ -28,7 +28,7 @@ A sandboxed bytecode virtual machine for executing user programs safely on the E
 
 ### Robot Integration
 - **Motor control**: Direct speed and direction commands
-- **Sensor access**: Read IMU, ToF, color, and IR sensors
+- **Sensor access**: Read IMU, ToF, and color sensors
 - **LED control**: Individual LED color and animation control
 - **Audio commands**: Play tones and control volume
 - **Timing functions**: Delays and scheduling

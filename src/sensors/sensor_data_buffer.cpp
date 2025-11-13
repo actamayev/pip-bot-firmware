@@ -55,12 +55,6 @@ void SensorDataBuffer::updateColorData(const ColorData& color) {
     markColorDataUpdated();
 }
 
-// NEW: IR sensor update method
-void SensorDataBuffer::updateIrData(const IrData& ir) {
-    currentIrData = ir;
-    markIrDataUpdated();
-}
-
 // NEW: Encoder update method
 void SensorDataBuffer::updateEncoderData(const EncoderData& encoder) {
     currentEncoderData = encoder;
@@ -164,30 +158,6 @@ uint8_t SensorDataBuffer::getLatestBlueValue() {
 bool SensorDataBuffer::isColorDataValid() {
     timeouts.color_last_request.store(millis());
     return currentColorData.isValid;
-}
-
-// NEW: IR sensor Read methods - reset timeouts when called
-IrData SensorDataBuffer::getLatestIrData() {
-    timeouts.ir_last_request.store(millis());
-    return currentIrData;
-}
-
-float SensorDataBuffer::getLatestIrSensorReading(uint8_t index) {
-    timeouts.ir_last_request.store(millis());
-    if (index < 5) {
-        return currentIrData.sensorReadings[index];
-    }
-    return 0.0f;
-}
-
-float* SensorDataBuffer::getLatestIrSensorReadings() {
-    timeouts.ir_last_request.store(millis());
-    return currentIrData.sensorReadings;
-}
-
-bool SensorDataBuffer::isIrDataValid() {
-    timeouts.ir_last_request.store(millis());
-    return currentIrData.isValid;
 }
 
 // NEW: Encoder Read methods - reset timeouts when called
@@ -303,7 +273,6 @@ void SensorDataBuffer::stopPollingAllSensors() {
     stopPollingSensor(SensorType::MULTIZONE_TOF);
     stopPollingSensor(SensorType::SIDE_TOF);
     stopPollingSensor(SensorType::COLOR);
-    stopPollingSensor(SensorType::IR);
 }
 
 void SensorDataBuffer::stopPollingSensor(SensorType sensorType) {
@@ -329,9 +298,6 @@ void SensorDataBuffer::stopPollingSensor(SensorType sensorType) {
         case SensorType::COLOR:
             timeouts.color_last_request.store(0);
             break;
-        case SensorType::IR:
-            timeouts.ir_last_request.store(0);
-            break;
     }
 }
 
@@ -353,10 +319,6 @@ void SensorDataBuffer::markSideTofDataUpdated() {
 void SensorDataBuffer::markColorDataUpdated() {
     lastColorUpdateTime.store(millis());
     colorSensorUpdateCount.fetch_add(1);  // Increment frequency counter
-}
-
-void SensorDataBuffer::markIrDataUpdated() {
-    lastIrUpdateTime.store(millis());
 }
 
 void SensorDataBuffer::markEncoderDataUpdated() {

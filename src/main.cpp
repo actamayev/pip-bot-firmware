@@ -6,7 +6,6 @@
 #include "sensors/sensor_initializer.h"
 #include "actuators/display_screen.h"
 
-
 void setup() {
     Serial.setRxBufferSize(MAX_PROGRAM_SIZE); // This is here to make the serial buffer larger to accommodate for large serial messages (ie. when uploading bytecode programs over serial)
     Serial.setTxBufferSize(MAX_PROGRAM_SIZE); // This is here to make the serial buffer larger to accommodate for large serial messages (ie. when uploading bytecode programs over serial)
@@ -85,7 +84,6 @@ void setup() {
     TaskManager::createMultizoneTofSensorTask();
     TaskManager::createSideTofSensorTask();
     TaskManager::createColorSensorTask();
-    TaskManager::createIrSensorTask();
     
     // 12. DemoManager (high priority for demos)
     // TaskManager::createDemoManagerTask();

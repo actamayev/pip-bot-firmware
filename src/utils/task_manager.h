@@ -58,7 +58,6 @@ class TaskManager {
         static void multizoneTofSensorTask(void* parameter);
         static void sideTofSensorTask(void* parameter);
         static void colorSensorTask(void* parameter);
-        static void irSensorTask(void* parameter);
         static void sensorLoggerTask(void* parameter);
         
         static void displayTask(void* parameter);
@@ -87,7 +86,6 @@ class TaskManager {
         static constexpr uint32_t MULTIZONE_TOF_STACK_SIZE = 8192;   // Heavy processing, 64 zones
         static constexpr uint32_t SIDE_TOF_STACK_SIZE = 6144;        // Moderate processing
         static constexpr uint32_t COLOR_SENSOR_STACK_SIZE = 4096;    // Light processing
-        static constexpr uint32_t IR_SENSOR_STACK_SIZE = 6144;       // Moderate processing (5 sensors)
         static constexpr uint32_t SENSOR_LOGGER_STACK_SIZE = 4096;   // Light processing - just calling logger functions
         
         static constexpr uint32_t DISPLAY_STACK_SIZE = 4096;  // I2C + display buffer operations
@@ -142,7 +140,6 @@ class TaskManager {
         static TaskHandle_t multizoneTofSensorTaskHandle;
         static TaskHandle_t sideTofSensorTaskHandle;
         static TaskHandle_t colorSensorTaskHandle;
-        static TaskHandle_t irSensorTaskHandle;
         static TaskHandle_t sensorLoggerTaskHandle;
         
         static TaskHandle_t displayTaskHandle;

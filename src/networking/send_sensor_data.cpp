@@ -9,22 +9,6 @@ void SendSensorData::attachRPMData(JsonObject& payload) {
     payload["rightWheelRPM"] = wheelRpms.rightWheelRPM;
 }
 
-// Add IR sensor data to the provided JSON payload
-void SendSensorData::attachIRData(JsonObject& payload) {
-    SensorDataBuffer& buffer = SensorDataBuffer::getInstance();
-    
-    // Get IR sensor data (this will reset IR timeout)
-    IrData irData = buffer.getLatestIrData();
-
-    // Create a JSON array for the sensor readings
-    JsonArray irArray = payload.createNestedArray("irSensorData");
-    
-    // Add each sensor reading to the array
-    for (uint8_t i = 0; i < 5; i++) {
-        irArray.add(irData.sensorReadings[i]);
-    }
-}
-
 void SendSensorData::attachEulerData(JsonObject& payload) {
     EulerAngles eulerAngles = SensorDataBuffer::getInstance().getLatestEulerAngles();
     //ROLL AND PITCH ARE SWITCHED ON PURPOSE
