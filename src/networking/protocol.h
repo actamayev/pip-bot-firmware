@@ -75,7 +75,8 @@ enum class WiFiConnectionStatus : uint8_t {
 };
 
 enum class CareerType : uint8_t {
-    MEET_PIP = 1
+    MEET_PIP = 1,
+    TURRET_ARCADE = 2
 };
 
 enum class MeetPipTriggerType : uint8_t {
@@ -107,6 +108,11 @@ enum class MeetPipTriggerType : uint8_t {
     S4_P5_EXIT = 25,
     S9_P3_EXIT = 26,
     S4_P4_EXIT = 27,
+};
+
+enum class TurretArcadeTriggerType : uint8_t {
+    ENTER_TURRET_ARCADE = 0,
+    EXIT_TURRET_ARCADE = 1
 };
 
 struct NewBalancePids {

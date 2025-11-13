@@ -488,6 +488,26 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
                         }
                         break;
                     }
+                    case CareerType::TURRET_ARCADE: {
+                        TurretArcadeTriggerType triggerType = static_cast<TurretArcadeTriggerType>(data[2]);
+
+                        switch (triggerType) {
+                            case TurretArcadeTriggerType::ENTER_TURRET_ARCADE:
+                                SendSensorData::getInstance().setSendSensorData(true);
+                                SendSensorData::getInstance().setEulerDataEnabled(true);
+                                SendSensorData::getInstance().setSideTofDataEnabled(true);
+                                break;
+                            case TurretArcadeTriggerType::EXIT_TURRET_ARCADE:
+                                SendSensorData::getInstance().setEulerDataEnabled(false);
+                                SendSensorData::getInstance().setSideTofDataEnabled(false);
+                                SendSensorData::getInstance().setSendSensorData(false);
+                                break;
+                            default:
+                                SerialQueueManager::getInstance().queueMessage("Unknown turret arcade trigger type");
+                                break;
+                        }
+                        break;
+                    }
                     default:
                         SerialQueueManager::getInstance().queueMessage("Unknown career type");
                         break;
