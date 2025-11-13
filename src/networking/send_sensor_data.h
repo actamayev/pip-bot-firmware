@@ -55,6 +55,8 @@ class SendSensorData : public Singleton<SendSensorData> {
 
         unsigned long lastSendTime = 0;
         unsigned long lastMzSendTime = 0;
-        const unsigned long SEND_INTERVAL = 50; // Poll every 50ms for more responsive data
-        const unsigned long MZ_SEND_INTERVAL = 100; // Send MZ data every 100ms
+        const unsigned long SERIAL_SEND_INTERVAL = 50; // Serial: 50ms intervals (20Hz)
+        const unsigned long WS_SEND_INTERVAL = 100; // WebSocket: 100ms intervals (10Hz)
+        const unsigned long SERIAL_MZ_INTERVAL = 200; // Serial MZ: 200ms intervals
+        const unsigned long WS_MZ_INTERVAL = 400; // WebSocket MZ: 400ms intervals
 };

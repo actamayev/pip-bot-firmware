@@ -82,12 +82,14 @@ void SendSensorData::sendSensorDataToServer() {
     // Check available connections - prioritize serial over websocket
     bool serialConnected = SerialManager::getInstance().isSerialConnected();
     bool websocketConnected = WebSocketManager::getInstance().isWsConnected();
-    
+
     // Must have at least one connection
     if (!serialConnected && !websocketConnected) return;
 
     unsigned long currentTime = millis();
-    if (currentTime - lastSendTime < SEND_INTERVAL) return;
+    // Use different intervals based on connection type
+    unsigned long requiredInterval = serialConnected ? SERIAL_SEND_INTERVAL : WS_SEND_INTERVAL;
+    if (currentTime - lastSendTime < requiredInterval) return;
 
     // Create a JSON document with both routing information and payload
     auto doc = makeBaseMessageCommon<256>(ToCommonMessage::SENSOR_DATA);
@@ -113,7 +115,9 @@ void SendSensorData::sendSensorDataToServer() {
     if (serialConnected) {
         SerialQueueManager::getInstance().queueMessage(jsonString, SerialPriority::CRITICAL);
     } else if (websocketConnected) {
-        WebSocketManager::getInstance().wsClient.send(jsonString);
+        if (WebSocketManager::getInstance().isWsConnected()) {
+            WebSocketManager::getInstance().wsClient.send(jsonString);
+        }
     }
 
     lastSendTime = currentTime;
@@ -125,12 +129,14 @@ void SendSensorData::sendMultizoneData() {
     // Check available connections - prioritize serial over websocket
     bool serialConnected = SerialManager::getInstance().isSerialConnected();
     bool websocketConnected = WebSocketManager::getInstance().isWsConnected();
-    
+
     // Must have at least one connection
     if (!serialConnected && !websocketConnected) return;
 
     unsigned long currentTime = millis();
-    if (currentTime - lastMzSendTime < MZ_SEND_INTERVAL) return;
+    // Use different intervals based on connection type
+    unsigned long requiredMzInterval = serialConnected ? SERIAL_MZ_INTERVAL : WS_MZ_INTERVAL;
+    if (currentTime - lastMzSendTime < requiredMzInterval) return;
 
     TofData tofData = SensorDataBuffer::getInstance().getLatestTofData();
     
@@ -153,7 +159,9 @@ void SendSensorData::sendMultizoneData() {
         if (serialConnected) {
             SerialQueueManager::getInstance().queueMessage(jsonString, SerialPriority::CRITICAL);
         } else if (websocketConnected) {
-            WebSocketManager::getInstance().wsClient.send(jsonString);
+            if (WebSocketManager::getInstance().isWsConnected()) {
+                WebSocketManager::getInstance().wsClient.send(jsonString);
+            }
         }
     }
 

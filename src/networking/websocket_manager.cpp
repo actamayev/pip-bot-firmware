@@ -2,6 +2,7 @@
 #include "utils/structs.h"
 #include "websocket_manager.h"
 #include "actuators/display_screen.h"
+#include "networking/send_sensor_data.h"
 
 WebSocketManager::WebSocketManager() {
     wsConnected = false;
@@ -80,6 +81,7 @@ void WebSocketManager::connectToWebSocket() {
                 break;
             case WebsocketsEvent::GotPong:
                 SerialQueueManager::getInstance().queueMessage("Got pong");
+                // TODO 11/13/25: Should this be lastPingTime?
                 this->lastPingTime = millis(); // Update ping time
                 break;
         }
@@ -187,6 +189,16 @@ void WebSocketManager::killWiFiProcesses() {
     if (hasKilledWiFiProcesses) return;
     careerQuestTriggers.stopAllCareerQuestTriggers(false);
     motorDriver.resetCommandState(false);
+
+    // Stop all sensor data transmission to reduce network load
+    SendSensorData::getInstance().setSendSensorData(false);
+    SendSensorData::getInstance().setSendMultizoneData(false);
+    SendSensorData::getInstance().setEulerDataEnabled(false);
+    SendSensorData::getInstance().setSideTofDataEnabled(false);
+    SendSensorData::getInstance().setAccelDataEnabled(false);
+    SendSensorData::getInstance().setColorSensorDataEnabled(false);
+    SendSensorData::getInstance().setEncoderDataEnabled(false);
+
     hasKilledWiFiProcesses = true;
     userConnectedToThisPip = false;
 }
@@ -207,7 +219,7 @@ void WebSocketManager::sendDinoScore(int score) {
     auto doc = makeBaseMessageCommon<256>(ToCommonMessage::DINO_SCORE);
     JsonObject payload = doc.createNestedObject("payload");
     payload["score"] = score;
-    
+
     String jsonString;
     serializeJson(doc, jsonString);
     wsClient.send(jsonString);
