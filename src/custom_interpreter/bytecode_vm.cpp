@@ -705,8 +705,9 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             // toneValue = 0 means stop, 1-7 are valid tones
             if (toneValue <= 7) {
                 ToneType toneType = static_cast<ToneType>(toneValue);
-                SerialQueueManager::getInstance().queueMessage("Calling Speaker::playTone()");
                 Speaker::getInstance().playTone(toneType);
+            } else if (toneValue == 8) {
+                Speaker::getInstance().stopTone();
             } else {
                 SerialQueueManager::getInstance().queueMessage("Invalid tone value: " + String(toneValue));
             }
