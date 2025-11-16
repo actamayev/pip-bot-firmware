@@ -63,6 +63,7 @@
 		"set": "cpp"
 	},
 	"C_Cpp.codeAnalysis.clangTidy.enabled": true,
+	"C_Cpp.codeAnalysis.clangTidy.config": "",
 	"C_Cpp.formatting": "clangFormat",
 	"C_Cpp.clang_format_style": "file",
 	"editor.formatOnSave": true,

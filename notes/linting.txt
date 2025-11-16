@@ -1,8 +1,24 @@
-# Run clang-tidy static analysis
+# clang-tidy:
+# Lint entire codebase
 pio check
 
-# Format a single file
+# Lint specific environment
+pio check -e local
+
+# Lint specific files/directories
+pio check --pattern="src/main.cpp"
+
+# Lint with verbose output
+pio check --verbose
+
+===============================================================
+
+# clang-format
+# Format single file
 clang-format -i src/main.cpp
 
-# Format all files in src/
+# Format all .cpp and .h files in src/
 find src -name "*.cpp" -o -name "*.h" | xargs clang-format -i
+
+# Check formatting without modifying (for CI)
+clang-format --dry-run --Werror src/main.cpp

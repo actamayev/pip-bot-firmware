@@ -29,7 +29,9 @@ void setup() {
 
     // Check hold-to-wake condition first (handles display init for deep sleep wake)
     // Function handles going back to sleep if conditions aren't met
-    if (!holdToWake()) return;
+    if (!holdToWake()) {
+        return;
+    }
 
     // Handle low battery condition BEFORE normal display initialization
     if (BatteryMonitor::getInstance().isCriticalBattery()) {
