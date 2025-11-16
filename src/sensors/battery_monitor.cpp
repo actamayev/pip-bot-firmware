@@ -1,5 +1,4 @@
 #include "battery_monitor.h"
-#include "networking/serial_queue_manager.h"
 
 bool BatteryMonitor::initialize() {
     SerialQueueManager::getInstance().queueMessage("Initializing BQ27441 battery monitor...");
@@ -11,25 +10,25 @@ bool BatteryMonitor::initialize() {
         return false;
     }
     SerialQueueManager::getInstance().queueMessage("✓ BQ27441 connected successfully");
-    
+
     // Set the battery capacity if it hasn't been set already
     if (lipo.capacity(FULL) != DEFAULT_BATTERY_CAPACITY) {
         lipo.setCapacity(DEFAULT_BATTERY_CAPACITY);
     }
-    
+
     batteryState.isInitialized = true;
-    
+
     // Initial battery state update
     updateBatteryState();
-    
+
     SerialQueueManager::getInstance().queueMessage("✓ Battery monitor initialized - SOC: " + String(batteryState.realStateOfCharge) + "%");
-    
+
     return true;
 }
 
 void BatteryMonitor::updateBatteryState() {
     if (!batteryState.isInitialized) return;
-    
+
     // Read battery parameters from BQ27441
     batteryState.realStateOfCharge = lipo.soc();
     batteryState.voltage = lipo.voltage();
@@ -39,12 +38,11 @@ void BatteryMonitor::updateBatteryState() {
     batteryState.fullCapacity = lipo.capacity(FULL);
     batteryState.health = lipo.soh();
     // Prevent sub-0 values.
-    batteryState.displayedStateOfCharge = max(0.0f, 
-        (batteryState.realStateOfCharge) * (slopeTerm) + yInterceptTerm);
+    batteryState.displayedStateOfCharge = max(0.0f, (batteryState.realStateOfCharge) * (slopeTerm) + yInterceptTerm);
 
     // Update derived status flags
     updateStatusFlags();
-    
+
     // Calculate time estimates
     calculateTimeEstimates();
 }
@@ -58,7 +56,7 @@ void BatteryMonitor::updateStatusFlags() {
         batteryState.isCharging = true;
         batteryState.isDischarging = false;
     }
-    
+
     // Battery level warnings
     batteryState.isLowBattery = (batteryState.realStateOfCharge <= LOW_BATTERY_THRESHOLD);
     batteryState.isCriticalBattery = (batteryState.realStateOfCharge <= CRITICAL_BATTERY_THRESHOLD);
@@ -67,7 +65,7 @@ void BatteryMonitor::updateStatusFlags() {
 void BatteryMonitor::calculateTimeEstimates() {
     batteryState.estimatedTimeToEmpty = 0.0f;
     batteryState.estimatedTimeToFull = 0.0f;
-    
+
     if (batteryState.isDischarging && batteryState.current < 0 && batteryState.remainingCapacity > 0) {
         // Calculate time to empty
         batteryState.estimatedTimeToEmpty = (float)batteryState.remainingCapacity / batteryState.current;
@@ -87,10 +85,10 @@ void BatteryMonitor::update() {
         retryInitializationIfNeeded();
         return;
     }
-    
+
     // Update battery state
     updateBatteryState();
-    
+
     // Handle periodic battery logging when connected to serial
     handleBatteryLogging();
 
@@ -102,13 +100,10 @@ void BatteryMonitor::update() {
 
 void BatteryMonitor::handleBatteryLogging() {
     if (!batteryState.isInitialized) return;
-    
+
     // Only log if connected to serial
-    if (
-        !SerialManager::getInstance().isSerialConnected() &&
-        !WebSocketManager::getInstance().isWsConnected()
-    ) return;
-    
+    if (!SerialManager::getInstance().isSerialConnected() && !WebSocketManager::getInstance().isWsConnected()) return;
+
     unsigned long currentTime = millis();
     if (currentTime - lastBatteryLogTime < BATTERY_LOG_INTERVAL_MS) return;
     // Log battery data every 30 seconds
@@ -119,7 +114,7 @@ void BatteryMonitor::handleBatteryLogging() {
 
 void BatteryMonitor::retryInitializationIfNeeded() {
     unsigned long currentTime = millis();
-    
+
     if (currentTime - lastInitAttempt > INIT_RETRY_INTERVAL_MS) {
         initialize();
         lastInitAttempt = currentTime;

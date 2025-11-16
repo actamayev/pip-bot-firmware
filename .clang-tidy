@@ -23,6 +23,7 @@ Checks: >
   -google-runtime-references,
   hicpp-*,
   -hicpp-avoid-c-arrays,
+  -hicpp-braces-around-statements,
   -hicpp-no-array-decay,
   misc-*,
   -misc-non-private-member-variables-in-classes,
