@@ -1,14 +1,17 @@
-#include "utils/config.h"
-#include "utils/task_manager.h"
-#include "utils/hold_to_wake.h"
 #include "actuators/buttons.h"
+#include "actuators/display_screen.h"
 #include "sensors/battery_monitor.h"
 #include "sensors/sensor_initializer.h"
-#include "actuators/display_screen.h"
+#include "utils/config.h"
+#include "utils/hold_to_wake.h"
+#include "utils/task_manager.h"
 
 void setup() {
-    Serial.setRxBufferSize(MAX_PROGRAM_SIZE); // This is here to make the serial buffer larger to accommodate for large serial messages (ie. when uploading bytecode programs over serial)
-    Serial.setTxBufferSize(MAX_PROGRAM_SIZE); // This is here to make the serial buffer larger to accommodate for large serial messages (ie. when uploading bytecode programs over serial)
+    // This is here to make the serial buffer larger to accommodate for large serial messages (ie. when uploading bytecode programs over serial)
+    Serial.setRxBufferSize(MAX_PROGRAM_SIZE);
+    // This is here to make the serial buffer larger to accommodate for large serial messages (ie. // when uploading bytecode programs over serial)
+    Serial.setTxBufferSize(MAX_PROGRAM_SIZE);
+
     Serial.begin(115200);
     pinMode(PWR_EN, OUTPUT);
     digitalWrite(PWR_EN, HIGH);
@@ -17,7 +20,7 @@ void setup() {
     Wire1.begin(I2C_SDA_2, I2C_SCL_2, I2C_2_CLOCK_SPEED);
 
     TaskManager::createSerialQueueTask();
-    
+
     // Initialize battery monitor SYNCHRONOUSLY before display to check battery level
     BatteryMonitor::getInstance().initialize();
 
@@ -37,7 +40,7 @@ void setup() {
         Buttons::getInstance().enterDeepSleep();
         return; // Should never reach here, but just in case
     }
-    
+
     // Initialize display normally after hold-to-wake check (only if battery is OK)
     if (esp_sleep_get_wakeup_cause() != ESP_SLEEP_WAKEUP_EXT1) {
         TaskManager::createDisplayInitTask();
@@ -49,10 +52,10 @@ void setup() {
     // 1. Display
     // - For normal startup: Display initialized immediately above
     // - For deep sleep wake: Display initialized after 1-second button hold in holdToWake()
-    
+
     // 3. SerialInput: To communicate with the user over Serial (in the BrowserUI)
     TaskManager::createSerialInputTask();
-    
+
     // 4. Speaker
     TaskManager::createSpeakerTask();
 
@@ -61,7 +64,7 @@ void setup() {
 
     // Create battery monitor task for ongoing monitoring
     TaskManager::createBatteryMonitorTask();
-    
+
     // 11. Motor (high priority, fast updates)
     TaskManager::createMotorTask();
 
@@ -70,11 +73,11 @@ void setup() {
 
     // 8. WebSocket polling (separate from communication for non-blocking sensor data)
     TaskManager::createWebSocketPollingTask();
-    
+
     // 9. LEDs (moved later in sequence)
     rgbLed.turn_all_leds_off(); // Still turn off LEDs early for safety
     TaskManager::createLedTask();
-    
+
     // 10. Initialize all sensors centrally to avoid I2C conflicts
     SensorInitializer::getInstance(); // This triggers centralized initialization
 
@@ -84,7 +87,7 @@ void setup() {
     TaskManager::createMultizoneTofSensorTask();
     TaskManager::createSideTofSensorTask();
     TaskManager::createColorSensorTask();
-    
+
     // 12. DemoManager (high priority for demos)
     // TaskManager::createDemoManagerTask();
 
@@ -96,7 +99,7 @@ void setup() {
 
     // 15. BytecodeVM
     TaskManager::createBytecodeVMTask();
-    
+
     // Note: StackMonitor can be enabled for debugging
     // TaskManager::createStackMonitorTask();
     // TaskManager::createSensorLoggerTask();

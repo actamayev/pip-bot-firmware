@@ -11,7 +11,7 @@ IndentCaseLabels: true
 IndentPPDirectives: AfterHash
 
 # Line length
-ColumnLimit: 140
+ColumnLimit: 150
 
 # Braces - K&R/1TBS style
 BreakBeforeBraces: Attach
@@ -80,7 +80,7 @@ AlignTrailingComments: true
 AllowShortBlocksOnASingleLine: Empty
 AllowShortCaseLabelsOnASingleLine: false
 AllowShortFunctionsOnASingleLine: Empty
-AllowShortIfStatementsOnASingleLine: Never
+AllowShortIfStatementsOnASingleLine: WithoutElse
 AllowShortLoopsOnASingleLine: false
 KeepEmptyLinesAtTheStartOfBlocks: false
 MaxEmptyLinesToKeep: 1

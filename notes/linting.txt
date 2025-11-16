@@ -1,0 +1,8 @@
+# Run clang-tidy static analysis
+pio check
+
+# Format a single file
+clang-format -i src/main.cpp
+
+# Format all files in src/
+find src -name "*.cpp" -o -name "*.h" | xargs clang-format -i
