@@ -24,82 +24,82 @@ void SerialManager::poll_serial() {
     while (Serial.available() > 0) {
         uint8_t in_byte = Serial.read();
 
-        switch (parseState) {
-            case ParseState::WAITING_FOR_START:
+        switch (parse_state) {
+            case parse_state::WAITING_FOR_START:
                 if (in_byte == START_MARKER) {
                     // Start of a new message
                     bufferPosition = 0;
-                    parseState = ParseState::READING_MESSAGE_TYPE;
+                    parse_state = parse_state::READING_MESSAGE_TYPE;
                 }
                 break;
 
-            case ParseState::READING_MESSAGE_TYPE:
+            case parse_state::READING_MESSAGE_TYPE:
                 receiveBuffer[bufferPosition++] = in_byte; // Store message type as first byte
-                parseState = ParseState::READING_FORMAT_FLAG;
+                parse_state = parse_state::READING_FORMAT_FLAG;
                 break;
 
-            case ParseState::READING_FORMAT_FLAG:
+            case parse_state::READING_FORMAT_FLAG:
                 useLongFormat = (in_byte != 0);
-                parseState = ParseState::READING_LENGTH_BYTE1;
+                parse_state = parse_state::READING_LENGTH_BYTE1;
                 break;
 
-            case ParseState::READING_LENGTH_BYTE1:
+            case parse_state::READING_LENGTH_BYTE1:
                 if (useLongFormat) {
                     // First byte of 16-bit length (little-endian)
-                    expectedPayloadLength = in_byte;
-                    parseState = ParseState::READING_LENGTH_BYTE2;
+                    _expectedPayloadLength = in_byte;
+                    parse_state = parse_state::READING_LENGTH_BYTE2;
                 } else {
                     // 8-bit length
-                    expectedPayloadLength = in_byte;
+                    _expectedPayloadLength = in_byte;
 
                     // If payload length is 0, skip to waiting for end marker
-                    if (expectedPayloadLength == 0) {
-                        parseState = ParseState::WAITING_FOR_END;
+                    if (_expectedPayloadLength == 0) {
+                        parse_state = parse_state::WAITING_FOR_END;
                     } else {
-                        parseState = ParseState::READING_PAYLOAD;
+                        parse_state = parse_state::READING_PAYLOAD;
                     }
                 }
                 break;
 
-            case ParseState::READING_LENGTH_BYTE2:
+            case parse_state::READING_LENGTH_BYTE2:
                 // Second byte of 16-bit length (little-endian)
-                expectedPayloadLength |= (in_byte << 8);
+                _expectedPayloadLength |= (in_byte << 8);
 
                 // If payload length is 0, skip to waiting for end marker
-                if (expectedPayloadLength == 0) {
-                    parseState = ParseState::WAITING_FOR_END;
+                if (_expectedPayloadLength == 0) {
+                    parse_state = parse_state::WAITING_FOR_END;
                 } else {
-                    parseState = ParseState::READING_PAYLOAD;
+                    parse_state = parse_state::READING_PAYLOAD;
                 }
                 break;
 
-            case ParseState::READING_PAYLOAD:
+            case parse_state::READING_PAYLOAD:
                 // Store payload byte
                 if (bufferPosition < sizeof(receiveBuffer)) {
                     receiveBuffer[bufferPosition++] = in_byte;
 
                     // Check if we've read the complete payload
-                    if (bufferPosition >= expectedPayloadLength + 1) { // +1 for message type
-                        parseState = ParseState::WAITING_FOR_END;
+                    if (bufferPosition >= _expectedPayloadLength + 1) { // +1 for message type
+                        parse_state = parse_state::WAITING_FOR_END;
                     }
                 } else {
                     // Buffer overflow
                     SerialQueueManager::get_instance().queue_message("Serial buffer overflow");
-                    parseState = ParseState::WAITING_FOR_START;
+                    parse_state = parse_state::WAITING_FOR_START;
                 }
                 break;
 
-            case ParseState::WAITING_FOR_END:
+            case parse_state::WAITING_FOR_END:
                 if (in_byte == END_MARKER) {
                     // Process the message
                     MessageProcessor::get_instance().process_binary_message(receiveBuffer, bufferPosition);
 
                     // Reset for next message
-                    parseState = ParseState::WAITING_FOR_START;
+                    parse_state = parse_state::WAITING_FOR_START;
                 } else {
                     // Invalid end marker
                     SerialQueueManager::get_instance().queue_message("Invalid end marker");
-                    parseState = ParseState::WAITING_FOR_START;
+                    parse_state = parse_state::WAITING_FOR_START;
                 }
                 break;
         }

@@ -15,7 +15,7 @@ void imu_logger() {
 
     // Debug: Check if we're getting IMU data at all
     EulerAngles euler_angles = SensorDataBuffer::get_instance().get_latest_euler_angles();
-    float frequency = SensorDataBuffer::get_instance().get_imu_frequency() = NAN;
+    float frequency = SensorDataBuffer::get_instance().get_imu_frequency();
 
     char buffer[128];
     snprintf(buffer, sizeof(buffer), "IMU Frequency: %.1f Hz, Data Valid: %s, Yaw: %.1f, Pitch: %.1f, Roll: %.1f", frequency,
@@ -65,7 +65,7 @@ void multizone_tof_logger() {
         return;
     }
 
-    float frequency = SensorDataBuffer::get_instance().get_multizone_tof_frequency() = NAN;
+    float frequency = SensorDataBuffer::get_instance().get_multizone_tof_frequency();
     TofData tof_data = SensorDataBuffer::get_instance().get_latest_tof_data();
 
     char buffer[128];
@@ -84,7 +84,7 @@ void side_tof_logger() {
         return;
     }
 
-    float frequency = SensorDataBuffer::get_instance().get_side_tof_frequency() = NAN;
+    float frequency = SensorDataBuffer::get_instance().get_side_tof_frequency();
     SideTofData tof_data = SensorDataBuffer::get_instance().get_latest_side_tof_data();
 
     char buffer[128];
@@ -102,7 +102,7 @@ void color_sensor_logger() {
         return;
     }
 
-    float frequency = SensorDataBuffer::get_instance().get_color_sensor_frequency() = NAN;
+    float frequency = SensorDataBuffer::get_instance().get_color_sensor_frequency();
     ColorData color_data = SensorDataBuffer::get_instance().get_latest_color_data();
 
     char buffer[128];

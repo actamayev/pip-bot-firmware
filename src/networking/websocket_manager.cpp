@@ -98,19 +98,19 @@ void WebSocketManager::add_battery_data_to_payload(JsonObject& payload) {
     }
 
     JsonObject battery_data = payload.createNestedObject("batteryData");
-    "stateOfCharge"[battery_data] = static_cast<int>(round(battery_state.displayedStateOfCharge));
-    "voltage"[battery_data] = battery_state.voltage;
-    "current"[battery_data] = battery_state.current;
-    "power"[battery_data] = battery_state.power;
-    "remainingCapacity"[battery_data] = battery_state.remainingCapacity;
-    "fullCapacity"[battery_data] = battery_state.fullCapacity;
-    "health"[battery_data] = battery_state.health;
-    "isCharging"[battery_data] = battery_state.isCharging;
-    "isDischarging"[battery_data] = battery_state.isDischarging;
-    "isLowBattery"[battery_data] = battery_state.isLowBattery;
-    "isCriticalBattery"[battery_data] = battery_state.isCriticalBattery;
-    "estimatedTimeToEmpty"[battery_data] = battery_state.estimatedTimeToEmpty;
-    "estimatedTimeToFull"[battery_data] = battery_state.estimatedTimeToFull;
+    battery_data["stateOfCharge"] = static_cast<int>(round(battery_state.displayedStateOfCharge));
+    battery_data["voltage"] = battery_state.voltage;
+    battery_data["current"] = battery_state.current;
+    battery_data["power"] = battery_state.power;
+    battery_data["remainingCapacity"] = battery_state.remainingCapacity;
+    battery_data["fullCapacity"] = battery_state.fullCapacity;
+    battery_data["health"] = battery_state.health;
+    battery_data["isCharging"] = battery_state.isCharging;
+    battery_data["isDischarging"] = battery_state.isDischarging;
+    battery_data["isLowBattery"] = battery_state.isLowBattery;
+    battery_data["isCriticalBattery"] = battery_state.isCriticalBattery;
+    battery_data["estimatedTimeToEmpty"] = battery_state.estimatedTimeToEmpty;
+    battery_data["estimatedTimeToFull"] = battery_state.estimatedTimeToFull;
 }
 
 void WebSocketManager::send_initial_data() {
@@ -224,7 +224,7 @@ void WebSocketManager::send_pip_turning_off() {
     }
     auto pip_turning_off_doc = make_base_message_common<256>(ToCommonMessage::PIP_TURNING_OFF);
     JsonObject payload = pip_turning_off_doc.createNestedObject("payload");
-    "reason"[payload] = "Pip is turning off";
+    payload["reason"] = "Pip is turning off";
     String json_string;
     serializeJson(pip_turning_off_doc, json_string);
     instance._wsClient.send(json_string);
@@ -238,7 +238,7 @@ void WebSocketManager::send_dino_score(int score) {
 
     auto doc = make_base_message_common<256>(ToCommonMessage::DINO_SCORE);
     JsonObject payload = doc.createNestedObject("payload");
-    "score"[payload] = score;
+    payload["score"] = score;
 
     String json_string;
     serializeJson(doc, json_string);

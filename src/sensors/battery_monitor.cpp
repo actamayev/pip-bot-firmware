@@ -6,7 +6,7 @@ bool BatteryMonitor::initialize() {
     // Initialize the fuel gauge
     if (!lipo.begin(Wire1)) {
         SerialQueueManager::get_instance().queue_message("✗ Failed to connect to BQ27441 - check wiring and I2C address");
-        batteryState.isInitialized = false;
+        _batteryState.isInitialized = false;
         return false;
     }
     SerialQueueManager::get_instance().queue_message("✓ BQ27441 connected successfully");
@@ -16,7 +16,7 @@ bool BatteryMonitor::initialize() {
         lipo.setCapacity(DEFAULT_BATTERY_CAPACITY);
     }
 
-    batteryState.isInitialized = true;
+    _batteryState.isInitialized = true;
 
     // Initial battery state update
     update_battery_state();
@@ -27,20 +27,20 @@ bool BatteryMonitor::initialize() {
 }
 
 void BatteryMonitor::update_battery_state() {
-    if (!batteryState.isInitialized) {
+    if (!_batteryState.isInitialized) {
         return;
     }
 
     // Read battery parameters from BQ27441
-    batteryState.realStateOfCharge = lipo.soc();
-    batteryState.voltage = lipo.voltage();
-    batteryState.current = lipo.current(AVG);
-    batteryState.power = lipo.power();
-    batteryState.remainingCapacity = lipo.capacity(REMAIN);
-    batteryState.fullCapacity = lipo.capacity(FULL);
-    batteryState.health = lipo.soh();
+    _batteryState.realStateOfCharge = lipo.soc();
+    _batteryState.voltage = lipo.voltage();
+    _batteryState.current = lipo.current(AVG);
+    _batteryState.power = lipo.power();
+    _batteryState.remainingCapacity = lipo.capacity(REMAIN);
+    _batteryState.fullCapacity = lipo.capacity(FULL);
+    _batteryState.health = lipo.soh();
     // Prevent sub-0 values.
-    batteryState.displayedStateOfCharge = max(0.0f, (batteryState.realStateOfCharge) * (slopeTerm) + yInterceptTerm);
+    _batteryState.displayedStateOfCharge = max(0.0f, (batteryState.realStateOfCharge) * (slopeTerm) + yInterceptTerm);
 
     // Update derived status flags
     update_status_flags();
@@ -52,38 +52,38 @@ void BatteryMonitor::update_battery_state() {
 void BatteryMonitor::update_status_flags() {
     // Charging/discharging status
     if (batteryState.current < 0) {
-        batteryState.isCharging = false;
-        batteryState.isDischarging = true;
+        _batteryState.isCharging = false;
+        _batteryState.isDischarging = true;
     } else {
-        batteryState.isCharging = true;
-        batteryState.isDischarging = false;
+        _batteryState.isCharging = true;
+        _batteryState.isDischarging = false;
     }
 
     // Battery level warnings
-    batteryState.isLowBattery = (batteryState.realStateOfCharge <= LOW_BATTERY_THRESHOLD);
-    batteryState.isCriticalBattery = (batteryState.realStateOfCharge <= CRITICAL_BATTERY_THRESHOLD);
+    _batteryState.isLowBattery = (batteryState.realStateOfCharge <= LOW_BATTERY_THRESHOLD);
+    _batteryState.isCriticalBattery = (batteryState.realStateOfCharge <= CRITICAL_BATTERY_THRESHOLD);
 }
 
 void BatteryMonitor::calculate_time_estimates() {
-    batteryState.estimatedTimeToEmpty = 0.0f;
-    batteryState.estimatedTimeToFull = 0.0f;
+    _batteryState.estimatedTimeToEmpty = 0.0f;
+    _batteryState.estimatedTimeToFull = 0.0f;
 
-    if (batteryState.isDischarging && batteryState.current < 0 && batteryState.remainingCapacity > 0) {
+    if (batteryState.isDischarging && _batteryState.current < 0 && _batteryState.remainingCapacity > 0) {
         // Calculate time to empty
-        batteryState.estimatedTimeToEmpty = (float)batteryState.remainingCapacity / batteryState.current;
-    } else if (batteryState.isCharging && batteryState.current > 0) {
+        _batteryState.estimatedTimeToEmpty = (float)batteryState.remainingCapacity / _batteryState.current;
+    } else if (batteryState.isCharging && _batteryState.current > 0) {
         // Calculate time to full
         int charging_current = abs(batteryState.current);
-        int remaining_to_full = batteryState.fullCapacity - batteryState.remainingCapacity = 0;
+        int remaining_to_full = _batteryState.fullCapacity - _batteryState.remainingCapacity = 0;
         if (charging_current > 0 && remaining_to_full > 0) {
-            batteryState.estimatedTimeToFull = (float)remainingToFull / chargingCurrent;
+            _batteryState.estimatedTimeToFull = (float)remainingToFull / chargingCurrent;
         }
     }
 }
 
 void BatteryMonitor::update() {
     // Try to initialize if not already done
-    if (!batteryState.isInitialized) {
+    if (!_batteryState.isInitialized) {
         retry_initialization_if_needed();
         return;
     }
@@ -94,7 +94,7 @@ void BatteryMonitor::update() {
     // Handle periodic battery logging when connected to serial
     handle_battery_logging();
 
-    if (!batteryState.isCriticalBattery) {
+    if (!_batteryState.isCriticalBattery) {
         return;
     }
     DisplayScreen::get_instance().show_low_battery_screen();
@@ -103,7 +103,7 @@ void BatteryMonitor::update() {
 }
 
 void BatteryMonitor::handle_battery_logging() {
-    if (!batteryState.isInitialized) {
+    if (!_batteryState.isInitialized) {
         return;
     }
 
@@ -112,8 +112,8 @@ void BatteryMonitor::handle_battery_logging() {
         return;
     }
 
-    uint32_t current_time = millis();
-    if (current_time - lastBatteryLogTime < BATTERY_LOG_INTERVAL_MS) {
+    const uint32_t CURRENT_TIME = millis();
+    if (CURRENT_TIME - _lastBatteryLogTime < BATTERY_LOG_INTERVAL_MS) {
         return;
     }
     // Log battery data every 30 seconds
@@ -123,11 +123,11 @@ void BatteryMonitor::handle_battery_logging() {
 }
 
 void BatteryMonitor::retry_initialization_if_needed() {
-    uint32_t current_time = millis();
+    const uint32_t CURRENT_TIME = millis();
 
-    if (current_time - lastInitAttempt > INIT_RETRY_INTERVAL_MS) {
+    if (CURRENT_TIME - _lastInitAttempt > INIT_RETRY_INTERVAL_MS) {
         initialize();
-        lastInitAttempt = current_time;
+        _lastInitAttempt = CURRENT_TIME;
     }
 }
 
@@ -136,7 +136,7 @@ void BatteryMonitor::send_battery_monitor_data_over_serial() {
         return;
     }
     SerialManager::get_instance().send_battery_monitor_data();
-    lastBatteryLogTime = millis();
+    _lastBatteryLogTime = millis();
 }
 
 void BatteryMonitor::send_battery_monitor_data_over_websocket() {
@@ -144,5 +144,5 @@ void BatteryMonitor::send_battery_monitor_data_over_websocket() {
         return;
     }
     WebSocketManager::get_instance().send_battery_monitor_data();
-    lastBatteryLogTime = millis();
+    _lastBatteryLogTime = millis();
 }

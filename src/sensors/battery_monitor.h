@@ -31,7 +31,7 @@ class BatteryMonitor : public Singleton<BatteryMonitor> {
     void update();
 
     uint32_t _lastBatteryLogTime = 0;
-    static void send_battery_monitor_data_over_websocket();
+    void send_battery_monitor_data_over_websocket();
     BatteryMonitor() = default;
     ~BatteryMonitor() = default;
 
@@ -53,9 +53,9 @@ class BatteryMonitor : public Singleton<BatteryMonitor> {
     static constexpr float Y_INTERCEPT_TERM = 100.0f * CRITICAL_BATTERY_THRESHOLD / (CRITICAL_BATTERY_THRESHOLD - 100.0f);
 
     // Helper methods
-    static void calculate_time_estimates();
-    static void update_status_flags();
-    static void handle_battery_logging();
+    void calculate_time_estimates();
+    void update_status_flags();
+    void handle_battery_logging();
     void retry_initialization_if_needed();
-    static void send_battery_monitor_data_over_serial();
+    void send_battery_monitor_data_over_serial();
 };

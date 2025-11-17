@@ -1,31 +1,32 @@
 #include "firmware_version_tracker.h"
 
 FirmwareVersionTracker::FirmwareVersionTracker() {
-    firmware_version = PreferencesManager::get_instance().get_firmware_version();
+    _firmware_version = PreferencesManager::get_instance().get_firmware_version();
     // Format it into a message
     char message[64];
-    snprintf(message, sizeof(message), "Firmware Version: %d", firmware_version);
+    snprintf(message, sizeof(message), "Firmware Version: %d", _firmware_version);
 
     // Queue the message via SerialQueueManager
     SerialQueueManager::get_instance().queue_message(message, SerialPriority::NORMAL);
 
     // Configure HTTPUpdate instance
-    http_update.onProgress([this](int curr, int total) { this->update_progress_leds(curr, total); });
+    _http_update.onProgress([this](int curr, int total) { this->update_progress_leds(curr, total); });
 
     // Set onEnd callback to update firmware version before reboot
-    http_update.onEnd([this]() { PreferencesManager::get_instance().set_firmware_version(this->pending_version); });
+    _http_update.onEnd([this]() { PreferencesManager::get_instance().set_firmware_version(this->_pending_version); });
 
     // Setup clients based on environment
     if (DEFAULT_ENVIRONMENT == "local") {
-        http_client = &insecure_client;
+        _http_client = &_insecure_client;
     } else {
-        secure_client.setCACert(ROOT_CA_CERTIFICATE);
-        http_client = &secure_client;
+        _secure_client.setCACert(ROOT_CA_CERTIFICATE);
+        _http_client = &_secure_client;
     }
 }
 
 void FirmwareVersionTracker::retrieve_latest_firmware_from_server(uint16_t new_version) {
-    if (is_retrieving_firmware_from_server || WiFi.status() != WL_CONNECTED) {
+    FirmwareVersionTracker& instance = FirmwareVersionTracker::get_instance();
+    if (instance._is_retrieving_firmware_from_server || WiFi.status() != WL_CONNECTED) {
         SerialQueueManager::get_instance().queue_message("Cannot update: Either already updating or WiFi not connected");
         return;
     }
@@ -35,31 +36,31 @@ void FirmwareVersionTracker::retrieve_latest_firmware_from_server(uint16_t new_v
     snprintf(message, sizeof(message), "New Firmware Version: %d", new_version);
     SerialQueueManager::get_instance().queue_message(message, SerialPriority::NORMAL);
 
-    if (firmware_version >= new_version) {
+    if (instance._firmware_version >= new_version) {
         char buffer[128];
-        snprintf(buffer, sizeof(buffer), "Pip is up to date. Current version is: %d, new version is: %d\n", firmware_version, new_version);
+        snprintf(buffer, sizeof(buffer), "Pip is up to date. Current version is: %d, new version is: %d\n", instance._firmware_version, new_version);
         SerialQueueManager::get_instance().queue_message(buffer);
         return;
     }
 
-    pending_version = new_version; // Store for the callback to use
-    is_retrieving_firmware_from_server = true;
+    instance._pending_version = new_version; // Store for the callback to use
+    instance._is_retrieving_firmware_from_server = true;
 
     // Get endpoint
     String url = get_server_firmware_endpoint();
     career_quest_triggers.stop_all_career_quest_triggers(true); // Stop all sensors, movement when updating
 
     // Perform the update
-    t_httpUpdate_return result = http_update.update(*http_client, url);
+    t_httpUpdate_return result = instance._http_update.update(*instance._http_client, url);
 
     switch (result) {
         case HTTP_UPDATE_FAILED:
-            is_retrieving_firmware_from_server = false;
+            instance._is_retrieving_firmware_from_server = false;
             break;
 
         case HTTP_UPDATE_NO_UPDATES:
             SerialQueueManager::get_instance().queue_message("No updates needed");
-            is_retrieving_firmware_from_server = false;
+            instance._is_retrieving_firmware_from_server = false;
             break;
 
         case HTTP_UPDATE_OK:
@@ -67,7 +68,7 @@ void FirmwareVersionTracker::retrieve_latest_firmware_from_server(uint16_t new_v
             break;
     }
 
-    is_retrieving_firmware_from_server = false;
+    instance._is_retrieving_firmware_from_server = false;
 }
 
 void FirmwareVersionTracker::update_progress_leds(int progress, int total) {

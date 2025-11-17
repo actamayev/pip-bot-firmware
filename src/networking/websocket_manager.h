@@ -22,7 +22,7 @@ class WebSocketManager : public Singleton<WebSocketManager> {
 
   public:
     void connect_to_websocket();
-    static void poll_websocket();
+    void poll_websocket();
 
     bool is_ws_connected() const {
         return _wsConnected;

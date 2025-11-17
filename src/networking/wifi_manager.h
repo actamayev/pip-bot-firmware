@@ -35,7 +35,7 @@ class WiFiManager : public Singleton<WiFiManager> {
     void clear_available_networks() {
         _availableNetworks.clear();
     }
-    static void clear_networks_if_stale();
+    void clear_networks_if_stale();
 
     void store_wifi_credentials(const String& ssid, const String& password, int index);
     void check_and_reconnect_wifi();
@@ -67,7 +67,7 @@ class WiFiManager : public Singleton<WiFiManager> {
     std::vector<WiFiNetworkInfo> _availableNetworks{};
     int _selectedNetworkIndex = 0;
 
-    static bool attempt_direct_connection_to_saved_networks();
+    bool attempt_direct_connection_to_saved_networks();
     uint32_t _lastReconnectAttempt = 0;
     bool _isConnecting = false;
     static constexpr uint32_t WIFI_RECONNECT_TIMEOUT = 3000; // 3 second timeout

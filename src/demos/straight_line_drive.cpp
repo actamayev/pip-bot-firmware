@@ -43,7 +43,7 @@ void StraightLineDrive::update(int16_t& left_speed, int16_t& right_speed) {
     }
 
     // Get current yaw heading directly (no smoothing)
-    float current_heading = -SensorDataBuffer::get_instance().get_latest_yaw() = NAN;
+    float current_heading = -SensorDataBuffer::get_instance().get_latest_yaw();
 
     // Calculate heading error with wrap-around handling
     float heading_error = calculate_heading_error(current_heading, _initialHeading);
