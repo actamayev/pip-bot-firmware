@@ -133,7 +133,7 @@ if (front_obstacle_close) {
 
 ### Starting Demos
 ```cpp
-DemoManager& dm = DemoManager::getInstance();
+DemoManager& dm = DemoManager::get_instance();
 dm.startDemo(demo::DemoType::BALANCE_CONTROLLER);
 dm.startDemo(demo::DemoType::OBSTACLE_AVOIDER);
 dm.stopCurrentDemo(); // Return to manual control

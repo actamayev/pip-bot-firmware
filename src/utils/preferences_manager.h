@@ -28,23 +28,23 @@ class PreferencesManager : public Singleton<PreferencesManager> {
     friend class Singleton<PreferencesManager>;
 
     public:
-        String getPipId();
+      String get_pip_id();
 
-        // Firmware version methods
-        int getFirmwareVersion();
-        void setFirmwareVersion(int version);
-        
-        // WiFi methods
-        void storeWiFiCredentials(const String& ssid, const String& password, int index);
-        std::vector<WiFiCredentials> getAllStoredWiFiNetworks();
-        bool hasStoredWiFiNetworks();  // Add this new method
+      // Firmware version methods
+      int get_firmware_version();
+      void set_firmware_version(int version);
 
-        // Side TOF calibration methods
-        bool hasSideTofCalibration(uint8_t sensorAddress);
-        void storeSideTofCalibration(uint8_t sensorAddress, uint16_t baseline, bool useHardwareCalibration);
-        uint16_t getSideTofBaseline(uint8_t sensorAddress);
-        bool getSideTofUseHardwareCalibration(uint8_t sensorAddress);
-        bool forgetWiFiNetwork(const String& targetSSID);
+      // WiFi methods
+      void store_wi_fi_credentials(const String& ssid, const String& password, int index);
+      std::vector<WiFiCredentials> get_all_stored_wi_fi_networks();
+      bool has_stored_wi_fi_networks(); // Add this new method
+
+      // Side TOF calibration methods
+      bool has_side_tof_calibration(uint8_t sensor_address);
+      void store_side_tof_calibration(uint8_t sensor_address, uint16_t baseline, bool use_hardware_calibration);
+      uint16_t get_side_tof_baseline(uint8_t sensor_address);
+      bool get_side_tof_use_hardware_calibration(uint8_t sensor_address);
+      bool forget_wi_fi_network(const String& target_ssid);
 
     private:
         PreferencesManager() = default;
@@ -60,13 +60,13 @@ class PreferencesManager : public Singleton<PreferencesManager> {
         PreferencesCache _cache;
 
         // Method to ensure correct namespace is open
-        bool beginNamespace(const char* ns);
+        bool begin_namespace(const char* ns);
 
         // Cache loading methods
-        void loadPipIdCache();
-        void loadFirmwareVersionCache();
-        void loadWifiDataCache();
-        
+        void load_pip_id_cache();
+        void load_firmware_version_cache();
+        void load_wifi_data_cache();
+
         // Namespace constants (akin to folders)
         static constexpr const char* NS_PIP_ID = "pip_id";
         static constexpr const char* NS_FIRMWARE = "firmware";

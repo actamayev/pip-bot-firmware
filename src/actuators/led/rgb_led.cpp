@@ -6,9 +6,9 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_LEDS, ESP_LED_PIN, NEO_GRB + NEO
 
 LedAnimations ledAnimations(strip);
 
-void RgbLed::turnAllLedsOff() {
+void RgbLed::turn_all_leds_off() {
     // Stop any running animations
-    ledAnimations.stopAnimation();
+    ledAnimations.stop_animation();
     // Set all LEDs to off
     for (int i = 0; i < strip.numPixels(); i++) {
         strip.setPixelColor(i, strip.Color(0, 0, 0));
@@ -21,19 +21,19 @@ void RgbLed::turnAllLedsOff() {
     currentBlue = 0;
 }
 
-void RgbLed::setLedGreen() {
-    setMainBoardLedsToColor(0, MAX_LED_BRIGHTNESS, 0);
+void RgbLed::set_led_green() {
+    set_main_board_leds_to_color(0, MAX_LED_BRIGHTNESS, 0);
 }
 
-void RgbLed::setLedYellow() {
-    setMainBoardLedsToColor(MAX_LED_BRIGHTNESS, MAX_LED_BRIGHTNESS, 0);
+void RgbLed::set_led_yellow() {
+    set_main_board_leds_to_color(MAX_LED_BRIGHTNESS, MAX_LED_BRIGHTNESS, 0);
 }
 
-void RgbLed::turnMainBoardLedsOff() {
-    setMainBoardLedsToColor(0, 0, 0);
+void RgbLed::turn_main_board_leds_off() {
+    set_main_board_leds_to_color(0, 0, 0);
 }
 
-void RgbLed::setDefaultColors(uint8_t red, uint8_t green, uint8_t blue) {
+void RgbLed::set_default_colors(uint8_t red, uint8_t green, uint8_t blue) {
     // Set default color for all LEDs without showing them
     for (int i = 0; i < 8; i++) {
         if (i != 2 && i != 3) {
@@ -50,13 +50,13 @@ void RgbLed::setDefaultColors(uint8_t red, uint8_t green, uint8_t blue) {
     currentBlue = blue;
 }
 
-void RgbLed::setMainBoardLedsToColor(uint8_t red, uint8_t green, uint8_t blue) {
+void RgbLed::set_main_board_leds_to_color(uint8_t red, uint8_t green, uint8_t blue) {
     currentRed = red;
     currentGreen = green;
     currentBlue = blue;
 
     // Stop any running animations
-    ledAnimations.stopAnimation();
+    ledAnimations.stop_animation();
 
     // Set default color for selected LEDs (0, 1, 4-7)
     int indices[] = {0, 1, 4, 5, 6, 7};
@@ -76,14 +76,14 @@ void RgbLed::setMainBoardLedsToColor(uint8_t red, uint8_t green, uint8_t blue) {
     strip.show();
 }
 
-bool RgbLed::processLedUpdate(int ledIndex, uint8_t red, uint8_t green, uint8_t blue) {
+bool RgbLed::process_led_update(int ledIndex, uint8_t red, uint8_t green, uint8_t blue) {
     // Skip updates during rainbow animation
-    if (ledAnimations.getCurrentAnimation() == led_types::AnimationType::RAINBOW) {
+    if (ledAnimations.get_current_animation() == led_types::AnimationType::RAINBOW) {
         return false;
     }
 
     // Store the current animation type
-    led_types::AnimationType currentAnim = ledAnimations.getCurrentAnimation();
+    led_types::AnimationType currentAnim = ledAnimations.get_current_animation();
 
     // Update the default color for this LED
     defaultColors[ledIndex][0] = red;
@@ -93,88 +93,88 @@ bool RgbLed::processLedUpdate(int ledIndex, uint8_t red, uint8_t green, uint8_t 
 
     // If we're in breathing or strobing mode, update the animation colors
     if (currentAnim == led_types::AnimationType::BREATHING) {
-        ledAnimations.updateBreathingColor();
+        ledAnimations.update_breathing_color();
         return (ledIndex == 0); // Only return true for back_left LED (now index 0), which controls breathing color
     } else if (currentAnim == led_types::AnimationType::STROBING) {
-        ledAnimations.updateStrobeColor();
+        ledAnimations.update_strobe_color();
         return (ledIndex == 0); // Only return true for back_left LED (now index 0), which controls strobe color
     } else {
         // For other cases (including NONE), stop animations
-        ledAnimations.stopAnimation();
+        ledAnimations.stop_animation();
         return true;
     }
 }
 
 void RgbLed::set_middle_right_led(uint8_t red, uint8_t green, uint8_t blue) {
-    if (!processLedUpdate(0, red, green, blue)) return;
+    if (!process_led_update(0, red, green, blue)) return;
 
     strip.setPixelColor(0, strip.Color(red, green, blue));
     strip.show();
 }
 
 void RgbLed::set_top_right_led(uint8_t red, uint8_t green, uint8_t blue) {
-    if (!processLedUpdate(1, red, green, blue)) return;
+    if (!process_led_update(1, red, green, blue)) return;
 
     strip.setPixelColor(1, strip.Color(red, green, blue));
     strip.show();
 }
 
 void RgbLed::set_right_headlight(uint8_t red, uint8_t green, uint8_t blue) {
-    if (!processLedUpdate(2, red, green, blue)) return;
+    if (!process_led_update(2, red, green, blue)) return;
 
     strip.setPixelColor(2, strip.Color(red, green, blue));
     strip.show();
 }
 
 void RgbLed::set_left_headlight(uint8_t red, uint8_t green, uint8_t blue) {
-    if (!processLedUpdate(3, red, green, blue)) return;
+    if (!process_led_update(3, red, green, blue)) return;
 
     strip.setPixelColor(3, strip.Color(red, green, blue));
     strip.show();
 }
 
 void RgbLed::set_top_left_led(uint8_t red, uint8_t green, uint8_t blue) {
-    if (!processLedUpdate(4, red, green, blue)) return;
+    if (!process_led_update(4, red, green, blue)) return;
 
     strip.setPixelColor(4, strip.Color(red, green, blue));
     strip.show();
 }
 
 void RgbLed::set_middle_left_led(uint8_t red, uint8_t green, uint8_t blue) {
-    if (!processLedUpdate(5, red, green, blue)) return;
+    if (!process_led_update(5, red, green, blue)) return;
 
     strip.setPixelColor(5, strip.Color(red, green, blue));
     strip.show();
 }
 
 void RgbLed::set_back_left_led(uint8_t red, uint8_t green, uint8_t blue) {
-    if (!processLedUpdate(6, red, green, blue)) return;
+    if (!process_led_update(6, red, green, blue)) return;
 
     strip.setPixelColor(6, strip.Color(red, green, blue));
     strip.show();
 }
 
 void RgbLed::set_back_right_led(uint8_t red, uint8_t green, uint8_t blue) {
-    if (!processLedUpdate(7, red, green, blue)) return;
+    if (!process_led_update(7, red, green, blue)) return;
 
     strip.setPixelColor(7, strip.Color(red, green, blue));
     strip.show();
 }
 
-void RgbLed::turnHeadlightsOn() {
+void RgbLed::turn_headlights_on() {
     // Set headlights to white (swapped indices due to reversal)
     strip.setPixelColor(3, strip.Color(255, 255, 255)); // left_headlight
     strip.setPixelColor(2, strip.Color(255, 255, 255)); // right_headlight
     strip.show();
 }
 
-void RgbLed::turnHeadlightsOff() {
+void RgbLed::turn_headlights_off() {
     strip.setPixelColor(3, strip.Color(0, 0, 0)); // left_headlight
     strip.setPixelColor(2, strip.Color(0, 0, 0)); // right_headlight
     strip.show();
 }
 
-void RgbLed::turnHeadlightsFaintBlue() {
+void RgbLed::turn_headlights_faint_blue() {
     constexpr uint8_t faintBlue = 20;                     // Very faint blue
     strip.setPixelColor(3, strip.Color(0, 0, faintBlue)); // left_headlight
     strip.setPixelColor(2, strip.Color(0, 0, faintBlue)); // right_headlight
@@ -198,14 +198,14 @@ void RgbLed::turn_front_middle_leds_off() {
     strip.show();
 }
 
-void RgbLed::turnHeadlightsFaintBlue() {
+void RgbLed::turn_back_leds_faint_blue() {
     constexpr uint8_t faintBlue = 20;                     // Very faint blue
     strip.setPixelColor(6, strip.Color(0, 0, faintBlue)); // back_left
     strip.setPixelColor(7, strip.Color(0, 0, faintBlue)); // back_right
     strip.show();
 }
 
-void RgbLed::turnBackLedsOff() {
+void RgbLed::turn_back_leds_off() {
     strip.setPixelColor(6, strip.Color(0, 0, 0)); // back_left
     strip.setPixelColor(7, strip.Color(0, 0, 0)); // back_right
     strip.show();

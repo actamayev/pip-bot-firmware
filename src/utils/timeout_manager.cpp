@@ -14,25 +14,25 @@ void TimeoutManager::resetActivity() {
 }
 
 void TimeoutManager::update() {
-    unsigned long currentTime = millis();
+    unsigned long current_time = millis();
 
     if (!inConfirmationState) {
         // Check for initial inactivity timeout
-        if (currentTime - lastActivityTime >= INACTIVITY_TIMEOUT) {
+        if (current_time - lastActivityTime >= INACTIVITY_TIMEOUT) {
             enterConfirmationState();
         }
     } else {
         // Check for confirmation timeout
-        if (currentTime - confirmationStartTime >= CONFIRMATION_TIMEOUT) {
-            Buttons::getInstance().enterDeepSleep();
+        if (current_time - confirmationStartTime >= CONFIRMATION_TIMEOUT) {
+            Buttons::get_instance().enter_deep_sleep();
         }
     }
 }
 
 void TimeoutManager::enterConfirmationState() {
     // Stop bytecode and prepare for sleep (same as long press logic)
-    BytecodeVM::getInstance().stopProgram();
-    SensorDataBuffer::getInstance().stopPollingAllSensors();
+    BytecodeVM::get_instance().stopProgram();
+    SensorDataBuffer::get_instance().stopPollingAllSensors();
     rgbLed.set_led_yellow();
 
     inConfirmationState = true;
@@ -43,7 +43,7 @@ void TimeoutManager::cancelConfirmation() {
     if (!inConfirmationState) return;
 
     inConfirmationState = false;
-    rgbLed.turnAllLedsOff();
+            rgbLed.turn_all_leds_off();
 
     // Reset activity timer
     lastActivityTime = millis();

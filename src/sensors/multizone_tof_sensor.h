@@ -23,26 +23,26 @@ class MultizoneTofSensor : public Singleton<MultizoneTofSensor> {
 
         bool initialize();
 
-        void turnOffSensor();
+        void turn_off_sensor();
         VL53L7CX sensor;
-        bool configureSensor();
-        bool resetSensor();
-        bool checkWatchdog();
-        void enableTofSensor();
-        void disableTofSensor();
+        bool configure_sensor();
+        bool reset_sensor();
+        bool check_watchdog();
+        void enable_tof_sensor();
+        void disable_tof_sensor();
     
-        void startRanging();
-        void stopRanging();
+        void start_ranging();
+        void stop_ranging();
         
         bool isInitialized = false;
         bool sensorEnabled = false;  // Track if sensor is actively enabled
 
         // Point history tracking for obstacle detection
-        void initializePointHistories();
-        void updatePointHistory(int rowIdx, int colIdx, float distance);
-        bool isPointObstacleConsistent(int rowIdx, int colIdx);
-        bool processObstacleDetection(const VL53L7CX_ResultsData& rawData);
-        float calculateFrontDistance(const VL53L7CX_ResultsData& rawData);
+        void initialize_point_histories();
+        void update_point_history(int rowIdx, int colIdx, float distance);
+        bool is_point_obstacle_consistent(int rowIdx, int colIdx);
+        bool process_obstacle_detection(const VL53L7CX_ResultsData& rawData);
+        float calculate_front_distance(const VL53L7CX_ResultsData& rawData);
 
         // Configuration parameters
         uint16_t MAX_DISTANCE = 1000;       // Maximum valid distance (mm)
@@ -72,8 +72,8 @@ class MultizoneTofSensor : public Singleton<MultizoneTofSensor> {
         bool sensorActive = false;        // Flag to track if sensor is actively ranging
 
         // New buffer-based methods following IMU pattern
-        void updateSensorData();  // Single read, write to buffer
-        bool shouldBePolling() const;
+        void update_sensor_data();  // Single read, write to buffer
+        bool should_be_polling() const;
 
         static const uint16_t CHECK_SENSOR_TIME = 20; //ms
 };

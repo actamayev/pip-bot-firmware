@@ -1,6 +1,6 @@
 #include "demo_manager.h"
 
-bool DemoManager::startDemo(demo::DemoType demoType) {
+bool DemoManager::start_demo(demo::DemoType demoType) {
     // Don't start the same demo that's already running
     if (_currentDemo == demoType && demoType != demo::DemoType::NONE) {
         return true;
@@ -8,14 +8,14 @@ bool DemoManager::startDemo(demo::DemoType demoType) {
 
     // Stop current demo if running
     if (_currentDemo != demo::DemoType::NONE) {
-        disableCurrentDemo();
+        disable_current_demo();
     }
     if (demoType == demo::DemoType::NONE) {
         _currentDemo = demo::DemoType::NONE;
         return true;
     }
 
-    bool success = enableDemo(demoType);
+    bool success = enable_demo(demoType);
     if (success) {
         _currentDemo = demoType;
     } else {
@@ -25,9 +25,9 @@ bool DemoManager::startDemo(demo::DemoType demoType) {
     return success;
 }
 
-void DemoManager::stopCurrentDemo() {
+void DemoManager::stop_current_demo() {
     if (_currentDemo == demo::DemoType::NONE) return;
-    disableCurrentDemo();
+    disable_current_demo();
     _currentDemo = demo::DemoType::NONE;
 }
 
@@ -38,11 +38,11 @@ void DemoManager::update() {
     // Call the appropriate demo's update method
     switch (_currentDemo) {
         case demo::DemoType::BALANCE_CONTROLLER:
-            BalanceController::getInstance().update();
+            BalanceController::get_instance().update();
             break;
 
         case demo::DemoType::OBSTACLE_AVOIDER:
-            ObstacleAvoider::getInstance().update();
+            ObstacleAvoider::get_instance().update();
             break;
 
         case demo::DemoType::NONE:
@@ -50,19 +50,19 @@ void DemoManager::update() {
             break;
 
         default:
-            stopCurrentDemo(); // Stop unknown demo
+            stop_current_demo(); // Stop unknown demo
             break;
     }
 }
 
-void DemoManager::disableCurrentDemo() {
+void DemoManager::disable_current_demo() {
     switch (_currentDemo) {
         case demo::DemoType::BALANCE_CONTROLLER:
-            BalanceController::getInstance().disable();
+            BalanceController::get_instance().disable();
             break;
 
         case demo::DemoType::OBSTACLE_AVOIDER:
-            ObstacleAvoider::getInstance().disable();
+            ObstacleAvoider::get_instance().disable();
             break;
 
         case demo::DemoType::NONE:
@@ -74,15 +74,15 @@ void DemoManager::disableCurrentDemo() {
     }
 }
 
-bool DemoManager::enableDemo(demo::DemoType demoType) {
+bool DemoManager::enable_demo(demo::DemoType demoType) {
     switch (demoType) {
         case demo::DemoType::BALANCE_CONTROLLER:
-            BalanceController::getInstance().enable();
-            return BalanceController::getInstance().isEnabled();
+            BalanceController::get_instance().enable();
+            return BalanceController::get_instance().isEnabled();
 
         case demo::DemoType::OBSTACLE_AVOIDER:
-            ObstacleAvoider::getInstance().enable();
-            return ObstacleAvoider::getInstance().isEnabled();
+            ObstacleAvoider::get_instance().enable();
+            return ObstacleAvoider::get_instance().isEnabled();
 
         case demo::DemoType::NONE:
             return true; // "Enabling" none is always successful
@@ -92,7 +92,7 @@ bool DemoManager::enableDemo(demo::DemoType demoType) {
     }
 }
 
-const char* DemoManager::getDemoName(demo::DemoType demoType) const {
+const char* DemoManager::get_demo_name(demo::DemoType demoType) const {
     switch (demoType) {
         case demo::DemoType::NONE:
             return "None";

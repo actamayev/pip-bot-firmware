@@ -1,6 +1,7 @@
 #include "task_manager.h"
-#include "sensors/sensor_initializer.h"
+
 #include "career_quest/career_quest_triggers.h"
+#include "sensors/sensor_initializer.h"
 
 TaskHandle_t TaskManager::buttonTaskHandle = NULL;
 TaskHandle_t TaskManager::serialInputTaskHandle = NULL;
@@ -32,142 +33,142 @@ TaskHandle_t TaskManager::displayInitTaskHandle = NULL;
 void TaskManager::buttonTask(void* parameter) {
     setupButtonLoggers();
 
-    for(;;) {
-        Buttons::getInstance().update();
+    for (;;) {
+        Buttons::get_instance().update();
         vTaskDelay(pdMS_TO_TICKS(10));
     }
 }
 
 void TaskManager::serialInputTask(void* parameter) {
-    for(;;) {
-        SerialManager::getInstance().pollSerial();
+    for (;;) {
+        SerialManager::get_instance().pollSerial();
         vTaskDelay(pdMS_TO_TICKS(2));
     }
 }
 
 void TaskManager::ledTask(void* parameter) {
-    for(;;) {
+    for (;;) {
         ledAnimations.update();
         vTaskDelay(pdMS_TO_TICKS(5));
     }
 }
 
 void TaskManager::bytecodeVMTask(void* parameter) {
-    for(;;) {
-        BytecodeVM::getInstance().update();
+    for (;;) {
+        BytecodeVM::get_instance().update();
         vTaskDelay(pdMS_TO_TICKS(5));
     }
 }
 
 void TaskManager::stackMonitorTask(void* parameter) {
-    for(;;) {
+    for (;;) {
         printStackUsage();
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }
 
 void TaskManager::displayTask(void* parameter) {
-    SerialQueueManager::getInstance().queueMessage("Display task started");
-    
-    for(;;) {
-        DisplayScreen::getInstance().update();
-        vTaskDelay(pdMS_TO_TICKS(40));  // 25Hz update rate, smooth for animations
+    SerialQueueManager::get_instance().queue_message("Display task started");
+
+    for (;;) {
+        DisplayScreen::get_instance().update();
+        vTaskDelay(pdMS_TO_TICKS(40)); // 25Hz update rate, smooth for animations
     }
 }
 
 // Individual Sensor Polling Tasks
 void TaskManager::imuSensorTask(void* parameter) {
-    SerialQueueManager::getInstance().queueMessage("IMU sensor task started");
-    
+    SerialQueueManager::get_instance().queue_message("IMU sensor task started");
+
     // Wait for centralized initialization to complete
-    while (!SensorInitializer::getInstance().isSensorInitialized(SensorInitializer::IMU)) {
-        vTaskDelay(pdMS_TO_TICKS(50));  // Check every 50ms
+    while (!SensorInitializer::get_instance().isSensorInitialized(SensorInitializer::IMU)) {
+        vTaskDelay(pdMS_TO_TICKS(50)); // Check every 50ms
     }
-    SerialQueueManager::getInstance().queueMessage("IMU centralized initialization complete.");
-    
+    SerialQueueManager::get_instance().queue_message("IMU centralized initialization complete.");
+
     // Main polling loop
-    for(;;) {
-        if (ImuSensor::getInstance().shouldBePolling()) {
-            ImuSensor::getInstance().updateSensorData();
+    for (;;) {
+        if (ImuSensor::get_instance().should_be_polling()) {
+            ImuSensor::get_instance().update_sensor_data();
         }
-        vTaskDelay(pdMS_TO_TICKS(5));  // 200Hz - critical for motion control
+        vTaskDelay(pdMS_TO_TICKS(5)); // 200Hz - critical for motion control
     }
 }
 
 void TaskManager::encoderSensorTask(void* parameter) {
-    SerialQueueManager::getInstance().queueMessage("Encoder sensor task started");
-    EncoderManager::getInstance().initialize();
-    SerialQueueManager::getInstance().queueMessage("Encoders initialized successfully");
-    
+    SerialQueueManager::get_instance().queue_message("Encoder sensor task started");
+    EncoderManager::get_instance().initialize();
+    SerialQueueManager::get_instance().queue_message("Encoders initialized successfully");
+
     // Main polling loop
-    for(;;) {
-        if (EncoderManager::getInstance().shouldBePolling()) {
-            EncoderManager::getInstance().updateSensorData();
+    for (;;) {
+        if (EncoderManager::get_instance().should_be_polling()) {
+            EncoderManager::get_instance().update_sensor_data();
         }
-        vTaskDelay(pdMS_TO_TICKS(10));  // 50Hz - good balance for encoder data
+        vTaskDelay(pdMS_TO_TICKS(10)); // 50Hz - good balance for encoder data
     }
 }
 
 void TaskManager::multizoneTofSensorTask(void* parameter) {
-    SerialQueueManager::getInstance().queueMessage("Multizone TOF sensor task started");
-    
+    SerialQueueManager::get_instance().queue_message("Multizone TOF sensor task started");
+
     // Wait for centralized initialization to complete
-    while (!SensorInitializer::getInstance().isSensorInitialized(SensorInitializer::MULTIZONE_TOF)) {
-        vTaskDelay(pdMS_TO_TICKS(50));  // Check every 50ms
+    while (!SensorInitializer::get_instance().isSensorInitialized(SensorInitializer::MULTIZONE_TOF)) {
+        vTaskDelay(pdMS_TO_TICKS(50)); // Check every 50ms
     }
-    SerialQueueManager::getInstance().queueMessage("Multizone TOF centralized initialization complete.");
-    
+    SerialQueueManager::get_instance().queue_message("Multizone TOF centralized initialization complete.");
+
     // Main polling loop
-    for(;;) {
-        if (MultizoneTofSensor::getInstance().shouldBePolling()) {
-            MultizoneTofSensor::getInstance().updateSensorData();
+    for (;;) {
+        if (MultizoneTofSensor::get_instance().should_be_polling()) {
+            MultizoneTofSensor::get_instance().update_sensor_data();
         }
-        vTaskDelay(pdMS_TO_TICKS(5));  // Allow frequent polling, throttling handled in updateSensorData()
+        vTaskDelay(pdMS_TO_TICKS(5)); // Allow frequent polling, throttling handled in update_sensor_data()
     }
 }
 
 void TaskManager::sideTofSensorTask(void* parameter) {
-    SerialQueueManager::getInstance().queueMessage("Side TOF sensor task started");
-    
+    SerialQueueManager::get_instance().queue_message("Side TOF sensor task started");
+
     // Initialize Side TOF sensors directly
-    while (!SideTofManager::getInstance().initialize()) {
-        SerialQueueManager::getInstance().queueMessage("Side TOF initialization failed, retrying in 100ms");
+    while (!SideTofManager::get_instance().initialize()) {
+        SerialQueueManager::get_instance().queue_message("Side TOF initialization failed, retrying in 100ms");
         vTaskDelay(pdMS_TO_TICKS(100));
     }
-    SerialQueueManager::getInstance().queueMessage("Side TOF sensors initialized successfully");
-    
+    SerialQueueManager::get_instance().queue_message("Side TOF sensors initialized successfully");
+
     // Main polling loop
-    for(;;) {
-        if (SideTofManager::getInstance().shouldBePolling()) {
-            SideTofManager::getInstance().updateSensorData();
+    for (;;) {
+        if (SideTofManager::get_instance().should_be_polling()) {
+            SideTofManager::get_instance().update_sensor_data();
         }
-        vTaskDelay(pdMS_TO_TICKS(50));  // 20Hz target rate
+        vTaskDelay(pdMS_TO_TICKS(50)); // 20Hz target rate
     }
 }
 
 void TaskManager::colorSensorTask(void* parameter) {
-    SerialQueueManager::getInstance().queueMessage("Color sensor task started");
-    
+    SerialQueueManager::get_instance().queue_message("Color sensor task started");
+
     // Wait for centralized initialization to complete
-    while (!SensorInitializer::getInstance().isSensorInitialized(SensorInitializer::COLOR_SENSOR)) {
-        vTaskDelay(pdMS_TO_TICKS(50));  // Check every 50ms
+    while (!SensorInitializer::get_instance().isSensorInitialized(SensorInitializer::COLOR_SENSOR)) {
+        vTaskDelay(pdMS_TO_TICKS(50)); // Check every 50ms
     }
-    SerialQueueManager::getInstance().queueMessage("Color sensor centralized initialization complete.");
-    
+    SerialQueueManager::get_instance().queue_message("Color sensor centralized initialization complete.");
+
     // Main polling loop
-    for(;;) {
-        if (ColorSensor::getInstance().shouldBePolling()) {
-            ColorSensor::getInstance().updateSensorData();
+    for (;;) {
+        if (ColorSensor::get_instance().should_be_polling()) {
+            ColorSensor::get_instance().update_sensor_data();
         }
-        vTaskDelay(pdMS_TO_TICKS(50));  // 20Hz target rate
+        vTaskDelay(pdMS_TO_TICKS(50)); // 20Hz target rate
     }
 }
 
 void TaskManager::sensorLoggerTask(void* parameter) {
-    SerialQueueManager::getInstance().queueMessage("Sensor logger task started");
-    
+    SerialQueueManager::get_instance().queue_message("Sensor logger task started");
+
     // Main logging loop
-    for(;;) {
+    for (;;) {
         // Call each frequency logger function
         // imuLogger();
         // multizoneTofLogger();
@@ -176,36 +177,36 @@ void TaskManager::sensorLoggerTask(void* parameter) {
         // irSensorLogger();
         // log_motor_rpm();  // Keep this commented for now since it's not frequency-based
         // displayPerformanceLogger();
-        
+
         // Small delay between logger cycles - loggers have their own internal timing
-        vTaskDelay(pdMS_TO_TICKS(10));  // 100Hz - fast polling, loggers handle their own rate limiting
+        vTaskDelay(pdMS_TO_TICKS(10)); // 100Hz - fast polling, loggers handle their own rate limiting
     }
 }
 
 void TaskManager::networkManagementTask(void* parameter) {
     // Initialize WiFi and networking components (heavy setup)
-    WiFiManager::getInstance();
-    FirmwareVersionTracker::getInstance();
-    
+    WiFiManager::get_instance();
+    FirmwareVersionTracker::get_instance();
+
     // Create the sensor data transmission task now that management is initialized
     bool commTaskCreated = createSendSensorDataTask();
     if (!commTaskCreated) {
-        SerialQueueManager::getInstance().queueMessage("ERROR: Failed to create SendSensorData task!");
+        SerialQueueManager::get_instance().queue_message("ERROR: Failed to create SendSensorData task!");
     }
 
     // Main management loop - unified approach
-    for(;;) {
+    for (;;) {
         // Heavy/infrequent operations that run regardless of connection state
-        WiFiManager::getInstance().checkAsyncScanProgress();
-        TimeoutManager::getInstance().update();
-        
+        WiFiManager::get_instance().checkAsyncScanProgress();
+        TimeoutManager::get_instance().update();
+
         // Always try to maintain WiFi connection if not connected
         if (WiFi.status() != WL_CONNECTED) {
-            WiFiManager::getInstance().checkAndReconnectWiFi();
+            WiFiManager::get_instance().checkAndReconnectWiFi();
         }
-        
+
         // Process any WiFi credential testing operations
-        WiFiManager::getInstance().processWiFiCredentialTest();
+        WiFiManager::get_instance().processWiFiCredentialTest();
 
         // Slower update rate for management operations
         vTaskDelay(pdMS_TO_TICKS(50));
@@ -213,13 +214,13 @@ void TaskManager::networkManagementTask(void* parameter) {
 }
 
 void TaskManager::webSocketPollingTask(void* parameter) {
-    SerialQueueManager::getInstance().queueMessage("WebSocket polling task started");
+    SerialQueueManager::get_instance().queue_message("WebSocket polling task started");
 
     // Main WebSocket polling loop
-    for(;;) {
+    for (;;) {
         // Only poll WebSocket if WiFi is connected
         if (WiFi.status() == WL_CONNECTED) {
-            WebSocketManager::getInstance().pollWebSocket();
+            WebSocketManager::get_instance().pollWebSocket();
         }
 
         // Fast update rate for real-time WebSocket communication
@@ -228,13 +229,13 @@ void TaskManager::webSocketPollingTask(void* parameter) {
 }
 
 void TaskManager::sendSensorDataTask(void* parameter) {
-    SerialQueueManager::getInstance().queueMessage("Send sensor data task started");
+    SerialQueueManager::get_instance().queue_message("Send sensor data task started");
 
     // Main sensor data transmission loop
-    for(;;) {
+    for (;;) {
         // Always attempt sensor data transmission (SendSensorData will handle routing)
-        SendSensorData::getInstance().sendSensorDataToServer();
-        SendSensorData::getInstance().sendMultizoneData();
+        SendSensorData::get_instance().sendSensorDataToServer();
+        SendSensorData::get_instance().sendMultizoneData();
 
         // Fast update rate for real-time communication
         vTaskDelay(pdMS_TO_TICKS(5));
@@ -248,201 +249,183 @@ void TaskManager::serialQueueTask(void* parameter) {
 }
 
 void TaskManager::batteryMonitorTask(void* parameter) {
-    for(;;) {
-        BatteryMonitor::getInstance().update();
+    for (;;) {
+        BatteryMonitor::get_instance().update();
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }
 
 void TaskManager::speakerTask(void* parameter) {
-    Speaker::getInstance().initialize();
-    SerialQueueManager::getInstance().queueMessage("Speaker task started");
+    Speaker::get_instance().initialize();
+    SerialQueueManager::get_instance().queue_message("Speaker task started");
 
-    for(;;) {
-        Speaker::getInstance().update();
-        DanceManager::getInstance().update();
+    for (;;) {
+        Speaker::get_instance().update();
+        DanceManager::get_instance().update();
         vTaskDelay(pdMS_TO_TICKS(10)); // Update every 10ms for smooth audio
     }
 }
 
 void TaskManager::motorTask(void* parameter) {
-    SerialQueueManager::getInstance().queueMessage("Motor task started");
-    
-    for(;;) {
+    SerialQueueManager::get_instance().queue_message("Motor task started");
+
+    for (;;) {
         motorDriver.update();
-        motorDriver.processPendingCommands();
+        motorDriver.process_pending_commands();
         vTaskDelay(pdMS_TO_TICKS(2)); // Fast motor update - 2ms
     }
 }
 
 void TaskManager::demoManagerTask(void* parameter) {
-    SerialQueueManager::getInstance().queueMessage("DemoManager task started");
+    SerialQueueManager::get_instance().queue_message("DemoManager task started");
 
-    for(;;) {
-        DemoManager::getInstance().update();
+    for (;;) {
+        DemoManager::get_instance().update();
         vTaskDelay(pdMS_TO_TICKS(5)); // Demo updates every 5ms
     }
 }
 
 void TaskManager::gameManagerTask(void* parameter) {
-    SerialQueueManager::getInstance().queueMessage("GameManager task started");
+    SerialQueueManager::get_instance().queue_message("GameManager task started");
 
-    for(;;) {
-        GameManager::getInstance().update();
+    for (;;) {
+        GameManager::get_instance().update();
         vTaskDelay(pdMS_TO_TICKS(10)); // Game updates ~60fps (16ms)
     }
 }
 
 void TaskManager::careerQuestTask(void* parameter) {
-    SerialQueueManager::getInstance().queueMessage("CareerQuest task started");
+    SerialQueueManager::get_instance().queue_message("CareerQuest task started");
 
-    for(;;) {
+    for (;;) {
         careerQuestTriggers.update();
         vTaskDelay(pdMS_TO_TICKS(10)); // Career quest updates every 10ms
     }
 }
 
-void TaskManager::displayInitTask(void* parameter) {    
-    SerialQueueManager::getInstance().queueMessage("Starting display initialization...");
-    
-    if (!DisplayScreen::getInstance().init(true)) {
-        SerialQueueManager::getInstance().queueMessage("ERROR: Failed to init Display!");
+void TaskManager::displayInitTask(void* parameter) {
+    SerialQueueManager::get_instance().queue_message("Starting display initialization...");
+
+    if (!DisplayScreen::get_instance().init(true)) {
+        SerialQueueManager::get_instance().queue_message("ERROR: Failed to init Display!");
     } else {
         // Yield before creating display task
         vTaskDelay(pdMS_TO_TICKS(5));
-        
+
         // Create the display task now that init is complete
         bool displayTaskCreated = createDisplayTask();
         if (displayTaskCreated) {
-            SerialQueueManager::getInstance().queueMessage("Display task created successfully");
+            SerialQueueManager::get_instance().queue_message("Display task created successfully");
         } else {
-            SerialQueueManager::getInstance().queueMessage("ERROR: Failed to create Display task!");
+            SerialQueueManager::get_instance().queue_message("ERROR: Failed to create Display task!");
         }
     }
-    
+
     // Self-delete - our job is done
-    SerialQueueManager::getInstance().queueMessage("DisplayInit task self-deleting");
+    SerialQueueManager::get_instance().queue_message("DisplayInit task self-deleting");
     displayInitTaskHandle = NULL;
     vTaskDelete(NULL);
 }
 
 bool TaskManager::createButtonTask() {
-    return createTask("Buttons", buttonTask, BUTTON_STACK_SIZE, 
-                     Priority::SYSTEM_CONTROL, Core::CORE_0, &buttonTaskHandle);
+    return createTask("Buttons", buttonTask, BUTTON_STACK_SIZE, Priority::SYSTEM_CONTROL, Core::CORE_0, &buttonTaskHandle);
 }
 
 bool TaskManager::createSerialInputTask() {
-    return createTask("SerialInput", serialInputTask, SERIAL_INPUT_STACK_SIZE,
-                     Priority::COMMUNICATION, Core::CORE_1, &serialInputTaskHandle);
+    return createTask("SerialInput", serialInputTask, SERIAL_INPUT_STACK_SIZE, Priority::COMMUNICATION, Core::CORE_1, &serialInputTaskHandle);
 }
 
 bool TaskManager::createLedTask() {
-    return createTask("LED", ledTask, LED_STACK_SIZE,
-                     Priority::BACKGROUND, Core::CORE_1, &ledTaskHandle);
+    return createTask("LED", ledTask, LED_STACK_SIZE, Priority::BACKGROUND, Core::CORE_1, &ledTaskHandle);
 }
 
 bool TaskManager::createBytecodeVMTask() {
-    return createTask("BytecodeVM", bytecodeVMTask, BYTECODE_VM_STACK_SIZE,
-                     Priority::SYSTEM_CONTROL, Core::CORE_1, &bytecodeVMTaskHandle);
+    return createTask("BytecodeVM", bytecodeVMTask, BYTECODE_VM_STACK_SIZE, Priority::SYSTEM_CONTROL, Core::CORE_1, &bytecodeVMTaskHandle);
 }
 
 bool TaskManager::createStackMonitorTask() {
-    return createTask("StackMonitor", stackMonitorTask, STACK_MONITOR_STACK_SIZE,
-                     Priority::BACKGROUND, Core::CORE_1, &stackMonitorTaskHandle);
+    return createTask("StackMonitor", stackMonitorTask, STACK_MONITOR_STACK_SIZE, Priority::BACKGROUND, Core::CORE_1, &stackMonitorTaskHandle);
 }
 
 bool TaskManager::createDisplayTask() {
-    return createTask("Display", displayTask, DISPLAY_STACK_SIZE,
-                     Priority::BACKGROUND, Core::CORE_1, &displayTaskHandle);
+    return createTask("Display", displayTask, DISPLAY_STACK_SIZE, Priority::BACKGROUND, Core::CORE_1, &displayTaskHandle);
 }
 
 bool TaskManager::createNetworkManagementTask() {
-    return createTask("NetworkMgmt", networkManagementTask, NETWORK_MANAGEMENT_STACK_SIZE,
-                     Priority::COMMUNICATION, Core::CORE_1, &networkManagementTaskHandle);
+    return createTask("NetworkMgmt", networkManagementTask, NETWORK_MANAGEMENT_STACK_SIZE, Priority::COMMUNICATION, Core::CORE_1,
+                      &networkManagementTaskHandle);
 }
 
 bool TaskManager::createSendSensorDataTask() {
-    return createTask("SendSensorData", sendSensorDataTask, SEND_SENSOR_DATA_STACK_SIZE,
-                     Priority::REALTIME_COMM, Core::CORE_1, &sendSensorDataTaskHandle);
+    return createTask("SendSensorData", sendSensorDataTask, SEND_SENSOR_DATA_STACK_SIZE, Priority::REALTIME_COMM, Core::CORE_1,
+                      &sendSensorDataTaskHandle);
 }
 
 bool TaskManager::createWebSocketPollingTask() {
-    return createTask("WebSocketPoll", webSocketPollingTask, WEBSOCKET_POLLING_STACK_SIZE,
-                     Priority::REALTIME_COMM, Core::CORE_1, &webSocketPollingTaskHandle);
+    return createTask("WebSocketPoll", webSocketPollingTask, WEBSOCKET_POLLING_STACK_SIZE, Priority::REALTIME_COMM, Core::CORE_1,
+                      &webSocketPollingTaskHandle);
 }
 
 bool TaskManager::createSerialQueueTask() {
     // Pass the SerialQueueManager instance as parameter
-    SerialQueueManager::getInstance().initialize();
-    void* instance = &SerialQueueManager::getInstance();
-    return createTask("SerialQueue", serialQueueTask, SERIAL_QUEUE_STACK_SIZE,
-                     Priority::CRITICAL, Core::CORE_1, &serialQueueTaskHandle, instance);
+    SerialQueueManager::get_instance().initialize();
+    void* instance = &SerialQueueManager::get_instance();
+    return createTask("SerialQueue", serialQueueTask, SERIAL_QUEUE_STACK_SIZE, Priority::CRITICAL, Core::CORE_1, &serialQueueTaskHandle, instance);
 }
 
 bool TaskManager::createBatteryMonitorTask() {
-    return createTask("BatteryMonitor", batteryMonitorTask, BATTERY_MONITOR_STACK_SIZE,
-                     Priority::BACKGROUND, Core::CORE_1, &batteryMonitorTaskHandle);
+    return createTask("BatteryMonitor", batteryMonitorTask, BATTERY_MONITOR_STACK_SIZE, Priority::BACKGROUND, Core::CORE_1,
+                      &batteryMonitorTaskHandle);
 }
 
 bool TaskManager::createSpeakerTask() {
-    return createTask("Speaker", speakerTask, SPEAKER_STACK_SIZE,
-                     Priority::BACKGROUND, Core::CORE_1, &speakerTaskHandle);
+    return createTask("Speaker", speakerTask, SPEAKER_STACK_SIZE, Priority::BACKGROUND, Core::CORE_1, &speakerTaskHandle);
 }
 
 bool TaskManager::createMotorTask() {
-    return createTask("Motor", motorTask, MOTOR_STACK_SIZE,
-                     Priority::CRITICAL, Core::CORE_0, &motorTaskHandle);
+    return createTask("Motor", motorTask, MOTOR_STACK_SIZE, Priority::CRITICAL, Core::CORE_0, &motorTaskHandle);
 }
 
 bool TaskManager::createDemoManagerTask() {
-    return createTask("DemoManager", demoManagerTask, DEMO_MANAGER_STACK_SIZE,
-                     Priority::SYSTEM_CONTROL, Core::CORE_0, &demoManagerTaskHandle);
+    return createTask("DemoManager", demoManagerTask, DEMO_MANAGER_STACK_SIZE, Priority::SYSTEM_CONTROL, Core::CORE_0, &demoManagerTaskHandle);
 }
 
 bool TaskManager::createGameManagerTask() {
-    return createTask("GameManager", gameManagerTask, GAME_MANAGER_STACK_SIZE,
-                     Priority::SYSTEM_CONTROL, Core::CORE_1, &gameManagerTaskHandle);
+    return createTask("GameManager", gameManagerTask, GAME_MANAGER_STACK_SIZE, Priority::SYSTEM_CONTROL, Core::CORE_1, &gameManagerTaskHandle);
 }
 
 bool TaskManager::createCareerQuestTask() {
-    return createTask("CareerQuest", careerQuestTask, CAREER_QUEST_STACK_SIZE,
-                     Priority::SYSTEM_CONTROL, Core::CORE_1, &careerQuestTaskHandle);
+    return createTask("CareerQuest", careerQuestTask, CAREER_QUEST_STACK_SIZE, Priority::SYSTEM_CONTROL, Core::CORE_1, &careerQuestTaskHandle);
 }
 
 bool TaskManager::createDisplayInitTask() {
-    return createTask("DisplayInit", displayInitTask, DISPLAY_INIT_STACK_SIZE,
-                     Priority::SYSTEM_CONTROL, Core::CORE_0, &displayInitTaskHandle);
+    return createTask("DisplayInit", displayInitTask, DISPLAY_INIT_STACK_SIZE, Priority::SYSTEM_CONTROL, Core::CORE_0, &displayInitTaskHandle);
 }
 
 // Individual sensor task creation methods
 bool TaskManager::createImuSensorTask() {
-    return createTask("IMUSensor", imuSensorTask, IMU_SENSOR_STACK_SIZE,
-                     Priority::CRITICAL, Core::CORE_0, &imuSensorTaskHandle);
+    return createTask("IMUSensor", imuSensorTask, IMU_SENSOR_STACK_SIZE, Priority::CRITICAL, Core::CORE_0, &imuSensorTaskHandle);
 }
 
 bool TaskManager::createEncoderSensorTask() {
-    return createTask("EncoderSensor", encoderSensorTask, ENCODER_SENSOR_STACK_SIZE,
-                     Priority::CRITICAL, Core::CORE_0, &encoderSensorTaskHandle);
+    return createTask("EncoderSensor", encoderSensorTask, ENCODER_SENSOR_STACK_SIZE, Priority::CRITICAL, Core::CORE_0, &encoderSensorTaskHandle);
 }
 
 bool TaskManager::createMultizoneTofSensorTask() {
-    return createTask("MultizoneTOF", multizoneTofSensorTask, MULTIZONE_TOF_STACK_SIZE,
-                     Priority::COMMUNICATION, Core::CORE_0, &multizoneTofSensorTaskHandle);
+    return createTask("MultizoneTOF", multizoneTofSensorTask, MULTIZONE_TOF_STACK_SIZE, Priority::COMMUNICATION, Core::CORE_0,
+                      &multizoneTofSensorTaskHandle);
 }
 
 bool TaskManager::createSideTofSensorTask() {
-    return createTask("SideTOF", sideTofSensorTask, SIDE_TOF_STACK_SIZE,
-                     Priority::SYSTEM_CONTROL, Core::CORE_0, &sideTofSensorTaskHandle);
+    return createTask("SideTOF", sideTofSensorTask, SIDE_TOF_STACK_SIZE, Priority::SYSTEM_CONTROL, Core::CORE_0, &sideTofSensorTaskHandle);
 }
 
 bool TaskManager::createColorSensorTask() {
-    return createTask("ColorSensor", colorSensorTask, COLOR_SENSOR_STACK_SIZE,
-                     Priority::SYSTEM_CONTROL, Core::CORE_0, &colorSensorTaskHandle);
+    return createTask("ColorSensor", colorSensorTask, COLOR_SENSOR_STACK_SIZE, Priority::SYSTEM_CONTROL, Core::CORE_0, &colorSensorTaskHandle);
 }
 
 bool TaskManager::createSensorLoggerTask() {
-    return createTask("SensorLogger", sensorLoggerTask, SENSOR_LOGGER_STACK_SIZE,
-                     Priority::BACKGROUND, Core::CORE_1, &sensorLoggerTaskHandle);
+    return createTask("SensorLogger", sensorLoggerTask, SENSOR_LOGGER_STACK_SIZE, Priority::BACKGROUND, Core::CORE_1, &sensorLoggerTaskHandle);
 }
 
 bool TaskManager::isDisplayInitialized() {
@@ -450,118 +433,96 @@ bool TaskManager::isDisplayInitialized() {
     return (displayInitTaskHandle != NULL) || (displayTaskHandle != NULL);
 }
 
-bool TaskManager::createTask(
-    const char* name,
-    TaskFunction_t taskFunction, 
-    uint32_t stackSize,
-    Priority priority,
-    Core coreId,
-    TaskHandle_t* taskHandle,
-    void* parameters
-) {
+bool TaskManager::createTask(const char* name, TaskFunction_t taskFunction, uint32_t stackSize, Priority priority, Core coreId,
+                             TaskHandle_t* taskHandle, void* parameters) {
     // Safety check: don't create if task already exists
     if (taskHandle != nullptr && *taskHandle != NULL) {
-        SerialQueueManager::getInstance().queueMessage(
-            String("Task already exists: ") + name + ", skipping creation"
-        );
-        return true;  // Task exists, consider it success
+        SerialQueueManager::get_instance().queue_message(String("Task already exists: ") + name + ", skipping creation");
+        return true; // Task exists, consider it success
     }
-    
-    BaseType_t result = xTaskCreatePinnedToCore(
-        taskFunction,
-        name,
-        stackSize,
-        parameters,
-        static_cast<uint8_t>(priority),
-        taskHandle,
-        static_cast<BaseType_t>(coreId)
-    );
-    
+
+    BaseType_t result = xTaskCreatePinnedToCore(taskFunction, name, stackSize, parameters, static_cast<uint8_t>(priority), taskHandle,
+                                                static_cast<BaseType_t>(coreId));
+
     return logTaskCreation(name, result == pdPASS);
 }
 
 bool TaskManager::logTaskCreation(const char* name, bool success) {
     if (success) {
-        SerialQueueManager::getInstance().queueMessage(String("✓ Created task: ") + name);
+        SerialQueueManager::get_instance().queue_message(String("✓ Created task: ") + name);
     } else {
-        SerialQueueManager::getInstance().queueMessage(
-            String("✗ Failed to create task: ") + name, 
-            SerialPriority::CRITICAL
-        );
+        SerialQueueManager::get_instance().queue_message(String("✗ Failed to create task: ") + name, SerialPriority::CRITICAL);
     }
     return success;
 }
 
 void TaskManager::printStackUsage() {
-    SerialQueueManager::getInstance().queueMessage("", SerialPriority::CRITICAL);
-    SerialQueueManager::getInstance().queueMessage("╔══════════════════════════════════════╗", SerialPriority::CRITICAL);
-    SerialQueueManager::getInstance().queueMessage("║           TASK STACK USAGE           ║", SerialPriority::CRITICAL);
-    SerialQueueManager::getInstance().queueMessage("╠══════════════════════════════════════╣", SerialPriority::CRITICAL);
-    
+    SerialQueueManager::get_instance().queue_message("", SerialPriority::CRITICAL);
+    SerialQueueManager::get_instance().queue_message("╔══════════════════════════════════════╗", SerialPriority::CRITICAL);
+    SerialQueueManager::get_instance().queue_message("║           TASK STACK USAGE           ║", SerialPriority::CRITICAL);
+    SerialQueueManager::get_instance().queue_message("╠══════════════════════════════════════╣", SerialPriority::CRITICAL);
+
     struct TaskInfo {
         TaskHandle_t handle;
         const char* name;
         uint32_t allocatedSize;
     };
-    
-    TaskInfo tasks[] = {
-        {buttonTaskHandle, "Buttons", BUTTON_STACK_SIZE},
-        {serialInputTaskHandle, "SerialInput", SERIAL_INPUT_STACK_SIZE},
-        {ledTaskHandle, "LED", LED_STACK_SIZE},
-        {bytecodeVMTaskHandle, "BytecodeVM", BYTECODE_VM_STACK_SIZE},
-        {stackMonitorTaskHandle, "StackMonitor", STACK_MONITOR_STACK_SIZE},        // May be NULL after self-delete
-        // Individual sensor tasks
-        {imuSensorTaskHandle, "IMUSensor", IMU_SENSOR_STACK_SIZE},
-        {encoderSensorTaskHandle, "EncoderSensor", ENCODER_SENSOR_STACK_SIZE},
-        {multizoneTofSensorTaskHandle, "MultizoneTOF", MULTIZONE_TOF_STACK_SIZE},
-        {sideTofSensorTaskHandle, "SideTOF", SIDE_TOF_STACK_SIZE},
-        {colorSensorTaskHandle, "ColorSensor", COLOR_SENSOR_STACK_SIZE},
-        // Other tasks
-        {displayTaskHandle, "Display", DISPLAY_STACK_SIZE},
-        {networkManagementTaskHandle, "NetworkMgmt", NETWORK_MANAGEMENT_STACK_SIZE},
-        {sendSensorDataTaskHandle, "SendSensorData", SEND_SENSOR_DATA_STACK_SIZE},
-        {webSocketPollingTaskHandle, "WebSocketPoll", WEBSOCKET_POLLING_STACK_SIZE},
-        {serialQueueTaskHandle, "SerialQueue", SERIAL_QUEUE_STACK_SIZE},
-        {batteryMonitorTaskHandle, "BatteryMonitor", BATTERY_MONITOR_STACK_SIZE},
-        {speakerTaskHandle, "Speaker", SPEAKER_STACK_SIZE},
-        {motorTaskHandle, "Motor", MOTOR_STACK_SIZE},
-        {demoManagerTaskHandle, "DemoManager", DEMO_MANAGER_STACK_SIZE},
-        {gameManagerTaskHandle, "GameManager", GAME_MANAGER_STACK_SIZE},
-        {careerQuestTaskHandle, "CareerQuest", CAREER_QUEST_STACK_SIZE},
-        {displayInitTaskHandle, "DisplayInit", DISPLAY_INIT_STACK_SIZE}
-    };
-    
+
+    TaskInfo tasks[] = {{buttonTaskHandle, "Buttons", BUTTON_STACK_SIZE},
+                        {serialInputTaskHandle, "SerialInput", SERIAL_INPUT_STACK_SIZE},
+                        {ledTaskHandle, "LED", LED_STACK_SIZE},
+                        {bytecodeVMTaskHandle, "BytecodeVM", BYTECODE_VM_STACK_SIZE},
+                        {stackMonitorTaskHandle, "StackMonitor", STACK_MONITOR_STACK_SIZE}, // May be NULL after self-delete
+                        // Individual sensor tasks
+                        {imuSensorTaskHandle, "IMUSensor", IMU_SENSOR_STACK_SIZE},
+                        {encoderSensorTaskHandle, "EncoderSensor", ENCODER_SENSOR_STACK_SIZE},
+                        {multizoneTofSensorTaskHandle, "MultizoneTOF", MULTIZONE_TOF_STACK_SIZE},
+                        {sideTofSensorTaskHandle, "SideTOF", SIDE_TOF_STACK_SIZE},
+                        {colorSensorTaskHandle, "ColorSensor", COLOR_SENSOR_STACK_SIZE},
+                        // Other tasks
+                        {displayTaskHandle, "Display", DISPLAY_STACK_SIZE},
+                        {networkManagementTaskHandle, "NetworkMgmt", NETWORK_MANAGEMENT_STACK_SIZE},
+                        {sendSensorDataTaskHandle, "SendSensorData", SEND_SENSOR_DATA_STACK_SIZE},
+                        {webSocketPollingTaskHandle, "WebSocketPoll", WEBSOCKET_POLLING_STACK_SIZE},
+                        {serialQueueTaskHandle, "SerialQueue", SERIAL_QUEUE_STACK_SIZE},
+                        {batteryMonitorTaskHandle, "BatteryMonitor", BATTERY_MONITOR_STACK_SIZE},
+                        {speakerTaskHandle, "Speaker", SPEAKER_STACK_SIZE},
+                        {motorTaskHandle, "Motor", MOTOR_STACK_SIZE},
+                        {demoManagerTaskHandle, "DemoManager", DEMO_MANAGER_STACK_SIZE},
+                        {gameManagerTaskHandle, "GameManager", GAME_MANAGER_STACK_SIZE},
+                        {careerQuestTaskHandle, "CareerQuest", CAREER_QUEST_STACK_SIZE},
+                        {displayInitTaskHandle, "DisplayInit", DISPLAY_INIT_STACK_SIZE}};
+
     for (const auto& task : tasks) {
         if (task.handle != NULL && eTaskGetState(task.handle) != eDeleted) {
             UBaseType_t freeStack = uxTaskGetStackHighWaterMark(task.handle);
             uint32_t usedStack = task.allocatedSize - (freeStack * sizeof(StackType_t));
             float percentUsed = (float)usedStack / task.allocatedSize * 100.0f;
-            
+
             // Format with fixed width for alignment
             char taskName[16];
             snprintf(taskName, sizeof(taskName), "%-15s", task.name);
-            
-            String message = "║ " + String(taskName) + " " + 
-                        String(usedStack, DEC) + "/" + String(task.allocatedSize) + 
-                        " (" + String(percentUsed, 1) + "%)";
-                        
+
+            String message =
+                "║ " + String(taskName) + " " + String(usedStack, DEC) + "/" + String(task.allocatedSize) + " (" + String(percentUsed, 1) + "%)";
+
             // Pad to consistent width
             while (message.length() < 37) {
                 message += " ";
             }
             message += "║";
-            
+
             if (percentUsed > 90.0f) {
                 message += " 🔴";
-                SerialQueueManager::getInstance().queueMessage(message, SerialPriority::CRITICAL);
+                SerialQueueManager::get_instance().queue_message(message, SerialPriority::CRITICAL);
             } else if (percentUsed > 75.0f) {
                 message += " 🟡";
-                SerialQueueManager::getInstance().queueMessage(message, SerialPriority::CRITICAL);
+                SerialQueueManager::get_instance().queue_message(message, SerialPriority::CRITICAL);
             } else {
-                SerialQueueManager::getInstance().queueMessage(message, SerialPriority::CRITICAL);
+                SerialQueueManager::get_instance().queue_message(message, SerialPriority::CRITICAL);
             }
         }
     }
-    SerialQueueManager::getInstance().queueMessage("╚══════════════════════════════════════╝", SerialPriority::CRITICAL);
-    SerialQueueManager::getInstance().queueMessage("", SerialPriority::CRITICAL);
+    SerialQueueManager::get_instance().queue_message("╚══════════════════════════════════════╝", SerialPriority::CRITICAL);
+    SerialQueueManager::get_instance().queue_message("", SerialPriority::CRITICAL);
 }

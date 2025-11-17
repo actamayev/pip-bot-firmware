@@ -2,15 +2,15 @@
 
 bool TurningManager::startTurn(float degrees) {
     if (currentState != TurningState::IDLE) {
-        SerialQueueManager::getInstance().queueMessage("Turn already in progress!");
+        SerialQueueManager::get_instance().queueMessage("Turn already in progress!");
         return false; // Turn already in progress
     }
-    
+
     if (abs(degrees) < 0.1f) {
-        SerialQueueManager::getInstance().queueMessage("Invalid turn angle!");
+        SerialQueueManager::get_instance().queueMessage("Invalid turn angle!");
         return false; // Invalid turn angle
     }
-    
+
     targetTurnAngle = degrees;
     initializeTurn();
     return true;
@@ -39,7 +39,7 @@ void TurningManager::initializeTurn() {
 
     char logMessage[64];
     snprintf(logMessage, sizeof(logMessage), "Starting turn: %.1f degrees", targetTurnAngle);
-    SerialQueueManager::getInstance().queueMessage(logMessage);
+    SerialQueueManager::get_instance().queueMessage(logMessage);
 }
 
 void TurningManager::update() {
@@ -53,7 +53,7 @@ void TurningManager::update() {
     if (currentState == TurningState::OVERSHOOT_BRAKING) {
         if (millis() - overshootBrakeStartTime >= OVERSHOOT_BRAKE_DURATION) {
             currentState = TurningState::TURNING;
-            SerialQueueManager::getInstance().queueMessage("Overshoot braking complete - resuming");
+            SerialQueueManager::get_instance().queueMessage("Overshoot braking complete - resuming");
         } else {
             motorDriver.brake_both_motors();
             return;
@@ -67,7 +67,7 @@ void TurningManager::update() {
     if (checkOvershoot(remainingAngle)) {
         char logMessage[80];
         snprintf(logMessage, sizeof(logMessage), "High-speed overshoot detected! Braking for %dms", (int)OVERSHOOT_BRAKE_DURATION);
-        SerialQueueManager::getInstance().queueMessage(logMessage);
+        SerialQueueManager::get_instance().queueMessage(logMessage);
         currentState = TurningState::OVERSHOOT_BRAKING;
         overshootBrakeStartTime = millis();
         motorDriver.brake_both_motors();
@@ -89,7 +89,7 @@ void TurningManager::update() {
     // Check completion
     if (checkCompletion()) {
         resetTurnState();
-        SerialQueueManager::getInstance().queueMessage("Turn completed");
+        SerialQueueManager::get_instance().queueMessage("Turn completed");
         return;
     }
 
@@ -107,7 +107,7 @@ void TurningManager::update() {
 }
 
 void TurningManager::updateVelocity() {
-    float currentHeading = -SensorDataBuffer::getInstance().getLatestYaw();
+    float currentHeading = -SensorDataBuffer::get_instance().getLatestYaw();
     unsigned long currentTime = millis();
 
     if (lastTime != 0) {
@@ -116,8 +116,10 @@ void TurningManager::updateVelocity() {
             float deltaHeading = currentHeading - lastHeading;
 
             // Handle wrap-around
-            while (deltaHeading > 180.0f) deltaHeading -= 360.0f;
-            while (deltaHeading < -180.0f) deltaHeading += 360.0f;
+            while (deltaHeading > 180.0f)
+                deltaHeading -= 360.0f;
+            while (deltaHeading < -180.0f)
+                deltaHeading += 360.0f;
 
             currentVelocity = deltaHeading / deltaTime;
         }
@@ -128,20 +130,22 @@ void TurningManager::updateVelocity() {
 }
 
 void TurningManager::updateCumulativeRotation() {
-    float currentHeading = -SensorDataBuffer::getInstance().getLatestYaw();
-    
+    float currentHeading = -SensorDataBuffer::get_instance().getLatestYaw();
+
     if (!rotationTrackingInitialized) {
         lastHeadingForRotation = currentHeading;
         rotationTrackingInitialized = true;
         return;
     }
-    
+
     float headingDelta = currentHeading - lastHeadingForRotation;
-    
+
     // Handle wrap-around (shortest path for each step)
-    while (headingDelta > 180.0f) headingDelta -= 360.0f;
-    while (headingDelta < -180.0f) headingDelta += 360.0f;
-    
+    while (headingDelta > 180.0f)
+        headingDelta -= 360.0f;
+    while (headingDelta < -180.0f)
+        headingDelta += 360.0f;
+
     cumulativeRotation += headingDelta;
     lastHeadingForRotation = currentHeading;
 }
@@ -182,7 +186,7 @@ uint16_t TurningManager::calculatePWM(float velocityError) {
         integralTerm += velocityError * deltaTime;
 
         // Integral windup protection
-        float maxIntegral =  MAX_MOTOR_PWM / KI_VELOCITY;
+        float maxIntegral = MAX_MOTOR_PWM / KI_VELOCITY;
         integralTerm = constrain(integralTerm, -maxIntegral, maxIntegral);
     }
 
@@ -203,16 +207,13 @@ bool TurningManager::checkCompletion() {
     float remainingAngle = calculateRemainingAngle();
 
     // Check if within position and velocity thresholds
-    if (abs(remainingAngle) <= COMPLETION_POSITION_THRESHOLD &&
-        abs(currentVelocity) <= COMPLETION_VELOCITY_THRESHOLD) {
-
+    if (abs(remainingAngle) <= COMPLETION_POSITION_THRESHOLD && abs(currentVelocity) <= COMPLETION_VELOCITY_THRESHOLD) {
         // Start confirmation timer if not already started
         if (completionStartTime == 0) {
             completionStartTime = millis();
             char logMessage[80];
-            snprintf(logMessage, sizeof(logMessage), "Approaching completion: Remaining=%.2f°, Vel=%.2f°/s",
-                     remainingAngle, currentVelocity);
-            SerialQueueManager::getInstance().queueMessage(logMessage);
+            snprintf(logMessage, sizeof(logMessage), "Approaching completion: Remaining=%.2f°, Vel=%.2f°/s", remainingAngle, currentVelocity);
+            SerialQueueManager::get_instance().queueMessage(logMessage);
         }
 
         // Check if we've been in completion zone for required time
@@ -222,7 +223,7 @@ bool TurningManager::checkCompletion() {
                 motorDriver.brake_both_motors();
                 char logMessage[80];
                 snprintf(logMessage, sizeof(logMessage), "Turn complete! Final error: %.2f°", remainingAngle);
-                SerialQueueManager::getInstance().queueMessage(logMessage);
+                SerialQueueManager::get_instance().queueMessage(logMessage);
                 return true;
             }
         }
@@ -231,7 +232,7 @@ bool TurningManager::checkCompletion() {
         if (completionStartTime != 0) {
             completionStartTime = 0;
             completionConfirmed = false;
-            SerialQueueManager::getInstance().queueMessage("Moved out of completion zone, resetting timer");
+            SerialQueueManager::get_instance().queueMessage("Moved out of completion zone, resetting timer");
         }
     }
 
@@ -250,7 +251,7 @@ void TurningManager::applyMotorControl(uint16_t pwm, float velocityError) {
 
     // Allow direction changes when needed (overshoot correction)
     if (requiredDirection != currentDirection && currentDirection != TurningDirection::NONE) {
-        SerialQueueManager::getInstance().queueMessage("Direction change (overshoot correction)");
+        SerialQueueManager::get_instance().queueMessage("Direction change (overshoot correction)");
 
         // Stop briefly before changing direction
         motorDriver.brake_both_motors();
@@ -269,10 +270,9 @@ void TurningManager::applyMotorControl(uint16_t pwm, float velocityError) {
 
 bool TurningManager::checkOvershoot(float remainingAngle) {
     // Backup: reactive check for actual overshoot
-    bool movingAwayFromTarget = (remainingAngle > 0 && currentVelocity < 0) ||
-                               (remainingAngle < 0 && currentVelocity > 0);
+    bool movingAwayFromTarget = (remainingAngle > 0 && currentVelocity < 0) || (remainingAngle < 0 && currentVelocity > 0);
     if (movingAwayFromTarget) {
-        SerialQueueManager::getInstance().queueMessage("REACTIVE: Already overshot!");
+        SerialQueueManager::get_instance().queueMessage("REACTIVE: Already overshot!");
         return true;
     }
 
@@ -282,9 +282,9 @@ bool TurningManager::checkOvershoot(float remainingAngle) {
 
         if (timeToTarget < 10.0f && abs(remainingAngle) > COMPLETION_POSITION_THRESHOLD + 1.0f) {
             char logMessage[120];
-            snprintf(logMessage, sizeof(logMessage), "PREDICTIVE: Too fast! Time to target: %.1fms, Remaining: %.1f°, Vel: %.1f°/s",
-                     timeToTarget, remainingAngle, currentVelocity);
-            SerialQueueManager::getInstance().queueMessage(logMessage);
+            snprintf(logMessage, sizeof(logMessage), "PREDICTIVE: Too fast! Time to target: %.1fms, Remaining: %.1f°, Vel: %.1f°/s", timeToTarget,
+                     remainingAngle, currentVelocity);
+            SerialQueueManager::get_instance().queueMessage(logMessage);
             return true;
         }
     }

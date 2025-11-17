@@ -12,30 +12,30 @@ constexpr uint8_t NUM_LEDS = 8;
 class RgbLed {
   public:
     // Basic color controls
-    void turnAllLedsOff();
-    void setLedGreen();
-    void setLedYellow();
-    void setDefaultColors(uint8_t red, uint8_t green, uint8_t blue);
+    void turn_all_leds_off();
+    void set_led_green();
+    void set_led_yellow();
+    void set_default_colors(uint8_t red, uint8_t green, uint8_t blue);
 
     // Individual LED controls
-    void setTopLeftLed(uint8_t red, uint8_t green, uint8_t blue);
-    void setTopRightLed(uint8_t red, uint8_t green, uint8_t blue);
-    void setMiddleLeftLed(uint8_t red, uint8_t green, uint8_t blue);
-    void setMiddleRightLed(uint8_t red, uint8_t green, uint8_t blue);
-    void setBackLeftLed(uint8_t red, uint8_t green, uint8_t blue);
-    void setBackRightLed(uint8_t red, uint8_t green, uint8_t blue);
-    void setMainBoardLedsToColor(uint8_t red, uint8_t green, uint8_t blue);
-    void setRightHeadlight(uint8_t red, uint8_t green, uint8_t blue);
-    void setLeftHeadlight(uint8_t red, uint8_t green, uint8_t blue);
+    void set_top_left_led(uint8_t red, uint8_t green, uint8_t blue);
+    void set_top_right_led(uint8_t red, uint8_t green, uint8_t blue);
+    void set_middle_left_led(uint8_t red, uint8_t green, uint8_t blue);
+    void set_middle_right_led(uint8_t red, uint8_t green, uint8_t blue);
+    void set_back_left_led(uint8_t red, uint8_t green, uint8_t blue);
+    void set_back_right_led(uint8_t red, uint8_t green, uint8_t blue);
+    void set_main_board_leds_to_color(uint8_t red, uint8_t green, uint8_t blue);
+    void set_right_headlight(uint8_t red, uint8_t green, uint8_t blue);
+    void set_left_headlight(uint8_t red, uint8_t green, uint8_t blue);
 
     // Get current color values
-    uint8_t getCurrentRed() const {
+    uint8_t get_current_red() const {
         return _currentRed;
     }
-    uint8_t getCurrentGreen() const {
+    uint8_t get_current_green() const {
         return _currentGreen;
     }
-    uint8_t getCurrentBlue() const {
+    uint8_t get_current_blue() const {
         return _currentBlue;
     }
 
@@ -52,20 +52,20 @@ class RgbLed {
     };
     bool defaultColorsSet[8] = {false, false, false, false, false, false, false, false};
 
-    void turnHeadlightsOn();
-    void turnHeadlightsOff();
-    void turnHeadlightsFaintBlue();
+    void turn_headlights_on();
+    void turn_headlights_off();
+    void turn_headlights_faint_blue();
 
-    void turnFrontMiddleLedsFaintBlue();
-    void turnFrontMiddleLedsOff();
+    void turn_front_middle_leds_faint_blue();
+    void turn_front_middle_leds_off();
 
-    void turnBackLedsFaintBlue();
-    void turnBackLedsOff();
+    void turn_back_leds_faint_blue();
+    void turn_back_leds_off();
 
-    void turnMainBoardLedsOff();
+    void turn_main_board_leds_off();
 
   private:
-    bool processLedUpdate(int ledIndex, uint8_t red, uint8_t green, uint8_t blue);
+    bool process_led_update(int ledIndex, uint8_t red, uint8_t green, uint8_t blue);
 
     // Current LED state
     uint8_t _currentRed = 0;

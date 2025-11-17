@@ -15,7 +15,7 @@ void Buttons::begin() {
     rightButton.setDebounceTime(0);
 
     // Setup deep sleep functionality
-    setupDeepSleep();
+    setup_deep_sleep();
 }
 
 void Buttons::update() {
@@ -27,19 +27,19 @@ void Buttons::update() {
         if (millis() - sleepConfirmationStartTime > SLEEP_CONFIRMATION_TIMEOUT) {
             waitingForSleepConfirmation = false;
             sleepConfirmationStartTime = 0;
-            rgbLed.turnAllLedsOff();
+            rgbLed.turn_all_leds_off();
         }
     }
 }
 
-void Buttons::setLeftButtonClickHandler(std::function<void(Button2&)> callback) {
+void Buttons::set_left_button_click_handler(std::function<void(Button2&)> callback) {
     auto originalCallback = callback;
 
     leftButton.setPressedHandler([this, originalCallback](Button2& btn) {
         // Reset timeout on any button activity
-        TimeoutManager::getInstance().resetActivity();
+        TimeoutManager::get_instance().resetActivity();
 
-        BytecodeVM& vm = BytecodeVM::getInstance();
+        BytecodeVM& vm = BytecodeVM::get_instance();
         // Handle resume for paused programs (only if we didn't just pause)
         if (vm.isPaused == BytecodeVM::RUNNING || vm.isPaused == BytecodeVM::PROGRAM_FINISHED) {
             vm.pauseProgram();
@@ -51,7 +51,7 @@ void Buttons::setLeftButtonClickHandler(std::function<void(Button2&)> callback) 
     // Move program start logic to release handler
     leftButton.setReleasedHandler([this, originalCallback](Button2& btn) {
         // Reset timeout on any button activity
-        TimeoutManager::getInstance().resetActivity();
+        TimeoutManager::get_instance().resetActivity();
 
         // Handle deep sleep logic first (existing functionality)
         if (this->longPressFlagForSleep) {
@@ -62,12 +62,12 @@ void Buttons::setLeftButtonClickHandler(std::function<void(Button2&)> callback) 
         }
 
         // Check if timeout manager is in confirmation state
-        if (TimeoutManager::getInstance().isInConfirmationState()) return;
+        if (TimeoutManager::get_instance().isInConfirmationState()) return;
 
         // If we're waiting for sleep confirmation, don't process program start
         if (this->waitingForSleepConfirmation) return;
 
-        BytecodeVM& vm = BytecodeVM::getInstance();
+        BytecodeVM& vm = BytecodeVM::get_instance();
 
         // Handle program start on button release
         if (vm.waitingForButtonPressToStart) {
@@ -109,36 +109,36 @@ void Buttons::setLeftButtonClickHandler(std::function<void(Button2&)> callback) 
     // Keep click handler for sleep confirmation
     leftButton.setClickHandler([this, originalCallback](Button2& btn) {
         // Reset timeout on any button activity
-        TimeoutManager::getInstance().resetActivity();
+        TimeoutManager::get_instance().resetActivity();
 
         if (!(this->waitingForSleepConfirmation)) return;
         this->waitingForSleepConfirmation = false;
         this->sleepConfirmationStartTime = 0;
-        enterDeepSleep();
+        enter_deep_sleep();
         return; // Don't call the original callback in this case
     });
 }
 
-void Buttons::setRightButtonClickHandler(std::function<void(Button2&)> callback) {
+void Buttons::set_right_button_click_handler(std::function<void(Button2&)> callback) {
     auto originalCallback = callback;
 
     rightButton.setPressedHandler([this, originalCallback](Button2& btn) {
         // Reset timeout on any button activity
-        TimeoutManager::getInstance().resetActivity();
+        TimeoutManager::get_instance().resetActivity();
 
         // Check if timeout manager is in confirmation state
-        if (TimeoutManager::getInstance().isInConfirmationState()) return; // Don't process other button logic
+        if (TimeoutManager::get_instance().isInConfirmationState()) return; // Don't process other button logic
 
         // If we're waiting for confirmation, this click cancels deep sleep
         if (this->waitingForSleepConfirmation) {
-            rgbLed.turnAllLedsOff();
+            rgbLed.turn_all_leds_off();
             this->waitingForSleepConfirmation = false;
             this->sleepConfirmationStartTime = 0;
             return; // Don't call the original callback in this case
         }
 
         // TODO 10/3: Figure out the right way to handle this. We did this to be able to check if (is_right_button_pressed) in bytecode_interpreter
-        // BytecodeVM& vm = BytecodeVM::getInstance();
+        // BytecodeVM& vm = BytecodeVM::get_instance();
 
         // // Handle pause for running programs
         // if (vm.isPaused == BytecodeVM::RUNNING || vm.isPaused == BytecodeVM::PROGRAM_FINISHED) {
@@ -147,33 +147,33 @@ void Buttons::setRightButtonClickHandler(std::function<void(Button2&)> callback)
         // }
 
         // Otherwise, proceed with normal click handling - check games first
-        if (GameManager::getInstance().isAnyGameActive()) {
-            GameManager::getInstance().handleButtonPress(true); // Right button pressed
+        if (GameManager::get_instance().isAnyGameActive()) {
+            GameManager::get_instance().handleButtonPress(true); // Right button pressed
         } else if (originalCallback) {
             originalCallback(btn);
         }
     });
 }
 
-void Buttons::setLeftButtonLongPressHandler(std::function<void(Button2&)> callback) {
+void Buttons::set_left_button_long_press_handler(std::function<void(Button2&)> callback) {
     auto wrappedCallback = [callback](Button2& btn) {
         // Reset timeout on any button activity
-        TimeoutManager::getInstance().resetActivity();
+        TimeoutManager::get_instance().resetActivity();
         if (callback) callback(btn);
     };
     leftButton.setLongClickHandler(wrappedCallback);
 }
 
-void Buttons::setRightButtonLongPressHandler(std::function<void(Button2&)> callback) {
+void Buttons::set_right_button_long_press_handler(std::function<void(Button2&)> callback) {
     auto wrappedCallback = [callback](Button2& btn) {
         // Reset timeout on any button activity
-        TimeoutManager::getInstance().resetActivity();
+        TimeoutManager::get_instance().resetActivity();
         if (callback) callback(btn);
     };
     rightButton.setLongClickHandler(wrappedCallback);
 }
 
-void Buttons::setupDeepSleep() {
+void Buttons::setup_deep_sleep() {
     // First, detect when long press threshold is reached
     leftButton.setLongClickTime(DEEP_SLEEP_TIMEOUT);
     leftButton.setLongClickDetectedHandler([this](Button2& btn) {
@@ -185,9 +185,9 @@ void Buttons::setupDeepSleep() {
         }
 
         // Reset timeout on any button activity
-        TimeoutManager::getInstance().resetActivity();
+        TimeoutManager::get_instance().resetActivity();
 
-        BytecodeVM::getInstance().pauseProgram();
+        BytecodeVM::get_instance().pauseProgram();
         rgbLed.set_led_yellow();
         this->longPressFlagForSleep = true;
     });
@@ -195,11 +195,11 @@ void Buttons::setupDeepSleep() {
     // Note: Wakeup detection is now handled in checkHoldToWakeCondition()
 }
 
-void Buttons::enterDeepSleep() {
-    if (SerialManager::getInstance().isSerialConnected()) {
-        SerialManager::getInstance().sendPipTurningOff();
-    } else if (WebSocketManager::getInstance().isWsConnected()) {
-        WebSocketManager::getInstance().sendPipTurningOff();
+void Buttons::enter_deep_sleep() {
+    if (SerialManager::get_instance().isSerialConnected()) {
+        SerialManager::get_instance().sendPipTurningOff();
+    } else if (WebSocketManager::get_instance().isWsConnected()) {
+        WebSocketManager::get_instance().sendPipTurningOff();
     }
 
     digitalWrite(PWR_EN, LOW);
@@ -217,16 +217,16 @@ void Buttons::enterDeepSleep() {
     esp_deep_sleep_start();
 }
 
-void Buttons::setHoldToWakeMode(bool enabled) {
+void Buttons::set_hold_to_wake_mode(bool enabled) {
     this->inHoldToWakeMode = enabled;
     if (enabled) return;
     this->holdToWakeCompletedTime = millis();
 }
 
-bool Buttons::isEitherButtonPressed() {
+bool Buttons::is_either_button_pressed() {
     return leftButton.isPressed() || rightButton.isPressed();
 }
 
-bool Buttons::isRightButtonPressed() {
+bool Buttons::is_right_button_pressed() {
     return rightButton.isPressed();
 }

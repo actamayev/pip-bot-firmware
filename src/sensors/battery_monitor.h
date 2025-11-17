@@ -17,12 +17,12 @@ class BatteryMonitor : public Singleton<BatteryMonitor> {
 
   public:
     bool initialize();
-    const BatteryState& getBatteryState() const {
+    const BatteryState& get_battery_state() const {
         return batteryState;
     }
 
     // Status checks
-    bool isCriticalBattery() const {
+    bool is_critical_battery() const {
         return batteryState.isCriticalBattery;
     }
 
@@ -31,12 +31,12 @@ class BatteryMonitor : public Singleton<BatteryMonitor> {
     void update();
 
     unsigned long lastBatteryLogTime = 0;
-    void sendBatteryMonitorDataOverWebSocket();
+    void send_battery_monitor_data_over_websocket();
     BatteryMonitor() = default;
     ~BatteryMonitor() = default;
 
     // Update battery readings (call this periodically)
-    void updateBatteryState();
+    void update_battery_state();
 
     // Configuration constants
     static constexpr unsigned int DEFAULT_BATTERY_CAPACITY = 1800; // mAh
@@ -53,9 +53,9 @@ class BatteryMonitor : public Singleton<BatteryMonitor> {
     static constexpr float yInterceptTerm = 100.0f * CRITICAL_BATTERY_THRESHOLD / (CRITICAL_BATTERY_THRESHOLD - 100.0f);
 
     // Helper methods
-    void calculateTimeEstimates();
-    void updateStatusFlags();
-    void handleBatteryLogging();
-    void retryInitializationIfNeeded();
-    void sendBatteryMonitorDataOverSerial();
+    void calculate_time_estimates();
+    void update_status_flags();
+    void handle_battery_logging();
+    void retry_initialization_if_needed();
+    void send_battery_monitor_data_over_serial();
 };

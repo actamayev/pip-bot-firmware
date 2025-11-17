@@ -30,22 +30,22 @@ bool checkAddressOnI2cLine(uint8_t addr) {
 
     char logMessage[64];
     snprintf(logMessage, sizeof(logMessage), "Checking for device at address %d...", addr);
-    SerialQueueManager::getInstance().queueMessage(logMessage);
+    SerialQueueManager::get_instance().queue_message(logMessage);
 
     Wire.beginTransmission(addr);
     error = Wire.endTransmission();
 
     if (error == 0) {
         snprintf(logMessage, sizeof(logMessage), "Device found at address %d!", addr);
-        SerialQueueManager::getInstance().queueMessage(logMessage);
+        SerialQueueManager::get_instance().queue_message(logMessage);
         return true;
     }
     if (error == 4) {
         snprintf(logMessage, sizeof(logMessage), "Unknown error while checking address %d", addr);
-        SerialQueueManager::getInstance().queueMessage(logMessage);
+        SerialQueueManager::get_instance().queue_message(logMessage);
     } else {
         snprintf(logMessage, sizeof(logMessage), "No device found at address %d", addr);
-        SerialQueueManager::getInstance().queueMessage(logMessage);
+        SerialQueueManager::get_instance().queue_message(logMessage);
     }
     return false;
 }
@@ -56,7 +56,7 @@ void scanI2C() {
     int devicesFound = 0;
     char logMessage[64];
 
-    SerialQueueManager::getInstance().queueMessage("Scanning I2C bus...");
+    SerialQueueManager::get_instance().queue_message("Scanning I2C bus...");
 
     for (address = 1; address < 128; address++) {
         Wire.beginTransmission(address);
@@ -64,16 +64,16 @@ void scanI2C() {
 
         if (error == 0) {
             snprintf(logMessage, sizeof(logMessage), "Device found at address 0x%02X", address);
-            SerialQueueManager::getInstance().queueMessage(logMessage);
+            SerialQueueManager::get_instance().queue_message(logMessage);
             devicesFound++;
         }
     }
 
     if (devicesFound == 0) {
-        SerialQueueManager::getInstance().queueMessage("No I2C devices found");
+        SerialQueueManager::get_instance().queue_message("No I2C devices found");
     } else {
         snprintf(logMessage, sizeof(logMessage), "Found %d device(s)", devicesFound);
-        SerialQueueManager::getInstance().queueMessage(logMessage);
+        SerialQueueManager::get_instance().queue_message(logMessage);
     }
 }
 

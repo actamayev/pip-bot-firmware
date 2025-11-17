@@ -29,33 +29,33 @@ class SideTimeOfFlightSensor {
         bool isCalibrated = false;
 
         // Reset a specific sensor by address
-        void Reset_Specific_Sensor() {
+        void reset_specific_sensor() {
             Reset_Sensor(sensorAddress);
             vTaskDelay(pdMS_TO_TICKS(100));
         }
 
         // Read proximity data from the sensor (with calibration applied)
-        uint16_t Read_Proximity_Data() {
+        uint16_t read_proximity_data() {
             uint16_t rawReading = VCNL36828P_GET_PS_DATA(sensorAddress);
-            return applyCalibration(rawReading);
+            return apply_calibration(rawReading);
         }
 
-        void Basic_Initialization_Auto_Mode();
+        void basic_initialization_auto_mode();
 
         // Calibration methods
-        void loadCalibrationFromPreferences();
-        bool performCalibration();
-        uint16_t captureBaselineReading();
-        void applyHardwareCalibration(uint16_t baseline);
-        uint16_t applyCalibration(uint16_t rawReading);
+        void load_calibration_from_preferences();
+        bool perform_calibration();
+        uint16_t capture_baseline_reading();
+        void apply_hardware_calibration(uint16_t baseline);
+        uint16_t apply_calibration(uint16_t rawReading);
 
         // For rate limiting reads
         unsigned long _lastUpdateTime = 0;
         static constexpr unsigned long DELAY_BETWEEN_READINGS = 1; //ms - minimal delay like performance test
 
         // New buffer-based methods following the established pattern
-        void updateSensorData();  // Read sensor and return data (don't store locally)
+        void update_sensor_data();  // Read sensor and return data (don't store locally)
         
         // For manager to get individual readings
-        uint16_t getCurrentCounts();
+        uint16_t get_current_counts();
 };

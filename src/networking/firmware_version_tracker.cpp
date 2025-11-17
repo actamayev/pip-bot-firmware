@@ -1,19 +1,19 @@
 #include "firmware_version_tracker.h"
 
 FirmwareVersionTracker::FirmwareVersionTracker() {
-    firmwareVersion = PreferencesManager::getInstance().getFirmwareVersion();
+    firmwareVersion = PreferencesManager::get_instance().getFirmwareVersion();
     // Format it into a message
     char message[64];
     snprintf(message, sizeof(message), "Firmware Version: %d", firmwareVersion);
 
     // Queue the message via SerialQueueManager
-    SerialQueueManager::getInstance().queueMessage(message, SerialPriority::NORMAL);
+    SerialQueueManager::get_instance().queue_message(message, SerialPriority::NORMAL);
 
     // Configure HTTPUpdate instance
-    httpUpdate.onProgress([this](int curr, int total) { this->updateProgressLeds(curr, total); });
+    httpUpdate.onProgress([this](int curr, int total) { this->update_progress_leds(curr, total); });
 
     // Set onEnd callback to update firmware version before reboot
-    httpUpdate.onEnd([this]() { PreferencesManager::getInstance().setFirmwareVersion(this->pendingVersion); });
+    httpUpdate.onEnd([this]() { PreferencesManager::get_instance().setFirmwareVersion(this->pendingVersion); });
 
     // Setup clients based on environment
     if (DEFAULT_ENVIRONMENT == "local") {
@@ -24,21 +24,21 @@ FirmwareVersionTracker::FirmwareVersionTracker() {
     }
 }
 
-void FirmwareVersionTracker::retrieveLatestFirmwareFromServer(uint16_t newVersion) {
+void FirmwareVersionTracker::retrieve_latest_firmware_from_server(uint16_t newVersion) {
     if (isRetrievingFirmwareFromServer || WiFi.status() != WL_CONNECTED) {
-        SerialQueueManager::getInstance().queueMessage("Cannot update: Either already updating or WiFi not connected");
+        SerialQueueManager::get_instance().queue_message("Cannot update: Either already updating or WiFi not connected");
         return;
     }
 
     // Format it into a message
     char message[64];
     snprintf(message, sizeof(message), "New Firmware Version: %d", newVersion);
-    SerialQueueManager::getInstance().queueMessage(message, SerialPriority::NORMAL);
+    SerialQueueManager::get_instance().queue_message(message, SerialPriority::NORMAL);
 
     if (firmwareVersion >= newVersion) {
         char buffer[128];
         snprintf(buffer, sizeof(buffer), "Pip is up to date. Current version is: %d, new version is: %d\n", firmwareVersion, newVersion);
-        SerialQueueManager::getInstance().queueMessage(buffer);
+        SerialQueueManager::get_instance().queue_message(buffer);
         return;
     }
 
@@ -58,7 +58,7 @@ void FirmwareVersionTracker::retrieveLatestFirmwareFromServer(uint16_t newVersio
             break;
 
         case HTTP_UPDATE_NO_UPDATES:
-            SerialQueueManager::getInstance().queueMessage("No updates needed");
+            SerialQueueManager::get_instance().queue_message("No updates needed");
             isRetrievingFirmwareFromServer = false;
             break;
 
@@ -70,9 +70,9 @@ void FirmwareVersionTracker::retrieveLatestFirmwareFromServer(uint16_t newVersio
     isRetrievingFirmwareFromServer = false;
 }
 
-void FirmwareVersionTracker::updateProgressLeds(int progress, int total) {
+void FirmwareVersionTracker::update_progress_leds(int progress, int total) {
     // Stop any active LED animations to prevent interference
-    ledAnimations.stopAnimation();
+    ledAnimations.stop_animation();
 
     // Calculate percentage (0-100)
     int percentage = (progress * 100) / total;

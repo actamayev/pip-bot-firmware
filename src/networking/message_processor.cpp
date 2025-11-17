@@ -1,52 +1,52 @@
 #include "message_processor.h"
 
-void MessageProcessor::handleMotorControl(const uint8_t* data) {
+void MessageProcessor::handle_motor_control(const uint8_t* data) {
     // Extract 16-bit signed integers (little-endian)
     int16_t leftSpeed = static_cast<int16_t>(data[1] | (data[2] << 8));
     int16_t rightSpeed = static_cast<int16_t>(data[3] | (data[4] << 8));
 
-    motorDriver.updateMotorPwm(leftSpeed, rightSpeed);
+    motorDriver.update_motor_pwm(leftSpeed, rightSpeed);
 }
 
-void MessageProcessor::handleBalanceCommand(BalanceStatus status) {
+void MessageProcessor::handle_balance_command(BalanceStatus status) {
     if (status == BalanceStatus::BALANCED) {
-        DemoManager::getInstance().startDemo(demo::DemoType::BALANCE_CONTROLLER);
+        DemoManager::get_instance().startDemo(demo::DemoType::BALANCE_CONTROLLER);
         return;
     }
     // If balance controller is currently running, stop it
-    if (DemoManager::getInstance().getCurrentDemo() == demo::DemoType::BALANCE_CONTROLLER) {
-        DemoManager::getInstance().stopCurrentDemo();
+    if (DemoManager::get_instance().getCurrentDemo() == demo::DemoType::BALANCE_CONTROLLER) {
+        DemoManager::get_instance().stopCurrentDemo();
     }
 }
 
-void MessageProcessor::handleObstacleAvoidanceCommand(ObstacleAvoidanceStatus status) {
+void MessageProcessor::handle_obstacle_avoidance_command(ObstacleAvoidanceStatus status) {
     if (status == ObstacleAvoidanceStatus::AVOID) {
-        DemoManager::getInstance().startDemo(demo::DemoType::OBSTACLE_AVOIDER);
+        DemoManager::get_instance().startDemo(demo::DemoType::OBSTACLE_AVOIDER);
         return;
     }
     // If obstacle avoider is currently running, stop it
-    if (DemoManager::getInstance().getCurrentDemo() == demo::DemoType::OBSTACLE_AVOIDER) {
-        DemoManager::getInstance().stopCurrentDemo();
+    if (DemoManager::get_instance().getCurrentDemo() == demo::DemoType::OBSTACLE_AVOIDER) {
+        DemoManager::get_instance().stopCurrentDemo();
     }
 }
 
-void MessageProcessor::handleLightCommand(LightAnimationStatus lightAnimationStatus) {
+void MessageProcessor::handle_light_command(LightAnimationStatus lightAnimationStatus) {
     if (lightAnimationStatus == LightAnimationStatus::NO_ANIMATION) {
-        ledAnimations.stopAnimation();
+        ledAnimations.stop_animation();
     } else if (lightAnimationStatus == LightAnimationStatus::BREATHING) {
-        ledAnimations.startBreathing();
+        ledAnimations.start_breathing();
     } else if (lightAnimationStatus == LightAnimationStatus::RAINBOW) {
-        ledAnimations.startRainbow();
+        ledAnimations.start_rainbow();
     } else if (lightAnimationStatus == LightAnimationStatus::STROBE) {
-        ledAnimations.startStrobing();
+        ledAnimations.start_strobing();
     } else if (lightAnimationStatus == LightAnimationStatus::TURN_OFF) {
-        ledAnimations.turnOff();
+        ledAnimations.turn_off();
     } else if (lightAnimationStatus == LightAnimationStatus::FADE_OUT) {
-        ledAnimations.fadeOut();
+        ledAnimations.fade_out();
     }
 }
 
-void MessageProcessor::handleNewLightColors(NewLightColors newLightColors) {
+void MessageProcessor::handle_new_light_colors(NewLightColors newLightColors) {
     // Cast from float to uint8_t, assuming values are already in 0-255 range
     uint8_t topLeftR = (uint8_t)newLightColors.topLeftRed;
     uint8_t topLeftG = (uint8_t)newLightColors.topLeftGreen;
@@ -81,45 +81,45 @@ void MessageProcessor::handleNewLightColors(NewLightColors newLightColors) {
     rgbLed.set_back_right_led(backRightR, backRightG, backRightB);
 }
 
-void MessageProcessor::handleGetSavedWiFiNetworks() {
+void MessageProcessor::handle_get_saved_wifi_networks() {
     // Get saved networks from WiFiManager
-    std::vector<WiFiCredentials> savedNetworks = WiFiManager::getInstance().getSavedNetworksForResponse();
+    std::vector<WiFiCredentials> savedNetworks = WiFiManager::get_instance().get_saved_networks_for_response();
 
     // Send response via SerialManager
-    SerialManager::getInstance().sendSavedNetworksResponse(savedNetworks);
+    SerialManager::get_instance().send_saved_networks_response(savedNetworks);
 }
 
-void MessageProcessor::handleSoftScanWiFiNetworks() {
+void MessageProcessor::handle_soft_scan_wifi_networks() {
     // Check if we have recent scan results (within 1 minute)
-    WiFiManager& wifiManager = WiFiManager::getInstance();
-    if (wifiManager.hasAvailableNetworks()) {
-        SerialManager::getInstance().sendScanResultsResponse(wifiManager.getAvailableNetworks());
+    WiFiManager& wifiManager = WiFiManager::get_instance();
+    if (wifiManager.has_available_networks()) {
+        SerialManager::get_instance().send_scan_results_response(wifiManager.get_available_networks());
         return;
     }
     unsigned long now = millis();
-    if (now - wifiManager.getLastScanCompleteTime() < 60000) return;
+    if (now - wifiManager.get_last_scan_complete_time() < 60000) return;
     // Start async scan instead of blocking scan
-    bool success = wifiManager.startAsyncScan();
+    bool success = wifiManager.start_async_scan();
 
     if (success) return; // Note: Results will be sent asynchronously when scan completes
-    SerialQueueManager::getInstance().queueMessage("Failed to start WiFi scan");
+    SerialQueueManager::get_instance().queue_message("Failed to start WiFi scan");
     // Send empty scan results to indicate failure
     std::vector<WiFiNetworkInfo> emptyNetworks;
-    SerialManager::getInstance().sendScanResultsResponse(emptyNetworks);
+    SerialManager::get_instance().send_scan_results_response(emptyNetworks);
 }
 
-void MessageProcessor::handleHardScanWiFiNetworks() {
-    bool success = WiFiManager::getInstance().startAsyncScan();
+void MessageProcessor::handle_hard_scan_wifi_networks() {
+    bool success = WiFiManager::get_instance().start_async_scan();
     if (success) return;
-    SerialQueueManager::getInstance().queueMessage("Failed to start hard WiFi scan");
+    SerialQueueManager::get_instance().queue_message("Failed to start hard WiFi scan");
     std::vector<WiFiNetworkInfo> emptyNetworks;
-    SerialManager::getInstance().sendScanResultsResponse(emptyNetworks);
+    SerialManager::get_instance().send_scan_results_response(emptyNetworks);
 }
 
-void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length) {
-    TimeoutManager::getInstance().resetActivity();
+void MessageProcessor::process_binary_message(const uint8_t* data, uint16_t length) {
+    TimeoutManager::get_instance().reset_activity();
     if (length < 1) {
-        SerialQueueManager::getInstance().queueMessage("Binary message too short");
+        SerialQueueManager::get_instance().queue_message("Binary message too short");
         return;
     }
     // Extract the message type from the first byte
@@ -128,77 +128,77 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
     switch (messageType) {
         case DataMessageType::UPDATE_AVAILABLE: {
             if (length != 3) {
-                SerialQueueManager::getInstance().queueMessage("Invalid update available message length");
+                SerialQueueManager::get_instance().queue_message("Invalid update available message length");
             } else {
                 // Extract the firmware version from bytes 1-2
                 uint16_t newVersion = data[1] | (data[2] << 8); // Little-endian conversion
 
-                // SerialQueueManager::getInstance().queueMessage("New firmware version available: %d\n", newVersion);
-                FirmwareVersionTracker::getInstance().retrieveLatestFirmwareFromServer(newVersion);
+                // SerialQueueManager::get_instance().queueMessage("New firmware version available: %d\n", newVersion);
+                FirmwareVersionTracker::get_instance().retrieve_latest_firmware_from_server(newVersion);
             }
             break;
         }
         case DataMessageType::MOTOR_CONTROL: {
             if (length != 5) {
-                SerialQueueManager::getInstance().queueMessage("Invalid motor control message length");
+                SerialQueueManager::get_instance().queue_message("Invalid motor control message length");
             } else {
-                handleMotorControl(data);
+                handle_motor_control(data);
             }
             break;
         }
         case DataMessageType::TONE_COMMAND: {
             if (length != 2) {
-                SerialQueueManager::getInstance().queueMessage("Invalid sound command message length");
+                SerialQueueManager::get_instance().queue_message("Invalid sound command message length");
             } else {
                 ToneType toneType = static_cast<ToneType>(data[1]);
-                Speaker::getInstance().playTone(toneType);
+                Speaker::get_instance().play_tone(toneType);
             }
             break;
         }
         case DataMessageType::SPEAKER_MUTE: {
             if (length != 2) {
-                SerialQueueManager::getInstance().queueMessage("Invalid speaker mute message length");
+                SerialQueueManager::get_instance().queue_message("Invalid speaker mute message length");
             } else {
                 SpeakerStatus status = static_cast<SpeakerStatus>(data[1]);
-                Speaker::getInstance().setMuted(status == SpeakerStatus::MUTED);
+                Speaker::get_instance().set_muted(status == SpeakerStatus::MUTED);
             }
             break;
         }
         case DataMessageType::BALANCE_CONTROL: {
             if (length != 2) {
-                SerialQueueManager::getInstance().queueMessage("Invalid balance control message length");
+                SerialQueueManager::get_instance().queue_message("Invalid balance control message length");
             } else {
                 BalanceStatus status = static_cast<BalanceStatus>(data[1]);
-                handleBalanceCommand(status);
+                handle_balance_command(status);
             }
             break;
         }
         case DataMessageType::UPDATE_LIGHT_ANIMATION: {
             if (length != 2) {
-                SerialQueueManager::getInstance().queueMessage("Invalid light animation message length");
+                SerialQueueManager::get_instance().queue_message("Invalid light animation message length");
             } else {
                 LightAnimationStatus lightAnimationStatus = static_cast<LightAnimationStatus>(data[1]);
-                handleLightCommand(lightAnimationStatus);
+                handle_light_command(lightAnimationStatus);
             }
             break;
         }
         case DataMessageType::UPDATE_LED_COLORS: {
             if (length != 19) {
-                // SerialQueueManager::getInstance().queueMessage("Invalid update led colors message length%d", length);
+                // SerialQueueManager::get_instance().queueMessage("Invalid update led colors message length%d", length);
             } else {
                 NewLightColors newLightColors;
                 memcpy(&newLightColors, &data[1], sizeof(NewLightColors));
-                handleNewLightColors(newLightColors);
+                handle_new_light_colors(newLightColors);
             }
             break;
         }
         case DataMessageType::UPDATE_BALANCE_PIDS: {
             if (length != 41) { // 1 byte for type + 40 bytes for the struct (10 floats × 4 bytes)
-                SerialQueueManager::getInstance().queueMessage("Invalid update balance pids message length");
+                SerialQueueManager::get_instance().queue_message("Invalid update balance pids message length");
             } else {
                 NewBalancePids newBalancePids;
                 memcpy(&newBalancePids, &data[1], sizeof(NewBalancePids));
-                BalanceController::getInstance().updateBalancePids(newBalancePids);
+                BalanceController::get_instance().updateBalancePids(newBalancePids);
             }
             break;
         }
@@ -208,82 +208,82 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             uint16_t bytecodeLength = length - 1;
 
             // Execute the bytecode
-            BytecodeVM::getInstance().loadProgram(bytecodeData, bytecodeLength);
+            BytecodeVM::get_instance().loadProgram(bytecodeData, bytecodeLength);
             break;
         }
         case DataMessageType::STOP_SANDBOX_CODE: {
             if (length != 1) {
-                SerialQueueManager::getInstance().queueMessage("Invalid stop sandbox code message length");
+                SerialQueueManager::get_instance().queue_message("Invalid stop sandbox code message length");
             } else {
-                BytecodeVM::getInstance().stopProgram();
+                BytecodeVM::get_instance().stopProgram();
             }
             break;
         }
 
         case DataMessageType::STOP_SENSOR_POLLING: {
             if (length != 1) {
-                SerialQueueManager::getInstance().queueMessage("Invalid stop sandbox code message length");
+                SerialQueueManager::get_instance().queue_message("Invalid stop sandbox code message length");
             } else {
-                SensorDataBuffer::getInstance().stopPollingAllSensors();
+                SensorDataBuffer::get_instance().stop_polling_all_sensors();
             }
             break;
         }
 
         case DataMessageType::OBSTACLE_AVOIDANCE: {
             if (length != 2) {
-                SerialQueueManager::getInstance().queueMessage("Invalid obstacle avoidance command");
+                SerialQueueManager::get_instance().queue_message("Invalid obstacle avoidance command");
             } else {
                 ObstacleAvoidanceStatus status = static_cast<ObstacleAvoidanceStatus>(data[1]);
-                handleObstacleAvoidanceCommand(status);
+                handle_obstacle_avoidance_command(status);
             }
             break;
         }
         case DataMessageType::SERIAL_HANDSHAKE: {
-            SerialManager::getInstance().isConnected = true;
-            SerialManager::getInstance().lastActivityTime = millis();
-            SerialManager::getInstance().sendPipIdMessage();
+            SerialManager::get_instance().isConnected = true;
+            SerialManager::get_instance().lastActivityTime = millis();
+            SerialManager::get_instance().send_pip_id_message();
 
             // Send initial battery data on handshake
-            const BatteryState& batteryState = BatteryMonitor::getInstance().getBatteryState();
+            const BatteryState& batteryState = BatteryMonitor::get_instance().get_battery_state();
             if (batteryState.isInitialized) {
-                SerialManager::getInstance().sendBatteryMonitorData();
-                BatteryMonitor::getInstance().lastBatteryLogTime = millis();
+                SerialManager::get_instance().send_battery_monitor_data();
+                BatteryMonitor::get_instance().lastBatteryLogTime = millis();
             }
             break;
         }
         case DataMessageType::SERIAL_KEEPALIVE: {
-            SerialManager::getInstance().lastActivityTime = millis();
+            SerialManager::get_instance().lastActivityTime = millis();
             break;
         }
         case DataMessageType::SERIAL_END: {
-            rgbLed.turnAllLedsOff();
-            SerialManager::getInstance().isConnected = false;
-            SensorDataBuffer::getInstance().stopPollingAllSensors();
-            Speaker::getInstance().stopAllSounds();
+            rgbLed.turn_all_leds_off();
+            SerialManager::get_instance().isConnected = false;
+            SensorDataBuffer::get_instance().stop_polling_all_sensors();
+            Speaker::get_instance().stop_all_sounds();
             break;
         }
         case DataMessageType::UPDATE_HEADLIGHTS: {
             if (length != 2) {
-                SerialQueueManager::getInstance().queueMessage("Invalid update headlights message length");
+                SerialQueueManager::get_instance().queue_message("Invalid update headlights message length");
             } else {
                 HeadlightStatus status = static_cast<HeadlightStatus>(data[1]);
                 if (status == HeadlightStatus::ON) {
-                    rgbLed.turnHeadlightsOn();
+                    rgbLed.turn_headlights_on();
                 } else {
-                    rgbLed.turnHeadlightsOff();
+                    rgbLed.turn_headlights_off();
                 }
             }
             break;
         }
         case DataMessageType::WIFI_CREDENTIALS: {
             if (length < 3) { // At least 1 byte for each length field + message type
-                SerialQueueManager::getInstance().queueMessage("Invalid WiFi credentials message length");
+                SerialQueueManager::get_instance().queue_message("Invalid WiFi credentials message length");
                 break;
             }
 
             uint8_t ssidLength = data[1];
             if (ssidLength == 0 || 2 + ssidLength >= length) {
-                SerialQueueManager::getInstance().queueMessage("Invalid SSID length");
+                SerialQueueManager::get_instance().queue_message("Invalid SSID length");
                 break;
             }
 
@@ -294,7 +294,7 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
 
             uint8_t passwordLength = data[2 + ssidLength];
             if (2 + ssidLength + 1 + passwordLength != length) {
-                SerialQueueManager::getInstance().queueMessage("Invalid password length");
+                SerialQueueManager::get_instance().queue_message("Invalid password length");
                 break;
             }
 
@@ -304,7 +304,7 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             }
 
             // Test WiFi credentials before storing permanently
-            WiFiManager::getInstance().startWiFiCredentialTest(ssid, password);
+            WiFiManager::get_instance().startWiFiCredentialTest(ssid, password);
 
             break;
         }
@@ -316,55 +316,55 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
 
         case DataMessageType::GET_SAVED_WIFI_NETWORKS: {
             if (length != 1) {
-                SerialQueueManager::getInstance().queueMessage("Invalid get saved wifi networks message length");
+                SerialQueueManager::get_instance().queue_message("Invalid get saved wifi networks message length");
             } else {
-                handleGetSavedWiFiNetworks();
+                handle_get_saved_wifi_networks();
             }
             break;
         }
 
         case DataMessageType::SOFT_SCAN_WIFI_NETWORKS: {
             if (length != 1) {
-                SerialQueueManager::getInstance().queueMessage("Invalid soft scan wifi networks message length");
+                SerialQueueManager::get_instance().queue_message("Invalid soft scan wifi networks message length");
             } else {
-                handleSoftScanWiFiNetworks();
+                handle_soft_scan_wifi_networks();
             }
             break;
         }
         case DataMessageType::HARD_SCAN_WIFI_NETWORKS: {
             if (length != 1) {
-                SerialQueueManager::getInstance().queueMessage("Invalid hard scan wifi networks message length");
+                SerialQueueManager::get_instance().queue_message("Invalid hard scan wifi networks message length");
             } else {
-                handleHardScanWiFiNetworks();
+                handle_hard_scan_wifi_networks();
             }
             break;
         }
         case DataMessageType::SPEAKER_VOLUME: {
             if (length != 5) { // 1 byte for message type + 4 bytes for float32
-                SerialQueueManager::getInstance().queueMessage("Invalid speaker volume message length");
+                SerialQueueManager::get_instance().queue_message("Invalid speaker volume message length");
             } else {
                 // Extract the 4-byte float32 value (little-endian)
                 float volume;
                 memcpy(&volume, &data[1], sizeof(float));
-                Speaker::getInstance().setVolume(volume);
+                Speaker::get_instance().set_volume(volume);
             }
             break;
         }
         case DataMessageType::STOP_TONE: {
-            Speaker::getInstance().stopAllSounds();
+            Speaker::get_instance().stop_all_sounds();
             break;
         }
         case DataMessageType::UPDATE_DISPLAY: {
             if (length != 1025) { // 1 byte for type + 1024 bytes for buffer
-                SerialQueueManager::getInstance().queueMessage("Invalid display buffer message length");
+                SerialQueueManager::get_instance().queue_message("Invalid display buffer message length");
             } else {
-                DisplayScreen::getInstance().showCustomBuffer(&data[1]);
+                DisplayScreen::get_instance().show_custom_buffer(&data[1]);
             }
             break;
         }
         case DataMessageType::TRIGGER_MESSAGE: {
             if (length < 3) { // 1 byte for type + 1 byte for career + 1 byte for trigger
-                SerialQueueManager::getInstance().queueMessage("Invalid trigger message length");
+                SerialQueueManager::get_instance().queue_message("Invalid trigger message length");
             } else {
                 CareerType careerType = static_cast<CareerType>(data[1]);
 
@@ -374,10 +374,10 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
 
                         switch (triggerType) {
                             case MeetPipTriggerType::ENTER_CAREER:
-                                DisplayScreen::getInstance().turnDisplayOff();
-                                Speaker::getInstance().stopAllSounds();
-                                ledAnimations.fadeOut();
-                                rgbLed.turnHeadlightsOff();
+                                DisplayScreen::get_instance().turn_display_off();
+                                Speaker::get_instance().stop_all_sounds();
+                                ledAnimations.fade_out();
+                                rgbLed.turn_headlights_off();
                                 break;
                             case MeetPipTriggerType::S2_P1_ENTER:
                                 careerQuestTriggers.startS2P1Sequence();
@@ -398,50 +398,50 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
                                 careerQuestTriggers.stopS3P3DisplayDemo();
                                 break;
                             case MeetPipTriggerType::S4_P4_EXIT:
-                                Speaker::getInstance().stopAllSounds();
+                                Speaker::get_instance().stop_all_sounds();
                                 break;
                             case MeetPipTriggerType::S4_P5_ENTER:
-                                Speaker::getInstance().startEntertainerMelody();
+                                Speaker::get_instance().start_entertainer_melody();
                                 break;
                             case MeetPipTriggerType::S4_P5_EXIT:
-                                Speaker::getInstance().stopAllSounds();
+                                Speaker::get_instance().stop_all_sounds();
                                 break;
                             case MeetPipTriggerType::S5_P4_ENTER:
-                                SendSensorData::getInstance().setSendSensorData(true);
-                                SendSensorData::getInstance().setEulerDataEnabled(true);
-                                SendSensorData::getInstance().setAccelDataEnabled(true);
+                                SendSensorData::get_instance().setSendSensorData(true);
+                                SendSensorData::get_instance().setEulerDataEnabled(true);
+                                SendSensorData::get_instance().setAccelDataEnabled(true);
                                 careerQuestTriggers.startS5P4LedVisualization();
                                 break;
                             case MeetPipTriggerType::S5_P4_EXIT:
-                                SendSensorData::getInstance().setEulerDataEnabled(false);
-                                SendSensorData::getInstance().setAccelDataEnabled(false);
-                                SendSensorData::getInstance().setSendSensorData(false);
+                                SendSensorData::get_instance().setEulerDataEnabled(false);
+                                SendSensorData::get_instance().setAccelDataEnabled(false);
+                                SendSensorData::get_instance().setSendSensorData(false);
                                 careerQuestTriggers.stopS5P4LedVisualization();
                                 break;
                             case MeetPipTriggerType::S5_P5_ENTER:
-                                SendSensorData::getInstance().setSendSensorData(true);
-                                SendSensorData::getInstance().setEulerDataEnabled(true);
+                                SendSensorData::get_instance().setSendSensorData(true);
+                                SendSensorData::get_instance().setEulerDataEnabled(true);
                                 break;
                             case MeetPipTriggerType::S5_P5_EXIT:
-                                SendSensorData::getInstance().setEulerDataEnabled(false);
-                                SendSensorData::getInstance().setSendSensorData(false);
+                                SendSensorData::get_instance().setEulerDataEnabled(false);
+                                SendSensorData::get_instance().setSendSensorData(false);
                                 break;
                             case MeetPipTriggerType::S6_P4_ENTER:
-                                SendSensorData::getInstance().setSendMultizoneData(true);
-                                rgbLed.turnHeadlightsFaintBlue();
+                                SendSensorData::get_instance().setSendMultizoneData(true);
+                                rgbLed.turn_headlights_faint_blue();
                                 break;
                             case MeetPipTriggerType::S6_P4_EXIT:
-                                SendSensorData::getInstance().setSendMultizoneData(false);
-                                rgbLed.turnHeadlightsOff();
+                                SendSensorData::get_instance().setSendMultizoneData(false);
+                                rgbLed.turn_headlights_off();
                                 break;
                             case MeetPipTriggerType::S6_P6_ENTER:
-                                SendSensorData::getInstance().setSendSensorData(true);
-                                SendSensorData::getInstance().setSideTofDataEnabled(true);
+                                SendSensorData::get_instance().setSendSensorData(true);
+                                SendSensorData::get_instance().setSideTofDataEnabled(true);
                                 rgbLed.turn_front_middle_leds_faint_blue();
                                 break;
                             case MeetPipTriggerType::S6_P6_EXIT:
-                                SendSensorData::getInstance().setSideTofDataEnabled(false);
-                                SendSensorData::getInstance().setSendSensorData(false);
+                                SendSensorData::get_instance().setSideTofDataEnabled(false);
+                                SendSensorData::get_instance().setSendSensorData(false);
                                 rgbLed.turn_front_middle_leds_off();
                                 break;
                             case MeetPipTriggerType::S7_P4_ENTER:
@@ -451,39 +451,39 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
                                 careerQuestTriggers.stopS7P4ButtonDemo();
                                 break;
                             case MeetPipTriggerType::S7_P6_ENTER:
-                                GameManager::getInstance().startGame(Games::GameType::DINO_RUNNER);
+                                GameManager::get_instance().startGame(Games::GameType::DINO_RUNNER);
                                 break;
                             case MeetPipTriggerType::S7_P6_EXIT:
-                                GameManager::getInstance().stopCurrentGame();
+                                GameManager::get_instance().stopCurrentGame();
                                 break;
                             case MeetPipTriggerType::S8_P3_ENTER:
-                                SendSensorData::getInstance().setSendSensorData(true);
-                                SendSensorData::getInstance().setColorSensorDataEnabled(true);
+                                SendSensorData::get_instance().setSendSensorData(true);
+                                SendSensorData::get_instance().setColorSensorDataEnabled(true);
                                 break;
                             case MeetPipTriggerType::S8_P3_EXIT:
-                                SendSensorData::getInstance().setColorSensorDataEnabled(false);
-                                SendSensorData::getInstance().setSendSensorData(false);
-                                SensorDataBuffer::getInstance().stopPollingSensor(SensorDataBuffer::SensorType::COLOR);
+                                SendSensorData::get_instance().setColorSensorDataEnabled(false);
+                                SendSensorData::get_instance().setSendSensorData(false);
+                                SensorDataBuffer::get_instance().stopPollingSensor(SensorDataBuffer::SensorType::COLOR);
                                 break;
                             case MeetPipTriggerType::S9_P3_ENTER:
-                                DanceManager::getInstance().startDance();
+                                DanceManager::get_instance().start_dance();
                                 break;
                             case MeetPipTriggerType::S9_P3_EXIT:
-                                DanceManager::getInstance().stopDance(true);
+                                DanceManager::get_instance().stop_dance(true);
                                 break;
                             case MeetPipTriggerType::S9_P6_ENTER:
                                 motorDriver.stop_both_motors(); // We need this to prevent students from turning against the motors.
-                                SendSensorData::getInstance().setSendSensorData(true);
-                                SendSensorData::getInstance().setEncoderDataEnabled(true);
-                                rgbLed.turnHeadlightsFaintBlue();
+                                SendSensorData::get_instance().setSendSensorData(true);
+                                SendSensorData::get_instance().setEncoderDataEnabled(true);
+                                rgbLed.turn_headlights_faint_blue();
                                 break;
                             case MeetPipTriggerType::S9_P6_EXIT:
-                                SendSensorData::getInstance().setEncoderDataEnabled(false);
-                                SendSensorData::getInstance().setSendSensorData(false);
-                                rgbLed.turnBackLedsOff();
+                                SendSensorData::get_instance().setEncoderDataEnabled(false);
+                                SendSensorData::get_instance().setSendSensorData(false);
+                                rgbLed.turn_back_leds_off();
                                 break;
                             default:
-                                SerialQueueManager::getInstance().queueMessage("Unknown introduction trigger type");
+                                SerialQueueManager::get_instance().queue_message("Unknown introduction trigger type");
                                 break;
                         }
                         break;
@@ -493,23 +493,23 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
 
                         switch (triggerType) {
                             case TurretArcadeTriggerType::ENTER_TURRET_ARCADE:
-                                SendSensorData::getInstance().setSendSensorData(true);
-                                SendSensorData::getInstance().setEulerDataEnabled(true);
-                                SendSensorData::getInstance().setSideTofDataEnabled(true);
+                                SendSensorData::get_instance().setSendSensorData(true);
+                                SendSensorData::get_instance().setEulerDataEnabled(true);
+                                SendSensorData::get_instance().setSideTofDataEnabled(true);
                                 break;
                             case TurretArcadeTriggerType::EXIT_TURRET_ARCADE:
-                                SendSensorData::getInstance().setEulerDataEnabled(false);
-                                SendSensorData::getInstance().setSideTofDataEnabled(false);
-                                SendSensorData::getInstance().setSendSensorData(false);
+                                SendSensorData::get_instance().setEulerDataEnabled(false);
+                                SendSensorData::get_instance().setSideTofDataEnabled(false);
+                                SendSensorData::get_instance().setSendSensorData(false);
                                 break;
                             default:
-                                SerialQueueManager::getInstance().queueMessage("Unknown turret arcade trigger type");
+                                SerialQueueManager::get_instance().queue_message("Unknown turret arcade trigger type");
                                 break;
                         }
                         break;
                     }
                     default:
-                        SerialQueueManager::getInstance().queueMessage("Unknown career type");
+                        SerialQueueManager::get_instance().queue_message("Unknown career type");
                         break;
                 }
             }
@@ -517,7 +517,7 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
         }
         case DataMessageType::STOP_CAREER_QUEST_TRIGGER: {
             if (length != 1) {
-                SerialQueueManager::getInstance().queueMessage("Invalid stop career quest trigger message length");
+                SerialQueueManager::get_instance().queue_message("Invalid stop career quest trigger message length");
             } else {
                 careerQuestTriggers.stopAllCareerQuestTriggers(true);
             }
@@ -525,37 +525,37 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
         }
         case DataMessageType::SHOW_DISPLAY_START_SCREEN: {
             if (length != 1) {
-                SerialQueueManager::getInstance().queueMessage("Invalid show display start screen message length");
+                SerialQueueManager::get_instance().queue_message("Invalid show display start screen message length");
             } else {
-                DisplayScreen::getInstance().showStartScreen();
+                DisplayScreen::get_instance().show_start_screen();
             }
             break;
         }
         case DataMessageType::IS_USER_CONNECTED_TO_PIP: {
             if (length != 2) {
-                SerialQueueManager::getInstance().queueMessage("Invalid Is user connected to pip length");
+                SerialQueueManager::get_instance().queue_message("Invalid Is user connected to pip length");
             } else {
                 UserConnectedStatus status = static_cast<UserConnectedStatus>(data[1]);
                 if (status == UserConnectedStatus::NOT_CONNECTED) {
-                    WebSocketManager::getInstance().setIsUserConnectedToThisPip(false);
+                    WebSocketManager::get_instance().setIsUserConnectedToThisPip(false);
                 } else {
-                    WebSocketManager::getInstance().setIsUserConnectedToThisPip(true);
-                    BatteryMonitor::getInstance().sendBatteryMonitorDataOverWebSocket();
+                    WebSocketManager::get_instance().setIsUserConnectedToThisPip(true);
+                    BatteryMonitor::get_instance().sendBatteryMonitorDataOverWebSocket();
                 }
             }
             break;
         }
         case DataMessageType::FORGET_NETWORK: {
             if (length < 2) {
-                SerialQueueManager::getInstance().queueMessage("Invalid forget network message length");
-                SerialManager::getInstance().sendNetworkDeletedResponse(false);
+                SerialQueueManager::get_instance().queue_message("Invalid forget network message length");
+                SerialManager::get_instance().sendNetworkDeletedResponse(false);
                 break;
             }
 
             uint8_t ssidLength = data[1];
             if (ssidLength == 0 || 2 + ssidLength != length) {
-                SerialQueueManager::getInstance().queueMessage("Invalid SSID length in forget network message");
-                SerialManager::getInstance().sendNetworkDeletedResponse(false);
+                SerialQueueManager::get_instance().queue_message("Invalid SSID length in forget network message");
+                SerialManager::get_instance().sendNetworkDeletedResponse(false);
                 break;
             }
 
@@ -565,10 +565,10 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             }
 
             // Check if we're trying to forget the currently connected network
-            if (WiFiManager::getInstance().isConnectedToSSID(ssid)) {
-                if (!SerialManager::getInstance().isSerialConnected()) {
-                    SerialQueueManager::getInstance().queueMessage("Cannot forget currently connected network without serial connection");
-                    SerialManager::getInstance().sendNetworkDeletedResponse(false);
+            if (WiFiManager::get_instance().isConnectedToSSID(ssid)) {
+                if (!SerialManager::get_instance().isSerialConnected()) {
+                    SerialQueueManager::get_instance().queue_message("Cannot forget currently connected network without serial connection");
+                    SerialManager::get_instance().sendNetworkDeletedResponse(false);
                     break;
                 }
                 // Disconnect from WiFi before forgetting
@@ -576,12 +576,12 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             }
 
             // Attempt to forget the network
-            bool success = PreferencesManager::getInstance().forgetWiFiNetwork(ssid);
-            SerialManager::getInstance().sendNetworkDeletedResponse(success);
+            bool success = PreferencesManager::get_instance().forgetWiFiNetwork(ssid);
+            SerialManager::get_instance().sendNetworkDeletedResponse(success);
             break;
         }
         default:
-            SerialQueueManager::getInstance().queueMessage("Received unknown message type: " + String(static_cast<int>(messageType)));
+            SerialQueueManager::get_instance().queue_message("Received unknown message type: " + String(static_cast<int>(messageType)));
             break;
     }
 }

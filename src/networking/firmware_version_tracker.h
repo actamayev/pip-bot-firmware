@@ -15,8 +15,8 @@ class FirmwareVersionTracker : public Singleton<FirmwareVersionTracker> {
     friend class Singleton<FirmwareVersionTracker>;
 
     public:
-        int getFirmwareVersion() { return firmwareVersion; }
-        void retrieveLatestFirmwareFromServer(uint16_t newVersion);
+        int get_firmware_version() { return firmwareVersion; }
+        void retrieve_latest_firmware_from_server(uint16_t newVersion);
 
     private:
         FirmwareVersionTracker();
@@ -28,5 +28,5 @@ class FirmwareVersionTracker : public Singleton<FirmwareVersionTracker> {
         WiFiClient insecureClient;
 
         HTTPUpdate httpUpdate;
-        void updateProgressLeds(int progress, int total);
+        void update_progress_leds(int progress, int total);
 };

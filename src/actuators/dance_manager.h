@@ -11,10 +11,10 @@ class DanceManager : public Singleton<DanceManager> {
     friend class Singleton<DanceManager>;
 
   public:
-    void startDance();
-    void stopDance(bool shouldTurnLedsOff);
+    void start_dance();
+    void stop_dance(bool shouldTurnLedsOff);
     void update();
-    bool isDancing() const {
+    bool is_dancing() const {
         return _isCurrentlyDancing;
     }
 

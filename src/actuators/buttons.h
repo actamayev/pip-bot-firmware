@@ -19,22 +19,22 @@ class Buttons: public Singleton<Buttons> {
         void update();
         
         // Set callbacks for different button events
-        void setLeftButtonClickHandler(std::function<void(Button2&)> callback);
-        void setRightButtonClickHandler(std::function<void(Button2&)> callback);
+        void set_left_button_click_handler(std::function<void(Button2&)> callback);
+        void set_right_button_click_handler(std::function<void(Button2&)> callback);
         
         // Add more event handlers as needed:
-        void setLeftButtonLongPressHandler(std::function<void(Button2&)> callback);
-        void setRightButtonLongPressHandler(std::function<void(Button2&)> callback);
-        void enterDeepSleep();
+        void set_left_button_long_press_handler(std::function<void(Button2&)> callback);
+        void set_right_button_long_press_handler(std::function<void(Button2&)> callback);
+        void enter_deep_sleep();
         
         // Hold-to-wake mode control
-        void setHoldToWakeMode(bool enabled);
+        void set_hold_to_wake_mode(bool enabled);
         
         // Check if either button is currently pressed
-        bool isEitherButtonPressed();
+        bool is_either_button_pressed();
 
         // Check if specific button is currently pressed
-        bool isRightButtonPressed();
+        bool is_right_button_pressed();
 
     private:
         Button2 leftButton;
@@ -52,5 +52,5 @@ class Buttons: public Singleton<Buttons> {
         void begin();
 
         // Deep sleep methods
-        void setupDeepSleep();
+        void setup_deep_sleep();
 };

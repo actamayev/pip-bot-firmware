@@ -15,12 +15,12 @@ class Speaker : public Singleton<Speaker> {
     friend class TaskManager;
 
     public:
-        void setMuted(bool muted);
-        void setVolume(float volume); // 0.0 to 4.0
-        void stopAllSounds();
-        void startEntertainerMelody();
-        void playTone(ToneType tone);
-        void stopTone();
+        void set_muted(bool muted);
+        void set_volume(float volume); // 0.0 to 4.0
+        void stop_all_sounds();
+        void start_entertainer_melody();
+        void play_tone(ToneType tone);
+        void stop_tone();
 
     private:
         Speaker() = default;
@@ -46,13 +46,13 @@ class Speaker : public Singleton<Speaker> {
         // Thread safety
         SemaphoreHandle_t audioMutex = nullptr;
         
-        bool initializeAudio();
+        bool initialize_audio();
         void cleanup();
-        bool recreateAudioObjects();
-        bool validateAudioObjects();
+        bool recreate_audio_objects();
+        bool validate_audio_objects();
         
         // RTTTL melody methods
-        void updateMelody();
+        void update_melody();
         
         // Melody playback state
         bool isMelodyPlaying = false;
@@ -104,8 +104,8 @@ class Speaker : public Singleton<Speaker> {
         AudioGeneratorRTTTL* toneGenerator = nullptr;
         AudioFileSourcePROGMEM* toneSource = nullptr;
 
-        void updateContinuousTone();
-        const char* getToneRTTTL(ToneType tone);
+        void update_continuous_tone();
+        const char* get_tone_rtttl(ToneType tone);
 
         unsigned long lastToneRefreshTime = 0;
         static const unsigned long TONE_AUTO_STOP_MS = 200; // Stop if not refreshed within 200ms

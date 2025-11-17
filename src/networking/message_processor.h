@@ -27,17 +27,17 @@ class MessageProcessor : public Singleton<MessageProcessor> {
     friend class Singleton<MessageProcessor>;
 
     public:
-        void processBinaryMessage(const uint8_t* data, uint16_t length);
+        void process_binary_message(const uint8_t* data, uint16_t length);
 
     private:
         MessageProcessor() = default;
         // Method declarations
-        void handleMotorControl(const uint8_t* data);
-        void handleBalanceCommand(BalanceStatus enableBalancing);
-        void handleLightCommand(LightAnimationStatus lightAnimationStatus);
-        void handleNewLightColors(NewLightColors newLightColors);
-        void handleObstacleAvoidanceCommand(ObstacleAvoidanceStatus status);
-        void handleGetSavedWiFiNetworks();
-        void handleSoftScanWiFiNetworks();
-        void handleHardScanWiFiNetworks();
+        void handle_motor_control(const uint8_t* data);
+        void handle_balance_command(BalanceStatus enableBalancing);
+        void handle_light_command(LightAnimationStatus lightAnimationStatus);
+        void handle_new_light_colors(NewLightColors newLightColors);
+        void handle_obstacle_avoidance_command(ObstacleAvoidanceStatus status);
+        void handle_get_saved_wifi_networks();
+        void handle_soft_scan_wifi_networks();
+        void handle_hard_scan_wifi_networks();
 };

@@ -7,7 +7,7 @@
 #define PIP_ID_PRODUCTION "PQ9Dp"
 
 // Returns the appropriate PIP ID based on the build environment
-inline const char* getDefaultPipId() {
+inline const char* get_default_pip_id() {
 #ifdef DEFAULT_ENVIRONMENT
     const char* env = DEFAULT_ENVIRONMENT;
 

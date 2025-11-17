@@ -2,15 +2,15 @@
 
 void ObstacleAvoider::enable() {
     if (_avoidanceEnabled == ObstacleAvoidanceStatus::AVOID) return;
-    
+
     _avoidanceEnabled = ObstacleAvoidanceStatus::AVOID;
-    // StraightLineDrive::getInstance().disable();
+    // StraightLineDrive::get_instance().disable();
 }
 
 void ObstacleAvoider::disable() {
     if (_avoidanceEnabled == ObstacleAvoidanceStatus::STOP_AVOIDANCE) return;
     _avoidanceEnabled = ObstacleAvoidanceStatus::STOP_AVOIDANCE;
-    motorDriver.resetCommandState(false);
+    motorDriver.reset_command_state(false);
 }
 
 void ObstacleAvoider::update() {

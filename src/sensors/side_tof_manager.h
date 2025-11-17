@@ -17,18 +17,18 @@ class SideTofManager : public Singleton<SideTofManager> {
         // Following the established buffer pattern
         bool initialize();
         
-        void turnOffSideTofs();
+        void turn_off_side_tofs();
         SideTofManager() = default;
         
         bool isInitialized = false;
         bool sensorsEnabled = false;  // Track if sensors are actively enabled
         
-        void enableSideTofSensors();
-        void disableSideTofSensors();
+        void enable_side_tof_sensors();
+        void disable_side_tof_sensors();
 
         // New buffer-based methods following IMU/TOF pattern
-        void updateSensorData();  // Single read, write to buffer
-        bool shouldBePolling() const;
+        void update_sensor_data();  // Single read, write to buffer
+        bool should_be_polling() const;
 
         // Side TOFs
         const uint8_t LEFT_TOF_ADDRESS = 0x51;

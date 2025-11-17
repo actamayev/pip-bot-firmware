@@ -14,11 +14,11 @@ class ColorSensor : public Singleton<ColorSensor> {
         ColorSensor() = default;
         bool initialize();
         void read_color_sensor();
-        void calibrateBlackPoint();
-        void calibrateWhitePoint();
-        void printCalibrationValues();
-        void enableColorSensor();
-        void disableColorSensor();
+        void calibrate_black_point();
+        void calibrate_white_point();
+        void print_calibration_values();
+        void enable_color_sensor();
+        void disable_color_sensor();
         
         bool isInitialized = false;
         bool sensorConnected = false;
@@ -39,8 +39,8 @@ class ColorSensor : public Singleton<ColorSensor> {
         static constexpr unsigned long DELAY_BETWEEN_READINGS = 20; // ms - minimal delay like performance test
 
         // New buffer-based methods following the established pattern
-        void updateSensorData();  // Single read, write to buffer
-        bool shouldBePolling() const;
+        void update_sensor_data();  // Single read, write to buffer
+        bool should_be_polling() const;
         const uint8_t COLOR_SENSOR_LED_PIN = 5;
 
         static constexpr uint8_t COLOR_SENSOR_LED_BRIGHTNESS = 255; // use 255 to match bench

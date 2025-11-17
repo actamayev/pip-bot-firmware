@@ -23,34 +23,34 @@ class DisplayScreen: public Singleton<DisplayScreen> {
         // Main update method to call in the task loop
         void update();
 
-        void showCustomBuffer(const uint8_t* buffer);
+        void show_custom_buffer(const uint8_t* buffer);
 
-        void showLowBatteryScreen();
+        void show_low_battery_screen();
 
-        void turnDisplayOff();
-        void turnDisplayOn();
+        void turn_display_off();
+        void turn_display_on();
         
         // Performance tracking
-        unsigned long getDisplayUpdateCount() const { return displayUpdates; }
-        unsigned long getContentGenerationCount() const { return contentGenerations; }
-        unsigned long getSkippedUpdateCount() const { return skippedUpdates; }
-        float getDisplayUpdateRate() const;
-        void resetPerformanceCounters();
+        unsigned long get_display_update_count() const { return displayUpdates; }
+        unsigned long get_content_generation_count() const { return contentGenerations; }
+        unsigned long get_skipped_update_count() const { return skippedUpdates; }
+        float get_display_update_rate() const;
+        void reset_performance_counters();
 
         // Screen display methods
-        void showStartScreen();
+        void show_start_screen();
 
     private:
         // Private constructor for singleton
         DisplayScreen() = default;
         
         // Helper method
-        void renderDisplay();
+        void render_display();
 
         // Drawing utilities
         void clear();
-        void drawText(const String& text, uint16_t x, uint16_t y, uint16_t size = 1);
-        void drawCenteredText(const String& text, uint16_t y, uint16_t size = 1);
+        void draw_text(const String& text, uint16_t x, uint16_t y, uint16_t size = 1);
+        void draw_centered_text(const String& text, uint16_t y, uint16_t size = 1);
 
         // Display object
         Adafruit_SSD1306 display;
@@ -80,7 +80,7 @@ class DisplayScreen: public Singleton<DisplayScreen> {
         bool isShowingStartScreen = false;
         
         // Private methods for buffer management
-        bool hasContentChanged();
-        void copyCurrentBuffer();
-        void generateContentToBuffer();
+        bool has_content_changed();
+        void copy_current_buffer();
+        void generate_content_to_buffer();
 };

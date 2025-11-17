@@ -12,7 +12,7 @@ const std::map<BytecodeOpCode, std::vector<BytecodeVM::SensorType>> BytecodeVM::
 BytecodeVM::BytecodeVM() {
     programMutex = xSemaphoreCreateMutex();
     if (programMutex == nullptr) {
-        SerialQueueManager::getInstance().queueMessage("Failed to create BytecodeVM mutex");
+        SerialQueueManager::get_instance().queueMessage("Failed to create BytecodeVM mutex");
     }
 }
 
@@ -29,7 +29,7 @@ bool BytecodeVM::loadProgram(const uint8_t* byteCode, uint16_t size) {
 
     // Acquire mutex with timeout to prevent deadlock
     if (xSemaphoreTake(programMutex, pdMS_TO_TICKS(100)) != pdTRUE) {
-        SerialQueueManager::getInstance().queueMessage("loadProgram: Failed to acquire mutex");
+        SerialQueueManager::get_instance().queueMessage("loadProgram: Failed to acquire mutex");
         return false;
     }
 
@@ -124,8 +124,8 @@ void BytecodeVM::update() {
     }
 
     // Handle turning operation if in progress
-    if (TurningManager::getInstance().isActive()) {
-        TurningManager::getInstance().update();
+    if (TurningManager::get_instance().isActive()) {
+        TurningManager::get_instance().update();
         xSemaphoreGive(programMutex);
         return; // Don't execute next instruction until turn is complete
     }
@@ -243,46 +243,46 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
                 // Read the appropriate sensor
                 switch (sensorType) {
                     case SENSOR_PITCH:
-                        value = SensorDataBuffer::getInstance().getLatestPitch();
+                        value = SensorDataBuffer::get_instance().get_latest_pitch();
                         break;
                     case SENSOR_ROLL:
-                        value = SensorDataBuffer::getInstance().getLatestRoll();
+                        value = SensorDataBuffer::get_instance().get_latest_roll();
                         break;
                     case SENSOR_YAW:
-                        value = SensorDataBuffer::getInstance().getLatestYaw();
+                        value = SensorDataBuffer::get_instance().get_latest_yaw();
                         break;
                     case SENSOR_ACCEL_X:
-                        value = SensorDataBuffer::getInstance().getLatestXAccel();
+                        value = SensorDataBuffer::get_instance().get_latest_x_accel();
                         break;
                     case SENSOR_ACCEL_Y:
-                        value = SensorDataBuffer::getInstance().getLatestYAccel();
+                        value = SensorDataBuffer::get_instance().get_latest_y_accel();
                         break;
                     case SENSOR_ACCEL_Z:
-                        value = SensorDataBuffer::getInstance().getLatestZAccel();
+                        value = SensorDataBuffer::get_instance().get_latest_z_accel();
                         break;
                     case SENSOR_ACCEL_MAG:
-                        value = SensorDataBuffer::getInstance().getLatestAccelMagnitude();
+                        value = SensorDataBuffer::get_instance().get_latest_accel_magnitude();
                         break;
                     case SENSOR_ROT_RATE_X:
-                        value = SensorDataBuffer::getInstance().getLatestXRotationRate();
+                        value = SensorDataBuffer::get_instance().get_latest_x_rotation_rate();
                         break;
                     case SENSOR_ROT_RATE_Y:
-                        value = SensorDataBuffer::getInstance().getLatestYRotationRate();
+                        value = SensorDataBuffer::get_instance().get_latest_y_rotation_rate();
                         break;
                     case SENSOR_ROT_RATE_Z:
-                        value = SensorDataBuffer::getInstance().getLatestZRotationRate();
+                        value = SensorDataBuffer::get_instance().get_latest_z_rotation_rate();
                         break;
                     case SENSOR_MAG_FIELD_X:
-                        value = SensorDataBuffer::getInstance().getLatestMagneticFieldX();
+                        value = SensorDataBuffer::get_instance().get_latest_magnetic_field_x();
                         break;
                     case SENSOR_MAG_FIELD_Y:
-                        value = SensorDataBuffer::getInstance().getLatestMagneticFieldY();
+                        value = SensorDataBuffer::get_instance().get_latest_magnetic_field_y();
                         break;
                     case SENSOR_MAG_FIELD_Z:
-                        value = SensorDataBuffer::getInstance().getLatestMagneticFieldZ();
+                        value = SensorDataBuffer::get_instance().get_latest_magnetic_field_z();
                         break;
                     case SENSOR_SIDE_LEFT_PROXIMITY: {
-                        uint16_t counts = SensorDataBuffer::getInstance().getLatestLeftSideTofCounts();
+                        uint16_t counts = SensorDataBuffer::get_instance().getLatestLeftSideTofCounts();
                         registers[regId].asBool = (counts > LEFT_PROXIMITY_THRESHOLD);
                         registerTypes[regId] = VAR_BOOL;
                         registerInitialized[regId] = true;
@@ -290,7 +290,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
                         break;
                     }
                     case SENSOR_SIDE_RIGHT_PROXIMITY: {
-                        uint16_t counts = SensorDataBuffer::getInstance().getLatestRightSideTofCounts();
+                        uint16_t counts = SensorDataBuffer::get_instance().getLatestRightSideTofCounts();
                         registers[regId].asBool = (counts > RIGHT_PROXIMITY_THRESHOLD);
                         registerTypes[regId] = VAR_BOOL;
                         registerInitialized[regId] = true;
@@ -298,7 +298,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
                         break;
                     }
                     case SENSOR_FRONT_PROXIMITY: {
-                        bool isObjectDetected = SensorDataBuffer::getInstance().isObjectDetectedTof();
+                        bool isObjectDetected = SensorDataBuffer::get_instance().is_object_detected_tof();
                         registers[regId].asBool = isObjectDetected;
                         registerTypes[regId] = VAR_BOOL;
                         registerInitialized[regId] = true;
@@ -306,7 +306,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
                         break;
                     }
                     case SENSOR_COLOR_RED: {
-                        bool isRed = SensorDataBuffer::getInstance().isObjectRed();
+                        bool isRed = SensorDataBuffer::get_instance().is_object_red();
                         registers[regId].asBool = isRed;
                         registerTypes[regId] = VAR_BOOL;
                         registerInitialized[regId] = true;
@@ -314,7 +314,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
                         break;
                     }
                     case SENSOR_COLOR_GREEN: {
-                        bool isGreen = SensorDataBuffer::getInstance().isObjectGreen();
+                        bool isGreen = SensorDataBuffer::get_instance().is_object_green();
                         registers[regId].asBool = isGreen;
                         registerTypes[regId] = VAR_BOOL;
                         registerInitialized[regId] = true;
@@ -322,7 +322,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
                         break;
                     }
                     case SENSOR_COLOR_BLUE: {
-                        bool isBlue = SensorDataBuffer::getInstance().isObjectBlue();
+                        bool isBlue = SensorDataBuffer::get_instance().is_object_blue();
                         registers[regId].asBool = isBlue;
                         registerTypes[regId] = VAR_BOOL;
                         registerInitialized[regId] = true;
@@ -330,7 +330,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
                         break;
                     }
                     case SENSOR_COLOR_WHITE: {
-                        bool isWhite = SensorDataBuffer::getInstance().isObjectWhite();
+                        bool isWhite = SensorDataBuffer::get_instance().is_object_white();
                         registers[regId].asBool = isWhite;
                         registerTypes[regId] = VAR_BOOL;
                         registerInitialized[regId] = true;
@@ -338,7 +338,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
                         break;
                     }
                     case SENSOR_COLOR_BLACK: {
-                        bool isBlack = SensorDataBuffer::getInstance().isObjectBlack();
+                        bool isBlack = SensorDataBuffer::get_instance().is_object_black();
                         registers[regId].asBool = isBlack;
                         registerTypes[regId] = VAR_BOOL;
                         registerInitialized[regId] = true;
@@ -346,7 +346,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
                         break;
                     }
                     case SENSOR_COLOR_YELLOW: {
-                        bool isYellow = SensorDataBuffer::getInstance().isObjectYellow();
+                        bool isYellow = SensorDataBuffer::get_instance().is_object_yellow();
                         registers[regId].asBool = isYellow;
                         registerTypes[regId] = VAR_BOOL;
                         registerInitialized[regId] = true;
@@ -354,14 +354,14 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
                         break;
                     }
                     case FRONT_TOF_DISTANCE: {
-                        float frontDistance = SensorDataBuffer::getInstance().getFrontTofDistance();
+                        float frontDistance = SensorDataBuffer::get_instance().get_front_tof_distance();
                         value = (frontDistance < 0) ? 999.0f : frontDistance; // Return 999 inches if no valid reading
                         break;
                     }
                     default: {
                         char logMessage[32];
                         snprintf(logMessage, sizeof(logMessage), "Unknown sensor type: %u", sensorType);
-                        SerialQueueManager::getInstance().queueMessage(logMessage);
+                        SerialQueueManager::get_instance().queueMessage(logMessage);
                         break;
                     }
                 }
@@ -381,7 +381,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             uint8_t b = static_cast<uint8_t>(instr.operand3);
 
             // operand4 is unused for this operation
-            rgbLed.setMainBoardLedsToColor(r, g, b);
+            rgbLed.set_main_board_leds_to_color(r, g, b);
             break;
         }
 
@@ -501,7 +501,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
                 pc = pc - (offsetToStart / INSTRUCTION_SIZE);
             } else {
                 pc = programSize;
-                SerialQueueManager::getInstance().queueMessage("Invalid loop jump - stopping execution");
+                SerialQueueManager::get_instance().queueMessage("Invalid loop jump - stopping execution");
             }
             break;
         }
@@ -556,15 +556,15 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
 
             // Set both motors based on direction
             if (isForward) {
-                motorDriver.updateMotorPwm(motorSpeed, motorSpeed);
+                motorDriver.update_motor_pwm(motorSpeed, motorSpeed);
             } else {
-                motorDriver.updateMotorPwm(-motorSpeed, -motorSpeed);
+                motorDriver.update_motor_pwm(-motorSpeed, -motorSpeed);
             }
             break;
         }
 
         case OP_MOTOR_STOP: {
-            motorDriver.resetCommandState(true);
+            motorDriver.reset_command_state(true);
             break;
         }
 
@@ -585,10 +585,10 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             // Spin motors in opposite directions
             if (clockwise) {
                 // Clockwise: left motor forward, right motor backward
-                motorDriver.updateMotorPwm(motorSpeed, -motorSpeed);
+                motorDriver.update_motor_pwm(motorSpeed, -motorSpeed);
             } else {
                 // Counterclockwise: left motor backward, right motor forward
-                motorDriver.updateMotorPwm(-motorSpeed, motorSpeed);
+                motorDriver.update_motor_pwm(-motorSpeed, motorSpeed);
             }
             break;
         }
@@ -599,8 +599,8 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
 
             // Use TurningManager for precise turning
             float signedDegrees = clockwise ? degrees : -degrees;
-            if (!TurningManager::getInstance().startTurn(signedDegrees)) {
-                SerialQueueManager::getInstance().queueMessage("Failed to start turn - turn already in progress");
+            if (!TurningManager::get_instance().startTurn(signedDegrees)) {
+                SerialQueueManager::get_instance().queueMessage("Failed to start turn - turn already in progress");
             }
 
             // The actual turn progress will be monitored in update()
@@ -617,7 +617,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
 
             // Validate parameters
             if (seconds <= 0.0f) {
-                SerialQueueManager::getInstance().queueMessage("Invalid time value for timed movement");
+                SerialQueueManager::get_instance().queueMessage("Invalid time value for timed movement");
                 break;
             }
 
@@ -630,9 +630,9 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
 
             // Set motors based on direction
             if (isForward) {
-                motorDriver.updateMotorPwm(motorSpeed, motorSpeed);
+                motorDriver.update_motor_pwm(motorSpeed, motorSpeed);
             } else {
-                motorDriver.updateMotorPwm(-motorSpeed, -motorSpeed);
+                motorDriver.update_motor_pwm(-motorSpeed, -motorSpeed);
             }
 
             // Set up timed movement
@@ -652,7 +652,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
 
             // Validate parameters
             if (distanceIn <= 0.0f) {
-                SerialQueueManager::getInstance().queueMessage("Invalid distance value for distance movement");
+                SerialQueueManager::get_instance().queueMessage("Invalid distance value for distance movement");
                 break;
             }
 
@@ -664,7 +664,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             uint16_t motorSpeed = map(throttlePercent, 0, 100, 0, MAX_MOTOR_PWM);
 
             // Reset distance tracking - store current distance as starting point
-            startingDistanceIn = SensorDataBuffer::getInstance().getLatestDistanceTraveledIn();
+            startingDistanceIn = SensorDataBuffer::get_instance().get_latest_distance_traveled_in();
 
             // Set up distance movement
             distanceMovementInProgress = true;
@@ -673,10 +673,10 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             // Set motors based on direction and store initial PWM with correct sign
             if (isForward) {
                 initialDistancePwm = motorSpeed;
-                motorDriver.updateMotorPwm(motorSpeed, motorSpeed);
+                motorDriver.update_motor_pwm(motorSpeed, motorSpeed);
             } else {
                 initialDistancePwm = -motorSpeed; // Store as negative for backward
-                motorDriver.updateMotorPwm(-motorSpeed, -motorSpeed);
+                motorDriver.update_motor_pwm(-motorSpeed, -motorSpeed);
             }
 
             break;
@@ -693,7 +693,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             uint16_t regId = instr.operand1; // Register to store result
 
             if (regId < MAX_REGISTERS) {
-                bool isPressed = Buttons::getInstance().isRightButtonPressed();
+                bool isPressed = Buttons::get_instance().is_right_button_pressed();
 
                 registers[regId].asBool = isPressed;
                 registerTypes[regId] = VAR_BOOL;
@@ -706,16 +706,16 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             uint8_t toneValue = static_cast<uint8_t>(instr.operand1);
 
             // ADD THESE DEBUG LINES:
-            SerialQueueManager::getInstance().queueMessage("PLAY_TONE opcode hit with value: " + String(toneValue));
+            SerialQueueManager::get_instance().queueMessage("PLAY_TONE opcode hit with value: " + String(toneValue));
 
             // toneValue = 0 means stop, 1-7 are valid tones
             if (toneValue <= 7) {
                 ToneType toneType = static_cast<ToneType>(toneValue);
-                Speaker::getInstance().playTone(toneType);
+                Speaker::get_instance().play_tone(toneType);
             } else if (toneValue == 8) {
-                Speaker::getInstance().stopTone();
+                Speaker::get_instance().stop_tone();
             } else {
-                SerialQueueManager::getInstance().queueMessage("Invalid tone value: " + String(toneValue));
+                SerialQueueManager::get_instance().queueMessage("Invalid tone value: " + String(toneValue));
             }
             break;
         }
@@ -731,7 +731,7 @@ void BytecodeVM::updateTimedMotorMovement() {
     // Check if the timed movement has completed
     if (millis() < motorMovementEndTime) return;
     // Movement complete - brake motors
-    motorDriver.resetCommandState(true);
+    motorDriver.reset_command_state(true);
 
     // Reset timed movement state
     timedMotorMovementInProgress = false;
@@ -739,14 +739,14 @@ void BytecodeVM::updateTimedMotorMovement() {
 
 void BytecodeVM::updateDistanceMovement() {
     // Get distance traveled from sensor data buffer (relative to starting point)
-    float totalDistance = SensorDataBuffer::getInstance().getLatestDistanceTraveledIn();
+    float totalDistance = SensorDataBuffer::get_instance().get_latest_distance_traveled_in();
     float currentDistance = abs(totalDistance - startingDistanceIn);
     float remainingDistance = targetDistanceIn - currentDistance;
 
     // Check if we've reached the target distance
     if (remainingDistance <= 0.0f) {
         // Distance reached - brake motors and clear any pending commands
-        motorDriver.resetCommandState(true);
+        motorDriver.reset_command_state(true);
 
         // Reset distance movement state
         distanceMovementInProgress = false;
@@ -760,7 +760,7 @@ void BytecodeVM::updateDistanceMovement() {
     // Calculate braking distance using physics equation
     int16_t absPwm = abs(initialDistancePwm);
     float brakingDistance = (absPwm * absPwm - MIN_DECELERATION_PWM * MIN_DECELERATION_PWM) / (2.0f * DECELERATION_RATE);
-    SerialQueueManager::getInstance().queueMessage("brakingDistance" + String(brakingDistance));
+    SerialQueueManager::get_instance().queueMessage("brakingDistance" + String(brakingDistance));
 
     // Ensure braking distance doesn't exceed total distance (edge case for short distances)
     if (brakingDistance > targetDistanceIn) {
@@ -786,8 +786,8 @@ void BytecodeVM::updateDistanceMovement() {
             targetPwm = -targetPwm;
         }
 
-        SerialQueueManager::getInstance().queueMessage("sigmoidValue" + String(sigmoidValue));
-        SerialQueueManager::getInstance().queueMessage("targetPwm" + String(targetPwm));
+        SerialQueueManager::get_instance().queueMessage("sigmoidValue" + String(sigmoidValue));
+        SerialQueueManager::get_instance().queueMessage("targetPwm" + String(targetPwm));
 
         // Set motor speeds directly without ramping
         motorDriver.set_motor_speeds(targetPwm, targetPwm, false);
@@ -800,7 +800,7 @@ void BytecodeVM::stopProgram() {
 
     // Acquire mutex with timeout
     if (xSemaphoreTake(programMutex, pdMS_TO_TICKS(100)) != pdTRUE) {
-        SerialQueueManager::getInstance().queueMessage("stopProgram: Failed to acquire mutex");
+        SerialQueueManager::get_instance().queueMessage("stopProgram: Failed to acquire mutex");
         return;
     }
 
@@ -816,7 +816,7 @@ void BytecodeVM::resetStateVariables(bool isFullReset) {
     lastComparisonResult = false;
 
     // Reset TurningManager state
-    TurningManager::getInstance().completeNavigation();
+    TurningManager::get_instance().completeNavigation();
     timedMotorMovementInProgress = false;
     distanceMovementInProgress = false;
     initialDistancePwm = 0;
@@ -830,7 +830,7 @@ void BytecodeVM::resetStateVariables(bool isFullReset) {
     // Note: Don't reset programContainsMotors or lastUsbState here as they persist across pause/resume
 
     // Force reset motor driver state completely
-    motorDriver.resetCommandState(false);
+            motorDriver.reset_command_state(false);
 
     // Reset registers
     for (uint16_t i = 0; i < MAX_REGISTERS; i++) {
@@ -855,16 +855,16 @@ void BytecodeVM::resetStateVariables(bool isFullReset) {
         programContainsMotors = false;
         lastUsbState = false;
     }
-    rgbLed.turnAllLedsOff();
-    Speaker::getInstance().stopAllSounds();
-    SensorDataBuffer::getInstance().stopPollingAllSensors();
+    rgbLed.turn_all_leds_off();
+    Speaker::get_instance().stop_all_sounds();
+    SensorDataBuffer::get_instance().stopPollingAllSensors();
 }
 
 void BytecodeVM::pauseProgram() {
     if (programMutex == nullptr) return;
 
     if (xSemaphoreTake(programMutex, pdMS_TO_TICKS(100)) != pdTRUE) {
-        SerialQueueManager::getInstance().queueMessage("pauseProgram: Failed to acquire mutex");
+        SerialQueueManager::get_instance().queueMessage("pauseProgram: Failed to acquire mutex");
         return;
     }
 
@@ -882,12 +882,12 @@ void BytecodeVM::resumeProgram() {
     if (programMutex == nullptr) return;
 
     if (xSemaphoreTake(programMutex, pdMS_TO_TICKS(100)) != pdTRUE) {
-        SerialQueueManager::getInstance().queueMessage("resumeProgram: Failed to acquire mutex");
+        SerialQueueManager::get_instance().queueMessage("resumeProgram: Failed to acquire mutex");
         return;
     }
 
     if (!program || isPaused == RUNNING) {
-        SerialQueueManager::getInstance().queueMessage("resumeProgram: Not paused or no program");
+        SerialQueueManager::get_instance().queueMessage("resumeProgram: Not paused or no program");
         xSemaphoreGive(programMutex);
         return;
     }
@@ -906,11 +906,11 @@ void BytecodeVM::resumeProgram() {
 
     // Check if the first instruction is a WAIT_FOR_BUTTON (start block)
     if (programSize > 0 && program[0].opcode == OP_WAIT_FOR_BUTTON) {
-        SerialQueueManager::getInstance().queueMessage("Resuming program - skipping initial wait for button");
+        SerialQueueManager::get_instance().queueMessage("Resuming program - skipping initial wait for button");
         pc = 1;                               // Start after the wait for button instruction
         waitingForButtonPressToStart = false; // ← FIX: Clear the flag!
     } else {
-        SerialQueueManager::getInstance().queueMessage("Resuming program from beginning");
+        SerialQueueManager::get_instance().queueMessage("Resuming program from beginning");
         pc = 0;                               // Start from the beginning for scripts without a start block
         waitingForButtonPressToStart = false; // ← FIX: Clear here too for consistency
     }
@@ -1007,37 +1007,37 @@ void BytecodeVM::activateSensorsForProgram() {
     }
 
     // Activate required sensors by setting their last_request timestamps
-    SensorDataBuffer& buffer = SensorDataBuffer::getInstance();
+    SensorDataBuffer& buffer = SensorDataBuffer::get_instance();
     ReportTimeouts& timeouts = buffer.getReportTimeouts();
     uint32_t currentTime = millis();
 
     if (needQuaternion) {
         timeouts.quaternion_last_request.store(currentTime);
-        SerialQueueManager::getInstance().queueMessage("Activated quaternion sensor for program");
+        SerialQueueManager::get_instance().queueMessage("Activated quaternion sensor for program");
     }
     if (needAccelerometer) {
         timeouts.accelerometer_last_request.store(currentTime);
-        SerialQueueManager::getInstance().queueMessage("Activated accelerometer for program");
+        SerialQueueManager::get_instance().queueMessage("Activated accelerometer for program");
     }
     if (needGyroscope) {
         timeouts.gyroscope_last_request.store(currentTime);
-        SerialQueueManager::getInstance().queueMessage("Activated gyroscope for program");
+        SerialQueueManager::get_instance().queueMessage("Activated gyroscope for program");
     }
     if (needMagnetometer) {
         timeouts.magnetometer_last_request.store(currentTime);
-        SerialQueueManager::getInstance().queueMessage("Activated magnetometer for program");
+        SerialQueueManager::get_instance().queueMessage("Activated magnetometer for program");
     }
     if (needTof) {
         timeouts.tof_last_request.store(currentTime);
-        SerialQueueManager::getInstance().queueMessage("Activated multizone TOF for program");
+        SerialQueueManager::get_instance().queueMessage("Activated multizone TOF for program");
     }
     if (needSideTof) {
         timeouts.side_tof_last_request.store(currentTime);
-        SerialQueueManager::getInstance().queueMessage("Activated side TOF for program");
+        SerialQueueManager::get_instance().queueMessage("Activated side TOF for program");
     }
     if (needColorSensor) {
         timeouts.color_last_request.store(currentTime);
-        SerialQueueManager::getInstance().queueMessage("Activated colors Sensors for program");
+        SerialQueueManager::get_instance().queueMessage("Activated colors Sensors for program");
     }
 }
 
@@ -1061,7 +1061,7 @@ void BytecodeVM::scanProgramForMotors() {
 }
 
 void BytecodeVM::checkUsbSafetyConditions() {
-    bool currentUsbState = SerialManager::getInstance().isSerialConnected();
+    bool currentUsbState = SerialManager::get_instance().isSerialConnected();
 
     // Detect USB connection change (disconnected -> connected)
     if (!lastUsbState && currentUsbState) {
@@ -1081,9 +1081,9 @@ void BytecodeVM::handleUsbConnect() {
 
 bool BytecodeVM::canStartProgram() {
     // Block start if program contains motors and USB is connected
-    if (!programContainsMotors || !SerialManager::getInstance().isSerialConnected()) return true;
+    if (!programContainsMotors || !SerialManager::get_instance().isSerialConnected()) return true;
 
-    SerialManager::getInstance().sendJsonMessage(ToSerialMessage::MOTORS_DISABLED_USB,
-                                                 "Cannot start motor program while USB connected - disconnect USB first");
+    SerialManager::get_instance().sendJsonMessage(ToSerialMessage::MOTORS_DISABLED_USB,
+                                                  "Cannot start motor program while USB connected - disconnect USB first");
     return false;
 }

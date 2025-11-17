@@ -1,281 +1,278 @@
 #include "sensor_data_buffer.h"
+
+#include "custom_interpreter/bytecode_vm.h"
 #include "networking/serial_manager.h"
 #include "networking/websocket_manager.h"
-#include "custom_interpreter/bytecode_vm.h"
 
 // Use ColorType from ColorTypes namespace
 using ColorTypes::ColorType;
 
 // IMU update methods (existing)
-void SensorDataBuffer::updateQuaternion(const QuaternionData& quaternion) {
+void SensorDataBuffer::update_quaternion(const QuaternionData& quaternion) {
     currentSample.quaternion = quaternion;
     // Update derived Euler angles if quaternion is valid
     if (quaternion.isValid) {
-        quaternionToEuler(
-            quaternion.qW, quaternion.qX, quaternion.qY, quaternion.qZ,
-            currentSample.eulerAngles.yaw, 
-            currentSample.eulerAngles.pitch, 
-            currentSample.eulerAngles.roll
-        );
+        quaternionToEuler(quaternion.qW, quaternion.qX, quaternion.qY, quaternion.qZ, currentSample.eulerAngles.yaw, currentSample.eulerAngles.pitch,
+                          currentSample.eulerAngles.roll);
         currentSample.eulerAngles.isValid = true;
     }
-    markImuDataUpdated();
+    mark_imu_data_updated();
 }
 
-void SensorDataBuffer::updateAccelerometer(const AccelerometerData& accel) {
+void SensorDataBuffer::update_accelerometer(const AccelerometerData& accel) {
     currentSample.accelerometer = accel;
-    markImuDataUpdated();
+    mark_imu_data_updated();
 }
 
-void SensorDataBuffer::updateGyroscope(const GyroscopeData& gyro) {
+void SensorDataBuffer::update_gyroscope(const GyroscopeData& gyro) {
     currentSample.gyroscope = gyro;
-    markImuDataUpdated();
+    mark_imu_data_updated();
 }
 
-void SensorDataBuffer::updateMagnetometer(const MagnetometerData& mag) {
+void SensorDataBuffer::update_magnetometer(const MagnetometerData& mag) {
     currentSample.magnetometer = mag;
-    markImuDataUpdated();
+    mark_imu_data_updated();
 }
 
 // TOF update method (existing)
-void SensorDataBuffer::updateTofData(const TofData& tof) {
+void SensorDataBuffer::update_tof_data(const TofData& tof) {
     currentTofData = tof;
-    markTofDataUpdated();
+    mark_tof_data_updated();
 }
 
 // Side TOF update method (existing)
-void SensorDataBuffer::updateSideTofData(const SideTofData& sideTof) {
+void SensorDataBuffer::update_side_tof_data(const SideTofData& sideTof) {
     currentSideTofData = sideTof;
-    markSideTofDataUpdated();
+    mark_side_tof_data_updated();
 }
 
 // NEW: Color sensor update method
-void SensorDataBuffer::updateColorData(const ColorData& color) {
+void SensorDataBuffer::update_color_data(const ColorData& color) {
     currentColorData = color;
-    markColorDataUpdated();
+    mark_color_data_updated();
 }
 
 // NEW: Encoder update method
-void SensorDataBuffer::updateEncoderData(const EncoderData& encoder) {
+void SensorDataBuffer::update_encoder_data(const EncoderData& encoder) {
     currentEncoderData = encoder;
-    markEncoderDataUpdated();
+    mark_encoder_data_updated();
 }
 
 // IMU Read methods - reset timeouts when called (existing)
-EulerAngles SensorDataBuffer::getLatestEulerAngles() {
+EulerAngles SensorDataBuffer::get_latest_euler_angles() {
     timeouts.quaternion_last_request.store(millis());
     return currentSample.eulerAngles;
 }
 
-QuaternionData SensorDataBuffer::getLatestQuaternion() {
+QuaternionData SensorDataBuffer::get_latest_quaternion() {
     timeouts.quaternion_last_request.store(millis());
     return currentSample.quaternion;
 }
 
-AccelerometerData SensorDataBuffer::getLatestAccelerometer() {
+AccelerometerData SensorDataBuffer::get_latest_accelerometer() {
     timeouts.accelerometer_last_request.store(millis());
     return currentSample.accelerometer;
 }
 
-GyroscopeData SensorDataBuffer::getLatestGyroscope() {
+GyroscopeData SensorDataBuffer::get_latest_gyroscope() {
     timeouts.gyroscope_last_request.store(millis());
     return currentSample.gyroscope;
 }
 
-MagnetometerData SensorDataBuffer::getLatestMagnetometer() {
+MagnetometerData SensorDataBuffer::get_latest_magnetometer() {
     timeouts.magnetometer_last_request.store(millis());
     return currentSample.magnetometer;
 }
 
 // TOF Read methods - reset timeouts when called (existing)
-TofData SensorDataBuffer::getLatestTofData() {
+TofData SensorDataBuffer::get_latest_tof_data() {
     timeouts.tof_last_request.store(millis());
     return currentTofData;
 }
 
-VL53L7CX_ResultsData SensorDataBuffer::getLatestTofRawData() {
+VL53L7CX_ResultsData SensorDataBuffer::get_latest_tof_raw_data() {
     timeouts.tof_last_request.store(millis());
     return currentTofData.rawData;
 }
 
-bool SensorDataBuffer::isObjectDetectedTof() {
+bool SensorDataBuffer::is_object_detected_tof() {
     timeouts.tof_last_request.store(millis());
     return currentTofData.isObjectDetected && currentTofData.isValid;
 }
 
-float SensorDataBuffer::getFrontTofDistance() {
+float SensorDataBuffer::get_front_tof_distance() {
     timeouts.tof_last_request.store(millis());
     return currentTofData.frontDistance;
 }
 
 // Side TOF Read methods - reset timeouts when called (existing)
-SideTofData SensorDataBuffer::getLatestSideTofData() {
+SideTofData SensorDataBuffer::get_latest_side_tof_data() {
     timeouts.side_tof_last_request.store(millis());
     return currentSideTofData;
 }
 
-uint16_t SensorDataBuffer::getLatestLeftSideTofCounts() {
+uint16_t SensorDataBuffer::get_latest_left_side_tof_counts() {
     timeouts.side_tof_last_request.store(millis());
     return currentSideTofData.leftCounts;
 }
 
-uint16_t SensorDataBuffer::getLatestRightSideTofCounts() {
+uint16_t SensorDataBuffer::get_latest_right_side_tof_counts() {
     timeouts.side_tof_last_request.store(millis());
     return currentSideTofData.rightCounts;
 }
 
-bool SensorDataBuffer::isLeftSideTofValid() {
+bool SensorDataBuffer::is_left_side_tof_valid() {
     timeouts.side_tof_last_request.store(millis());
     return currentSideTofData.leftValid;
 }
 
-bool SensorDataBuffer::isRightSideTofValid() {
+bool SensorDataBuffer::is_right_side_tof_valid() {
     timeouts.side_tof_last_request.store(millis());
     return currentSideTofData.rightValid;
 }
 
 // NEW: Color sensor Read methods - reset timeouts when called
-ColorData SensorDataBuffer::getLatestColorData() {
+ColorData SensorDataBuffer::get_latest_color_data() {
     timeouts.color_last_request.store(millis());
     return currentColorData;
 }
 
-uint8_t SensorDataBuffer::getLatestRedValue() {
+uint8_t SensorDataBuffer::get_latest_red_value() {
     timeouts.color_last_request.store(millis());
     return currentColorData.redValue;
 }
 
-uint8_t SensorDataBuffer::getLatestGreenValue() {
+uint8_t SensorDataBuffer::get_latest_green_value() {
     timeouts.color_last_request.store(millis());
     return currentColorData.greenValue;
 }
 
-uint8_t SensorDataBuffer::getLatestBlueValue() {
+uint8_t SensorDataBuffer::get_latest_blue_value() {
     timeouts.color_last_request.store(millis());
     return currentColorData.blueValue;
 }
 
-bool SensorDataBuffer::isColorDataValid() {
+bool SensorDataBuffer::is_color_data_valid() {
     timeouts.color_last_request.store(millis());
     return currentColorData.isValid;
 }
 
 // NEW: Encoder Read methods - reset timeouts when called
-EncoderData SensorDataBuffer::getLatestEncoderData() {
+EncoderData SensorDataBuffer::get_latest_encoder_data() {
     return currentEncoderData;
 }
 
-WheelRPMs SensorDataBuffer::getLatestWheelRPMs() {
+WheelRPMs SensorDataBuffer::get_latest_wheel_rpms() {
     WheelRPMs rpms;
     rpms.leftWheelRPM = currentEncoderData.leftWheelRPM;
     rpms.rightWheelRPM = currentEncoderData.rightWheelRPM;
     return rpms;
 }
 
-float SensorDataBuffer::getLatestLeftWheelRPM() {
+float SensorDataBuffer::get_latest_left_wheel_rpm() {
     return currentEncoderData.leftWheelRPM;
 }
 
-float SensorDataBuffer::getLatestRightWheelRPM() {
+float SensorDataBuffer::get_latest_right_wheel_rpm() {
     return currentEncoderData.rightWheelRPM;
 }
 
-float SensorDataBuffer::getLatestDistanceTraveledIn() {
+float SensorDataBuffer::get_latest_distance_traveled_in() {
     return currentEncoderData.distanceTraveledIn;
 }
 
-bool SensorDataBuffer::isEncoderDataValid() {
+bool SensorDataBuffer::is_encoder_data_valid() {
     return currentEncoderData.isValid;
 }
 
 // Raw encoder count access methods (for motor driver)
-int64_t SensorDataBuffer::getLatestLeftEncoderCount() {
+int64_t SensorDataBuffer::get_latest_left_encoder_count() {
     return currentEncoderData.leftEncoderCount;
 }
 
-int64_t SensorDataBuffer::getLatestRightEncoderCount() {
+int64_t SensorDataBuffer::get_latest_right_encoder_count() {
     return currentEncoderData.rightEncoderCount;
 }
 
-std::pair<int64_t, int64_t> SensorDataBuffer::getLatestEncoderCounts() {
+std::pair<int64_t, int64_t> SensorDataBuffer::get_latest_encoder_counts() {
     return std::make_pair(currentEncoderData.leftEncoderCount, currentEncoderData.rightEncoderCount);
 }
 
 // Convenience methods for individual values (existing)
-float SensorDataBuffer::getLatestPitch() {
-    return getLatestEulerAngles().roll;  // Note: roll maps to pitch in your system
+float SensorDataBuffer::get_latest_pitch() {
+    return get_latest_euler_angles().roll; // Note: roll maps to pitch in your system
 }
 
-float SensorDataBuffer::getLatestYaw() {
-    return getLatestEulerAngles().yaw;
+float SensorDataBuffer::get_latest_yaw() {
+    return get_latest_euler_angles().yaw;
 }
 
-float SensorDataBuffer::getLatestRoll() {
-    return getLatestEulerAngles().pitch;  // Note: pitch maps to roll in your system
+float SensorDataBuffer::get_latest_roll() {
+    return get_latest_euler_angles().pitch; // Note: pitch maps to roll in your system
 }
 
-float SensorDataBuffer::getLatestXAccel() {
-    return getLatestAccelerometer().aX;
+float SensorDataBuffer::get_latest_x_accel() {
+    return get_latest_accelerometer().aX;
 }
 
-float SensorDataBuffer::getLatestYAccel() {
-    return getLatestAccelerometer().aY;
+float SensorDataBuffer::get_latest_y_accel() {
+    return get_latest_accelerometer().aY;
 }
 
-float SensorDataBuffer::getLatestZAccel() {
-    return getLatestAccelerometer().aZ;
+float SensorDataBuffer::get_latest_z_accel() {
+    return get_latest_accelerometer().aZ;
 }
 
-float SensorDataBuffer::getLatestXRotationRate() {
-    return getLatestGyroscope().gX;
+float SensorDataBuffer::get_latest_x_rotation_rate() {
+    return get_latest_gyroscope().gX;
 }
 
-float SensorDataBuffer::getLatestYRotationRate() {
-    return getLatestGyroscope().gY;
+float SensorDataBuffer::get_latest_y_rotation_rate() {
+    return get_latest_gyroscope().gY;
 }
 
-float SensorDataBuffer::getLatestZRotationRate() {
-    return getLatestGyroscope().gZ;
+float SensorDataBuffer::get_latest_z_rotation_rate() {
+    return get_latest_gyroscope().gZ;
 }
 
-double SensorDataBuffer::getLatestAccelMagnitude() {
-    return sqrt(pow(getLatestXAccel(), 2) + pow(getLatestYAccel(), 2) + pow(getLatestZAccel(), 2));
+double SensorDataBuffer::get_latest_accel_magnitude() {
+    return sqrt(pow(get_latest_x_accel(), 2) + pow(get_latest_y_accel(), 2) + pow(get_latest_z_accel(), 2));
 }
 
-float SensorDataBuffer::getLatestMagneticFieldX() {
-    return getLatestMagnetometer().mX;
+float SensorDataBuffer::get_latest_magnetic_field_x() {
+    return get_latest_magnetometer().mX;
 }
 
-float SensorDataBuffer::getLatestMagneticFieldY() {
-    return getLatestMagnetometer().mY;
+float SensorDataBuffer::get_latest_magnetic_field_y() {
+    return get_latest_magnetometer().mY;
 }
 
-float SensorDataBuffer::getLatestMagneticFieldZ() {
-    return getLatestMagnetometer().mZ;
+float SensorDataBuffer::get_latest_magnetic_field_z() {
+    return get_latest_magnetometer().mZ;
 }
 
-ImuSample SensorDataBuffer::getLatestImuSample() {
+ImuSample SensorDataBuffer::get_latest_imu_sample() {
     // Mark all timeouts as accessed
     uint32_t currentTime = millis();
     timeouts.quaternion_last_request.store(currentTime);
     timeouts.accelerometer_last_request.store(currentTime);
     timeouts.gyroscope_last_request.store(currentTime);
     timeouts.magnetometer_last_request.store(currentTime);
-    
+
     return currentSample;
 }
 
-void SensorDataBuffer::stopPollingAllSensors() {
-    stopPollingSensor(SensorType::QUATERNION);
-    stopPollingSensor(SensorType::ACCELEROMETER);
-    stopPollingSensor(SensorType::GYROSCOPE);
-    stopPollingSensor(SensorType::MAGNETOMETER);
-    stopPollingSensor(SensorType::MULTIZONE_TOF);
-    stopPollingSensor(SensorType::SIDE_TOF);
-    stopPollingSensor(SensorType::COLOR);
+void SensorDataBuffer::stop_polling_all_sensors() {
+    stop_polling_sensor(SensorType::QUATERNION);
+    stop_polling_sensor(SensorType::ACCELEROMETER);
+    stop_polling_sensor(SensorType::GYROSCOPE);
+    stop_polling_sensor(SensorType::MAGNETOMETER);
+    stop_polling_sensor(SensorType::MULTIZONE_TOF);
+    stop_polling_sensor(SensorType::SIDE_TOF);
+    stop_polling_sensor(SensorType::COLOR);
 }
 
-void SensorDataBuffer::stopPollingSensor(SensorType sensorType) {
+void SensorDataBuffer::stop_polling_sensor(SensorType sensorType) {
     switch (sensorType) {
         case SensorType::QUATERNION:
             timeouts.quaternion_last_request.store(0);
@@ -301,190 +298,189 @@ void SensorDataBuffer::stopPollingSensor(SensorType sensorType) {
     }
 }
 
-void SensorDataBuffer::markImuDataUpdated() {
+void SensorDataBuffer::mark_imu_data_updated() {
     lastImuUpdateTime.store(millis());
-    imuUpdateCount.fetch_add(1);  // Increment frequency counter
+    imuUpdateCount.fetch_add(1); // Increment frequency counter
 }
 
-void SensorDataBuffer::markTofDataUpdated() {
+void SensorDataBuffer::mark_tof_data_updated() {
     lastTofUpdateTime.store(millis());
-    multizoneTofUpdateCount.fetch_add(1);  // Increment frequency counter
+    multizoneTofUpdateCount.fetch_add(1); // Increment frequency counter
 }
 
-void SensorDataBuffer::markSideTofDataUpdated() {
+void SensorDataBuffer::mark_side_tof_data_updated() {
     lastSideTofUpdateTime.store(millis());
-    sideTofUpdateCount.fetch_add(1);  // Increment frequency counter
+    sideTofUpdateCount.fetch_add(1); // Increment frequency counter
 }
 
-void SensorDataBuffer::markColorDataUpdated() {
+void SensorDataBuffer::mark_color_data_updated() {
     lastColorUpdateTime.store(millis());
-    colorSensorUpdateCount.fetch_add(1);  // Increment frequency counter
+    colorSensorUpdateCount.fetch_add(1); // Increment frequency counter
 }
 
-void SensorDataBuffer::markEncoderDataUpdated() {
+void SensorDataBuffer::mark_encoder_data_updated() {
     lastEncoderUpdateTime.store(millis());
 }
 
-float SensorDataBuffer::getImuFrequency() {
+float SensorDataBuffer::get_imu_frequency() {
     static float lastFrequency = 0.0f;
     static uint32_t lastUpdateCount = 0;
-    
+
     uint32_t currentTime = millis();
     uint32_t lastCalcTime = lastImuFrequencyCalcTime.load();
     uint32_t currentUpdateCount = imuUpdateCount.load();
-    
+
     // Initialize on first call
     if (lastCalcTime == 0) {
         lastImuFrequencyCalcTime.store(currentTime);
         lastUpdateCount = currentUpdateCount;
         return 0.0f;
     }
-    
+
     uint32_t timeDelta = currentTime - lastCalcTime;
-    
+
     // Calculate frequency every second (1000ms)
     if (timeDelta >= 1000) {
         uint32_t updateDelta = currentUpdateCount - lastUpdateCount;
         lastFrequency = (float)updateDelta * 1000.0f / (float)timeDelta;
-        
+
         // Debug logging
         char debugBuffer[128];
-        snprintf(debugBuffer, sizeof(debugBuffer), "DEBUG: updateDelta=%u, timeDelta=%u, freq=%.1f", 
-                 updateDelta, timeDelta, lastFrequency);
-        SerialQueueManager::getInstance().queueMessage(debugBuffer);
-        
+        snprintf(debugBuffer, sizeof(debugBuffer), "DEBUG: updateDelta=%u, timeDelta=%u, freq=%.1f", updateDelta, timeDelta, lastFrequency);
+        SerialQueueManager::get_instance().queueMessage(debugBuffer);
+
         // Update tracking variables
         lastImuFrequencyCalcTime.store(currentTime);
         lastUpdateCount = currentUpdateCount;
-        
+
         return lastFrequency;
     }
-    
+
     // Return last calculated frequency if not time to update yet
     return lastFrequency;
 }
 
-float SensorDataBuffer::getMultizoneTofFrequency() {
+float SensorDataBuffer::get_multizone_tof_frequency() {
     static float lastFrequency = 0.0f;
     static uint32_t lastUpdateCount = 0;
-    
+
     uint32_t currentTime = millis();
     uint32_t lastCalcTime = lastMultizoneTofFrequencyCalcTime.load();
     uint32_t currentUpdateCount = multizoneTofUpdateCount.load();
-    
+
     // Initialize on first call
     if (lastCalcTime == 0) {
         lastMultizoneTofFrequencyCalcTime.store(currentTime);
         lastUpdateCount = currentUpdateCount;
         return 0.0f;
     }
-    
+
     uint32_t timeDelta = currentTime - lastCalcTime;
-    
+
     // Calculate frequency every second (1000ms)
     if (timeDelta >= 1000) {
         uint32_t updateDelta = currentUpdateCount - lastUpdateCount;
         lastFrequency = (float)updateDelta * 1000.0f / (float)timeDelta;
-        
+
         // Update tracking variables
         lastMultizoneTofFrequencyCalcTime.store(currentTime);
         lastUpdateCount = currentUpdateCount;
-        
+
         return lastFrequency;
     }
-    
+
     return lastFrequency;
 }
 
-float SensorDataBuffer::getSideTofFrequency() {
+float SensorDataBuffer::get_side_tof_frequency() {
     static float lastFrequency = 0.0f;
     static uint32_t lastUpdateCount = 0;
-    
+
     uint32_t currentTime = millis();
     uint32_t lastCalcTime = lastSideTofFrequencyCalcTime.load();
     uint32_t currentUpdateCount = sideTofUpdateCount.load();
-    
+
     // Initialize on first call
     if (lastCalcTime == 0) {
         lastSideTofFrequencyCalcTime.store(currentTime);
         lastUpdateCount = currentUpdateCount;
         return 0.0f;
     }
-    
+
     uint32_t timeDelta = currentTime - lastCalcTime;
-    
+
     // Calculate frequency every second (1000ms)
     if (timeDelta >= 1000) {
         uint32_t updateDelta = currentUpdateCount - lastUpdateCount;
         lastFrequency = (float)updateDelta * 1000.0f / (float)timeDelta;
-        
+
         // Update tracking variables
         lastSideTofFrequencyCalcTime.store(currentTime);
         lastUpdateCount = currentUpdateCount;
-        
+
         return lastFrequency;
     }
-    
+
     return lastFrequency;
 }
 
-float SensorDataBuffer::getColorSensorFrequency() {
+float SensorDataBuffer::get_color_sensor_frequency() {
     static float lastFrequency = 0.0f;
     static uint32_t lastUpdateCount = 0;
-    
+
     uint32_t currentTime = millis();
     uint32_t lastCalcTime = lastColorSensorFrequencyCalcTime.load();
     uint32_t currentUpdateCount = colorSensorUpdateCount.load();
-    
+
     // Initialize on first call
     if (lastCalcTime == 0) {
         lastColorSensorFrequencyCalcTime.store(currentTime);
         lastUpdateCount = currentUpdateCount;
         return 0.0f;
     }
-    
+
     uint32_t timeDelta = currentTime - lastCalcTime;
-    
+
     // Calculate frequency every second (1000ms)
     if (timeDelta >= 1000) {
         uint32_t updateDelta = currentUpdateCount - lastUpdateCount;
         lastFrequency = (float)updateDelta * 1000.0f / (float)timeDelta;
-        
+
         // Update tracking variables
         lastColorSensorFrequencyCalcTime.store(currentTime);
         lastUpdateCount = currentUpdateCount;
-        
+
         return lastFrequency;
     }
-    
+
     return lastFrequency;
 }
 
-bool SensorDataBuffer::shouldEnableQuaternionExtended() const {
+bool SensorDataBuffer::should_enable_quaternion_extended() const {
     // Check if within timeout window (original condition)
     bool withinTimeout = timeouts.shouldEnableQuaternion();
-    
+
     // Check if serial is connected
-    bool serialConnected = SerialManager::getInstance().isSerialConnected();
-    
+    bool serialConnected = SerialManager::get_instance().isSerialConnected();
+
     // Check if bytecode program is loaded (including paused)
-    bool programLoaded = BytecodeVM::getInstance().isProgramLoaded();
-    
+    bool programLoaded = BytecodeVM::get_instance().isProgramLoaded();
+
     // Check if user is connected via websocket
-    bool userConnected = WebSocketManager::getInstance().isUserConnectedToThisPip();
-    
+    bool userConnected = WebSocketManager::get_instance().isUserConnectedToThisPip();
+
     return withinTimeout || serialConnected || programLoaded || userConnected;
 }
 
 // Add these new methods
 
-ColorType SensorDataBuffer::classifyCurrentColor() {
+ColorType SensorDataBuffer::classify_current_color() {
     uint8_t r = currentColorData.redValue;
     uint8_t g = currentColorData.greenValue;
     uint8_t b = currentColorData.blueValue;
-    
+
     if (!currentColorData.isValid) return ColorType::COLOR_NONE;
-    
+
     // White: All components bright
     if (r > 130 && g > 130 && b > 130) {
         return ColorType::COLOR_WHITE;
@@ -499,31 +495,31 @@ ColorType SensorDataBuffer::classifyCurrentColor() {
     if (r > 80 && r > (g + 30) && r > (b + 30)) {
         return ColorType::COLOR_RED;
     }
-    
-    // Green: G dominant and bright enough  
+
+    // Green: G dominant and bright enough
     if (g > 65 && g > (r + 20) && g > (b + 20)) {
         return ColorType::COLOR_GREEN;
     }
-    
+
     // Blue: B dominant and bright enough
     if (b > 65 && b > (r + 20) && b > (g + 20)) {
         return ColorType::COLOR_BLUE;
     }
-    
+
     // Black: All components dark
     if (r < 60 && g < 60 && b < 60) {
         return ColorType::COLOR_BLACK;
     }
-    
+
     return ColorType::COLOR_NONE;
 }
 
-void SensorDataBuffer::updateColorHistory(ColorType color) {
+void SensorDataBuffer::update_color_history(ColorType color) {
     colorHistory[colorHistoryIndex] = color;
     colorHistoryIndex = (colorHistoryIndex + 1) % 5;
 }
 
-bool SensorDataBuffer::checkColorConsistency(ColorType targetColor) {
+bool SensorDataBuffer::check_color_consistency(ColorType targetColor) {
     // Count how many of the last 5 classifications match the target
     uint8_t matchCount = 0;
     for (int i = 0; i < 5; i++) {
@@ -534,38 +530,38 @@ bool SensorDataBuffer::checkColorConsistency(ColorType targetColor) {
     return matchCount >= 4; // Need 4 out of 5 to confirm
 }
 
-bool SensorDataBuffer::isObjectRed() {
+bool SensorDataBuffer::is_object_red() {
     timeouts.color_last_request.store(millis());
-    updateColorHistory(classifyCurrentColor());
-    return checkColorConsistency(ColorType::COLOR_RED);
+    update_color_history(classify_current_color());
+    return check_color_consistency(ColorType::COLOR_RED);
 }
 
-bool SensorDataBuffer::isObjectGreen() {
+bool SensorDataBuffer::is_object_green() {
     timeouts.color_last_request.store(millis());
-    updateColorHistory(classifyCurrentColor());
-    return checkColorConsistency(ColorType::COLOR_GREEN);
+    update_color_history(classify_current_color());
+    return check_color_consistency(ColorType::COLOR_GREEN);
 }
 
-bool SensorDataBuffer::isObjectBlue() {
+bool SensorDataBuffer::is_object_blue() {
     timeouts.color_last_request.store(millis());
-    updateColorHistory(classifyCurrentColor());
-    return checkColorConsistency(ColorType::COLOR_BLUE);
+    update_color_history(classify_current_color());
+    return check_color_consistency(ColorType::COLOR_BLUE);
 }
 
-bool SensorDataBuffer::isObjectWhite() {
+bool SensorDataBuffer::is_object_white() {
     timeouts.color_last_request.store(millis());
-    updateColorHistory(classifyCurrentColor());
-    return checkColorConsistency(ColorType::COLOR_WHITE);
+    update_color_history(classify_current_color());
+    return check_color_consistency(ColorType::COLOR_WHITE);
 }
 
-bool SensorDataBuffer::isObjectBlack() {
+bool SensorDataBuffer::is_object_black() {
     timeouts.color_last_request.store(millis());
-    updateColorHistory(classifyCurrentColor());
-    return checkColorConsistency(ColorType::COLOR_BLACK);
+    update_color_history(classify_current_color());
+    return check_color_consistency(ColorType::COLOR_BLACK);
 }
 
-bool SensorDataBuffer::isObjectYellow() {
+bool SensorDataBuffer::is_object_yellow() {
     timeouts.color_last_request.store(millis());
-    updateColorHistory(classifyCurrentColor());
-    return checkColorConsistency(ColorType::COLOR_YELLOW);
+    update_color_history(classify_current_color());
+    return check_color_consistency(ColorType::COLOR_YELLOW);
 }

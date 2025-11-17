@@ -3,20 +3,19 @@
 MotorDriver motorDriver;
 
 MotorDriver::MotorDriver() {
-  // Configure LEDC timer and channels
-  ledcSetup(LEFT_MOTOR_CH_1, MOTOR_PWM_FREQ, MOTOR_PWM_RES);
-  ledcSetup(LEFT_MOTOR_CH_2, MOTOR_PWM_FREQ, MOTOR_PWM_RES);
-  ledcSetup(RIGHT_MOTOR_CH_1, MOTOR_PWM_FREQ, MOTOR_PWM_RES);
-  ledcSetup(RIGHT_MOTOR_CH_2, MOTOR_PWM_FREQ, MOTOR_PWM_RES);
+    // Configure LEDC timer and channels
+    ledcSetup(LEFT_MOTOR_CH_1, MOTOR_PWM_FREQ, MOTOR_PWM_RES);
+    ledcSetup(LEFT_MOTOR_CH_2, MOTOR_PWM_FREQ, MOTOR_PWM_RES);
+    ledcSetup(RIGHT_MOTOR_CH_1, MOTOR_PWM_FREQ, MOTOR_PWM_RES);
+    ledcSetup(RIGHT_MOTOR_CH_2, MOTOR_PWM_FREQ, MOTOR_PWM_RES);
 
-  // Attach channels to pins
-  ledcAttachPin(LEFT_MOTOR_PIN_IN_1, LEFT_MOTOR_CH_1);
-  ledcAttachPin(LEFT_MOTOR_PIN_IN_2, LEFT_MOTOR_CH_2);
-  ledcAttachPin(RIGHT_MOTOR_PIN_IN_1, RIGHT_MOTOR_CH_1);
-  ledcAttachPin(RIGHT_MOTOR_PIN_IN_2, RIGHT_MOTOR_CH_2);
+    // Attach channels to pins
+    ledcAttachPin(LEFT_MOTOR_PIN_IN_1, LEFT_MOTOR_CH_1);
+    ledcAttachPin(LEFT_MOTOR_PIN_IN_2, LEFT_MOTOR_CH_2);
+    ledcAttachPin(RIGHT_MOTOR_PIN_IN_1, RIGHT_MOTOR_CH_1);
+    ledcAttachPin(RIGHT_MOTOR_PIN_IN_2, RIGHT_MOTOR_CH_2);
 
-  Serial.printf("Motor PWM initialized: %d Hz, %d-bit resolution\n",
-                MOTOR_PWM_FREQ, MOTOR_PWM_RES);
+    Serial.printf("Motor PWM initialized: %d Hz, %d-bit resolution\n", MOTOR_PWM_FREQ, MOTOR_PWM_RES);
 }
 
 void MotorDriver::stop_both_motors() {
@@ -80,7 +79,7 @@ void MotorDriver::brake_both_motors() {
 
 void MotorDriver::brake_if_moving() {
     // Get current wheel speeds from sensor data buffer
-    WheelRPMs rpms = SensorDataBuffer::getInstance().getLatestWheelRPMs();
+    WheelRPMs rpms = SensorDataBuffer::get_instance().getLatestWheelRPMs();
 
     // Check if left motor is moving
     if (abs(rpms.leftWheelRPM) > MOTOR_STOPPED_THRESHOLD) {
@@ -143,7 +142,7 @@ void MotorDriver::update() {
             _actualLeftPwm = _targetLeftPwm;
             speedsChanged = true;
         }
-        
+
         if (_actualRightPwm != _targetRightPwm) {
             _actualRightPwm = _targetRightPwm;
             speedsChanged = true;
@@ -153,12 +152,12 @@ void MotorDriver::update() {
     int16_t leftAdjusted = _actualLeftPwm;
     int16_t rightAdjusted = _actualRightPwm;
 
-    if (StraightLineDrive::getInstance().isEnabled()) {
-        StraightLineDrive::getInstance().update(leftAdjusted, rightAdjusted);
+    if (StraightLineDrive::get_instance().isEnabled()) {
+        StraightLineDrive::get_instance().update(leftAdjusted, rightAdjusted);
     }
 
     // Only update motor controls if speeds have changed or StraightLineDrive is applying corrections
-    if (speedsChanged || StraightLineDrive::getInstance().isEnabled()) {
+    if (speedsChanged || StraightLineDrive::get_instance().isEnabled()) {
         // Apply the current speeds
         if (leftAdjusted == 0) {
             brake_left_motor();
@@ -182,7 +181,7 @@ void MotorDriver::set_motor_speeds_immediate(int16_t leftTarget, int16_t rightTa
     // Constrain speeds
     int16_t leftConstrained = constrain(leftTarget, -MAX_MOTOR_PWM, MAX_MOTOR_PWM);
     int16_t rightConstrained = constrain(rightTarget, -MAX_MOTOR_PWM, MAX_MOTOR_PWM);
-    
+
     // Apply immediately without any ramping or state management
     if (leftConstrained == 0) {
         brake_left_motor();
@@ -201,25 +200,25 @@ void MotorDriver::set_motor_speeds_immediate(int16_t leftTarget, int16_t rightTa
     }
 }
 
-void MotorDriver::updateMotorPwm(int16_t leftPwm, int16_t rightPwm) {
+void MotorDriver::update_motor_pwm(int16_t leftPwm, int16_t rightPwm) {
     // Constrain speeds
     leftPwm = constrain(leftPwm, -MAX_MOTOR_PWM, MAX_MOTOR_PWM);
     rightPwm = constrain(rightPwm, -MAX_MOTOR_PWM, MAX_MOTOR_PWM);
-    
+
     // Check if straight-line driving should be active
     if (leftPwm > 0 && rightPwm > 0 && leftPwm == rightPwm) {
         // Enable straight-line driving if not already active
-        if (!StraightLineDrive::getInstance().isEnabled()) {
-            StraightLineDrive::getInstance().enable();
+        if (!StraightLineDrive::get_instance().isEnabled()) {
+            StraightLineDrive::get_instance().enable();
         }
     } else {
         // Disable straight-line driving for all other cases
-        StraightLineDrive::getInstance().disable();
+        StraightLineDrive::get_instance().disable();
     }
-    
+
     // If we're not executing a command, start this one immediately
     if (!isExecutingCommand) {
-        executeCommand(leftPwm, rightPwm);
+        execute_command(leftPwm, rightPwm);
     } else {
         // Store as next command
         hasNextCommand = true;
@@ -228,13 +227,13 @@ void MotorDriver::updateMotorPwm(int16_t leftPwm, int16_t rightPwm) {
     }
 }
 
-void MotorDriver::executeCommand(int16_t leftPwm, int16_t rightPwm) {
+void MotorDriver::execute_command(int16_t leftPwm, int16_t rightPwm) {
     // Save command details
     _commandLeftPwm = leftPwm;
     _commandRightPwm = rightPwm;
 
     // Get initial encoder counts from sensor data buffer
-    auto startingCounts = SensorDataBuffer::getInstance().getLatestEncoderCounts();
+    auto startingCounts = SensorDataBuffer::get_instance().get_latest_encoder_counts();
     startLeftCount = startingCounts.first;
     startRightCount = startingCounts.second;
 
@@ -247,14 +246,14 @@ void MotorDriver::executeCommand(int16_t leftPwm, int16_t rightPwm) {
     hasNextCommand = false;
 }
 
-void MotorDriver::processPendingCommands() {
+void MotorDriver::process_pending_commands() {
     // If a demo is running, don't process motor commands
-    if (DemoManager::getInstance().isAnyDemoActive()) return;
+    if (DemoManager::get_instance().isAnyDemoActive()) return;
 
     if (!isExecutingCommand) {
         // If we have a next command, execute it
         if (hasNextCommand) {
-            executeCommand(nextLeftPwm, nextRightPwm);
+            execute_command(nextLeftPwm, nextRightPwm);
         }
         return;
     }
@@ -263,43 +262,43 @@ void MotorDriver::processPendingCommands() {
 
     if (!isMovementCommand) {
         isExecutingCommand = false;
-        
+
         if (hasNextCommand) {
-            executeCommand(nextLeftPwm, nextRightPwm);
+            execute_command(nextLeftPwm, nextRightPwm);
         }
         return;
     }
 
     // Get current encoder counts from sensor data buffer
-    auto currentCounts = SensorDataBuffer::getInstance().getLatestEncoderCounts();
+    auto currentCounts = SensorDataBuffer::get_instance().get_latest_encoder_counts();
     int64_t currentLeftCount = currentCounts.first;
     int64_t currentRightCount = currentCounts.second;
-    
+
     // Calculate absolute change in encoder counts
     int64_t leftDelta = abs(currentLeftCount - startLeftCount);
     int64_t rightDelta = abs(currentRightCount - startRightCount);
-    
+
     // Check for command completion conditions:
     bool encoderThresholdMet = (leftDelta >= MIN_ENCODER_PULSES || rightDelta >= MIN_ENCODER_PULSES);
     bool commandTimedOut = (millis() - commandStartTime) >= COMMAND_TIMEOUT_MS;
-    
+
     if (encoderThresholdMet || commandTimedOut) {
         if (commandTimedOut) {
-            SerialQueueManager::getInstance().queueMessage("Command timed out after 1 second - possible motor stall");
+            SerialQueueManager::get_instance().queueMessage("Command timed out after 1 second - possible motor stall");
         } else {
-            // SerialQueueManager::getInstance().queueMessage("Command completed with pulses - Left: %lld, Right: %lld\n", 
+            // SerialQueueManager::get_instance().queueMessage("Command completed with pulses - Left: %lld, Right: %lld\n",
             //             leftDelta, rightDelta);
         }
-        
+
         isExecutingCommand = false;
-        
+
         if (hasNextCommand) {
-            executeCommand(nextLeftPwm, nextRightPwm);
+            execute_command(nextLeftPwm, nextRightPwm);
         }
     }
 }
 
-void MotorDriver::resetCommandState(bool absoluteBrake) {
+void MotorDriver::reset_command_state(bool absoluteBrake) {
     // Clear all command state first to prevent any queued commands from executing
     _targetLeftPwm = 0;
     _targetRightPwm = 0;
@@ -314,8 +313,8 @@ void MotorDriver::resetCommandState(bool absoluteBrake) {
     hasNextCommand = false;
     nextLeftPwm = 0;
     nextRightPwm = 0;
-    StraightLineDrive::getInstance().disable();
-    
+    StraightLineDrive::get_instance().disable();
+
     // Apply brakes after clearing state
     if (absoluteBrake) {
         brake_both_motors();

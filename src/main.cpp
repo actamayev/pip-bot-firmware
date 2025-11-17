@@ -22,7 +22,7 @@ void setup() {
     TaskManager::createSerialQueueTask();
 
     // Initialize battery monitor SYNCHRONOUSLY before display to check battery level
-    BatteryMonitor::getInstance().initialize();
+    BatteryMonitor::get_instance().initialize();
 
     // Initialize
     Wire.begin(I2C_SDA_1, I2C_SCL_1, I2C_1_CLOCK_SPEED);
@@ -34,12 +34,12 @@ void setup() {
     }
 
     // Handle low battery condition BEFORE normal display initialization
-    if (BatteryMonitor::getInstance().isCriticalBattery()) {
+    if (BatteryMonitor::get_instance().is_critical_battery()) {
         // Initialize display directly without showing startup screen
-        DisplayScreen::getInstance().init(false);
-        DisplayScreen::getInstance().showLowBatteryScreen();
+        DisplayScreen::get_instance().init(false);
+        DisplayScreen::get_instance().show_low_battery_screen();
         vTaskDelay(pdMS_TO_TICKS(3000)); // Show low battery message for 3 seconds
-        Buttons::getInstance().enterDeepSleep();
+        Buttons::get_instance().enter_deep_sleep();
         return; // Should never reach here, but just in case
     }
 
@@ -77,11 +77,11 @@ void setup() {
     TaskManager::createWebSocketPollingTask();
 
     // 9. LEDs (moved later in sequence)
-    rgbLed.turnAllLedsOff(); // Still turn off LEDs early for safety
+    rgbLed.turn_all_leds_off(); // Still turn off LEDs early for safety
     TaskManager::createLedTask();
 
     // 10. Initialize all sensors centrally to avoid I2C conflicts
-    SensorInitializer::getInstance(); // This triggers centralized initialization
+    SensorInitializer::get_instance(); // This triggers centralized initialization
 
     // 11. Individual Sensor Tasks (wait for centralized init, then poll independently)
     TaskManager::createImuSensorTask();

@@ -17,16 +17,16 @@ class MotorDriver {
 
     public:
         MotorDriver();  // Constructor to initialize pins
-        void stopBothMotors();
+        void stop_both_motors();
 
         void update();
 
-        void brakeBothMotors();
-        void brakeIfMoving();
+        void brake_both_motors();
+        void brake_if_moving();
 
         // Motor command processing functions
-        void updateMotorPwm(int16_t leftPwm, int16_t rightPwm);
-        void resetCommandState(bool absoluteBrake);
+        void update_motor_pwm(int16_t leftPwm, int16_t rightPwm);
+        void reset_command_state(bool absoluteBrake);
 
     private:
         int16_t _targetLeftPwm = 0;
@@ -36,23 +36,23 @@ class MotorDriver {
         bool _shouldRampUp = true;
         static constexpr int16_t SPEED_RAMP_STEP = 600;
 
-        void leftMotorForward(uint16_t speed = MAX_MOTOR_PWM);
-        void leftMotorBackward(uint16_t speed = MAX_MOTOR_PWM);
-        void rightMotorForward(uint16_t speed = MAX_MOTOR_PWM);
-        void rightMotorBackward(uint16_t speed = MAX_MOTOR_PWM);
+        void left_motor_forward(uint16_t speed = MAX_MOTOR_PWM);
+        void left_motor_backward(uint16_t speed = MAX_MOTOR_PWM);
+        void right_motor_forward(uint16_t speed = MAX_MOTOR_PWM);
+        void right_motor_backward(uint16_t speed = MAX_MOTOR_PWM);
 
-        void leftMotorStop();
-        void rightMotorStop();
+        void left_motor_stop();
+        void right_motor_stop();
 
-        void brakeRightMotor();
-        void brakeLeftMotor();
-        void executeCommand(int16_t leftPwm, int16_t rightPwm);
+        void brake_right_motor();
+        void brake_left_motor();
+        void execute_command(int16_t leftPwm, int16_t rightPwm);
         
         // Private method for immediate motor control (used by friend classes)
-        void setMotorSpeeds(int16_t leftTarget, int16_t rightTarget, bool shouldRampUp);
-        void setMotorSpeedsImmediate(int16_t leftTarget, int16_t rightTarget);
+        void set_motor_speeds(int16_t leftTarget, int16_t rightTarget, bool shouldRampUp);
+        void set_motor_speeds_immediate(int16_t leftTarget, int16_t rightTarget);
 
-        void processPendingCommands();
+        void process_pending_commands();
 
         static constexpr float MOTOR_STOPPED_THRESHOLD = 0.5; // RPM threshold for considering motor stopped
 

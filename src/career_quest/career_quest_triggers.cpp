@@ -22,7 +22,7 @@ CareerQuestTriggers::CareerQuestTriggers(Adafruit_NeoPixel& strip) : strip(strip
 
 void CareerQuestTriggers::startS2P1Sequence() {
     // Turn off all LEDs first
-    rgbLed.turnAllLedsOff();
+    rgbLed.turn_all_leds_off();
 
     // Initialize sequence state
     s2p1Active = true;
@@ -43,9 +43,9 @@ void CareerQuestTriggers::stopS2P1Sequence() {
 
 void CareerQuestTriggers::startS2P4LightShow() {
     // Turn off all LEDs first
-    rgbLed.turnAllLedsOff();
+    rgbLed.turn_all_leds_off();
     // Stop any existing LED animations
-    ledAnimations.stopAnimation();
+    ledAnimations.stop_animation();
 
     // Initialize light show state
     s2p4Active = true;
@@ -62,7 +62,7 @@ void CareerQuestTriggers::startS2P4LightShow() {
 void CareerQuestTriggers::stopS2P4LightShow() {
     if (!s2p4Active) return;
     // Stop any breathing animation immediately
-    ledAnimations.stopAnimation();
+    ledAnimations.stop_animation();
     // Start exit fade instead of immediately turning off
     s2p4ExitFading = true;
     s2p4CurrentBrightness = 255;
@@ -143,8 +143,8 @@ void CareerQuestTriggers::updateS2P4LightShow() {
     // Handle exit fading
     if (s2p4ExitFading) {
         // Stop any breathing animation immediately and turn off all LEDs
-        ledAnimations.stopAnimation();
-        rgbLed.turnAllLedsOff();
+        ledAnimations.stop_animation();
+        rgbLed.turn_all_leds_off();
         s2p4Active = false;
         s2p4ExitFading = false;
         return;
@@ -164,26 +164,26 @@ void CareerQuestTriggers::updateS2P4LightShow() {
         s2p4Phase = 1;
         s2p4PhaseStartTime = now;
         s2p4FlashColorIndex = 0;
-        rgbLed.turnAllLedsOff();
+        rgbLed.turn_all_leds_off();
         return;
     } else if (s2p4Phase == 1 && phaseElapsed >= S2P4_FLASH_DURATION) {
         // Transition to breathing phase
         s2p4Phase = 2;
         s2p4PhaseStartTime = now;
-        rgbLed.turnAllLedsOff();
+        rgbLed.turn_all_leds_off();
         // Start breathing animation with first S2P1 color (red)
         uint8_t r = s2p1ColorSequence[0][0];
         uint8_t g = s2p1ColorSequence[0][1];
         uint8_t b = s2p1ColorSequence[0][2];
-        rgbLed.setDefaultColors(r, g, b);
-        ledAnimations.startBreathing(2000, 0.0f); // 2s breathing cycle
+        rgbLed.set_default_colors(r, g, b);
+        ledAnimations.start_breathing(2000, 0.0f); // 2s breathing cycle
         return;
     }
 
     // Phase 0: Snake animation
     if (s2p4Phase == 0) {
         if (now - lastS2P4Update >= S2P4_SNAKE_INTERVAL) {
-            rgbLed.turnAllLedsOff();
+            rgbLed.turn_all_leds_off();
 
             // Use S2P1 color sequence for snake
             uint8_t colorIndex = s2p4SnakePosition % 8;
@@ -254,7 +254,7 @@ void CareerQuestTriggers::startS3P3DisplayDemo() {
     s3p3StartTime = millis();
     lastS3P3Update = millis();
     s3p3AnimationStep = 0;
-    DisplayScreen::getInstance().displayOff = false;
+    DisplayScreen::get_instance().displayOff = false;
 }
 
 void CareerQuestTriggers::stopS3P3DisplayDemo() {
@@ -266,7 +266,7 @@ void CareerQuestTriggers::renderS3P3Animation() {
 
     unsigned long now = millis();
     if (now - lastS3P3Update >= S3P3_UPDATE_INTERVAL) {
-        DisplayScreen& displayScreen = DisplayScreen::getInstance();
+        DisplayScreen& displayScreen = DisplayScreen::get_instance();
         Adafruit_SSD1306& display = displayScreen.display;
 
         display.clearDisplay();
@@ -452,26 +452,26 @@ void CareerQuestTriggers::startS7P4ButtonDemo() {
     s7p4CurrentBrightness = 255;
 
     // Set up button handlers for random color changes and tones
-    Buttons::getInstance().setLeftButtonClickHandler([](Button2& btn) {
+    Buttons::get_instance().set_left_button_click_handler([](Button2& btn) {
         // Generate random color
         uint8_t red = random(0, MAX_LED_BRIGHTNESS + 1);
         uint8_t green = random(0, MAX_LED_BRIGHTNESS + 1);
         uint8_t blue = random(0, MAX_LED_BRIGHTNESS + 1);
 
         // Fade to new color using breathing animation
-        rgbLed.setDefaultColors(red, green, blue);
-        ledAnimations.startBreathing(1000, 0.0f); // 1s fade from dark
+        rgbLed.set_default_colors(red, green, blue);
+        ledAnimations.start_breathing(1000, 0.0f); // 1s fade from dark
     });
 
-    Buttons::getInstance().setRightButtonClickHandler([](Button2& btn) {
+    Buttons::get_instance().set_right_button_click_handler([](Button2& btn) {
         // Generate random color
         uint8_t red = random(0, MAX_LED_BRIGHTNESS + 1);
         uint8_t green = random(0, MAX_LED_BRIGHTNESS + 1);
         uint8_t blue = random(0, MAX_LED_BRIGHTNESS + 1);
 
         // Fade to new color using breathing animation
-        rgbLed.setDefaultColors(red, green, blue);
-        ledAnimations.startBreathing(1000, 0.0f); // 1s fade from dark
+        rgbLed.set_default_colors(red, green, blue);
+        ledAnimations.start_breathing(1000, 0.0f); // 1s fade from dark
     });
 }
 
@@ -479,8 +479,8 @@ void CareerQuestTriggers::stopS7P4ButtonDemo() {
     if (!s7p4Active) return;
 
     // Clear button handlers (set to nullptr)
-    Buttons::getInstance().setLeftButtonClickHandler(nullptr);
-    Buttons::getInstance().setRightButtonClickHandler(nullptr);
+    Buttons::get_instance().set_left_button_click_handler(nullptr);
+    Buttons::get_instance().set_right_button_click_handler(nullptr);
 
     // Start exit fade instead of immediately turning off
     s7p4ExitFading = true;
@@ -499,23 +499,23 @@ void CareerQuestTriggers::updateS7P4ButtonDemo() {
         s7p4CurrentBrightness = max(0, s7p4CurrentBrightness - 5);
 
         // Apply brightness to all main board LEDs
-        uint8_t fadedRed = (rgbLed.getCurrentRed() * s7p4CurrentBrightness) / 255;
-        uint8_t fadedGreen = (rgbLed.getCurrentGreen() * s7p4CurrentBrightness) / 255;
-        uint8_t fadedBlue = (rgbLed.getCurrentBlue() * s7p4CurrentBrightness) / 255;
+        uint8_t fadedRed = (rgbLed.get_current_red() * s7p4CurrentBrightness) / 255;
+        uint8_t fadedGreen = (rgbLed.get_current_green() * s7p4CurrentBrightness) / 255;
+        uint8_t fadedBlue = (rgbLed.get_current_blue() * s7p4CurrentBrightness) / 255;
 
-        rgbLed.setMainBoardLedsToColor(fadedRed, fadedGreen, fadedBlue);
+        rgbLed.set_main_board_leds_to_color(fadedRed, fadedGreen, fadedBlue);
     } else {
         // Fade complete, stop the demo
         s7p4Active = false;
         s7p4ExitFading = false;
-        rgbLed.turnAllLedsOff();
+        rgbLed.turn_all_leds_off();
     }
 
     lastS7P4Update = now;
 }
 
 void CareerQuestTriggers::startS5P4LedVisualization() {
-    rgbLed.turnAllLedsOff();
+    rgbLed.turn_all_leds_off();
     s5p4Active = true;
     s5p4ExitFading = false;
     lastS5P4Update = millis();
@@ -535,7 +535,7 @@ void CareerQuestTriggers::updateS5P4LedVisualization() {
     // Handle exit fading
     if (s5p4ExitFading) {
         // Simple fade out - turn off all LEDs
-        rgbLed.turnAllLedsOff();
+        rgbLed.turn_all_leds_off();
         s5p4Active = false;
         s5p4ExitFading = false;
         lastS5P4Update = now;
@@ -543,11 +543,11 @@ void CareerQuestTriggers::updateS5P4LedVisualization() {
     }
 
     // Get IMU data
-    float pitch = SensorDataBuffer::getInstance().getLatestPitch();
-    float roll = SensorDataBuffer::getInstance().getLatestRoll();
+    float pitch = SensorDataBuffer::get_instance().getLatestPitch();
+    float roll = SensorDataBuffer::get_instance().getLatestRoll();
 
     // Clear all LEDs first
-    rgbLed.turnAllLedsOff();
+    rgbLed.turn_all_leds_off();
 
     // Define intensity based on tilt magnitude (0-255)
     constexpr float MAX_TILT = 45.0f; // degrees
@@ -621,28 +621,28 @@ void CareerQuestTriggers::stopAllCareerQuestTriggers(bool shouldTurnLedsOff) {
 
     if (shouldTurnLedsOff) {
         // Stop all LED animations (but don't force LEDs off - let career quest fades complete)
-        ledAnimations.stopAnimation();
-        rgbLed.turnAllLedsOff();
+        ledAnimations.stop_animation();
+        rgbLed.turn_all_leds_off();
     }
 
     // Stop all audio
-    Speaker::getInstance().stopAllSounds();
+    Speaker::get_instance().stop_all_sounds();
 
     // Disable all sensor data sending
-    SendSensorData::getInstance().setSendSensorData(false);
-    SendSensorData::getInstance().setSendMultizoneData(false);
-    SendSensorData::getInstance().setEulerDataEnabled(false);
-    SendSensorData::getInstance().setAccelDataEnabled(false);
-    SendSensorData::getInstance().setGyroDataEnabled(false);
-    SendSensorData::getInstance().setMagnetometerDataEnabled(false);
-    SendSensorData::getInstance().setMultizoneTofDataEnabled(false);
-    SendSensorData::getInstance().setSideTofDataEnabled(false);
-    SendSensorData::getInstance().setColorSensorDataEnabled(false);
-    SendSensorData::getInstance().setEncoderDataEnabled(false);
+    SendSensorData::get_instance().setSendSensorData(false);
+    SendSensorData::get_instance().setSendMultizoneData(false);
+    SendSensorData::get_instance().setEulerDataEnabled(false);
+    SendSensorData::get_instance().setAccelDataEnabled(false);
+    SendSensorData::get_instance().setGyroDataEnabled(false);
+    SendSensorData::get_instance().setMagnetometerDataEnabled(false);
+    SendSensorData::get_instance().setMultizoneTofDataEnabled(false);
+    SendSensorData::get_instance().setSideTofDataEnabled(false);
+    SendSensorData::get_instance().setColorSensorDataEnabled(false);
+    SendSensorData::get_instance().setEncoderDataEnabled(false);
 
     // Stop motors
-    DanceManager::getInstance().stopDance(false);
-    GameManager::getInstance().stopCurrentGame();
-    DisplayScreen::getInstance().showStartScreen();
-    SensorDataBuffer::getInstance().stopPollingAllSensors();
+    DanceManager::get_instance().stop_dance(false);
+    GameManager::get_instance().stopCurrentGame();
+    DisplayScreen::get_instance().show_start_screen();
+    SensorDataBuffer::get_instance().stopPollingAllSensors();
 }

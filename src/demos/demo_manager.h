@@ -14,14 +14,14 @@ class DemoManager : public Singleton<DemoManager> {
 
   public:
     // Start a specific demo (automatically stops current demo if running)
-    bool startDemo(demo::DemoType demoType);
+    bool start_demo(demo::DemoType demoType);
 
     // Stop the currently running demo
-    void stopCurrentDemo();
+    void stop_current_demo();
 
     void update();
 
-    demo::DemoType getCurrentDemo() const {
+    demo::DemoType get_current_demo() const {
         return _currentDemo;
     }
 
@@ -32,8 +32,8 @@ class DemoManager : public Singleton<DemoManager> {
   private:
     DemoManager() = default;
 
-    void disableCurrentDemo();
-    bool enableDemo(demo::DemoType demoType);
-    const char* getDemoName(demo::DemoType demoType) const;
+    void disable_current_demo();
+    bool enable_demo(demo::DemoType demoType);
+    const char* get_demo_name(demo::DemoType demoType) const;
     demo::DemoType _currentDemo = demo::DemoType::NONE;
 };

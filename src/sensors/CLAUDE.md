@@ -159,13 +159,13 @@ BATTERY_MONITOR_STACK_SIZE = 6144;      // I2C + calculations
 ### Reading Sensor Data
 ```cpp
 // IMU data access
-QuaternionData quat = SensorDataBuffer::getInstance().getQuaternionData();
+QuaternionData quat = SensorDataBuffer::get_instance().getQuaternionData();
 if (quat.isValid) {
     // Use quaternion for balance control
 }
 
 // Battery monitoring
-BatteryState battery = BatteryMonitor::getInstance().getBatteryState();
+BatteryState battery = BatteryMonitor::get_instance().getBatteryState();
 if (battery.isCriticalBattery) {
     // Initiate emergency shutdown
 }
@@ -174,8 +174,8 @@ if (battery.isCriticalBattery) {
 ### Sensor Status Checking
 ```cpp
 // Verify sensor initialization
-if (ColorSensor::getInstance().isInitialized()) {
-    ColorData colorData = SensorDataBuffer::getInstance().getColorData();
+if (ColorSensor::get_instance().isInitialized()) {
+    ColorData colorData = SensorDataBuffer::get_instance().getColorData();
     if (colorData.isValid) {
         // Process RGB values: colorData.redValue, greenValue, blueValue
     }
@@ -185,10 +185,10 @@ if (ColorSensor::getInstance().isInitialized()) {
 ### Color Sensor Calibration
 ```cpp
 // Perform black point calibration (on dark surface)
-ColorSensor::getInstance().calibrateBlackPoint();
+ColorSensor::get_instance().calibrateBlackPoint();
 
 // Perform white point calibration (on white surface)  
-ColorSensor::getInstance().calibrateWhitePoint();
+ColorSensor::get_instance().calibrateWhitePoint();
 ```
 
 ## Troubleshooting

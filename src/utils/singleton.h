@@ -13,12 +13,12 @@ class Singleton {
         Singleton& operator=(const Singleton&) = delete;
 
     public:
-        static T& getInstance() {
-            if (instance == nullptr) {
-                instance = new T();
-            }
-            return *instance;
-        }
+      static T& get_instance() {
+          if (instance == nullptr) {
+              instance = new T();
+          }
+          return *instance;
+      }
 
         virtual ~Singleton() = default;
 };

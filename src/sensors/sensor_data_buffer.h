@@ -164,65 +164,65 @@ class SensorDataBuffer : public Singleton<SensorDataBuffer> {
 
     public:        
         // IMU Read methods (called from any core, resets timeouts)
-        EulerAngles getLatestEulerAngles();
-        QuaternionData getLatestQuaternion();
-        AccelerometerData getLatestAccelerometer();
-        GyroscopeData getLatestGyroscope();
-        MagnetometerData getLatestMagnetometer();
+        EulerAngles get_latest_euler_angles();
+        QuaternionData get_latest_quaternion();
+        AccelerometerData get_latest_accelerometer();
+        GyroscopeData get_latest_gyroscope();
+        MagnetometerData get_latest_magnetometer();
         
         // TOF Read methods (called from any core, resets timeouts)
-        TofData getLatestTofData();
-        VL53L7CX_ResultsData getLatestTofRawData();
-        bool isObjectDetectedTof();
-        float getFrontTofDistance();
+        TofData get_latest_tof_data();
+        VL53L7CX_ResultsData get_latest_tof_raw_data();
+        bool is_object_detected_tof();
+        float get_front_tof_distance();
         
         // Side TOF Read methods (called from any core, resets timeouts)
-        SideTofData getLatestSideTofData();
-        uint16_t getLatestLeftSideTofCounts();
-        uint16_t getLatestRightSideTofCounts();
-        bool isLeftSideTofValid();
-        bool isRightSideTofValid();
+        SideTofData get_latest_side_tof_data();
+        uint16_t get_latest_left_side_tof_counts();
+        uint16_t get_latest_right_side_tof_counts();
+        bool is_left_side_tof_valid();
+        bool is_right_side_tof_valid();
         
         // Color sensor Read methods (called from any core, resets timeouts)
-        ColorData getLatestColorData();
-        uint8_t getLatestRedValue();
-        uint8_t getLatestGreenValue();
-        uint8_t getLatestBlueValue();
-        bool isColorDataValid();
+        ColorData get_latest_color_data();
+        uint8_t get_latest_red_value();
+        uint8_t get_latest_green_value();
+        uint8_t get_latest_blue_value();
+        bool is_color_data_valid();
 
         // Encoder Read methods (called from any core, resets timeouts)
-        EncoderData getLatestEncoderData();
-        WheelRPMs getLatestWheelRPMs();  // Returns legacy WheelRPMs struct for compatibility
-        float getLatestLeftWheelRPM();
-        float getLatestRightWheelRPM();
-        float getLatestDistanceTraveledIn();
-        bool isEncoderDataValid();
+        EncoderData get_latest_encoder_data();
+        WheelRPMs get_latest_wheel_rpms();  // Returns legacy WheelRPMs struct for compatibility
+        float get_latest_left_wheel_rpm();
+        float get_latest_right_wheel_rpm();
+        float get_latest_distance_traveled_in();
+        bool is_encoder_data_valid();
         
         // Raw encoder count access (for motor driver)
-        int64_t getLatestLeftEncoderCount();
-        int64_t getLatestRightEncoderCount();
-        std::pair<int64_t, int64_t> getLatestEncoderCounts(); // Both counts atomically
+        int64_t get_latest_left_encoder_count();
+        int64_t get_latest_right_encoder_count();
+        std::pair<int64_t, int64_t> get_latest_encoder_counts(); // Both counts atomically
 
         // Convenience methods for individual values
-        float getLatestPitch();
-        float getLatestYaw();
-        float getLatestRoll();
-        float getLatestXAccel();
-        float getLatestYAccel();
-        float getLatestZAccel();
-        float getLatestXRotationRate();
-        float getLatestYRotationRate();
-        float getLatestZRotationRate();
-        double getLatestAccelMagnitude();
-        float getLatestMagneticFieldX();
-        float getLatestMagneticFieldY();
-        float getLatestMagneticFieldZ();
+        float get_latest_pitch();
+        float get_latest_yaw();
+        float get_latest_roll();
+        float get_latest_x_accel();
+        float get_latest_y_accel();
+        float get_latest_z_accel();
+        float get_latest_x_rotation_rate();
+        float get_latest_y_rotation_rate();
+        float get_latest_z_rotation_rate();
+        double get_latest_accel_magnitude();
+        float get_latest_magnetic_field_x();
+        float get_latest_magnetic_field_y();
+        float get_latest_magnetic_field_z();
 
         // Timeout checking (called by sensors to determine what to enable)
-        ReportTimeouts& getReportTimeouts() { return timeouts; }
+        ReportTimeouts& get_report_timeouts() { return timeouts; }
         
         // Helper methods for bulk polling control
-        void stopPollingAllSensors();
+        void stop_polling_all_sensors();
         
         // Sensor type enum for selective control
         enum class SensorType {
@@ -236,39 +236,39 @@ class SensorDataBuffer : public Singleton<SensorDataBuffer> {
         };
         
         // Selective sensor polling control
-        void stopPollingSensor(SensorType sensorType);
+        void stop_polling_sensor(SensorType sensorType);
         
         // Get complete samples (for debugging/logging)
-        ImuSample getLatestImuSample();
+        ImuSample get_latest_imu_sample();
         
         // Frequency tracking methods
-        float getImuFrequency();
-        float getMultizoneTofFrequency();
-        float getSideTofFrequency();
-        float getColorSensorFrequency();
+        float get_imu_frequency();
+        float get_multizone_tof_frequency();
+        float get_side_tof_frequency();
+        float get_color_sensor_frequency();
 
-        bool shouldEnableQuaternionExtended() const;
+        bool should_enable_quaternion_extended() const;
 
-        bool isObjectRed();
-        bool isObjectGreen();
-        bool isObjectBlue();
-        bool isObjectWhite();
-        bool isObjectBlack();
-        bool isObjectYellow();
-        ColorType classifyCurrentColor();
+        bool is_object_red();
+        bool is_object_green();
+        bool is_object_blue();
+        bool is_object_white();
+        bool is_object_black();
+        bool is_object_yellow();
+        ColorType classify_current_color();
 
     private:
         SensorDataBuffer() = default;
         
         // Write methods (called by sensor polling task on Core 0)
-        void updateQuaternion(const QuaternionData& quaternion);
-        void updateAccelerometer(const AccelerometerData& accel);
-        void updateGyroscope(const GyroscopeData& gyro);
-        void updateMagnetometer(const MagnetometerData& mag);
-        void updateTofData(const TofData& tof);
-        void updateSideTofData(const SideTofData& sideTof);
-        void updateColorData(const ColorData& color);  // Add color sensor update method
-        void updateEncoderData(const EncoderData& encoder);  // Add encoder update method
+        void update_quaternion(const QuaternionData& quaternion);
+        void update_accelerometer(const AccelerometerData& accel);
+        void update_gyroscope(const GyroscopeData& gyro);
+        void update_magnetometer(const MagnetometerData& mag);
+        void update_tof_data(const TofData& tof);
+        void update_side_tof_data(const SideTofData& sideTof);
+        void update_color_data(const ColorData& color);  // Add color sensor update method
+        void update_encoder_data(const EncoderData& encoder);  // Add encoder update method
 
         // Thread-safe data storage
         ImuSample _currentSample;
@@ -297,16 +297,16 @@ class SensorDataBuffer : public Singleton<SensorDataBuffer> {
         std::atomic<uint32_t> _lastColorSensorFrequencyCalcTime{0};
 
         // Helper to update timestamp
-        void markImuDataUpdated();
-        void markTofDataUpdated();
-        void markSideTofDataUpdated();
-        void markColorDataUpdated();  // Separate method for color sensor timestamp
-        void markEncoderDataUpdated();  // Separate method for encoder timestamp
+        void mark_imu_data_updated();
+        void mark_tof_data_updated();
+        void mark_side_tof_data_updated();
+        void mark_color_data_updated();  // Separate method for color sensor timestamp
+        void mark_encoder_data_updated();  // Separate method for encoder timestamp
 
         ColorType _colorHistory[5] = {ColorType::COLOR_NONE}; // Circular buffer for last 5 classifications
         uint8_t _colorHistoryIndex = 0;
 
         // Helper methods
-        void updateColorHistory(ColorType color);
-        bool checkColorConsistency(ColorType targetColor);
+        void update_color_history(ColorType color);
+        bool check_color_consistency(ColorType targetColor);
 };

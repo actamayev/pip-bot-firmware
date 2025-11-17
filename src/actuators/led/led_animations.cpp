@@ -2,11 +2,11 @@
 
 LedAnimations::LedAnimations(Adafruit_NeoPixel& strip) : strip(strip) {}
 
-void LedAnimations::startBreathing(int speed, float startingBrightness) {
+void LedAnimations::start_breathing(int speed, float startingBrightness) {
     // Stop any current animation
     currentAnimation = led_types::AnimationType::NONE;
 
-    updateBreathingColor();
+    update_breathing_color();
 
     breathSpeed = speed;
 
@@ -28,7 +28,7 @@ void LedAnimations::startBreathing(int speed, float startingBrightness) {
     lastBreathUpdate = millis();
 }
 
-void LedAnimations::updateBreathingColor() {
+void LedAnimations::update_breathing_color() {
     // Use middle_right LED's default color for breathing (now index 0)
     if (!rgbLed.defaultColorsSet[0]) {
         breathMin[0] = 0.1 * MAX_LED_BRIGHTNESS;
@@ -49,11 +49,11 @@ void LedAnimations::updateBreathingColor() {
     breathMax[2] = rgbLed.defaultColors[0][2];
 }
 
-void LedAnimations::startStrobing(int speed) {
+void LedAnimations::start_strobing(int speed) {
     // Stop any current animation
     currentAnimation = led_types::AnimationType::NONE;
 
-    updateStrobeColor();
+    update_strobe_color();
 
     strobeSpeed = speed;
     strobeState = false;
@@ -65,7 +65,7 @@ void LedAnimations::startStrobing(int speed) {
     lastStrobeUpdate = millis();
 }
 
-void LedAnimations::updateStrobeColor() {
+void LedAnimations::update_strobe_color() {
     // Use middle_right LED's default color for strobing (now index 0)
     if (!rgbLed.defaultColorsSet[0]) {
         strobeColor[0] = MAX_LED_BRIGHTNESS;
@@ -78,7 +78,7 @@ void LedAnimations::updateStrobeColor() {
     strobeColor[2] = rgbLed.defaultColors[0][2];
 }
 
-void LedAnimations::startRainbow(int cycleTime) {
+void LedAnimations::start_rainbow(int cycleTime) {
     // Stop any current animation
     currentAnimation = led_types::AnimationType::NONE;
 
@@ -98,15 +98,15 @@ void LedAnimations::startRainbow(int cycleTime) {
     lastRainbowUpdate = millis();
 }
 
-void LedAnimations::stopAnimation() {
+void LedAnimations::stop_animation() {
     currentAnimation = led_types::AnimationType::NONE;
     isPaused = false;
     isFadingOut = false;
 }
 
-void LedAnimations::fadeOut() {
+void LedAnimations::fade_out() {
     // Check if LEDs are already off (all stored RGB values are 0)
-    if (rgbLed.getCurrentRed() == 0 && rgbLed.getCurrentGreen() == 0 && rgbLed.getCurrentBlue() == 0) {
+    if (rgbLed.get_current_red() == 0 && rgbLed.get_current_green() == 0 && rgbLed.get_current_blue() == 0) {
         // LEDs are already off, no need to fade
         return;
     }
@@ -117,9 +117,9 @@ void LedAnimations::fadeOut() {
     breathMin[2] = 0;
 
     // Set max to current stored values
-    breathMax[0] = rgbLed.getCurrentRed();
-    breathMax[1] = rgbLed.getCurrentGreen();
-    breathMax[2] = rgbLed.getCurrentBlue();
+    breathMax[0] = rgbLed.get_current_red();
+    breathMax[1] = rgbLed.get_current_green();
+    breathMax[2] = rgbLed.get_current_blue();
 
     // Start at 0.5 to begin fade from maximum brightness and go straight to min
     breathProgress = 0.5;
@@ -139,20 +139,20 @@ void LedAnimations::update() {
 
     switch (currentAnimation) {
         case led_types::AnimationType::BREATHING:
-            updateBreathing();
+            update_breathing();
             break;
         case led_types::AnimationType::STROBING:
-            updateStrobing();
+            update_strobing();
             break;
         case led_types::AnimationType::RAINBOW:
-            updateRainbow();
+            update_rainbow();
             break;
         default:
             break;
     }
 }
 
-void LedAnimations::updateBreathing() {
+void LedAnimations::update_breathing() {
     unsigned long currentTime = millis();
     unsigned long timePerStep = breathSpeed / 255;
     timePerStep = max(1UL, timePerStep);
@@ -171,7 +171,7 @@ void LedAnimations::updateBreathing() {
     uint8_t b = breathMin[2] + factor * (breathMax[2] - breathMin[2]);
 
     // Set the color
-    setAllLeds(r, g, b);
+    set_all_leds(r, g, b);
 
     // Update progress
     float progressStep = 1.0 / 255.0;
@@ -182,7 +182,7 @@ void LedAnimations::updateBreathing() {
         // We've faded out completely, stop breathing and ensure LEDs are off
         currentAnimation = led_types::AnimationType::NONE;
         isFadingOut = false;
-        setAllLeds(0, 0, 0);
+        set_all_leds(0, 0, 0);
         return;
     }
 
@@ -192,7 +192,7 @@ void LedAnimations::updateBreathing() {
     }
 }
 
-void LedAnimations::updateStrobing() {
+void LedAnimations::update_strobing() {
     unsigned long currentTime = millis();
 
     if (currentTime - lastStrobeUpdate >= strobeSpeed) {
@@ -201,15 +201,15 @@ void LedAnimations::updateStrobing() {
 
         if (strobeState) {
             // ON state - use the set color
-            setAllLeds(strobeColor[0], strobeColor[1], strobeColor[2]);
+            set_all_leds(strobeColor[0], strobeColor[1], strobeColor[2]);
         } else {
             // OFF state
-            setAllLeds(0, 0, 0);
+            set_all_leds(0, 0, 0);
         }
     }
 }
 
-void LedAnimations::updateRainbow() {
+void LedAnimations::update_rainbow() {
     unsigned long currentTime = millis();
 
     if (currentTime - lastRainbowUpdate < rainbowStepTime) return;
@@ -229,18 +229,18 @@ void LedAnimations::updateRainbow() {
     };
 
     // Map colors to each LED EXCLUDING headlights (indices 2,3):
-    strip.setPixelColor(0, colorHSV((baseHues[0] + rainbowHue) % 256)); // middle_right
-    strip.setPixelColor(1, colorHSV((baseHues[5] + rainbowHue) % 256)); // top_right
+    strip.setPixelColor(0, color_hsv((baseHues[0] + rainbowHue) % 256)); // middle_right
+    strip.setPixelColor(1, color_hsv((baseHues[5] + rainbowHue) % 256)); // top_right
     // Skip indices 2 and 3 (headlights)
-    strip.setPixelColor(4, colorHSV((baseHues[4] + rainbowHue) % 256)); // top_left
-    strip.setPixelColor(5, colorHSV((baseHues[3] + rainbowHue) % 256)); // middle_left
-    strip.setPixelColor(6, colorHSV((baseHues[2] + rainbowHue) % 256)); // back_left
-    strip.setPixelColor(7, colorHSV((baseHues[1] + rainbowHue) % 256)); // back_right
+    strip.setPixelColor(4, color_hsv((baseHues[4] + rainbowHue) % 256)); // top_left
+    strip.setPixelColor(5, color_hsv((baseHues[3] + rainbowHue) % 256)); // middle_left
+    strip.setPixelColor(6, color_hsv((baseHues[2] + rainbowHue) % 256)); // back_left
+    strip.setPixelColor(7, color_hsv((baseHues[1] + rainbowHue) % 256)); // back_right
 
     strip.show();
 }
 
-uint32_t LedAnimations::colorHSV(uint8_t h, uint8_t s, uint8_t v) {
+uint32_t LedAnimations::color_hsv(uint8_t h, uint8_t s, uint8_t v) {
     // Convert HSV to RGB
     uint8_t region, remainder, p, q, t;
     uint8_t r, g, b;
@@ -299,12 +299,12 @@ uint32_t LedAnimations::colorHSV(uint8_t h, uint8_t s, uint8_t v) {
     return strip.Color(r, g, b);
 }
 
-void LedAnimations::turnOff() {
+void LedAnimations::turn_off() {
     currentAnimation = led_types::AnimationType::NONE;
     rgbLed.turn_main_board_leds_off();
 }
 
-void LedAnimations::setAllLeds(uint8_t red, uint8_t green, uint8_t blue) {
+void LedAnimations::set_all_leds(uint8_t red, uint8_t green, uint8_t blue) {
     // Set all LEDs except headlights (indices 2 and 3) to the same color
     for (int i = 0; i < strip.numPixels(); i++) {
         if (i != 2 && i != 3) { // Skip headlight indices

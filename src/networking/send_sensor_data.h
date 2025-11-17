@@ -15,16 +15,16 @@ class SendSensorData : public Singleton<SendSensorData> {
     friend class TaskManager;
 
     public:
-        void setSendSensorData(bool enabled) { sendSensorData = enabled; }
-        void setSendMultizoneData(bool enabled) { sendMzData = enabled; }
-        void setEulerDataEnabled(bool enabled) { sendEulerData = enabled; }
-        void setAccelDataEnabled(bool enabled) { sendAccelData = enabled; }
-        void setGyroDataEnabled(bool enabled) { sendGyroData = enabled; }
-        void setMagnetometerDataEnabled(bool enabled) { sendMagnetometerData = enabled; }
-        void setMultizoneTofDataEnabled(bool enabled) { sendMultizoneTofData = enabled; }
-        void setSideTofDataEnabled(bool enabled) { sendSideTofData = enabled; }
-        void setColorSensorDataEnabled(bool enabled) { sendColorSensorData = enabled; }
-        void setEncoderDataEnabled(bool enabled) { sendEncoderData = enabled; }
+        void set_send_sensor_data(bool enabled) { sendSensorData = enabled; }
+        void set_send_multizone_data(bool enabled) { sendMzData = enabled; }
+        void set_euler_data_enabled(bool enabled) { sendEulerData = enabled; }
+        void set_accel_data_enabled(bool enabled) { sendAccelData = enabled; }
+        void set_gyro_data_enabled(bool enabled) { sendGyroData = enabled; }
+        void set_magnetometer_data_enabled(bool enabled) { sendMagnetometerData = enabled; }
+        void set_multizone_tof_data_enabled(bool enabled) { sendMultizoneTofData = enabled; }
+        void set_side_tof_data_enabled(bool enabled) { sendSideTofData = enabled; }
+        void set_color_sensor_data_enabled(bool enabled) { sendColorSensorData = enabled; }
+        void set_encoder_data_enabled(bool enabled) { sendEncoderData = enabled; }
 
     private:
         SendSensorData() = default;
@@ -39,16 +39,16 @@ class SendSensorData : public Singleton<SendSensorData> {
         bool sendColorSensorData = false;
         bool sendEncoderData = false;
         
-        void attachRPMData(JsonObject& payload);
-        void attachColorSensorData(JsonObject& payload);
-        void attachEulerData(JsonObject& payload);
-        void attachAccelData(JsonObject& payload);
-        void attachGyroData(JsonObject& payload);
-        void attachMagnetometerData(JsonObject& payload);
-        void attachMultizoneTofData(JsonObject& payload);
-        void attachSideTofData(JsonObject& payload);
-        void sendSensorDataToServer();
-        void sendMultizoneData();
+        void attach_rpm_data(JsonObject& payload);
+        void attach_color_sensor_data(JsonObject& payload);
+        void attach_euler_data(JsonObject& payload);
+        void attach_accel_data(JsonObject& payload);
+        void attach_gyro_data(JsonObject& payload);
+        void attach_magnetometer_data(JsonObject& payload);
+        void attach_multizone_tof_data(JsonObject& payload);
+        void attach_side_tof_data(JsonObject& payload);
+        void send_sensor_data_to_server();
+        void send_multizone_data();
 
         unsigned long lastSendTime = 0;
         unsigned long lastMzSendTime = 0;

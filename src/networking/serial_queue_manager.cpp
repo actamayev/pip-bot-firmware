@@ -11,11 +11,11 @@ void SerialQueueManager::initialize() {
     Serial.println("SerialQueueManager initialized - task will be created by TaskManager");
 }
 
-bool SerialQueueManager::queueMessage(const String& msg, SerialPriority priority) {
-    return queueMessage(msg.c_str(), priority);
+bool SerialQueueManager::queue_message(const String& msg, SerialPriority priority) {
+    return queue_message(msg.c_str(), priority);
 }
 
-bool SerialQueueManager::queueMessage(const char* msg, SerialPriority priority) {
+bool SerialQueueManager::queue_message(const char* msg, SerialPriority priority) {
     if (_messageQueue == nullptr || msg == nullptr) {
         return false;
     }
@@ -35,10 +35,10 @@ bool SerialQueueManager::queueMessage(const char* msg, SerialPriority priority) 
     message.message[msgLen] = '\0';
     message.length = msgLen;
 
-    return addMessageToQueue(message);
+    return add_message_to_queue(message);
 }
 
-bool SerialQueueManager::addMessageToQueue(const SerialMessage& msg) {
+bool SerialQueueManager::add_message_to_queue(const SerialMessage& msg) {
     // Try to send to queue without blocking
     BaseType_t result = xQueueSend(_messageQueue, &msg, 0);
 
@@ -59,7 +59,7 @@ bool SerialQueueManager::addMessageToQueue(const SerialMessage& msg) {
     return false;
 }
 
-void SerialQueueManager::serialOutputTask() {
+void SerialQueueManager::serial_output_task() {
     SerialMessage message;
 
     // Array to hold messages for priority sorting
@@ -91,13 +91,13 @@ void SerialQueueManager::serialOutputTask() {
 
             // Process all messages in priority order
             for (int i = 0; i < bufferCount; i++) {
-                processMessage(priorityBuffer[i]);
+                process_message(priorityBuffer[i]);
             }
         }
     }
 }
 
-void SerialQueueManager::processMessage(const SerialMessage& msg) {
+void SerialQueueManager::process_message(const SerialMessage& msg) {
     const char* priorityStr = "";
     switch (msg.priority) {
         case SerialPriority::CRITICAL:

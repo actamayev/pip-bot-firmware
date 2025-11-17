@@ -14,18 +14,18 @@ class SerialManager : public Singleton<SerialManager> {
     friend class MessageProcessor;
 
     public:
-        void pollSerial();
-        bool isSerialConnected() const { return isConnected; }
+        void poll_serial();
+        bool is_serial_connected() const { return isConnected; }
         unsigned long lastActivityTime = 0;
-        void sendJsonMessage(ToSerialMessage route, const String& status);
-        void sendPipIdMessage();
-        void sendSavedNetworksResponse(const std::vector<WiFiCredentials>& networks);
-        void sendScanResultsResponse(const std::vector<WiFiNetworkInfo>& networks);
-        void sendScanStartedMessage();
-        void sendBatteryMonitorData();
-        void sendDinoScore(int score);
-        void sendNetworkDeletedResponse(bool success);
-        void sendPipTurningOff();
+        void send_json_message(ToSerialMessage route, const String& status);
+        void send_pip_id_message();
+        void send_saved_networks_response(const std::vector<WiFiCredentials>& networks);
+        void send_scan_results_response(const std::vector<WiFiNetworkInfo>& networks);
+        void send_scan_started_message();
+        void send_battery_monitor_data();
+        void send_dino_score(int score);
+        void send_network_deleted_response(bool success);
+        void send_pip_turning_off();
 
     private:
         SerialManager() = default;  // Make constructor private and implement it
@@ -47,8 +47,8 @@ class SerialManager : public Singleton<SerialManager> {
         const unsigned long SERIAL_CONNECTION_TIMEOUT = 400;
         bool isConnected = false;
         
-        void sendBatteryDataItem(const String& key, int value);
-        void sendBatteryDataItem(const String& key, unsigned int value);
-        void sendBatteryDataItem(const String& key, float value);
-        void sendBatteryDataItem(const String& key, bool value);
+        void send_battery_data_item(const String& key, int value);
+        void send_battery_data_item(const String& key, unsigned int value);
+        void send_battery_data_item(const String& key, float value);
+        void send_battery_data_item(const String& key, bool value);
 };

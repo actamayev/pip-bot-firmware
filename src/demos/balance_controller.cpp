@@ -10,7 +10,7 @@ void BalanceController::enable() {
     _lastError = 0.0f;
     _lastUpdateTime = millis();
 
-    float currentAngle = SensorDataBuffer::getInstance().getLatestPitch();
+    float currentAngle = SensorDataBuffer::get_instance().getLatestPitch();
     _lastValidAngle = currentAngle;
 
     // Initialize buffers with the current angle
@@ -24,7 +24,7 @@ void BalanceController::enable() {
     _safetyBufferCount = ANGLE_BUFFER_SIZE;
 
     // Disable straight driving correction
-    // StraightLineDrive::getInstance().disable();
+    // StraightLineDrive::get_instance().disable();
 
     // Set LED to indicate balancing mode
     // rgbLed.set_led_green();
@@ -33,9 +33,9 @@ void BalanceController::enable() {
 void BalanceController::disable() {
     if (_balancingEnabled == BalanceStatus::UNBALANCED) return;
     _balancingEnabled = BalanceStatus::UNBALANCED;
-    motorDriver.resetCommandState(false);
-    rgbLed.turnAllLedsOff();
-    DemoManager::getInstance()._currentDemo = demo::DemoType::NONE;
+    motorDriver.reset_command_state(false);
+    rgbLed.turn_all_leds_off();
+    DemoManager::get_instance()._currentDemo = demo::DemoType::NONE;
 }
 
 void BalanceController::update() {
@@ -48,7 +48,7 @@ void BalanceController::update() {
     // _lastUpdateTime = currentTime;
 
     // Get current pitch
-    float rawAngle = SensorDataBuffer::getInstance().getLatestPitch();
+    float rawAngle = SensorDataBuffer::get_instance().getLatestPitch();
     float currentAngle = rawAngle;
 
     // Update safety monitoring buffer
@@ -85,7 +85,7 @@ void BalanceController::update() {
 
     // PID calculation
     float error = TARGET_ANGLE - currentAngle;
-    float gyroRate = SensorDataBuffer::getInstance().getLatestYRotationRate();
+    float gyroRate = SensorDataBuffer::get_instance().getLatestYRotationRate();
 
     // If within deadband angle and rotation rate is low, stop motors
     if (abs(error) < DEADBAND_ANGLE && abs(gyroRate) < MAX_STABLE_ROTATION) {
@@ -101,7 +101,7 @@ void BalanceController::update() {
     float proportionalTerm = P_GAIN * error;
     float integralTerm = I_GAIN * _errorSum;
     float derivativeTerm = D_GAIN * -gyroRate;
-    // float yAccel = SensorDataBuffer::getInstance().getLatestYAccel();
+    // float yAccel = SensorDataBuffer::get_instance().getLatestYAccel();
     // float feedforwardTerm = FF_GAIN * yAccel;
 
     int16_t motorPower = constrain((int16_t)(proportionalTerm + integralTerm + derivativeTerm), -MAX_MOTOR_PWM, MAX_MOTOR_PWM);
@@ -120,7 +120,7 @@ void BalanceController::update() {
     _lastError = error;
 }
 
-void BalanceController::updateBalancePids(NewBalancePids newBalancePids) {
+void BalanceController::update_balance_pids(NewBalancePids newBalancePids) {
     P_GAIN = newBalancePids.pValue;                                  // 0-255
     I_GAIN = newBalancePids.iValue;                                  // 0-255
     D_GAIN = newBalancePids.dValue;                                  // 0-255

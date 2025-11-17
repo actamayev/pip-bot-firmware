@@ -31,9 +31,9 @@ class SerialQueueManager : public Singleton<SerialQueueManager> {
 
   public:
     void initialize();
-    bool queueMessage(const String& msg, SerialPriority priority = SerialPriority::LOW_PRIO);
-    bool queueMessage(const char* msg, SerialPriority priority = SerialPriority::LOW_PRIO);
-    void serialOutputTask();
+    bool queue_message(const String& msg, SerialPriority priority = SerialPriority::LOW_PRIO);
+    bool queue_message(const char* msg, SerialPriority priority = SerialPriority::LOW_PRIO);
+    void serial_output_task();
 
   private:
     SerialQueueManager() = default;
@@ -45,6 +45,6 @@ class SerialQueueManager : public Singleton<SerialQueueManager> {
     QueueHandle_t _messageQueue = nullptr;
 
     // Helper functions
-    bool addMessageToQueue(const SerialMessage& msg);
-    void processMessage(const SerialMessage& msg);
+    bool add_message_to_queue(const SerialMessage& msg);
+    void process_message(const SerialMessage& msg);
 };

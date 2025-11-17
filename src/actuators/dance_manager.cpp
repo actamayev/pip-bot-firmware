@@ -3,46 +3,46 @@
 #include "networking/serial_manager.h"
 
 // Define the static constexpr array
-constexpr const DanceManager::DanceStep DanceManager::danceSequence[];
+constexpr const DanceManager::DanceStep DanceManager::DANCE_SEQUENCE[];
 
-void DanceManager::startDance() {
+void DanceManager::start_dance() {
     // Safety check - only dance if USB is not connected
-    // if (SerialManager::getInstance().isSerialConnected()) {
-    //     SerialQueueManager::getInstance().queueMessage("Dance blocked - USB connected for safety");
+    // if (SerialManager::get_instance().isSerialConnected()) {
+    //     SerialQueueManager::get_instance().queueMessage("Dance blocked - USB connected for safety");
     //     return;
     // }
 
     if (_isCurrentlyDancing) {
-        SerialQueueManager::getInstance().queueMessage("Dance already in progress");
+        SerialQueueManager::get_instance().queueMessage("Dance already in progress");
         return;
     }
 
-    SerialQueueManager::getInstance().queueMessage("Starting dance sequence");
+    SerialQueueManager::get_instance().queueMessage("Starting dance sequence");
     _isCurrentlyDancing = true;
     _currentStep = 0;
-    stepStartTime = millis();
+    _stepStartTime = millis();
 
-    nextStepTime = stepStartTime + danceSequence[0].duration;
+    _nextStepTime = _stepStartTime + DANCE_SEQUENCE[0].duration;
 
     // Start first dance step
-    DanceStep firstStep = danceSequence[0];
-    motorDriver.updateMotorPwm(firstStep.leftSpeed, firstStep.rightSpeed);
+    DanceStep firstStep = DANCE_SEQUENCE[0];
+    motorDriver.update_motor_pwm(firstStep.leftSpeed, firstStep.rightSpeed);
 
     // Start LED animation
     if (firstStep.ledAnimation == led_types::AnimationType::RAINBOW) {
-        ledAnimations.startRainbow(2000);
+        ledAnimations.start_rainbow(2000);
     } else if (firstStep.ledAnimation == led_types::AnimationType::BREATHING) {
-        ledAnimations.startBreathing(2000, 0.5f);
+        ledAnimations.start_breathing(2000, 0.5f);
     } else if (firstStep.ledAnimation == led_types::AnimationType::STROBING) {
-        ledAnimations.startStrobing(500);
+        ledAnimations.start_strobing(500);
     }
 }
 
-void DanceManager::stopDance(bool shouldTurnLedsOff) {
-    if (!isCurrentlyDancing) return;
+void DanceManager::stop_dance(bool shouldTurnLedsOff) {
+    if (!_isCurrentlyDancing) return;
 
-    SerialQueueManager::getInstance().queueMessage("Stopping dance sequence");
-    isCurrentlyDancing = false;
+    SerialQueueManager::get_instance().queueMessage("Stopping dance sequence");
+    _isCurrentlyDancing = false;
     _currentStep = 0;
 
     // Stop motors immediately for safety
@@ -50,17 +50,17 @@ void DanceManager::stopDance(bool shouldTurnLedsOff) {
 
     if (shouldTurnLedsOff) {
         // Turn off LEDs
-        ledAnimations.turnOff();
-        rgbLed.turnAllLedsOff();
+        ledAnimations.turn_off();
+        rgbLed.turn_all_leds_off();
     }
 }
 
 void DanceManager::update() {
-    if (!isCurrentlyDancing) return;
+    if (!_isCurrentlyDancing) return;
 
     // Safety check during dance - stop if USB gets connected
-    // if (SerialManager::getInstance().isSerialConnected()) {
-    //     SerialQueueManager::getInstance().queueMessage("USB connected during dance - stopping for safety");
+    // if (SerialManager::get_instance().isSerialConnected()) {
+    //     SerialQueueManager::get_instance().queueMessage("USB connected during dance - stopping for safety");
     //     stopDance();
     //     return;
     // }
@@ -68,32 +68,32 @@ void DanceManager::update() {
     unsigned long currentTime = millis();
 
     // Check if it's time for the next step
-    if (currentTime < nextStepTime) return;
-    currentStep++;
+    if (currentTime < _nextStepTime) return;
+    _currentStep++;
 
     // Check if dance is complete
-    if (currentStep >= DANCE_SEQUENCE_LENGTH) {
-        stopDance(true);
+    if (_currentStep >= DANCE_SEQUENCE_LENGTH) {
+        stop_dance(true);
         return;
     }
 
     // Execute next dance step
-    DanceStep step = danceSequence[currentStep];
-    stepStartTime = currentTime;
-    nextStepTime = currentTime + step.duration;
+    DanceStep step = DANCE_SEQUENCE[_currentStep];
+    _stepStartTime = currentTime;
+    _nextStepTime = currentTime + step.duration;
 
     // Update motors with gentle speeds
-    motorDriver.updateMotorPwm(step.leftSpeed, step.rightSpeed);
+    motorDriver.update_motor_pwm(step.leftSpeed, step.rightSpeed);
 
     // Update LED animation
     if (step.ledAnimation == led_types::AnimationType::RAINBOW) {
-        ledAnimations.startRainbow(2000);
+        ledAnimations.start_rainbow(2000);
     } else if (step.ledAnimation == led_types::AnimationType::BREATHING) {
-        ledAnimations.startBreathing(2000, 0.5f);
+        ledAnimations.start_breathing(2000, 0.5f);
     } else if (step.ledAnimation == led_types::AnimationType::STROBING) {
-        ledAnimations.startStrobing(500);
+        ledAnimations.start_strobing(500);
     } else if (step.ledAnimation == led_types::AnimationType::NONE) {
-        ledAnimations.turnOff();
-        rgbLed.turnAllLedsOff();
+        ledAnimations.turn_off();
+        rgbLed.turn_all_leds_off();
     }
 }

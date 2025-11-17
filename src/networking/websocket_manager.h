@@ -19,24 +19,24 @@ class WebSocketManager : public Singleton<WebSocketManager> {
     friend class SendSensorData;
 
     public:
-        void connectToWebSocket();
-        void pollWebSocket();
+        void connect_to_websocket();
+        void poll_websocket();
 
-        bool isWsConnected() const { return wsConnected; }
-        void sendBatteryMonitorData();
-        void sendPipTurningOff();
-        void sendDinoScore(int score);
-        bool isUserConnectedToThisPip() const { return userConnectedToThisPip; }
-        void setIsUserConnectedToThisPip(bool newIsUserConnectedToThisPip);
+        bool is_ws_connected() const { return wsConnected; }
+        void send_battery_monitor_data();
+        void send_pip_turning_off();
+        void send_dino_score(int score);
+        bool is_user_connected_to_this_pip() const { return userConnectedToThisPip; }
+        void set_is_user_connected_to_this_pip(bool newIsUserConnectedToThisPip);
 
     private:
         // Make constructor private for singleton
         WebSocketManager();
 
         websockets::WebsocketsClient wsClient;
-        void handleBinaryMessage(WebsocketsMessage message);
-        void sendInitialData();
-        void addBatteryDataToPayload(JsonObject& payload);
+        void handle_binary_message(WebsocketsMessage message);
+        void send_initial_data();
+        void add_battery_data_to_payload(JsonObject& payload);
 
         unsigned long lastPollTime = 0;
         const unsigned long POLL_INTERVAL = 40; // Poll every 40ms
@@ -45,7 +45,7 @@ class WebSocketManager : public Singleton<WebSocketManager> {
         unsigned long lastConnectionAttempt = 0;
         const unsigned long CONNECTION_INTERVAL = 3000; // 3 seconds between connection attempts    
 
-        void killWiFiProcesses();
+        void kill_wifi_processes();
         unsigned long lastPingTime = 0;
         // NOTE: The WS_TIMEOUT must be greater than the PING_INTERVAL in SingleESP32Connection.
         const unsigned long WS_TIMEOUT = 3000; // 3 seconds timeout

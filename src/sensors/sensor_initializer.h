@@ -23,10 +23,10 @@ class SensorInitializer : public Singleton<SensorInitializer> {
             SENSOR_COUNT
         };
 
-        bool isSensorInitialized(SensorType sensor) const;
-        void initializeMultizoneTof();
-        void initializeIMU();
-        void initializeColorSensor();
+        bool is_sensor_initialized(SensorType sensor) const;
+        void initialize_multizone_tof();
+        void initialize_imu();
+        void initialize_color_sensor();
 
         bool sensorInitialized[SENSOR_COUNT];
 };

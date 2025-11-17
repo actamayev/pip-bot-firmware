@@ -35,8 +35,8 @@ class EncoderManager : public Singleton<EncoderManager> {
         unsigned long _lastUpdateTime;
         
         // Standard sensor interface methods (for TaskManager)
-        void updateSensorData();  // Single read, write to buffer
-        bool shouldBePolling() const;
+        void update_sensor_data();  // Single read, write to buffer
+        bool should_be_polling() const;
 
         // Constants for calculations
         static constexpr float GEAR_RATIO = 50.0;
