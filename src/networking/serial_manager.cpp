@@ -1,323 +1,346 @@
 #include "serial_manager.h"
 
-void SerialManager::pollSerial() {
+void SerialManager::poll_serial() {
     if (Serial.available() <= 0) {
         // Check for timeout if we're connected but haven't received data for a while
-        if (isConnected && (millis() - lastActivityTime > SERIAL_CONNECTION_TIMEOUT)) {
-            isConnected = false;
-            if (!WebSocketManager::getInstance().isWsConnected()) {
-                careerQuestTriggers.stopAllCareerQuestTriggers(false);
+        if (_isConnected && (millis() - last_activity_time > SERIAL_CONNECTION_TIMEOUT)) {
+            _isConnected = false;
+            if (!WebSocketManager::get_instance().is_ws_connected()) {
+                career_quest_triggers.stop_all_career_quest_triggers(false);
             }
         }
         return;
     }
 
-    lastActivityTime = millis();
+    last_activity_time = millis();
 
-    if (!isConnected) {
-        isConnected = true;
+    if (!is_serial_connected()) {
+        _isConnected = true;
         // If we were previously trying to connect to wifi (breathing red), we should turn it off when connecting to serial
-        ledAnimations.stopAnimation();
+        led_animations.stop_animation();
     }
 
     // Read available bytes and process according to the current state
     while (Serial.available() > 0) {
-        uint8_t inByte = Serial.read();
-        
-        switch (parseState) {
+        uint8_t in_byte = Serial.read();
+
+        switch (_parseState) {
             case ParseState::WAITING_FOR_START:
-                if (inByte == START_MARKER) {
+                if (in_byte == START_MARKER) {
                     // Start of a new message
-                    bufferPosition = 0;
-                    parseState = ParseState::READING_MESSAGE_TYPE;
+                    _bufferPosition = 0;
+                    _parseState = ParseState::READING_MESSAGE_TYPE;
                 }
                 break;
-                
+
             case ParseState::READING_MESSAGE_TYPE:
-                receiveBuffer[bufferPosition++] = inByte;  // Store message type as first byte
-                parseState = ParseState::READING_FORMAT_FLAG;
+                _receiveBuffer[_bufferPosition++] = in_byte; // Store message type as first byte
+                _parseState = ParseState::READING_FORMAT_FLAG;
                 break;
-                
+
             case ParseState::READING_FORMAT_FLAG:
-                useLongFormat = (inByte != 0);
-                parseState = ParseState::READING_LENGTH_BYTE1;
+                _useLongFormat = (in_byte != 0);
+                _parseState = ParseState::READING_LENGTH_BYTE1;
                 break;
-                
+
             case ParseState::READING_LENGTH_BYTE1:
-                if (useLongFormat) {
+                if (_useLongFormat) {
                     // First byte of 16-bit length (little-endian)
-                    expectedPayloadLength = inByte;
-                    parseState = ParseState::READING_LENGTH_BYTE2;
+                    _expectedPayloadLength = in_byte;
+                    _parseState = ParseState::READING_LENGTH_BYTE2;
                 } else {
                     // 8-bit length
-                    expectedPayloadLength = inByte;
-                    
+                    _expectedPayloadLength = in_byte;
+
                     // If payload length is 0, skip to waiting for end marker
-                    if (expectedPayloadLength == 0) {
-                        parseState = ParseState::WAITING_FOR_END;
+                    if (_expectedPayloadLength == 0) {
+                        _parseState = ParseState::WAITING_FOR_END;
                     } else {
-                        parseState = ParseState::READING_PAYLOAD;
+                        _parseState = ParseState::READING_PAYLOAD;
                     }
                 }
                 break;
-                
+
             case ParseState::READING_LENGTH_BYTE2:
                 // Second byte of 16-bit length (little-endian)
-                expectedPayloadLength |= (inByte << 8);
-                
+                _expectedPayloadLength |= (in_byte << 8);
+
                 // If payload length is 0, skip to waiting for end marker
-                if (expectedPayloadLength == 0) {
-                    parseState = ParseState::WAITING_FOR_END;
+                if (_expectedPayloadLength == 0) {
+                    _parseState = ParseState::WAITING_FOR_END;
                 } else {
-                    parseState = ParseState::READING_PAYLOAD;
+                    _parseState = ParseState::READING_PAYLOAD;
                 }
                 break;
 
             case ParseState::READING_PAYLOAD:
                 // Store payload byte
-                if (bufferPosition < sizeof(receiveBuffer)) {
-                    receiveBuffer[bufferPosition++] = inByte;
-                    
+                if (_bufferPosition < sizeof(_receiveBuffer)) {
+                    _receiveBuffer[_bufferPosition++] = in_byte;
+
                     // Check if we've read the complete payload
-                    if (bufferPosition >= expectedPayloadLength + 1) {  // +1 for message type
-                        parseState = ParseState::WAITING_FOR_END;
+                    if (_bufferPosition >= _expectedPayloadLength + 1) { // +1 for message type
+                        _parseState = ParseState::WAITING_FOR_END;
                     }
                 } else {
                     // Buffer overflow
-                    SerialQueueManager::getInstance().queueMessage("Serial buffer overflow");
-                    parseState = ParseState::WAITING_FOR_START;
+                    SerialQueueManager::get_instance().queue_message("Serial buffer overflow");
+                    _parseState = ParseState::WAITING_FOR_START;
                 }
                 break;
 
             case ParseState::WAITING_FOR_END:
-                if (inByte == END_MARKER) {
+                if (in_byte == END_MARKER) {
                     // Process the message
-                    MessageProcessor::getInstance().processBinaryMessage(receiveBuffer, bufferPosition);
-                    
+                    MessageProcessor::get_instance().process_binary_message(_receiveBuffer, _bufferPosition);
+
                     // Reset for next message
-                    parseState = ParseState::WAITING_FOR_START;
+                    _parseState = ParseState::WAITING_FOR_START;
                 } else {
                     // Invalid end marker
-                    SerialQueueManager::getInstance().queueMessage("Invalid end marker");
-                    parseState = ParseState::WAITING_FOR_START;
+                    SerialQueueManager::get_instance().queue_message("Invalid end marker");
+                    _parseState = ParseState::WAITING_FOR_START;
                 }
                 break;
         }
     }
 }
 
-void SerialManager::sendPipIdMessage() {
-    if (!isConnected) return;
+void SerialManager::send_pip_id_message() {
+    if (!is_serial_connected()) {
+        return;
+    }
 
-    auto doc = makeBaseMessageSerial<256>(ToSerialMessage::PIP_ID);
+    auto doc = make_base_message_serial<256>(ToSerialMessage::PIP_ID);
     JsonObject payload = doc.createNestedObject("payload");
-    payload["pipId"] = PreferencesManager::getInstance().getPipId();
+    payload["pipId"] = PreferencesManager::get_instance().get_pip_id();
 
-    String jsonString;
-    serializeJson(doc, jsonString);
+    String json_string;
+    serializeJson(doc, json_string);
 
-    SerialQueueManager::getInstance().queueMessage(
-        jsonString,
-        SerialPriority::CRITICAL
-    );
+    SerialQueueManager::get_instance().queue_message(json_string, SerialPriority::CRITICAL);
 }
 
-void SerialManager::sendJsonMessage(ToSerialMessage route, const String& status) {
-    if (!isConnected) return;
+void SerialManager::send_json_message(ToSerialMessage route, const String& status) {
+    if (!is_serial_connected()) {
+        return;
+    }
 
-    auto doc = makeBaseMessageSerial<256>(route);
+    auto doc = make_base_message_serial<256>(route);
     JsonObject payload = doc.createNestedObject("payload");
     payload["status"] = status;
-    
-    String jsonString;
-    serializeJson(doc, jsonString);
-    
+
+    String json_string;
+    serializeJson(doc, json_string);
+
     // Browser responses are CRITICAL
-    SerialQueueManager::getInstance().queueMessage(jsonString, SerialPriority::CRITICAL);
+    SerialQueueManager::get_instance().queue_message(json_string, SerialPriority::CRITICAL);
 }
 
-void SerialManager::sendSavedNetworksResponse(const std::vector<WiFiCredentials>& networks) {
-    if (!isConnected) return;
-    
+void SerialManager::send_saved_networks_response(const std::vector<WiFiCredentials>& networks) {
+    if (!is_serial_connected()) {
+        return;
+    }
+
     // Build JSON response
-    auto doc = makeBaseMessageSerial<1024>(ToSerialMessage::SAVED_NETWORKS);
+    auto doc = make_base_message_serial<1024>(ToSerialMessage::SAVED_NETWORKS);
     JsonArray payload = doc.createNestedArray("payload");
-    
+
     for (size_t i = 0; i < networks.size(); i++) {
         JsonObject network = payload.createNestedObject();
         network["ssid"] = networks[i].ssid;
         network["index"] = i;
     }
-    
-    String jsonString;
-    serializeJson(doc, jsonString);
 
-    SerialQueueManager::getInstance().queueMessage(jsonString, SerialPriority::CRITICAL);
+    String json_string;
+    serializeJson(doc, json_string);
+
+    SerialQueueManager::get_instance().queue_message(json_string, SerialPriority::CRITICAL);
 }
 
-void SerialManager::sendScanResultsResponse(const std::vector<WiFiNetworkInfo>& networks) {
-    if (!isConnected) return;
+void SerialManager::send_scan_results_response(const std::vector<WiFiNetworkInfo>& networks) {
+    if (!is_serial_connected()) {
+        return;
+    }
 
     // Send each network as individual message
     for (size_t i = 0; i < networks.size(); i++) {
-        auto doc = makeBaseMessageSerial<256>(ToSerialMessage::SCAN_RESULT_ITEM);
+        auto doc = make_base_message_serial<256>(ToSerialMessage::SCAN_RESULT_ITEM);
         JsonObject payload = doc.createNestedObject("payload");
         payload["ssid"] = networks[i].ssid;
         payload["rssi"] = networks[i].rssi;
         payload["encrypted"] = (networks[i].encryptionType != WIFI_AUTH_OPEN);
-        
-        String jsonString;
-        serializeJson(doc, jsonString);
-        
-        SerialQueueManager::getInstance().queueMessage(jsonString, SerialPriority::CRITICAL);
+
+        String json_string;
+        serializeJson(doc, json_string);
+
+        SerialQueueManager::get_instance().queue_message(json_string, SerialPriority::CRITICAL);
     }
-    
+
     // Send completion message
-    auto completeDoc = makeBaseMessageSerial<256>(ToSerialMessage::SCAN_COMPLETE);
-    JsonObject completePayload = completeDoc.createNestedObject("payload");
-    completePayload["totalNetworks"] = networks.size();
-    
-    String completeJsonString;
-    serializeJson(completeDoc, completeJsonString);
-    
-    SerialQueueManager::getInstance().queueMessage(completeJsonString, SerialPriority::CRITICAL);
+    auto complete_doc = make_base_message_serial<256>(ToSerialMessage::SCAN_COMPLETE);
+    JsonObject complete_payload = complete_doc.createNestedObject("payload");
+    complete_payload["totalNetworks"] = networks.size();
+
+    String complete_json_string;
+    serializeJson(complete_doc, complete_json_string);
+
+    SerialQueueManager::get_instance().queue_message(complete_json_string, SerialPriority::CRITICAL);
 }
 
-void SerialManager::sendScanStartedMessage() {
-    if (!isConnected) return;
-    
-    auto doc = makeBaseMessageSerial<256>(ToSerialMessage::SCAN_STARTED);
+void SerialManager::send_scan_started_message() {
+    if (!is_serial_connected()) {
+        return;
+    }
+
+    auto doc = make_base_message_serial<256>(ToSerialMessage::SCAN_STARTED);
     JsonObject payload = doc.createNestedObject("payload");
     payload["scanning"] = true;
-    
-    String jsonString;
-    serializeJson(doc, jsonString);
-    
+
+    String json_string;
+    serializeJson(doc, json_string);
+
     // Use CRITICAL priority for browser responses
-    SerialQueueManager::getInstance().queueMessage(jsonString, SerialPriority::CRITICAL);
+    SerialQueueManager::get_instance().queue_message(json_string, SerialPriority::CRITICAL);
 }
 
-void SerialManager::sendBatteryMonitorData() {
-    if (!isConnected) return;
+void SerialManager::send_battery_monitor_data() {
+    if (!is_serial_connected()) {
+        return;
+    }
 
-    const BatteryState& batteryState = BatteryMonitor::getInstance().getBatteryState();
+    const BatteryState& battery_state = BatteryMonitor::get_instance().get_battery_state();
 
     // Send each battery data field as individual message
-    sendBatteryDataItem("stateOfCharge", static_cast<int>(round(batteryState.displayedStateOfCharge)));
-    sendBatteryDataItem("voltage", batteryState.voltage);
-    sendBatteryDataItem("current", batteryState.current);
-    sendBatteryDataItem("power", batteryState.power);
-    sendBatteryDataItem("remainingCapacity", batteryState.remainingCapacity);
-    sendBatteryDataItem("fullCapacity", batteryState.fullCapacity);
-    sendBatteryDataItem("health", batteryState.health);
-    sendBatteryDataItem("isCharging", batteryState.isCharging);
-    sendBatteryDataItem("isDischarging", batteryState.isDischarging);
-    sendBatteryDataItem("isLowBattery", batteryState.isLowBattery);
-    sendBatteryDataItem("isCriticalBattery", batteryState.isCriticalBattery);
-    sendBatteryDataItem("estimatedTimeToEmpty", batteryState.estimatedTimeToEmpty);
-    sendBatteryDataItem("estimatedTimeToFull", batteryState.estimatedTimeToFull);
-    
-    auto completeDoc = makeBaseMessageSerial<256>(ToSerialMessage::BATTERY_MONITOR_DATA_COMPLETE);
-    JsonObject completePayload = completeDoc.createNestedObject("payload");
-    completePayload["totalItems"] = 13; // Number of battery data fields sent
-    
-    String completeJsonString;
-    serializeJson(completeDoc, completeJsonString);
-    
-    SerialQueueManager::getInstance().queueMessage(completeJsonString, SerialPriority::CRITICAL);
+    send_battery_data_item("stateOfCharge", static_cast<int>(round(battery_state.displayedStateOfCharge)));
+    send_battery_data_item("voltage", battery_state.voltage);
+    send_battery_data_item("current", battery_state.current);
+    send_battery_data_item("power", battery_state.power);
+    send_battery_data_item("remainingCapacity", battery_state.remainingCapacity);
+    send_battery_data_item("fullCapacity", battery_state.fullCapacity);
+    send_battery_data_item("health", battery_state.health);
+    send_battery_data_item("isCharging", battery_state.isCharging);
+    send_battery_data_item("isDischarging", battery_state.isDischarging);
+    send_battery_data_item("isLowBattery", battery_state.isLowBattery);
+    send_battery_data_item("isCriticalBattery", battery_state.isCriticalBattery);
+    send_battery_data_item("estimatedTimeToEmpty", battery_state.estimatedTimeToEmpty);
+    send_battery_data_item("estimatedTimeToFull", battery_state.estimatedTimeToFull);
+
+    auto complete_doc = make_base_message_serial<256>(ToSerialMessage::BATTERY_MONITOR_DATA_COMPLETE);
+    JsonObject complete_payload = complete_doc.createNestedObject("payload");
+    complete_payload["totalItems"] = 13; // Number of battery data fields sent
+
+    String complete_json_string;
+    serializeJson(complete_doc, complete_json_string);
+
+    SerialQueueManager::get_instance().queue_message(complete_json_string, SerialPriority::CRITICAL);
 }
 
-void SerialManager::sendBatteryDataItem(const String& key, int value) {
-    if (!isConnected) return;
-    
-    auto doc = makeBaseMessageSerial<256>(ToSerialMessage::BATTERY_MONITOR_DATA_ITEM);
+void SerialManager::send_battery_data_item(const String& key, int value) {
+    if (!is_serial_connected()) {
+        return;
+    }
+
+    auto doc = make_base_message_serial<256>(ToSerialMessage::BATTERY_MONITOR_DATA_ITEM);
     JsonObject payload = doc.createNestedObject("payload");
     payload["key"] = key;
     payload["value"] = value;
-    
-    String jsonString;
-    serializeJson(doc, jsonString);
-    
-    SerialQueueManager::getInstance().queueMessage(jsonString, SerialPriority::CRITICAL);
+
+    String json_string;
+    serializeJson(doc, json_string);
+
+    SerialQueueManager::get_instance().queue_message(json_string, SerialPriority::CRITICAL);
 }
 
-void SerialManager::sendBatteryDataItem(const String& key, unsigned int value) {
-    if (!isConnected) return;
-    
-    auto doc = makeBaseMessageSerial<256>(ToSerialMessage::BATTERY_MONITOR_DATA_ITEM);
+void SerialManager::send_battery_data_item(const String& key, uint32_t value) {
+    if (!is_serial_connected()) {
+        return;
+    }
+
+    auto doc = make_base_message_serial<256>(ToSerialMessage::BATTERY_MONITOR_DATA_ITEM);
     JsonObject payload = doc.createNestedObject("payload");
     payload["key"] = key;
     payload["value"] = value;
-    
-    String jsonString;
-    serializeJson(doc, jsonString);
-    
-    SerialQueueManager::getInstance().queueMessage(jsonString, SerialPriority::CRITICAL);
+
+    String json_string;
+    serializeJson(doc, json_string);
+
+    SerialQueueManager::get_instance().queue_message(json_string, SerialPriority::CRITICAL);
 }
 
-void SerialManager::sendBatteryDataItem(const String& key, float value) {
-    if (!isConnected) return;
-    
-    auto doc = makeBaseMessageSerial<256>(ToSerialMessage::BATTERY_MONITOR_DATA_ITEM);
+void SerialManager::send_battery_data_item(const String& key, float value) {
+    if (!is_serial_connected()) {
+        return;
+    }
+
+    auto doc = make_base_message_serial<256>(ToSerialMessage::BATTERY_MONITOR_DATA_ITEM);
     JsonObject payload = doc.createNestedObject("payload");
     payload["key"] = key;
     payload["value"] = value;
-    
-    String jsonString;
-    serializeJson(doc, jsonString);
-    
-    SerialQueueManager::getInstance().queueMessage(jsonString, SerialPriority::CRITICAL);
+
+    String json_string;
+    serializeJson(doc, json_string);
+
+    SerialQueueManager::get_instance().queue_message(json_string, SerialPriority::CRITICAL);
 }
 
-void SerialManager::sendBatteryDataItem(const String& key, bool value) {
-    if (!isConnected) return;
-    
-    auto doc = makeBaseMessageSerial<256>(ToSerialMessage::BATTERY_MONITOR_DATA_ITEM);
+void SerialManager::send_battery_data_item(const String& key, bool value) {
+    if (!is_serial_connected()) {
+        return;
+    }
+
+    auto doc = make_base_message_serial<256>(ToSerialMessage::BATTERY_MONITOR_DATA_ITEM);
     JsonObject payload = doc.createNestedObject("payload");
     payload["key"] = key;
     payload["value"] = value;
-    
-    String jsonString;
-    serializeJson(doc, jsonString);
-    
-    SerialQueueManager::getInstance().queueMessage(jsonString, SerialPriority::CRITICAL);
+
+    String json_string;
+    serializeJson(doc, json_string);
+
+    SerialQueueManager::get_instance().queue_message(json_string, SerialPriority::CRITICAL);
 }
 
-void SerialManager::sendDinoScore(int score) {
-    if (!isConnected) return;
-    
-    auto doc = makeBaseMessageCommon<256>(ToCommonMessage::DINO_SCORE);
+void SerialManager::send_dino_score(int score) {
+    if (!is_serial_connected()) {
+        return;
+    }
+
+    auto doc = make_base_message_common<256>(ToCommonMessage::DINO_SCORE);
     JsonObject payload = doc.createNestedObject("payload");
     payload["score"] = score;
-    
-    String jsonString;
-    serializeJson(doc, jsonString);
-    
-    SerialQueueManager::getInstance().queueMessage(jsonString, SerialPriority::CRITICAL);
+
+    String json_string;
+    serializeJson(doc, json_string);
+
+    SerialQueueManager::get_instance().queue_message(json_string, SerialPriority::CRITICAL);
 }
 
-void SerialManager::sendNetworkDeletedResponse(bool success) {
-    if (!isConnected) return;
-    
-    auto doc = makeBaseMessageSerial<256>(ToSerialMessage::WIFI_DELETED_NETWORK);
+void SerialManager::send_network_deleted_response(bool success) {
+    if (!is_serial_connected()) {
+        return;
+    }
+
+    auto doc = make_base_message_serial<256>(ToSerialMessage::WIFI_DELETED_NETWORK);
     JsonObject payload = doc.createNestedObject("payload");
     payload["status"] = success;
-    
-    String jsonString;
-    serializeJson(doc, jsonString);
-    
-    SerialQueueManager::getInstance().queueMessage(jsonString, SerialPriority::CRITICAL);
+
+    String json_string;
+    serializeJson(doc, json_string);
+
+    SerialQueueManager::get_instance().queue_message(json_string, SerialPriority::CRITICAL);
 }
 
-void SerialManager::sendPipTurningOff() {
-    if (!isConnected) return;
+void SerialManager::send_pip_turning_off() {
+    if (!is_serial_connected()) {
+        return;
+    }
 
-    auto pipTurningOffDoc = makeBaseMessageCommon<256>(ToCommonMessage::PIP_TURNING_OFF);
-    JsonObject payload = pipTurningOffDoc.createNestedObject("payload");
+    auto pip_turning_off_doc = make_base_message_common<256>(ToCommonMessage::PIP_TURNING_OFF);
+    JsonObject payload = pip_turning_off_doc.createNestedObject("payload");
     payload["reason"] = "PIP is turning off";
 
-    String jsonString;
-    serializeJson(pipTurningOffDoc, jsonString);
+    String json_string;
+    serializeJson(pip_turning_off_doc, json_string);
 
-    SerialQueueManager::getInstance().queueMessage(jsonString, SerialPriority::CRITICAL);
+    SerialQueueManager::get_instance().queue_message(json_string, SerialPriority::CRITICAL);
 }

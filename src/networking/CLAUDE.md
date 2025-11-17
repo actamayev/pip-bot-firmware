@@ -155,18 +155,18 @@ DEFAULT_PIP_ID = "PmKJZ"
 
 ### WiFi Connection
 ```cpp
-WiFiManager::getInstance().connectToNetwork("SSID", "password");
+WiFiManager::get_instance().connectToNetwork("SSID", "password");
 // Automatic connection attempts and status reporting
 ```
 
 ### Message Sending
 ```cpp
-SerialQueueManager::getInstance().queueMessage("Status update");
+SerialQueueManager::get_instance().queue_message("Status update");
 // Thread-safe message queuing with automatic routing
 ```
 
 ### WebSocket Communication
 ```cpp
-WebSocketManager::getInstance().sendMessage(jsonData);
+WebSocketManager::get_instance().sendMessage(jsonData);
 // Automatic connection management and retry logic
 ```

@@ -81,7 +81,7 @@ struct CalibrationValues {
 static constexpr float GEAR_RATIO = 297.924;
 static constexpr uint8_t ENCODER_CPR = 3;
 static constexpr float WHEEL_DIAMETER_CM = 3.9;
-static constexpr unsigned long RPM_CALC_INTERVAL = 20; // ms
+static constexpr uint32_t RPM_CALC_INTERVAL = 20; // ms
 ```
 
 ### Battery Monitor (`battery_monitor.h/cpp`)
@@ -94,8 +94,8 @@ static constexpr unsigned long RPM_CALC_INTERVAL = 20; // ms
 #### Battery Data
 ```cpp
 struct BatteryState {
-    unsigned int realStateOfCharge;    // 0-100%
-    unsigned int voltage;              // mV
+    uint32_t realStateOfCharge;    // 0-100%
+    uint32_t voltage;              // mV
     int current;                       // mA (+ discharge, - charge)
     int power;                         // mW
     float estimatedTimeToEmpty;        // hours
@@ -159,13 +159,13 @@ BATTERY_MONITOR_STACK_SIZE = 6144;      // I2C + calculations
 ### Reading Sensor Data
 ```cpp
 // IMU data access
-QuaternionData quat = SensorDataBuffer::getInstance().getQuaternionData();
+QuaternionData quat = SensorDataBuffer::get_instance().getQuaternionData();
 if (quat.isValid) {
     // Use quaternion for balance control
 }
 
 // Battery monitoring
-BatteryState battery = BatteryMonitor::getInstance().getBatteryState();
+BatteryState battery = BatteryMonitor::get_instance().getBatteryState();
 if (battery.isCriticalBattery) {
     // Initiate emergency shutdown
 }
@@ -174,8 +174,8 @@ if (battery.isCriticalBattery) {
 ### Sensor Status Checking
 ```cpp
 // Verify sensor initialization
-if (ColorSensor::getInstance().isInitialized()) {
-    ColorData colorData = SensorDataBuffer::getInstance().getColorData();
+if (ColorSensor::get_instance().isInitialized()) {
+    ColorData colorData = SensorDataBuffer::get_instance().getColorData();
     if (colorData.isValid) {
         // Process RGB values: colorData.redValue, greenValue, blueValue
     }
@@ -185,10 +185,10 @@ if (ColorSensor::getInstance().isInitialized()) {
 ### Color Sensor Calibration
 ```cpp
 // Perform black point calibration (on dark surface)
-ColorSensor::getInstance().calibrateBlackPoint();
+ColorSensor::get_instance().calibrate_black_point();
 
 // Perform white point calibration (on white surface)  
-ColorSensor::getInstance().calibrateWhitePoint();
+ColorSensor::get_instance().calibrate_white_point();
 ```
 
 ## Troubleshooting

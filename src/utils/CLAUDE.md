@@ -30,7 +30,7 @@ LEFT_BUTTON_PIN = 11, RIGHT_BUTTON_PIN = 12;
 ### Environment Management
 ```cpp
 // Dynamic endpoint selection
-const char* getWsServerUrl() {
+const char* get_ws_server_url() {
     // Returns local/staging/production URLs based on build
     if (env == "local") return "ws://10.76.59.40:8080/esp32"; // Changes with my local IP
     if (env == "staging") return "wss://staging-api.leverlab.com/esp32";
@@ -86,7 +86,7 @@ struct EulerAngles { float yaw, pitch, roll; bool isValid; };
 
 // Battery comprehensive monitoring
 struct BatteryState {
-    unsigned int realStateOfCharge, voltage;
+    uint32_t realStateOfCharge, voltage;
     int current, power;
     float estimatedTimeToEmpty;
     bool isCharging, isLowBattery, isCriticalBattery;
@@ -95,7 +95,7 @@ struct BatteryState {
 // LED control system
 struct LedState {
     uint8_t colors[8][3];              // RGB for all 8 LEDs
-    LedTypes::AnimationType animation;  // Breathing, strobing, rainbow
+    led_types::AnimationType animation;  // Breathing, strobing, rainbow
     int animationSpeed;                // 1-10 scale
 };
 ```
@@ -126,7 +126,7 @@ enum class RouteType {
 template<typename T>
 class Singleton {
 public:
-    static T& getInstance() {
+    static T& get_instance() {
         static T instance;
         return instance;
     }

@@ -1,106 +1,105 @@
 #include "buttons.h"
+
 #include "games/game_manager.h"
 
-Buttons::Buttons() 
-    : leftButton(LEFT_BUTTON_PIN), 
-      rightButton(RIGHT_BUTTON_PIN) {
+Buttons::Buttons() : _left_button(LEFT_BUTTON_PIN), _right_button(RIGHT_BUTTON_PIN) {
     begin();
 }
 
 void Buttons::begin() {
     // Configure buttons for pull-down, active HIGH configuration
-    leftButton.begin(LEFT_BUTTON_PIN, INPUT_PULLDOWN, false);
-    rightButton.begin(RIGHT_BUTTON_PIN, INPUT_PULLDOWN, false);
-    
-    leftButton.setDebounceTime(0);
-    rightButton.setDebounceTime(0);
-    
+    _left_button.begin(LEFT_BUTTON_PIN, INPUT_PULLDOWN, false);
+    _right_button.begin(RIGHT_BUTTON_PIN, INPUT_PULLDOWN, false);
+
+    _left_button.setDebounceTime(0);
+    _right_button.setDebounceTime(0);
+
     // Setup deep sleep functionality
-    setupDeepSleep();
+    setup_deep_sleep();
 }
 
 void Buttons::update() {
     // Must be called regularly to process button events
-    leftButton.loop();
-    rightButton.loop();
+    _left_button.loop();
+    _right_button.loop();
     // Handle sleep confirmation timeout
-    if (waitingForSleepConfirmation && sleepConfirmationStartTime > 0) {
-        if (millis() - sleepConfirmationStartTime > SLEEP_CONFIRMATION_TIMEOUT) {
-            waitingForSleepConfirmation = false;
-            sleepConfirmationStartTime = 0;
-            rgbLed.turn_all_leds_off();
+    if (_waiting_for_sleep_confirmation && _sleep_confirmation_start_time > 0) {
+        if (millis() - _sleep_confirmation_start_time > SLEEP_CONFIRMATION_TIMEOUT) {
+            _waiting_for_sleep_confirmation = false;
+            _sleep_confirmation_start_time = 0;
+            rgb_led.turn_all_leds_off();
         }
     }
 }
 
-void Buttons::setLeftButtonClickHandler(std::function<void(Button2&)> callback) {
+void Buttons::set_left_button_click_handler(std::function<void(Button2&)> callback) {
     auto originalCallback = callback;
-    
-    leftButton.setPressedHandler([this, originalCallback](Button2& btn) {
-        // Reset timeout on any button activity
-        TimeoutManager::getInstance().resetActivity();
 
-        BytecodeVM& vm = BytecodeVM::getInstance();
+    _left_button.setPressedHandler([this, originalCallback](Button2& btn) {
+        // Reset timeout on any button activity
+        TimeoutManager::get_instance().reset_activity();
+
+        BytecodeVM& vm = BytecodeVM::get_instance();
         // Handle resume for paused programs (only if we didn't just pause)
-        if (vm.isPaused == BytecodeVM::RUNNING || vm.isPaused == BytecodeVM::PROGRAM_FINISHED) {
-            vm.pauseProgram();
-            this->justPausedOnPress = true;
+        if (vm._isPaused == BytecodeVM::RUNNING || vm._isPaused == BytecodeVM::PROGRAM_FINISHED) {
+            vm.pause_program();
+            this->_just_paused_on_press = true;
             return;
         }
     });
 
     // Move program start logic to release handler
-    leftButton.setReleasedHandler([this, originalCallback](Button2& btn) {
+    _left_button.setReleasedHandler([this, originalCallback](Button2& btn) {
         // Reset timeout on any button activity
-        TimeoutManager::getInstance().resetActivity();
-        
+        TimeoutManager::get_instance().reset_activity();
+
         // Handle deep sleep logic first (existing functionality)
-        if (this->longPressFlagForSleep) {
-            this->longPressFlagForSleep = false;
-            this->waitingForSleepConfirmation = true;
-            this->sleepConfirmationStartTime = millis();
+        if (this->_long_press_flag_for_sleep) {
+            this->_long_press_flag_for_sleep = false;
+            this->_waiting_for_sleep_confirmation = true;
+            this->_sleep_confirmation_start_time = millis();
             return;
         }
 
         // Check if timeout manager is in confirmation state
-        if (TimeoutManager::getInstance().isInConfirmationState()) return;
+        if (TimeoutManager::get_instance().is_in_confirmation_state()) return;
 
         // If we're waiting for sleep confirmation, don't process program start
-        if (this->waitingForSleepConfirmation) return;
+        if (this->_waiting_for_sleep_confirmation) return;
 
-        BytecodeVM& vm = BytecodeVM::getInstance();
+        BytecodeVM& vm = BytecodeVM::get_instance();
 
         // Handle program start on button release
-        if (vm.waitingForButtonPressToStart) {
-            if (this->justPausedOnPress) {
-                this->justPausedOnPress = false;
+        if (vm._waitingForButtonPressToStart) {
+            if (this->_just_paused_on_press) {
+                this->_just_paused_on_press = false;
                 return; // Skip start on same press/release cycle
             }
-            if (!vm.canStartProgram()) return;
-            vm.isPaused = BytecodeVM::RUNNING;
-            vm.waitingForButtonPressToStart = false;
-            vm.incrementPC();
+            if (!vm.can_start_program()) return;
+            vm._isPaused = BytecodeVM::RUNNING;
+            vm._waitingForButtonPressToStart = false;
+            vm.increment_pc();
             return;
         }
 
         // Handle resume for paused programs (only if we didn't just pause)
-        if (vm.isPaused == BytecodeVM::PAUSED) {
-            if (this->justPausedOnPress) {
-                this->justPausedOnPress = false;
+        if (vm._isPaused == BytecodeVM::PAUSED) {
+            if (this->_just_paused_on_press) {
+                this->_just_paused_on_press = false;
                 return; // Skip resume on same press/release cycle
             }
-            vm.resumeProgram();
+            vm.resume_program();
             return;
         }
-        
+
         // Handle restart for finished programs
-        if (vm.isPaused == BytecodeVM::PROGRAM_FINISHED) {
-            vm.resumeProgram(); // This will restart from beginning
+        if (vm._isPaused == BytecodeVM::PROGRAM_FINISHED) {
+            vm.resume_program(); // This will restart from beginning
             return;
         }
 
         // If no program is running and we're not waiting to start, use original callback
-        if (vm.isPaused == BytecodeVM::PROGRAM_NOT_STARTED) {
+        if (vm._isPaused == BytecodeVM::PROGRAM_NOT_STARTED) {
             if (originalCallback) {
                 originalCallback(btn);
             }
@@ -108,99 +107,101 @@ void Buttons::setLeftButtonClickHandler(std::function<void(Button2&)> callback) 
     });
 
     // Keep click handler for sleep confirmation
-    leftButton.setClickHandler([this, originalCallback](Button2& btn) {
+    _left_button.setClickHandler([this, originalCallback](Button2& btn) {
         // Reset timeout on any button activity
-        TimeoutManager::getInstance().resetActivity();
-        
-        if (!(this->waitingForSleepConfirmation)) return;
-        this->waitingForSleepConfirmation = false;
-        this->sleepConfirmationStartTime = 0;
-        enterDeepSleep();
+        TimeoutManager::get_instance().reset_activity();
+
+        if (!(this->_waiting_for_sleep_confirmation)) return;
+        this->_waiting_for_sleep_confirmation = false;
+        this->_sleep_confirmation_start_time = 0;
+        enter_deep_sleep();
         return; // Don't call the original callback in this case
     });
 }
 
-void Buttons::setRightButtonClickHandler(std::function<void(Button2&)> callback) {
+void Buttons::set_right_button_click_handler(std::function<void(Button2&)> callback) {
     auto originalCallback = callback;
-    
-    rightButton.setPressedHandler([this, originalCallback](Button2& btn) {
+
+    _right_button.setPressedHandler([this, originalCallback](Button2& btn) {
         // Reset timeout on any button activity
-        TimeoutManager::getInstance().resetActivity();
-        
+        TimeoutManager::get_instance().reset_activity();
+
         // Check if timeout manager is in confirmation state
-        if (TimeoutManager::getInstance().isInConfirmationState()) return; // Don't process other button logic
+        if (TimeoutManager::get_instance().is_in_confirmation_state()) return; // Don't process other button logic
 
         // If we're waiting for confirmation, this click cancels deep sleep
-        if (this->waitingForSleepConfirmation) {
-            rgbLed.turn_all_leds_off();
-            this->waitingForSleepConfirmation = false;
-            this->sleepConfirmationStartTime = 0;
+        if (this->_waiting_for_sleep_confirmation) {
+            rgb_led.turn_all_leds_off();
+            this->_waiting_for_sleep_confirmation = false;
+            this->_sleep_confirmation_start_time = 0;
             return; // Don't call the original callback in this case
         }
-        
+
         // TODO 10/3: Figure out the right way to handle this. We did this to be able to check if (is_right_button_pressed) in bytecode_interpreter
-        // BytecodeVM& vm = BytecodeVM::getInstance();
-        
+        // BytecodeVM& vm = BytecodeVM::get_instance();
+
         // // Handle pause for running programs
-        // if (vm.isPaused == BytecodeVM::RUNNING || vm.isPaused == BytecodeVM::PROGRAM_FINISHED) {
-        //     vm.pauseProgram();
+        // if (vm._isPaused == BytecodeVM::RUNNING || vm._isPaused == BytecodeVM::PROGRAM_FINISHED) {
+        //     vm.pause_program();
         //     return;
         // }
-        
+
         // Otherwise, proceed with normal click handling - check games first
-        if (GameManager::getInstance().isAnyGameActive()) {
-            GameManager::getInstance().handleButtonPress(true); // Right button pressed
+        if (GameManager::get_instance().is_any_game_active()) {
+            GameManager::get_instance().handle_button_press(true); // Right button pressed
         } else if (originalCallback) {
             originalCallback(btn);
         }
     });
 }
 
-void Buttons::setLeftButtonLongPressHandler(std::function<void(Button2&)> callback) {
+void Buttons::set_left_button_long_press_handler(std::function<void(Button2&)> callback) {
     auto wrappedCallback = [callback](Button2& btn) {
         // Reset timeout on any button activity
-        TimeoutManager::getInstance().resetActivity();
+        TimeoutManager::get_instance().reset_activity();
         if (callback) callback(btn);
     };
-    leftButton.setLongClickHandler(wrappedCallback);
+    _left_button.setLongClickHandler(wrappedCallback);
 }
 
-void Buttons::setRightButtonLongPressHandler(std::function<void(Button2&)> callback) {
+void Buttons::set_right_button_long_press_handler(std::function<void(Button2&)> callback) {
     auto wrappedCallback = [callback](Button2& btn) {
         // Reset timeout on any button activity
-        TimeoutManager::getInstance().resetActivity();
+        TimeoutManager::get_instance().reset_activity();
         if (callback) callback(btn);
     };
-    rightButton.setLongClickHandler(wrappedCallback);
+    _right_button.setLongClickHandler(wrappedCallback);
 }
 
-void Buttons::setupDeepSleep() {
+void Buttons::setup_deep_sleep() {
     // First, detect when long press threshold is reached
-    leftButton.setLongClickTime(DEEP_SLEEP_TIMEOUT);
-    leftButton.setLongClickDetectedHandler([this](Button2& btn) {
-        if (this->inHoldToWakeMode) return;
-        
-        // Ignore long clicks that happen within 500ms of hold-to-wake completion
-        if (this->holdToWakeCompletedTime > 0 && (millis() - this->holdToWakeCompletedTime) < 500) {
+    _left_button.setLongClickTime(DEEP_SLEEP_TIMEOUT);
+    _left_button.setLongClickDetectedHandler([this](Button2& btn) {
+        if (this->_in_hold_to_wake_mode) {
             return;
         }
-        
+
+        // Ignore long clicks that happen within 500ms of hold-to-wake completion
+        if (this->_hold_to_wake_completed_time > 0 && (millis() - this->_hold_to_wake_completed_time) < 500) {
+            return;
+        }
+
         // Reset timeout on any button activity
-        TimeoutManager::getInstance().resetActivity();
-        
-        BytecodeVM::getInstance().pauseProgram();
-        rgbLed.set_led_yellow();
-        this->longPressFlagForSleep = true;
+        TimeoutManager::get_instance().reset_activity();
+
+        BytecodeVM::get_instance().pause_program();
+        rgb_led.set_led_yellow();
+        this->_long_press_flag_for_sleep = true;
     });
 
     // Note: Wakeup detection is now handled in checkHoldToWakeCondition()
 }
 
-void Buttons::enterDeepSleep() {
-    if (SerialManager::getInstance().isSerialConnected()) {
-        SerialManager::getInstance().sendPipTurningOff();
-    } else if (WebSocketManager::getInstance().isWsConnected()) {
-        WebSocketManager::getInstance().sendPipTurningOff();
+void Buttons::enter_deep_sleep() {
+    if (SerialManager::get_instance().is_serial_connected()) {
+        SerialManager::get_instance().send_pip_turning_off();
+    } else if (WebSocketManager::get_instance().is_ws_connected()) {
+        WebSocketManager::get_instance().send_pip_turning_off();
     }
 
     digitalWrite(PWR_EN, LOW);
@@ -209,25 +210,27 @@ void Buttons::enterDeepSleep() {
     // Create bitmask for both button pins
     // Bit positions correspond to GPIO numbers
     uint64_t wakeup_pin_mask = (1ULL << LEFT_BUTTON_PIN) | (1ULL << RIGHT_BUTTON_PIN);
-    
+
     // Wake up when ANY of the pins goes HIGH (button pressed with pull-down)
     esp_sleep_enable_ext1_wakeup(wakeup_pin_mask, ESP_EXT1_WAKEUP_ANY_HIGH);
 
     Serial.flush();
-    
+
     esp_deep_sleep_start();
 }
 
-void Buttons::setHoldToWakeMode(bool enabled) {
-    this->inHoldToWakeMode = enabled;
-    if (enabled) return;
-    this->holdToWakeCompletedTime = millis();
+void Buttons::set_hold_to_wake_mode(bool enabled) {
+    this->_in_hold_to_wake_mode = enabled;
+    if (enabled) {
+        return;
+    }
+    this->_hold_to_wake_completed_time = millis();
 }
 
-bool Buttons::isEitherButtonPressed() {
-    return leftButton.isPressed() || rightButton.isPressed();
+bool Buttons::is_either_button_pressed() {
+    return _left_button.isPressed() || _right_button.isPressed();
 }
 
-bool Buttons::isRightButtonPressed() {
-    return rightButton.isPressed();
+bool Buttons::is_right_button_pressed() {
+    return _right_button.isPressed();
 }

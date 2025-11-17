@@ -1,0 +1,11 @@
+# Check all code for static analysis issues
+./scripts/lint.sh check -e -local
+
+# Auto-fix a single file
+./scripts/lint.sh fix src/utils/utils.cpp
+
+# Auto-fix all files in a directory
+./scripts/lint.sh fix-dir src/utils
+
+# Format a file or directory
+./scripts/lint.sh format src/utils

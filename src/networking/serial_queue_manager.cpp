@@ -2,8 +2,8 @@
 
 void SerialQueueManager::initialize() {
     // Create the message queue
-    messageQueue = xQueueCreate(SERIAL_QUEUE_SIZE, sizeof(SerialMessage));
-    if (messageQueue == nullptr) {
+    _messageQueue = xQueueCreate(SERIAL_QUEUE_SIZE, sizeof(SerialMessage));
+    if (_messageQueue == nullptr) {
         Serial.println("ERROR: Failed to create serial message queue!");
         return;
     }
@@ -11,97 +11,110 @@ void SerialQueueManager::initialize() {
     Serial.println("SerialQueueManager initialized - task will be created by TaskManager");
 }
 
-bool SerialQueueManager::queueMessage(const String& msg, SerialPriority priority) {
-    return queueMessage(msg.c_str(), priority);
+bool SerialQueueManager::queue_message(const String& msg, SerialPriority priority) {
+    return queue_message(msg.c_str(), priority);
 }
 
-bool SerialQueueManager::queueMessage(const char* msg, SerialPriority priority) {
-    if (messageQueue == nullptr || msg == nullptr) return false;
+bool SerialQueueManager::queue_message(const char* msg, SerialPriority priority) {
+    if (_messageQueue == nullptr || msg == nullptr) {
+        return false;
+    }
 
     // Create message structure
     SerialMessage message;
     message.priority = priority;
     message.timestamp = millis();
-    
-    // Copy message, ensuring null termination and not exceeding buffer
-    size_t msgLen = strlen(msg);
-    if (msgLen >= sizeof(message.message)) {
-        msgLen = sizeof(message.message) - 1;
-    }
-    
-    strncpy(message.message, msg, msgLen);
-    message.message[msgLen] = '\0';
-    message.length = msgLen;
 
-    return addMessageToQueue(message);
+    // Copy message, ensuring null termination and not exceeding buffer
+    size_t msg_len = strlen(msg);
+    if (msg_len >= sizeof(message.message)) {
+        msg_len = sizeof(message.message) - 1;
+    }
+
+    strncpy(message.message, msg, msg_len);
+    message.message[msg_len] = '\0';
+    message.length = msg_len;
+
+    return add_message_to_queue(message);
 }
 
-bool SerialQueueManager::addMessageToQueue(const SerialMessage& msg) {
+bool SerialQueueManager::add_message_to_queue(const SerialMessage& msg) {
     // Try to send to queue without blocking
-    BaseType_t result = xQueueSend(messageQueue, &msg, 0);
-    
-    if (result == pdPASS) return true; // Successfully queued
+    BaseType_t result = xQueueSend(_messageQueue, &msg, 0);
+
+    if (result == pdPASS) {
+        return true; // Successfully queued
+    }
 
     // Queue is full - remove oldest message to make room
-    SerialMessage oldMessage;
-    if (xQueueReceive(messageQueue, &oldMessage, 0) == pdPASS) {
-        
+    SerialMessage old_message;
+    if (xQueueReceive(_messageQueue, &old_message, 0) == pdPASS) {
         // Now try to add the new message
-        result = xQueueSend(messageQueue, &msg, 0);
-        if (result == pdPASS) return true;
+        result = xQueueSend(_messageQueue, &msg, 0);
+        if (result == pdPASS) {
+            return true;
+        }
     }
-    
+
     return false;
 }
 
-void SerialQueueManager::serialOutputTask() {
+void SerialQueueManager::serial_output_task() {
     SerialMessage message;
-    
+
     // Array to hold messages for priority sorting
-    SerialMessage priorityBuffer[10]; // Process up to 10 messages at once for priority
-    int bufferCount = 0;
-    
+    SerialMessage priority_buffer[10]; // Process up to 10 messages at once for priority
+    int buffer_count = 0;
+
     while (true) {
         // Wait for at least one message (blocking)
-        if (xQueueReceive(messageQueue, &message, portMAX_DELAY) == pdPASS) {
-            priorityBuffer[0] = message;
-            bufferCount = 1;
-            
+        if (xQueueReceive(_messageQueue, &message, portMAX_DELAY) == pdPASS) {
+            priority_buffer[0] = message;
+            buffer_count = 1;
+
             // Check if there are more messages available for batch processing
-            while (bufferCount < 10 && xQueueReceive(messageQueue, &message, 0) == pdPASS) {
-                priorityBuffer[bufferCount] = message;
-                bufferCount++;
+            while (buffer_count < 10 && xQueueReceive(_messageQueue, &message, 0) == pdPASS) {
+                priority_buffer[buffer_count] = message;
+                buffer_count++;
             }
-            
+
             // Sort by priority (simple bubble sort - good enough for small arrays)
-            for (int i = 0; i < bufferCount - 1; i++) {
-                for (int j = 0; j < bufferCount - i - 1; j++) {
-                    if (static_cast<int>(priorityBuffer[j].priority) > static_cast<int>(priorityBuffer[j + 1].priority)) {
-                        SerialMessage temp = priorityBuffer[j];
-                        priorityBuffer[j] = priorityBuffer[j + 1];
-                        priorityBuffer[j + 1] = temp;
+            for (int i = 0; i < buffer_count - 1; i++) {
+                for (int j = 0; j < buffer_count - i - 1; j++) {
+                    if (static_cast<int>(priority_buffer[j].priority) > static_cast<int>(priority_buffer[j + 1].priority)) {
+                        SerialMessage temp = priority_buffer[j];
+                        priority_buffer[j] = priority_buffer[j + 1];
+                        priority_buffer[j + 1] = temp;
                     }
                 }
             }
-            
+
             // Process all messages in priority order
-            for (int i = 0; i < bufferCount; i++) {
-                processMessage(priorityBuffer[i]);
+            for (int i = 0; i < buffer_count; i++) {
+                process_message(priority_buffer[i]);
             }
         }
     }
 }
 
-void SerialQueueManager::processMessage(const SerialMessage& msg) {
-    const char* priorityStr = "";
+void SerialQueueManager::process_message(const SerialMessage& msg) {
+    const char* priority_str = "";
     switch (msg.priority) {
-        case SerialPriority::CRITICAL: priorityStr = "[CRIT] "; break;
-        case SerialPriority::HIGH_PRIO:     priorityStr = "[HIGH] "; break;
-        case SerialPriority::NORMAL:   priorityStr = ""; break;
-        case SerialPriority::LOW_PRIO:      priorityStr = "[LOW] "; break;
+        case SerialPriority::CRITICAL:
+            priority_str = "[CRIT] ";
+            break;
+        case SerialPriority::HIGH_PRIO:
+            priority_str = "[HIGH] ";
+            break;
+        case SerialPriority::NORMAL:
+            priority_str = "";
+            break;
+        case SerialPriority::LOW_PRIO:
+            priority_str = "[LOW] ";
+            break;
     }
 
-    Serial.print(priorityStr);
+    Serial.print(priority_str);
     Serial.println(msg.message);
     Serial.flush();
 }

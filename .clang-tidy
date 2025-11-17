@@ -1,0 +1,144 @@
+---
+# Comprehensive clang-tidy configuration for embedded C++ (Arduino)
+# All checks set to warnings for now
+
+Checks: >
+  -*,
+  bugprone-*,
+  -bugprone-easily-swappable-parameters,
+  -bugprone-narrowing-conversions,
+  cert-*,
+  -cert-err58-cpp,
+  clang-analyzer-*,
+  cppcoreguidelines-*,
+  -cppcoreguidelines-avoid-c-arrays,
+  -cppcoreguidelines-avoid-magic-numbers,
+  -cppcoreguidelines-init-variables,
+  -cppcoreguidelines-pro-bounds-array-to-pointer-decay,
+  -cppcoreguidelines-pro-bounds-constant-array-index,
+  -cppcoreguidelines-pro-bounds-pointer-arithmetic,
+  -cppcoreguidelines-non-private-member-variables-in-classes,
+  -cppcoreguidelines-pro-type-vararg,
+  google-*,
+  -google-readability-braces-around-statements,
+  -google-readability-todo,
+  -google-runtime-references,
+  hicpp-*,
+  -hicpp-avoid-c-arrays,
+  -hicpp-braces-around-statements,
+  -hicpp-no-array-decay,
+  -hicpp-uppercase-literal-suffix,
+  misc-*,
+  -misc-include-cleaner,
+  -misc-non-private-member-variables-in-classes,
+  modernize-*,
+  -modernize-use-trailing-return-type,
+  -modernize-avoid-c-arrays,
+  performance-*,
+  readability-*,
+  -readability-magic-numbers,
+  -readability-avoid-const-params-in-decls,
+  -readability-uppercase-literal-suffix,
+  -readability-identifier-length,
+  -readability-else-after-return,
+  -readability-convert-member-functions-to-static,
+  -readability-make-member-function-const,
+
+CheckOptions:
+  # Naming conventions
+  - key: readability-identifier-naming.NamespaceCase
+    value: lower_case
+  
+  - key: readability-identifier-naming.ClassCase
+    value: CamelCase
+  
+  - key: readability-identifier-naming.StructCase
+    value: CamelCase
+  
+  - key: readability-identifier-naming.EnumCase
+    value: CamelCase
+  
+  - key: readability-identifier-naming.FunctionCase
+    value: lower_case
+  
+  - key: readability-identifier-naming.VariableCase
+    value: lower_case
+  
+  - key: readability-identifier-naming.ParameterCase
+    value: lower_case
+  
+  - key: readability-identifier-naming.ConstantCase
+    value: UPPER_CASE
+  
+  - key: readability-identifier-naming.ConstexprVariableCase
+    value: UPPER_CASE
+  
+  - key: readability-identifier-naming.GlobalConstantCase
+    value: UPPER_CASE
+  
+  - key: readability-identifier-naming.StaticConstantCase
+    value: UPPER_CASE
+  
+  - key: readability-identifier-naming.EnumConstantCase
+    value: UPPER_CASE
+  
+  - key: readability-identifier-naming.PrivateMemberPrefix
+    value: '_'
+  
+  - key: readability-identifier-naming.ProtectedMemberPrefix
+    value: '_'
+  
+  - key: readability-identifier-naming.MacroDefinitionCase
+    value: UPPER_CASE
+  
+  # Magic numbers - flag unnamed constants
+  - key: cppcoreguidelines-avoid-magic-numbers.IgnoredIntegerValues
+    value: '0;1;-1'
+  
+  - key: cppcoreguidelines-avoid-magic-numbers.IgnoredFloatingPointValues
+    value: '0.0;1.0'
+  
+  # Performance - flag copies
+  - key: performance-unnecessary-value-param.AllowedTypes
+    value: ''
+  
+  # Embedded-specific: complexity limits
+  - key: readability-function-cognitive-complexity.Threshold
+    value: '15'
+  
+  - key: readability-function-size.LineThreshold
+    value: '100'
+  
+  - key: readability-function-size.StatementThreshold
+    value: '50'
+  
+  - key: readability-function-size.BranchThreshold
+    value: '10'
+  
+  - key: readability-function-size.ParameterThreshold
+    value: '5'
+  
+  # Enforce pragma once
+  - key: llvm-header-guard.HeaderFileExtensions
+    value: ''
+  
+  # Modernization preferences
+  - key: modernize-use-nullptr.NullMacros
+    value: 'NULL'
+  
+  - key: modernize-use-auto.MinTypeNameLength
+    value: '5'
+  
+  # Performance tuning
+  - key: performance-move-const-arg.CheckTriviallyCopyableMove
+    value: 'true'
+  
+  - key: performance-unnecessary-copy-initialization.AllowedTypes
+    value: ''
+
+WarningsAsErrors: ''
+
+# CRITICAL: Only analyze headers in your src/ and lib/ directories
+HeaderFilterRegex: '^.*/(src|lib)/.*\.(h|hpp)$'
+
+FormatStyle: file

@@ -1,141 +1,152 @@
 #include "sensor_loggers.h"
 
-void imuLogger() {
-    static unsigned long lastImuPrintTime = 0;
-    const unsigned long IMU_PRINT_INTERVAL = 1000; // Print frequency every 1 second
-    
+#include <math.h>
+
+#include <cmath>
+
+void imu_logger() {
+    static uint32_t last_imu_print_time = 0;
+    const uint32_t IMU_PRINT_INTERVAL = 1000; // Print frequency every 1 second
+
     // Print frequency report every second
-    if (millis() - lastImuPrintTime < IMU_PRINT_INTERVAL) return;
-    
+    if (millis() - last_imu_print_time < IMU_PRINT_INTERVAL) {
+        return;
+    }
+
     // Debug: Check if we're getting IMU data at all
-    EulerAngles eulerAngles = SensorDataBuffer::getInstance().getLatestEulerAngles();
-    float frequency = SensorDataBuffer::getInstance().getImuFrequency();
-    
-    char buffer[128];
-    snprintf(buffer, sizeof(buffer), "IMU Frequency: %.1f Hz, Data Valid: %s, Yaw: %.1f, Pitch: %.1f, Roll: %.1f", 
-             frequency, eulerAngles.isValid ? "YES" : "NO", eulerAngles.yaw, eulerAngles.pitch, eulerAngles.roll);
-    SerialQueueManager::getInstance().queueMessage(buffer);
-    
-    lastImuPrintTime = millis();
-}
-
-void sideTofsLogger() {
-    static unsigned long lastPrintTime = 0;
-    const unsigned long PRINT_INTERVAL = 50; // Print every 500ms
-    
-    if (millis() - lastPrintTime < PRINT_INTERVAL) return;
-    SideTofData tofCounts = SensorDataBuffer::getInstance().getLatestSideTofData();
-    // DisplayScreen::getInstance().showDistanceSensors(tofCounts);
+    EulerAngles euler_angles = SensorDataBuffer::get_instance().get_latest_euler_angles();
+    float frequency = SensorDataBuffer::get_instance().get_imu_frequency();
 
     char buffer[128];
-    snprintf(buffer, sizeof(buffer), "Left TOF: %u counts              || Right TOF: %u counts", 
-            tofCounts.leftCounts, tofCounts.rightCounts);
-    SerialQueueManager::getInstance().queueMessage(buffer);
-    lastPrintTime = millis();
+    snprintf(buffer, sizeof(buffer), "IMU Frequency: %.1f Hz, Data Valid: %s, Yaw: %.1f, Pitch: %.1f, Roll: %.1f", frequency,
+             euler_angles.isValid ? "YES" : "NO", euler_angles.yaw, euler_angles.pitch, euler_angles.roll);
+    SerialQueueManager::get_instance().queue_message(buffer);
+
+    last_imu_print_time = millis();
 }
 
-void setupButtonLoggers() {
-    Buttons::getInstance().setLeftButtonClickHandler([](Button2& btn) {
-        SerialQueueManager::getInstance().queueMessage("Left Button clicked!");
+void side_tofs_logger() {
+    static uint32_t last_print_time = 0;
+    const uint32_t PRINT_INTERVAL = 50; // Print every 500ms
+
+    if (millis() - last_print_time < PRINT_INTERVAL) {
+        return;
+    }
+    SideTofData tof_counts = SensorDataBuffer::get_instance().get_latest_side_tof_data();
+    // DisplayScreen::get_instance().showDistanceSensors(tofCounts);
+
+    char buffer[128];
+    snprintf(buffer, sizeof(buffer), "Left TOF: %u counts              || Right TOF: %u counts", tof_counts.left_counts, tof_counts.right_counts);
+    SerialQueueManager::get_instance().queue_message(buffer);
+    last_print_time = millis();
+}
+
+void setup_button_loggers() {
+    Buttons::get_instance().set_left_button_click_handler(
+        [](Button2& btn) { SerialQueueManager::get_instance().queue_message("Left Button clicked!"); });
+
+    Buttons::get_instance().set_right_button_click_handler(
+        [](Button2& btn) { SerialQueueManager::get_instance().queue_message("Right Button clicked!"); });
+
+    Buttons::get_instance().set_left_button_long_press_handler([](Button2& btn) {
+        SerialQueueManager::get_instance().queue_message("Left Button long pressed for " + String(btn.wasPressedFor()) + " ms");
     });
-    
-    Buttons::getInstance().setRightButtonClickHandler([](Button2& btn) {
-        SerialQueueManager::getInstance().queueMessage("Right Button clicked!");
-    });
-    
-    Buttons::getInstance().setLeftButtonLongPressHandler([](Button2& btn) {
-        SerialQueueManager::getInstance().queueMessage("Left Button long pressed for " + String(btn.wasPressedFor()) + " ms");
-    });
-    
-    Buttons::getInstance().setRightButtonLongPressHandler([](Button2& btn) {
-        SerialQueueManager::getInstance().queueMessage("Right Button long pressed for " + String(btn.wasPressedFor()) + " ms");
+
+    Buttons::get_instance().set_right_button_long_press_handler([](Button2& btn) {
+        SerialQueueManager::get_instance().queue_message("Right Button long pressed for " + String(btn.wasPressedFor()) + " ms");
     });
 }
 
-void multizoneTofLogger() {
-    static unsigned long lastPrintTime = 0;
-    const unsigned long PRINT_INTERVAL = 1000; // Print frequency every 1 second
-    
-    if (millis() - lastPrintTime < PRINT_INTERVAL) return;
-    
-    float frequency = SensorDataBuffer::getInstance().getMultizoneTofFrequency();
-    TofData tofData = SensorDataBuffer::getInstance().getLatestTofData();
-    
+void multizone_tof_logger() {
+    static uint32_t last_print_time = 0;
+    const uint32_t PRINT_INTERVAL = 1000; // Print frequency every 1 second
+
+    if (millis() - last_print_time < PRINT_INTERVAL) {
+        return;
+    }
+
+    float frequency = SensorDataBuffer::get_instance().get_multizone_tof_frequency();
+    TofData tof_data = SensorDataBuffer::get_instance().get_latest_tof_data();
+
     char buffer[128];
-    snprintf(buffer, sizeof(buffer), "Multizone ToF Frequency: %.1f Hz, Data Valid: %s, Object Detected: %s", 
-             frequency, tofData.isValid ? "YES" : "NO", tofData.isObjectDetected ? "Object Detected" : "Object not detected");
-    SerialQueueManager::getInstance().queueMessage(buffer);
-    
-    lastPrintTime = millis();
+    snprintf(buffer, sizeof(buffer), "Multizone ToF Frequency: %.1f Hz, Data Valid: %s, Object Detected: %s", frequency,
+             tof_data.is_valid ? "YES" : "NO", tof_data.is_object_detected ? "Object Detected" : "Object not detected");
+    SerialQueueManager::get_instance().queue_message(buffer);
+
+    last_print_time = millis();
 }
 
-void sideTofLogger() {
-    static unsigned long lastPrintTime = 0;
-    const unsigned long PRINT_INTERVAL = 1000; // Print frequency every 1 second
-    
-    if (millis() - lastPrintTime < PRINT_INTERVAL) return;
-    
-    float frequency = SensorDataBuffer::getInstance().getSideTofFrequency();
-    SideTofData tofData = SensorDataBuffer::getInstance().getLatestSideTofData();
-    
+void side_tof_logger() {
+    static uint32_t last_print_time = 0;
+    const uint32_t PRINT_INTERVAL = 1000; // Print frequency every 1 second
+
+    if (millis() - last_print_time < PRINT_INTERVAL) {
+        return;
+    }
+
+    float frequency = SensorDataBuffer::get_instance().get_side_tof_frequency();
+    SideTofData tof_data = SensorDataBuffer::get_instance().get_latest_side_tof_data();
+
     char buffer[128];
-    snprintf(buffer, sizeof(buffer), "Side ToF Frequency: %.1f Hz, Left: %u, Right: %u", 
-             frequency, tofData.leftCounts, tofData.rightCounts);
-    SerialQueueManager::getInstance().queueMessage(buffer);
-    
-    lastPrintTime = millis();
+    snprintf(buffer, sizeof(buffer), "Side ToF Frequency: %.1f Hz, Left: %u, Right: %u", frequency, tof_data.left_counts, tof_data.right_counts);
+    SerialQueueManager::get_instance().queue_message(buffer);
+
+    last_print_time = millis();
 }
 
-void colorSensorLogger() {
-    static unsigned long lastPrintTime = 0;
-    const unsigned long PRINT_INTERVAL = 1000; // Print frequency every 1 second
-    
-    if (millis() - lastPrintTime < PRINT_INTERVAL) return;
-    
-    float frequency = SensorDataBuffer::getInstance().getColorSensorFrequency();
-    ColorData colorData = SensorDataBuffer::getInstance().getLatestColorData();
-    
+void color_sensor_logger() {
+    static uint32_t last_print_time = 0;
+    const uint32_t PRINT_INTERVAL = 1000; // Print frequency every 1 second
+
+    if (millis() - last_print_time < PRINT_INTERVAL) {
+        return;
+    }
+
+    float frequency = SensorDataBuffer::get_instance().get_color_sensor_frequency();
+    ColorData color_data = SensorDataBuffer::get_instance().get_latest_color_data();
+
     char buffer[128];
-    snprintf(buffer, sizeof(buffer), "Color Sensor Frequency: %.1f Hz, RGB: (%u,%u,%u)", 
-             frequency, colorData.redValue, colorData.greenValue, colorData.blueValue);
-    SerialQueueManager::getInstance().queueMessage(buffer);
-    
-    lastPrintTime = millis();
+    snprintf(buffer, sizeof(buffer), "Color Sensor Frequency: %.1f Hz, RGB: (%u,%u,%u)", frequency, color_data.red_value, color_data.green_value,
+             color_data.blue_value);
+    SerialQueueManager::get_instance().queue_message(buffer);
+
+    last_print_time = millis();
 }
 
 void log_motor_rpm() {
-    static unsigned long lastPrintTime = 0;
-    const unsigned long PRINT_INTERVAL = 500;
-    
-    if (millis() - lastPrintTime < PRINT_INTERVAL) return;
+    static uint32_t last_print_time = 0;
+    const uint32_t PRINT_INTERVAL = 500;
 
-    auto rpms = SensorDataBuffer::getInstance().getLatestWheelRPMs();
+    if (millis() - last_print_time < PRINT_INTERVAL) {
+        return;
+    }
+
+    auto rpms = SensorDataBuffer::get_instance().get_latest_wheel_rpms();
 
     char buffer[128];
-    snprintf(buffer, sizeof(buffer), "Motor RPM - Left: %.2f || Right: %.2f", 
-             rpms.leftWheelRPM, rpms.rightWheelRPM);
-    SerialQueueManager::getInstance().queueMessage(buffer);
-    
-    lastPrintTime = millis();
+    snprintf(buffer, sizeof(buffer), "Motor RPM - Left: %.2f || Right: %.2f", rpms.leftWheelRPM, rpms.rightWheelRPM);
+    SerialQueueManager::get_instance().queue_message(buffer);
+
+    last_print_time = millis();
 }
 
-void displayPerformanceLogger() {
-    static unsigned long lastPrintTime = 0;
-    const unsigned long PRINT_INTERVAL = 1000; // Print frequency every 1 second
-    
-    if (millis() - lastPrintTime < PRINT_INTERVAL) return;
-    
-    DisplayScreen& display = DisplayScreen::getInstance();
-    
+void display_performance_logger() {
+    static uint32_t last_print_time = 0;
+    const uint32_t PRINT_INTERVAL = 1000; // Print frequency every 1 second
+
+    if (millis() - last_print_time < PRINT_INTERVAL) {
+        return;
+    }
+
+    DisplayScreen& display = DisplayScreen::get_instance();
+
     char buffer[128];
     snprintf(buffer, sizeof(buffer), "DISPLAY: %.2f Hz actual I2C (Generated: %lu, Updates: %lu, Skipped: %lu)",
-             display.getDisplayUpdateRate(),
-             display.getContentGenerationCount(),
-             display.getDisplayUpdateCount(),
-             display.getSkippedUpdateCount());
-    SerialQueueManager::getInstance().queueMessage(buffer);
-    
+             DisplayScreen::get_display_update_rate(), display.get_content_generation_count(), display.get_display_update_count(),
+             display.get_skipped_update_count());
+    SerialQueueManager::get_instance().queue_message(buffer);
+
     // Reset performance counters for next measurement period
-    display.resetPerformanceCounters();
-    lastPrintTime = millis();
+    display.reset_performance_counters();
+    last_print_time = millis();
 }

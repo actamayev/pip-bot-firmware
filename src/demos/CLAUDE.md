@@ -133,16 +133,16 @@ if (front_obstacle_close) {
 
 ### Starting Demos
 ```cpp
-DemoManager& dm = DemoManager::getInstance();
-dm.startDemo(Demo::DemoType::BALANCE_CONTROLLER);
-dm.startDemo(Demo::DemoType::OBSTACLE_AVOIDER);
+DemoManager& dm = DemoManager::get_instance();
+dm.startDemo(demo::DemoType::BALANCE_CONTROLLER);
+dm.startDemo(demo::DemoType::OBSTACLE_AVOIDER);
 dm.stopCurrentDemo(); // Return to manual control
 ```
 
 ### Demo Status
 ```cpp
 if (dm.isAnyDemoActive()) {
-    Demo::DemoType current = dm.getCurrentDemo();
+    demo::DemoType current = dm.getCurrentDemo();
     // Adjust UI or behavior accordingly
 }
 ```

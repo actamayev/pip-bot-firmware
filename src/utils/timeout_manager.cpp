@@ -1,49 +1,54 @@
 #include "timeout_manager.h"
+
 #include "actuators/buttons.h"
 #include "actuators/led/rgb_led.h"
-#include "networking/serial_queue_manager.h"
 #include "custom_interpreter/bytecode_vm.h"
+#include "networking/serial_queue_manager.h"
 
-void TimeoutManager::resetActivity() {
-    lastActivityTime = millis();
-    
+void TimeoutManager::reset_activity() {
+    _last_activity_time = millis();
+
     // If we were in confirmation state, cancel it
-    if (!inConfirmationState) return;
-    cancelConfirmation();
+    if (!_inConfirmationState) {
+        return;
+    }
+    cancel_confirmation();
 }
 
 void TimeoutManager::update() {
-    unsigned long currentTime = millis();
-    
-    if (!inConfirmationState) {
+    uint32_t current_time = millis();
+
+    if (!_inConfirmationState) {
         // Check for initial inactivity timeout
-        if (currentTime - lastActivityTime >= INACTIVITY_TIMEOUT) {
-            enterConfirmationState();
+        if (current_time - _last_activity_time >= INACTIVITY_TIMEOUT) {
+            enter_confirmation_state();
         }
     } else {
         // Check for confirmation timeout
-        if (currentTime - confirmationStartTime >= CONFIRMATION_TIMEOUT) {
-            Buttons::getInstance().enterDeepSleep();
+        if (current_time - _confirmationStartTime >= CONFIRMATION_TIMEOUT) {
+            Buttons::get_instance().enter_deep_sleep();
         }
     }
 }
 
-void TimeoutManager::enterConfirmationState() {    
+void TimeoutManager::enter_confirmation_state() {
     // Stop bytecode and prepare for sleep (same as long press logic)
-    BytecodeVM::getInstance().stopProgram();
-    SensorDataBuffer::getInstance().stopPollingAllSensors();
-    rgbLed.set_led_yellow();
-    
-    inConfirmationState = true;
-    confirmationStartTime = millis();
+    BytecodeVM::get_instance().stop_program();
+    SensorDataBuffer::get_instance().stop_polling_all_sensors();
+    rgb_led.set_led_yellow();
+
+    _inConfirmationState = true;
+    _confirmationStartTime = millis();
 }
 
-void TimeoutManager::cancelConfirmation() {
-    if (!inConfirmationState) return;
+void TimeoutManager::cancel_confirmation() {
+    if (!_inConfirmationState) {
+        return;
+    }
 
-    inConfirmationState = false;
-    rgbLed.turn_all_leds_off();
+    _inConfirmationState = false;
+    rgb_led.turn_all_leds_off();
 
     // Reset activity timer
-    lastActivityTime = millis();
+    _last_activity_time = millis();
 }

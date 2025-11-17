@@ -1,24 +1,30 @@
 #include "obstacle_avoider.h"
 
 void ObstacleAvoider::enable() {
-    if (_avoidanceEnabled == ObstacleAvoidanceStatus::AVOID) return;
-    
+    if (_avoidanceEnabled == ObstacleAvoidanceStatus::AVOID) {
+        return;
+    }
+
     _avoidanceEnabled = ObstacleAvoidanceStatus::AVOID;
-    // StraightLineDrive::getInstance().disable();
+    // StraightLineDrive::get_instance().disable();
 }
 
 void ObstacleAvoider::disable() {
-    if (_avoidanceEnabled == ObstacleAvoidanceStatus::STOP_AVOIDANCE) return;
+    if (_avoidanceEnabled == ObstacleAvoidanceStatus::STOP_AVOIDANCE) {
+        return;
+    }
     _avoidanceEnabled = ObstacleAvoidanceStatus::STOP_AVOIDANCE;
-    motorDriver.resetCommandState(false);
+    motor_driver.reset_command_state(false);
 }
 
 void ObstacleAvoider::update() {
-    if (_avoidanceEnabled != ObstacleAvoidanceStatus::AVOID) return;
+    if (_avoidanceEnabled != ObstacleAvoidanceStatus::AVOID) {
+        return;
+    }
 
-    unsigned long currentTime = millis();
-    if (currentTime - _lastUpdateTime < UPDATE_INTERVAL) {
+    uint32_t current_time = millis();
+    if (current_time - _lastUpdateTime < UPDATE_INTERVAL) {
         return; // Maintain update rate
     }
-    _lastUpdateTime = currentTime;
+    _lastUpdateTime = current_time;
 }
