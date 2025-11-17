@@ -19,8 +19,8 @@ bool PreferencesManager::beginNamespace(const char* ns) {
     }
 
     // Open the requested namespace
-    bool const success = _preferences.begin(ns, false);
-    if (success) {
+    bool const SUCCESS = _preferences.begin(ns, false);
+    if (SUCCESS) {
         _currentNamespace = ns;
     } else {
         _currentNamespace = "";
@@ -29,7 +29,7 @@ bool PreferencesManager::beginNamespace(const char* ns) {
         SerialQueueManager::getInstance().queueMessage(logMessage);
     }
 
-    return success;
+    return SUCCESS;
 }
 
 // Cache loading methods
@@ -242,8 +242,8 @@ bool PreferencesManager::forgetWiFiNetwork(const String& targetSSID) {
     }
 
     // Clear all existing network data
-    int const currentCount = _preferences.getInt(WIFI_COUNT, 0);
-    for (int i = 0; i < currentCount; i++) {
+    int const CURRENT_COUNT = _preferences.getInt(WIFI_COUNT, 0);
+    for (int i = 0; i < CURRENT_COUNT; i++) {
         char ssidKey[128];
         char passwordKey[128];
         sprintf(ssidKey, "ssid_%d", i);

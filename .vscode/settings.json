@@ -73,5 +73,7 @@
         "**/.platformio/**": true,
         "**/esp32s3/**": true,
         "**/tools/sdk/**": true
-    }
+    },
+    "platformio-ide.autoOpenPlatformIOIniFile": false,
+    "platformio-ide.disablePIOHomeStartup": true
 }
