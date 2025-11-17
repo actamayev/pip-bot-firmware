@@ -352,7 +352,7 @@ bool WiFiManager::start_async_scan() {
         return true;
     } else {
         SerialQueueManager::get_instance().queue_message("Failed to start async scan");
-        rgbLed.turn_main_board_leds_off();
+        rgb_led.turn_main_board_leds_off();
         return false;
     }
 }
@@ -374,7 +374,7 @@ void WiFiManager::check_async_scan_progress() {
     if (scan_duration > ASYNC_SCAN_TIMEOUT_MS) {
         SerialQueueManager::get_instance().queue_message("Async WiFi scan timed out after " + String(scanDuration) + "ms");
         _asyncScanInProgress = false;
-        rgbLed.turn_main_board_leds_off();
+        rgb_led.turn_main_board_leds_off();
 
         // Clean up any scan results
         WiFi.scanDelete();
@@ -398,7 +398,7 @@ void WiFiManager::check_async_scan_progress() {
     SerialQueueManager::get_instance().queue_message("Async WiFi scan completed in " + String(scanDuration) + "ms. Found " + String(scanResult) +
                                                      " networks");
     _asyncScanInProgress = false;
-    rgbLed.turn_main_board_leds_off();
+    rgb_led.turn_main_board_leds_off();
     _lastScanCompleteTime = millis();
     // Process scan results
     std::vector<WiFiNetworkInfo> networks;

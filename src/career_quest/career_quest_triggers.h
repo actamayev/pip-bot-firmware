@@ -1,7 +1,4 @@
 #pragma once
-
-#include <Adafruit_NeoPixel.h>
-
 #include "actuators/buttons.h"
 #include "actuators/display_screen.h"
 #include "actuators/led/led_animations.h"

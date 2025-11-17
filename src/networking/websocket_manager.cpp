@@ -198,8 +198,8 @@ void WebSocketManager::kill_wifi_processes() {
     if (hasKilledWiFiProcesses) {
         return;
     }
-    careerQuestTriggers.stop_all_career_quest_triggers(false);
-    motorDriver.reset_command_state(false);
+    career_quest_triggers.stop_all_career_quest_triggers(false);
+    motor_driver.reset_command_state(false);
 
     // Stop all sensor data transmission to reduce network load
     SendSensorData::get_instance().set_send_sensor_data(false);
@@ -245,6 +245,6 @@ void WebSocketManager::set_is_user_connected_to_this_pip(bool new_is_user_connec
     if (new_is_user_connected_to_this_pip) {
         return;
     }
-    motorDriver.reset_command_state(true);
-    careerQuestTriggers.stop_all_career_quest_triggers(false);
+    motor_driver.reset_command_state(true);
+    career_quest_triggers.stop_all_career_quest_triggers(false);
 }

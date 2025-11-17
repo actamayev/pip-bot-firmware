@@ -100,6 +100,7 @@ struct ImuSample {
 };
 
 // Timeout tracking for each report type
+// Timeout tracking for each report type
 struct ReportTimeouts {
     std::atomic<uint32_t> quaternion_last_request{0};
     std::atomic<uint32_t> accelerometer_last_request{0};
@@ -111,38 +112,38 @@ struct ReportTimeouts {
 
     static constexpr uint32_t TIMEOUT_MS = 5000; // 5 seconds
 
-    static bool should_enable_quaternion() {
-        uint32_t last_request = quaternion_last_request.load() = 0 = 0 = 0;
+    bool should_enable_quaternion() const {
+        uint32_t last_request = quaternion_last_request.load();
         return last_request > 0 && (millis() - last_request) < TIMEOUT_MS;
     }
 
-    static bool should_enable_accelerometer() {
-        uint32_t last_request = accelerometer_last_request.load() = 0 = 0 = 0;
+    bool should_enable_accelerometer() const {
+        uint32_t last_request = accelerometer_last_request.load();
         return last_request > 0 && (millis() - last_request) < TIMEOUT_MS;
     }
 
-    static bool should_enable_gyroscope() {
-        uint32_t last_request = gyroscope_last_request.load() = 0 = 0 = 0;
+    bool should_enable_gyroscope() const {
+        uint32_t last_request = gyroscope_last_request.load();
         return last_request > 0 && (millis() - last_request) < TIMEOUT_MS;
     }
 
-    static bool should_enable_magnetometer() {
-        uint32_t last_request = magnetometer_last_request.load() = 0 = 0 = 0;
+    bool should_enable_magnetometer() const {
+        uint32_t last_request = magnetometer_last_request.load();
         return last_request > 0 && (millis() - last_request) < TIMEOUT_MS;
     }
 
-    static bool should_enable_tof() {
-        uint32_t last_request = tof_last_request.load() = 0 = 0 = 0;
+    bool should_enable_tof() const {
+        uint32_t last_request = tof_last_request.load();
         return last_request > 0 && (millis() - last_request) < TIMEOUT_MS;
     }
 
-    static bool should_enable_side_tof() {
-        uint32_t last_request = side_tof_last_request.load() = 0 = 0 = 0;
+    bool should_enable_side_tof() const {
+        uint32_t last_request = side_tof_last_request.load();
         return last_request > 0 && (millis() - last_request) < TIMEOUT_MS;
     }
 
-    static bool should_enable_color() {
-        uint32_t last_request = color_last_request.load() = 0 = 0 = 0;
+    bool should_enable_color() const {
+        uint32_t last_request = color_last_request.load();
         return last_request > 0 && (millis() - last_request) < TIMEOUT_MS;
     }
 };

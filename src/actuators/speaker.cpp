@@ -162,7 +162,7 @@ void Speaker::stop_all_sounds() {
 
         // Stop LED sequence and turn off LEDs
         _is_led_sequence_playing = false;
-        rgbLed.turn_all_leds_off();
+        rgb_led.turn_all_leds_off();
 
         SerialQueueManager::get_instance().queue_message("Stopped entertainer melody and LED sync");
 
@@ -216,10 +216,10 @@ void Speaker::update_melody() {
             _current_led_step++;
             if (_current_led_step >= ENTERTAINER_LED_SEQUENCE_LENGTH) {
                 _is_led_sequence_playing = false;
-                rgbLed.turn_all_leds_off();
+                rgb_led.turn_all_leds_off();
             } else {
                 const MelodyNote& note = entertainer_led_sequence[_current_led_step];
-                rgbLed.set_main_board_leds_to_color(note.led_r, note.led_g, note.led_b);
+                rgb_led.set_main_board_leds_to_color(note.led_r, note.led_g, note.led_b);
                 _led_step_start_time = current_time;
             }
         }
@@ -230,7 +230,7 @@ void Speaker::update_melody() {
         if (!_rtttl_generator->loop()) {
             _is_melody_playing = false;
             _is_led_sequence_playing = false;
-            rgbLed.turn_all_leds_off();
+            rgb_led.turn_all_leds_off();
             SerialQueueManager::get_instance().queue_message("Entertainer melody completed");
             if (_rtttl_source != nullptr) {
                 delete _rtttl_source;
@@ -272,7 +272,7 @@ void Speaker::start_entertainer_melody() {
         _current_led_step = 0;
         _led_step_start_time = millis();
         const MelodyNote& first_note = entertainer_led_sequence[0];
-        rgbLed.set_main_board_leds_to_color(firstNote.led_r, firstNote.led_g, firstNote.led_b);
+        rgb_led.set_main_board_leds_to_color(firstNote.led_r, firstNote.led_g, firstNote.led_b);
         SerialQueueManager::get_instance().queue_message("✓ Entertainer melody and LED sync started");
     } else {
         SerialQueueManager::get_instance().queue_message("✗ Failed to start Entertainer playback");
@@ -328,7 +328,7 @@ void Speaker::play_tone(ToneType tone) {
         _rtttl_generator->stop();
         _is_melody_playing = false;
         _is_led_sequence_playing = false;
-        rgbLed.turn_all_leds_off();
+        rgb_led.turn_all_leds_off();
     }
 
     // Stop existing tone if any
@@ -434,22 +434,22 @@ void Speaker::update_continuous_tone() {
 
             // Now delete the old source
 
-                delete _tone_source;
+            delete _tone_source;
 
-                _tone_source = new_source;
+            _tone_source = new_source;
 
-                // Restart immediately - no delay between delete and begin
-                if (!_tone_generator->begin(_tone_source, _audio_output)) {
-                    SerialQueueManager::get_instance().queue_message("Failed to restart tone");
-                    _is_playing_tone = false;
-                    if (_tone_source != nullptr) {
-                        delete _tone_source;
-                        _tone_source = nullptr;
-                    }
-                    if (_tone_generator != nullptr) {
-                        delete _tone_generator;
-                        _tone_generator = nullptr;
-                    }
+            // Restart immediately - no delay between delete and begin
+            if (!_tone_generator->begin(_tone_source, _audio_output)) {
+                SerialQueueManager::get_instance().queue_message("Failed to restart tone");
+                _is_playing_tone = false;
+                if (_tone_source != nullptr) {
+                    delete _tone_source;
+                    _tone_source = nullptr;
+                }
+                if (_tone_generator != nullptr) {
+                    delete _tone_generator;
+                    _tone_generator = nullptr;
+                }
             }
             // If successful, tone continues seamlessly (with minimal 20-50ms gap)
         }

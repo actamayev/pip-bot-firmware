@@ -85,7 +85,7 @@ bool BytecodeVM::load_program(const uint8_t* byte_code, uint16_t size) {
 
     scan_program_for_motors();
     activate_sensors_for_program(); // Activate sensors needed by the program
-    _stoppedDueToUsbSafety = false;  // Reset safety flag on new program load
+    _stoppedDueToUsbSafety = false; // Reset safety flag on new program load
 
     xSemaphoreGive(_programMutex);
     return true;
@@ -163,16 +163,16 @@ bool BytecodeVM::compare_values(ComparisonOp op, float left_operand, float right
         // Direct value
         left_value = left_operand;
     } else {
-        uint16_t reg_id = static_cast<uint16_t>(left_operand) & 0x7FFF;
+        const uint16_t REG_ID = static_cast<uint16_t>(left_operand) & 0x7FFF;
 
-        if (reg_id < MAX_REGISTERS && _registerInitialized[reg_id]) {
+        if (REG_ID < MAX_REGISTERS && _registerInitialized[REG_ID]) {
             // Get value from register
-            if (_registerTypes[reg_id] == VAR_FLOAT) {
-                left_value = _registers[reg_id].asFloat;
-            } else if (_registerTypes[reg_id] == VAR_INT) {
-                left_value = _registers[reg_id].asInt;
+            if (_registerTypes[REG_ID] == VAR_FLOAT) {
+                left_value = _registers[REG_ID].asFloat;
+            } else if (_registerTypes[REG_ID] == VAR_INT) {
+                left_value = _registers[REG_ID].asInt;
             } else {
-                left_value = _registers[reg_id].asBool ? 1.0f : 0.0f;
+                left_value = _registers[REG_ID].asBool ? 1.0f : 0.0f;
             }
         } else {
             return false; // Invalid register
@@ -184,16 +184,16 @@ bool BytecodeVM::compare_values(ComparisonOp op, float left_operand, float right
         // Direct value
         right_value = right_operand;
     } else {
-        uint16_t reg_id = static_cast<uint16_t>(right_operand) & 0x7FFF;
+        const uint16_t REG_ID = static_cast<uint16_t>(right_operand) & 0x7FFF;
 
-        if (reg_id < MAX_REGISTERS && _registerInitialized[reg_id]) {
+        if (REG_ID < MAX_REGISTERS && _registerInitialized[REG_ID]) {
             // Get value from register
-            if (_registerTypes[reg_id] == VAR_FLOAT) {
-                right_value = _registers[reg_id].asFloat;
-            } else if (_registerTypes[reg_id] == VAR_INT) {
-                right_value = _registers[reg_id].asInt;
+            if (_registerTypes[REG_ID] == VAR_FLOAT) {
+                right_value = _registers[REG_ID].asFloat;
+            } else if (_registerTypes[REG_ID] == VAR_INT) {
+                right_value = _registers[REG_ID].asInt;
             } else {
-                right_value = _registers[reg_id].asBool ? 1.0f : 0.0f;
+                right_value = _registers[REG_ID].asBool ? 1.0f : 0.0f;
             }
         } else {
             return false; // Invalid register
@@ -390,7 +390,7 @@ void BytecodeVM::execute_instruction(const BytecodeInstruction& instr) {
             auto b = static_cast<uint8_t>(instr.operand3);
 
             // operand4 is unused for this operation
-            rgbLed.set_main_board_leds_to_color(r, g, b);
+            rgb_led.set_main_board_leds_to_color(r, g, b);
             break;
         }
 
@@ -409,9 +409,9 @@ void BytecodeVM::execute_instruction(const BytecodeInstruction& instr) {
             // Unconditional jump
             auto low = static_cast<uint8_t>(instr.operand1);
             auto high = static_cast<uint8_t>(instr.operand2);
-            uint16_t jump_offset = (high << 8) | low;                                       // Combine high and low bytes into 16-bit offset
+            uint16_t jump_offset = (high << 8) | low;                             // Combine high and low bytes into 16-bit offset
             uint16_t target_instruction = _pc + (jump_offset / INSTRUCTION_SIZE); // 20 bytes per instruction
-            _pc = target_instruction - 1;                                                     // Subtract 1 because pc increments after this
+            _pc = target_instruction - 1;                                         // Subtract 1 because pc increments after this
             break;
         }
 
@@ -419,9 +419,9 @@ void BytecodeVM::execute_instruction(const BytecodeInstruction& instr) {
             // Backward jump (used in for loops)
             auto low = static_cast<uint8_t>(instr.operand1);
             auto high = static_cast<uint8_t>(instr.operand2);
-            uint16_t jump_offset = (high << 8) | low;                                       // Combine high and low bytes into 16-bit offset
+            uint16_t jump_offset = (high << 8) | low;                             // Combine high and low bytes into 16-bit offset
             uint16_t target_instruction = _pc - (jump_offset / INSTRUCTION_SIZE); // Subtract for backward jump
-            _pc = target_instruction - 1;                                                     // Subtract 1 because pc increments after
+            _pc = target_instruction - 1;                                         // Subtract 1 because pc increments after
             break;
         }
 
@@ -430,9 +430,9 @@ void BytecodeVM::execute_instruction(const BytecodeInstruction& instr) {
             if (_lastComparisonResult) {
                 auto low = static_cast<uint8_t>(instr.operand1);
                 auto high = static_cast<uint8_t>(instr.operand2);
-                uint16_t jump_offset = (high << 8) | low;                                       // Combine high and low bytes into 16-bit offset
+                uint16_t jump_offset = (high << 8) | low;                             // Combine high and low bytes into 16-bit offset
                 uint16_t target_instruction = _pc + (jump_offset / INSTRUCTION_SIZE); // 20 bytes per instruction
-                _pc = target_instruction - 1;                                                     // Subtract 1 because pc increments after
+                _pc = target_instruction - 1;                                         // Subtract 1 because pc increments after
             }
             break;
         }
@@ -442,9 +442,9 @@ void BytecodeVM::execute_instruction(const BytecodeInstruction& instr) {
             if (!_lastComparisonResult) {
                 auto low = static_cast<uint8_t>(instr.operand1);
                 auto high = static_cast<uint8_t>(instr.operand2);
-                uint16_t jump_offset = (high << 8) | low;                                       // Combine high and low bytes into 16-bit offset
+                uint16_t jump_offset = (high << 8) | low;                             // Combine high and low bytes into 16-bit offset
                 uint16_t target_instruction = _pc + (jump_offset / INSTRUCTION_SIZE); // 20 bytes per instruction
-                _pc = target_instruction - 1;                                                     // Subtract 1 because pc increments after
+                _pc = target_instruction - 1;                                         // Subtract 1 because pc increments after
             }
             break;
         }
@@ -565,15 +565,15 @@ void BytecodeVM::execute_instruction(const BytecodeInstruction& instr) {
 
             // Set both motors based on direction
             if (is_forward) {
-                motorDriver.update_motor_pwm(motor_speed, motor_speed);
+                motor_driver.update_motor_pwm(motor_speed, motor_speed);
             } else {
-                motorDriver.update_motor_pwm(-motor_speed, -motor_speed);
+                motor_driver.update_motor_pwm(-motor_speed, -motor_speed);
             }
             break;
         }
 
         case OP_MOTOR_STOP: {
-            motorDriver.reset_command_state(true);
+            motor_driver.reset_command_state(true);
             break;
         }
 
@@ -594,10 +594,10 @@ void BytecodeVM::execute_instruction(const BytecodeInstruction& instr) {
             // Spin motors in opposite directions
             if (clockwise) {
                 // Clockwise: left motor forward, right motor backward
-                motorDriver.update_motor_pwm(motor_speed, -motor_speed);
+                motor_driver.update_motor_pwm(motor_speed, -motor_speed);
             } else {
                 // Counterclockwise: left motor backward, right motor forward
-                motorDriver.update_motor_pwm(-motor_speed, motor_speed);
+                motor_driver.update_motor_pwm(-motor_speed, motor_speed);
             }
             break;
         }
@@ -637,9 +637,9 @@ void BytecodeVM::execute_instruction(const BytecodeInstruction& instr) {
 
             // Set motors based on direction
             if (is_forward) {
-                motorDriver.update_motor_pwm(motor_speed, motor_speed);
+                motor_driver.update_motor_pwm(motor_speed, motor_speed);
             } else {
-                motorDriver.update_motor_pwm(-motor_speed, -motor_speed);
+                motor_driver.update_motor_pwm(-motor_speed, -motor_speed);
             }
 
             // Set up timed movement
@@ -678,10 +678,10 @@ void BytecodeVM::execute_instruction(const BytecodeInstruction& instr) {
             // Set motors based on direction and store initial PWM with correct sign
             if (is_forward) {
                 _initialDistancePwm = motor_speed;
-                motorDriver.update_motor_pwm(motor_speed, motor_speed);
+                motor_driver.update_motor_pwm(motor_speed, motor_speed);
             } else {
                 _initialDistancePwm = -motor_speed; // Store as negative for backward
-                motorDriver.update_motor_pwm(-motor_speed, -motor_speed);
+                motor_driver.update_motor_pwm(-motor_speed, -motor_speed);
             }
 
             break;
@@ -738,7 +738,7 @@ void BytecodeVM::update_timed_motor_movement() {
         return;
     }
     // Movement complete - brake motors
-    motorDriver.reset_command_state(true);
+    motor_driver.reset_command_state(true);
 
     // Reset timed movement state
     _timedMotorMovementInProgress = false;
@@ -753,7 +753,7 @@ void BytecodeVM::update_distance_movement() {
     // Check if we've reached the target distance
     if (remaining_distance <= 0.0f) {
         // Distance reached - brake motors and clear any pending commands
-        motorDriver.reset_command_state(true);
+        motor_driver.reset_command_state(true);
 
         // Reset distance movement state
         _distanceMovementInProgress = false;
@@ -797,7 +797,7 @@ void BytecodeVM::update_distance_movement() {
         SerialQueueManager::get_instance().queue_message("targetPwm" + String(target_pwm));
 
         // Set motor speeds directly without ramping
-        motorDriver.set_motor_speeds(target_pwm, target_pwm, false);
+        motor_driver.set_motor_speeds(target_pwm, target_pwm, false);
     }
     // If not in deceleration zone, continue at initial speed (StraightLineDrive will handle heading)
 }
@@ -838,7 +838,7 @@ void BytecodeVM::reset_state_variables(bool is_full_reset) {
     // Note: Don't reset _programContainsMotors or _lastUsbState here as they persist across pause/resume
 
     // Force reset motor driver state completely
-    motorDriver.reset_command_state(false);
+    motor_driver.reset_command_state(false);
 
     // Reset registers
     for (uint16_t i = 0; i < MAX_REGISTERS; i++) {
@@ -863,7 +863,7 @@ void BytecodeVM::reset_state_variables(bool is_full_reset) {
         _programContainsMotors = false;
         _lastUsbState = false;
     }
-    rgbLed.turn_all_leds_off();
+    rgb_led.turn_all_leds_off();
     Speaker::get_instance().stop_all_sounds();
     SensorDataBuffer::get_instance().stop_polling_all_sensors();
 }

@@ -31,26 +31,6 @@ case "$1" in
             -p . \
             "$2"
         ;;
-    "fix-all")
-        # Fix all files in src/ directory only
-        echo "Running clang-tidy fix on all source files..."
-        pio run -t compiledb -e local > /dev/null 2>&1
-        
-        # Only process src/ directory, not lib/
-        find src -type f \( -name "*.cpp" -o -name "*.h" -o -name "*.hpp" \) | while read -r file; do
-            echo "Fixing: $file"
-            /opt/homebrew/opt/llvm/bin/clang-tidy \
-                --config-file=.clang-tidy \
-                --header-filter='^src/.*' \
-                --fix \
-                --fix-errors \
-                --extra-arg=-Wno-unknown-attributes \
-                --line-filter="[{\"name\":\"$file\"}]" \
-                -p . \
-                "$file" 2>&1 | grep -v "warnings generated" || true
-        done
-        echo "Done!"
-        ;;
     "fix-dir")
         # Fix all files in a specific directory
         if [ -z "$2" ]; then

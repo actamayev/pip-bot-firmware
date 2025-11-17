@@ -14,7 +14,7 @@ void ObstacleAvoider::disable() {
         return;
     }
     _avoidanceEnabled = ObstacleAvoidanceStatus::STOP_AVOIDANCE;
-    motorDriver.reset_command_state(false);
+    motor_driver.reset_command_state(false);
 }
 
 void ObstacleAvoider::update() {

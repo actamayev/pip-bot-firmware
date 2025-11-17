@@ -318,8 +318,8 @@ void DisplayScreen::generate_content_to_buffer() {
     // uint8_t* displayBuffer = _display.getBuffer();
     // memcpy(_stagingBuffer, displayBuffer, DISPLAY_BUFFER_SIZE);
     // return;
-    if (careerQuestTriggers.isS3P3Active()) {
-        careerQuestTriggers.render_s3_p3_animation();
+    if (career_quest_triggers.isS3P3Active()) {
+        career_quest_triggers.render_s3_p3_animation();
         // Copy display buffer to staging buffer
         uint8_t* display_buffer = instance._display.getBuffer();
         memcpy(instance._stagingBuffer, display_buffer, DISPLAY_BUFFER_SIZE);

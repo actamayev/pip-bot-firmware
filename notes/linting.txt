@@ -4,9 +4,6 @@
 # Auto-fix a single file
 ./scripts/lint.sh fix src/utils/utils.cpp
 
-# Auto-fix all source files (run 2-3 times until no changes)
-./scripts/lint.sh fix-all
-
 # Auto-fix all files in a directory
 ./scripts/lint.sh fix-dir src/utils
 

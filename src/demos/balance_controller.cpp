@@ -33,7 +33,7 @@ void BalanceController::enable() {
     // StraightLineDrive::get_instance().disable();
 
     // Set LED to indicate balancing mode
-    // rgbLed.set_led_green();
+    // rgb_led.set_led_green();
 }
 
 void BalanceController::disable() {
@@ -41,8 +41,8 @@ void BalanceController::disable() {
         return;
     }
     _balancingEnabled = BalanceStatus::UNBALANCED;
-    motorDriver.reset_command_state(false);
-    rgbLed.turn_all_leds_off();
+    motor_driver.reset_command_state(false);
+    rgb_led.turn_all_leds_off();
     DemoManager::get_instance()._currentDemo = demo::DemoType::NONE;
 }
 
@@ -104,7 +104,7 @@ void BalanceController::update() {
     // If within deadband angle and rotation rate is low, stop motors
     if (abs(error) < _DEADBAND_ANGLE && abs(gyro_rate) < _MAX_STABLE_ROTATION) {
         // Within deadband and stable - stop motors
-        motorDriver.stop_both_motors();
+        motor_driver.stop_both_motors();
 
         // Important: Still update last error for continuity
         _lastError = error;
@@ -128,7 +128,7 @@ void BalanceController::update() {
     }
 
     // Apply motor power
-    motorDriver.set_motor_speeds_immediate(adjustedPWM, adjustedPWM);
+    motor_driver.set_motor_speeds_immediate(adjustedPWM, adjustedPWM);
 
     // Store error for next iteration
     _lastError = error;

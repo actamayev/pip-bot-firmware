@@ -48,7 +48,7 @@ void TaskManager::serial_input_task(void* parameter) {
 
 void TaskManager::led_task(void* parameter) {
     for (;;) {
-        ledAnimations.update();
+        led_animations.update();
         vTaskDelay(pdMS_TO_TICKS(5));
     }
 }
@@ -270,8 +270,8 @@ void TaskManager::motor_task(void* parameter) {
     SerialQueueManager::get_instance().queue_message("Motor task started");
 
     for (;;) {
-        motorDriver.update();
-        motorDriver.process_pending_commands();
+        motor_driver.update();
+        motor_driver.process_pending_commands();
         vTaskDelay(pdMS_TO_TICKS(2)); // Fast motor update - 2ms
     }
 }
@@ -298,7 +298,7 @@ void TaskManager::career_quest_task(void* parameter) {
     SerialQueueManager::get_instance().queue_message("CareerQuest task started");
 
     for (;;) {
-        careerQuestTriggers.update();
+        career_quest_triggers.update();
         vTaskDelay(pdMS_TO_TICKS(10)); // Career quest updates every 10ms
     }
 }

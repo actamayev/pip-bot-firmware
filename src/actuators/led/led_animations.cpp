@@ -34,7 +34,7 @@ void LedAnimations::start_breathing(int speed, float starting_brightness) {
 
 void LedAnimations::update_breathing_color() {
     // Use middle_right LED's default color for breathing (now index 0)
-    if (!rgbLed.default_colors_set[0]) {
+    if (!rgb_led.default_colors_set[0]) {
         _breath_min[0] = 0.1 * MAX_LED_BRIGHTNESS;
         _breath_min[1] = 0.1 * MAX_LED_BRIGHTNESS;
         _breath_min[2] = 0.1 * MAX_LED_BRIGHTNESS;
@@ -44,13 +44,13 @@ void LedAnimations::update_breathing_color() {
         _breath_max[2] = MAX_LED_BRIGHTNESS;
         return;
     }
-    _breath_min[0] = 0.1 * rgbLed.default_colors[0][0]; // starts at 10% brightness
-    _breath_min[1] = 0.1 * rgbLed.default_colors[0][1];
-    _breath_min[2] = 0.1 * rgbLed.default_colors[0][2];
+    _breath_min[0] = 0.1 * rgb_led.default_colors[0][0]; // starts at 10% brightness
+    _breath_min[1] = 0.1 * rgb_led.default_colors[0][1];
+    _breath_min[2] = 0.1 * rgb_led.default_colors[0][2];
 
-    _breath_max[0] = rgbLed.default_colors[0][0];
-    _breath_max[1] = rgbLed.default_colors[0][1];
-    _breath_max[2] = rgbLed.default_colors[0][2];
+    _breath_max[0] = rgb_led.default_colors[0][0];
+    _breath_max[1] = rgb_led.default_colors[0][1];
+    _breath_max[2] = rgb_led.default_colors[0][2];
 }
 
 void LedAnimations::start_strobing(int speed) {
@@ -71,15 +71,15 @@ void LedAnimations::start_strobing(int speed) {
 
 void LedAnimations::update_strobe_color() {
     // Use middle_right LED's default color for strobing (now index 0)
-    if (!rgbLed.default_colors_set[0]) {
+    if (!rgb_led.default_colors_set[0]) {
         _strobe_color[0] = MAX_LED_BRIGHTNESS;
         _strobe_color[1] = MAX_LED_BRIGHTNESS;
         _strobe_color[2] = MAX_LED_BRIGHTNESS;
         return;
     }
-    _strobe_color[0] = rgbLed.default_colors[0][0];
-    _strobe_color[1] = rgbLed.default_colors[0][1];
-    _strobe_color[2] = rgbLed.default_colors[0][2];
+    _strobe_color[0] = rgb_led.default_colors[0][0];
+    _strobe_color[1] = rgb_led.default_colors[0][1];
+    _strobe_color[2] = rgb_led.default_colors[0][2];
 }
 
 void LedAnimations::start_rainbow(int cycle_time) {
@@ -110,7 +110,7 @@ void LedAnimations::stop_animation() {
 
 void LedAnimations::fade_out() {
     // Check if LEDs are already off (all stored RGB values are 0)
-    if (rgbLed.get_current_red() == 0 && rgbLed.get_current_green() == 0 && rgbLed.get_current_blue() == 0) {
+    if (rgb_led.get_current_red() == 0 && rgb_led.get_current_green() == 0 && rgb_led.get_current_blue() == 0) {
         // LEDs are already off, no need to fade
         return;
     }
@@ -121,9 +121,9 @@ void LedAnimations::fade_out() {
     _breath_min[2] = 0;
 
     // Set max to current stored values
-    _breath_max[0] = rgbLed.get_current_red();
-    _breath_max[1] = rgbLed.get_current_green();
-    _breath_max[2] = rgbLed.get_current_blue();
+    _breath_max[0] = rgb_led.get_current_red();
+    _breath_max[1] = rgb_led.get_current_green();
+    _breath_max[2] = rgb_led.get_current_blue();
 
     // Start at 0.5 to begin fade from maximum brightness and go straight to min
     _breath_progress = 0.5;
@@ -315,7 +315,7 @@ uint32_t LedAnimations::color_hsv(uint8_t h, uint8_t s, uint8_t v) {
 
 void LedAnimations::turn_off() {
     _current_animation = led_types::AnimationType::NONE;
-    rgbLed.turn_main_board_leds_off();
+    rgb_led.turn_main_board_leds_off();
 }
 
 void LedAnimations::set_all_leds(uint8_t red, uint8_t green, uint8_t blue) {

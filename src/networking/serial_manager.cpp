@@ -6,7 +6,7 @@ void SerialManager::poll_serial() {
         if (isConnected && (millis() - lastActivityTime > SERIAL_CONNECTION_TIMEOUT)) {
             isConnected = false;
             if (!WebSocketManager::get_instance().is_ws_connected()) {
-                careerQuestTriggers.stop_all_career_quest_triggers(false);
+                career_quest_triggers.stop_all_career_quest_triggers(false);
             }
         }
         return;
@@ -17,7 +17,7 @@ void SerialManager::poll_serial() {
     if (!isConnected) {
         isConnected = true;
         // If we were previously trying to connect to wifi (breathing red), we should turn it off when connecting to serial
-        ledAnimations.stop_animation();
+        led_animations.stop_animation();
     }
 
     // Read available bytes and process according to the current state

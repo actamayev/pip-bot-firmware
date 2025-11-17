@@ -29,8 +29,8 @@ class BytecodeVM : public Singleton<BytecodeVM> {
 
   public:
     // Load bytecode program into the VM
-    static bool load_program(const uint8_t* byte_code, uint16_t size);
-    static void stop_program();
+    bool load_program(const uint8_t* byte_code, uint16_t size);
+    void stop_program();
 
     // Debug methods for distance movement
     bool is_distance_movement_active() const {
@@ -86,31 +86,31 @@ class BytecodeVM : public Singleton<BytecodeVM> {
     PauseState _isPaused = PauseState::PROGRAM_NOT_STARTED;
 
     bool _waitingForButtonPressToStart = false;
-    static bool can_start_program();
+    bool can_start_program();
 
     // Execute instruction implementation
-    static void execute_instruction(const BytecodeInstruction& instr);
+    void execute_instruction(const BytecodeInstruction& instr);
 
     // Helper method for comparisons
-    static bool compare_values(ComparisonOp op, float left_operand, float right_value);
+    bool compare_values(ComparisonOp op, float left_operand, float right_value);
 
     bool _timedMotorMovementInProgress = false;
     uint32_t _motorMovementEndTime = 0;
 
     // Helper method for timed motor operations
-    static void update_timed_motor_movement();
+    void update_timed_motor_movement();
 
     bool _distanceMovementInProgress = false;
     float _targetDistanceIn = 0.0f;
     float _startingDistanceIn = 0.0f;
 
     // Helper method for distance-based motor operations
-    static void update_distance_movement();
+    void update_distance_movement();
 
-    static void reset_state_variables(bool is_full_reset = false);
+    void reset_state_variables(bool is_full_reset = false);
 
-    static void pause_program();
-    static void resume_program();
+    void pause_program();
+    void resume_program();
 
     void increment_pc() {
         _pc++;
@@ -131,13 +131,13 @@ class BytecodeVM : public Singleton<BytecodeVM> {
         SENSOR_COLOR_SENSOR
     };
 
-    static void activate_sensors_for_program();
+    void activate_sensors_for_program();
     static const std::map<BytecodeOpCode, std::vector<SensorType>> opcodeToSensors;
 
     // USB Safety Methods
-    static void scan_program_for_motors();
+    void scan_program_for_motors();
     void check_usb_safety_conditions();
-    static void handle_usb_connect();
+    void handle_usb_connect();
 
     // Add these with your other distance movement variables
     int16_t _initialDistancePwm = 0; // Store initial PWM for deceleration calculation

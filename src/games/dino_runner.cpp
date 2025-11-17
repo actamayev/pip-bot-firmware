@@ -7,85 +7,89 @@
 #include "networking/websocket_manager.h"
 
 void DinoRunner::start_game() {
-    if (game_active) {
+    DinoRunner& instance = DinoRunner::get_instance();
+    if (instance._game_active) {
         return;
     }
 
     SerialQueueManager::get_instance().queue_message("Starting Dino Runner game");
-    game_active = true;
-    game_state = GameState::MENU;
+    instance._game_active = true;
+    instance._game_state = GameState::MENU;
 
     // Reset all game state
-    reset_game();
+    instance.reset_game();
 
-    last_frame_ms = millis();
-    last_score_ms = millis();
-    last_spawn_ms = millis();
+    instance._last_frame_ms = millis();
+    instance._last_score_ms = millis();
+    instance._last_spawn_ms = millis();
 
     // Clear obstacles
-    for (auto& obstacle : obstacles) {
+    for (auto& obstacle : instance._obstacles) {
         obstacle.active = false;
     }
 }
 
 void DinoRunner::stop_game() {
-    if (!game_active) {
+    DinoRunner& instance = DinoRunner::get_instance();
+    if (!instance._game_active) {
         return;
     }
 
-    SerialQueueManager::get_instance().queue_message("Stopping Dino Runner - Final score: " + String(score));
-    game_active = false;
-    game_state = GameState::MENU;
-    score = 0;
+    SerialQueueManager::get_instance().queue_message("Stopping Dino Runner - Final score: " + String(instance._score));
+    instance._game_active = false;
+    instance._game_state = GameState::MENU;
+    instance._score = 0;
 }
 
 void DinoRunner::reset_game() {
     // Reset dino
-    dino_x = 20;
-    dino_y = GROUND_Y - DINO_H;
-    dino_vy = 0.0f;
-    on_ground = true;
+    _dino_x = 20;
+    _dino_y = GROUND_Y - DINO_H;
+    _dino_vy = 0.0f;
+    _on_ground = true;
 
     // Clear obstacles
-    for (auto& obstacle : obstacles) {
+    for (auto& obstacle : _obstacles) {
         obstacle.active = false;
     }
 
     // Reset difficulty & score
-    spawn_interval_ms = 1400;
-    obstacle_speed = 1.2f;
-    score = 0;
-    last_spawn_ms = millis();
-    last_score_ms = millis();
-    last_frame_ms = millis();
+    _spawn_interval_ms = 1400;
+    _obstacle_speed = 1.2f;
+    _score = 0;
+    _last_spawn_ms = millis();
+    _last_score_ms = millis();
+    _last_frame_ms = millis();
 }
 
 void DinoRunner::handle_button_press(bool right_pressed) {
-    if (!game_active) {
+    DinoRunner& instance = DinoRunner::get_instance();
+    if (!instance._game_active) {
         return;
     }
 
     // Only respond to right button
     if (right_pressed) {
-        right_button_pressed = true;
+        instance._right_button_pressed = true;
     }
 }
 
 void DinoRunner::update() {
-    if (!game_active) {
+    DinoRunner& instance = DinoRunner::get_instance();
+    if (!instance._game_active) {
         return;
     }
 
     uint32_t now = millis();
-    uint32_t dt_ms = now - last_frame_ms = 0 = 0;
-    last_frame_ms = now;
+    uint32_t dt_ms = now - instance._last_frame_ms;
+    instance._last_frame_ms = now;
     float dt = dt_ms / 16.0f; // normalize relative to ~60FPS
 
-    if (game_state == GameState::MENU) {
-        if (right_button_pressed) {
-            reset_game();
-            game_state = GameState::RUNNING;
-            right_button_pressed = false;
+    if (instance._game_state == GameState::MENU) {
+        if (instance._right_button_pressed) {
+            instance.reset_game();
+            instance._game_state = GameState::RUNNING;
+            instance._right_button_pressed = false;
         }
         // Draw menu to display buffer
         uint8_t buffer[DISPLAY_BUFFER_SIZE];
@@ -95,40 +99,40 @@ void DinoRunner::update() {
         return;
     }
 
-    if (game_state == GameState::RUNNING) {
+    if (instance._game_state == GameState::RUNNING) {
         // Handle jump
-        if (right_button_pressed && on_ground) {
-            dino_vy = JUMP_VELOCITY;
-            on_ground = false;
-            right_button_pressed = false;
+        if (instance._right_button_pressed && instance._on_ground) {
+            instance._dino_vy = JUMP_VELOCITY;
+            instance._on_ground = false;
+            instance._right_button_pressed = false;
         }
 
         // Update physics
         update_dino(dt);
 
         // Spawn obstacles
-        if ((millis() - last_spawn_ms) >= spawn_interval_ms) {
+        if ((millis() - instance._last_spawn_ms) >= instance._spawn_interval_ms) {
             spawn_obstacle();
-            last_spawn_ms = millis();
+            instance._last_spawn_ms = millis();
         }
 
         // Ramp difficulty
         static uint32_t last_ramp = 0;
         if ((millis() - last_ramp) >= DIFFICULTY_RAMP_MS) {
-            if (spawn_interval_ms > 350) {
-                spawn_interval_ms = max(350U, spawn_interval_ms - 120);
+            if (instance._spawn_interval_ms > 350) {
+                instance._spawn_interval_ms = max(350U, instance._spawn_interval_ms - 120);
             }
-            obstacle_speed += SPEED_INCREMENT;
+            instance._obstacle_speed += SPEED_INCREMENT;
             last_ramp = millis();
         }
 
         // Update obstacles & check collisions
-        update_obstacles(dt);
+        instance.update_obstacles(dt);
 
         // Update score
-        if (millis() - last_score_ms >= 100) {
-            score += 1;
-            last_score_ms = millis();
+        if (millis() - instance._last_score_ms >= 100) {
+            instance._score += 1;
+            instance._last_score_ms = millis();
         }
 
         // Draw game to buffer
@@ -136,11 +140,11 @@ void DinoRunner::update() {
         memset(buffer, 0, DISPLAY_BUFFER_SIZE);
         draw_to_buffer(buffer);
         DisplayScreen::get_instance().show_custom_buffer(buffer);
-    } else if (game_state == GameState::GAME_OVER) {
-        if (right_button_pressed) {
-            reset_game();
-            game_state = GameState::RUNNING;
-            right_button_pressed = false;
+    } else if (instance._game_state == GameState::GAME_OVER) {
+        if (instance._right_button_pressed) {
+            instance.reset_game();
+            instance._game_state = GameState::RUNNING;
+            instance._right_button_pressed = false;
         }
 
         // Draw game over screen
@@ -152,25 +156,27 @@ void DinoRunner::update() {
 }
 
 void DinoRunner::update_dino(float dt) {
+    DinoRunner& instance = DinoRunner::get_instance();
     // Apply gravity
-    dino_vy += GRAVITY;
-    dino_vy = std::min(dino_vy, MAX_FALL_VEL);
-    dino_y += dino_vy;
+    instance._dino_vy += GRAVITY;
+    instance._dino_vy = std::min(instance._dino_vy, MAX_FALL_VEL);
+    instance._dino_y += instance._dino_vy;
 
     // Ground collision
-    if (dino_y < (GROUND_Y - DINO_H)) {
+    if (instance._dino_y < (GROUND_Y - DINO_H)) {
         return;
     }
-    dino_y = (GROUND_Y - DINO_H);
-    dino_vy = 0.0f;
-    on_ground = true;
+    instance._dino_y = (GROUND_Y - DINO_H);
+    instance._dino_vy = 0.0f;
+    instance._on_ground = true;
 }
 
 void DinoRunner::spawn_obstacle() {
+    DinoRunner& instance = DinoRunner::get_instance();
     // Find free slot
     int slot = -1;
     for (int i = 0; i < MAX_OBSTACLES; ++i) {
-        if (!obstacles[i].active) {
+        if (!instance._obstacles[i].active) {
             slot = i;
             break;
         }
@@ -180,20 +186,20 @@ void DinoRunner::spawn_obstacle() {
     }
 
     // Create obstacle
-    obstacles[slot].x = SCREEN_WIDTH;
-    obstacles[slot].w = random(6, 12);
-    obstacles[slot].h = random(10, 20);
-    obstacles[slot].active = true;
+    instance._obstacles[slot].x = SCREEN_WIDTH;
+    instance._obstacles[slot].w = random(6, 12);
+    instance._obstacles[slot].h = random(10, 20);
+    instance._obstacles[slot].active = true;
 }
 
 void DinoRunner::update_obstacles(float dt) {
-    for (auto& obstacle : obstacles) {
+    for (auto& obstacle : _obstacles) {
         if (!obstacle.active) {
             continue;
         }
 
         // Move left
-        obstacle.x -= obstacle_speed * dt;
+        obstacle.x -= _obstacle_speed * dt;
 
         // Off-screen? deactivate
         if (obstacle.x + obstacle.w < 0) {
@@ -227,14 +233,15 @@ bool DinoRunner::check_collision(const Obstacle& o) {
 }
 
 void DinoRunner::game_over() {
-    game_state = GameState::GAME_OVER;
-    SerialQueueManager::get_instance().queue_message("Dino game over - Score: " + String(score));
+    DinoRunner& instance = DinoRunner::get_instance();
+    instance._game_state = GameState::GAME_OVER;
+    SerialQueueManager::get_instance().queue_message("Dino game over - Score: " + String(instance._score));
 
     // Send score via available communication channels
     if (WebSocketManager::get_instance().is_ws_connected()) {
-        WebSocketManager::get_instance().send_dino_score(score);
+        WebSocketManager::get_instance().send_dino_score(instance._score);
     } else if (SerialManager::get_instance().is_serial_connected()) {
-        SerialManager::get_instance().send_dino_score(score);
+        SerialManager::get_instance().send_dino_score(instance._score);
     }
 }
 
@@ -263,10 +270,11 @@ void DinoRunner::fill_rect(uint8_t* buffer, int x, int y, int w, int h, bool on)
 }
 
 void DinoRunner::draw_dino_sprite(int x, int y, bool on_ground, Adafruit_SSD1306& display) {
+    DinoRunner& instance = DinoRunner::get_instance();
     // Update animation frame
-    if (millis() - last_anim_ms > ANIM_MS) {
-        last_anim_ms = millis();
-        anim_frame ^= 1;
+    if (millis() - instance._last_anim_ms > ANIM_MS) {
+        instance._last_anim_ms = millis();
+        instance._anim_frame ^= 1;
     }
 
     // Body
@@ -290,7 +298,7 @@ void DinoRunner::draw_dino_sprite(int x, int y, bool on_ground, Adafruit_SSD1306
         display.fillRect(x + 6, y + 8, 3, 2, SSD1306_WHITE);
         return;
     }
-    if (anim_frame == 0) {
+    if (instance._anim_frame == 0) {
         display.fillRect(x + 5, y + 8, 2, 3, SSD1306_WHITE);
         display.fillRect(x + 9, y + 8, 2, 3, SSD1306_WHITE);
     } else {
@@ -300,55 +308,57 @@ void DinoRunner::draw_dino_sprite(int x, int y, bool on_ground, Adafruit_SSD1306
 }
 
 void DinoRunner::draw_to_buffer(uint8_t* buffer) {
+    DinoRunner& instance = DinoRunner::get_instance();
     DisplayScreen& display_screen = DisplayScreen::get_instance();
 
-    display_screen.display.clearDisplay();
+    display_screen._display.clearDisplay();
 
     // Draw ground line
-    display_screen.display.drawLine(0, GROUND_Y, SCREEN_WIDTH, GROUND_Y, SSD1306_WHITE);
+    display_screen._display.drawLine(0, GROUND_Y, SCREEN_WIDTH, GROUND_Y, SSD1306_WHITE);
 
     // Draw dino sprite directly to display
-    draw_dino_sprite(static_cast<int>(dino_x), static_cast<int>(dino_y), on_ground, display_screen.display);
+    draw_dino_sprite(static_cast<int>(instance._dino_x), static_cast<int>(instance._dino_y), instance._on_ground, display_screen._display);
 
     // Draw obstacles directly to display
-    for (auto& obstacle : obstacles) {
+    for (auto& obstacle : instance._obstacles) {
         if (obstacle.active) {
-            display_screen.display.fillRect(static_cast<int>(obstacle.x), GROUND_Y - obstacle.h, obstacle.w, obstacle.h, SSD1306_WHITE);
+            display_screen._display.fillRect(static_cast<int>(obstacle.x), GROUND_Y - obstacle.h, obstacle.w, obstacle.h, SSD1306_WHITE);
         }
     }
 
     // Use display text rendering for score
     char score_text[16];
-    snprintf(score_text, sizeof(score_text), "S:%d", score);
+    snprintf(score_text, sizeof(score_text), "S:%d", instance._score);
     DisplayScreen::draw_text(score_text, SCREEN_WIDTH - 46, 2, 1);
 
     // Copy display buffer to our custom buffer
-    memcpy(buffer, display_screen.display.getBuffer(), DISPLAY_BUFFER_SIZE);
+    memcpy(buffer, display_screen._display.getBuffer(), DISPLAY_BUFFER_SIZE);
 }
 
 void DinoRunner::draw_menu(uint8_t* buffer) {
     DisplayScreen& display = DisplayScreen::get_instance();
 
-    display.display.clearDisplay();
+    display._display.clearDisplay();
     DisplayScreen::draw_centered_text("DINO RUNNER", 10, 1);
     DisplayScreen::draw_centered_text("Press RIGHT to start", 30, 1);
 
     // Copy display buffer to our custom buffer
-    memcpy(buffer, display.display.getBuffer(), DISPLAY_BUFFER_SIZE);
+    memcpy(buffer, display._display.getBuffer(), DISPLAY_BUFFER_SIZE);
 }
 
 void DinoRunner::draw_game_over(uint8_t* buffer) {
+    DinoRunner& instance = DinoRunner::get_instance();
     DisplayScreen& display = DisplayScreen::get_instance();
 
-    display.display.clearDisplay();
+    display._display.clearDisplay();
     DisplayScreen::draw_centered_text("GAME OVER", 10, 1);
 
     char score_text[32];
-    snprintf(score_text, sizeof(score_text), "Score: %d", score);
+    snprintf(score_text, sizeof(score_text), "Score: %d", instance._score);
     DisplayScreen::draw_centered_text(score_text, 25, 1);
 
     DisplayScreen::draw_centered_text("Press RIGHT to retry", 45, 1);
 
     // Copy display buffer to our custom buffer
-    memcpy(buffer, display.display.getBuffer(), DISPLAY_BUFFER_SIZE);
+    memcpy(buffer, display._display.getBuffer(), DISPLAY_BUFFER_SIZE);
 }

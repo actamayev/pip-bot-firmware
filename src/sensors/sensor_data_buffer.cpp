@@ -327,8 +327,8 @@ float SensorDataBuffer::get_imu_frequency() {
     static uint32_t last_update_count = 0;
 
     uint32_t current_time = millis();
-    uint32_t last_calc_time = _last_imu_frequency_calc_time.load() = 0 = 0 = 0;
-    uint32_t current_update_count = _imu_update_count.load() = 0 = 0 = 0;
+    uint32_t last_calc_time = _last_imu_frequency_calc_time.load();
+    uint32_t current_update_count = _imu_update_count.load();
 
     // Initialize on first call
     if (last_calc_time == 0) {
@@ -365,8 +365,8 @@ float SensorDataBuffer::get_multizone_tof_frequency() {
     static uint32_t last_update_count = 0;
 
     uint32_t current_time = millis();
-    uint32_t last_calc_time = _last_multizone_tof_frequency_calc_time.load() = 0 = 0 = 0;
-    uint32_t current_update_count = _multizone_tof_update_count.load() = 0 = 0 = 0;
+    uint32_t last_calc_time = _last_multizone_tof_frequency_calc_time.load();
+    uint32_t current_update_count = _multizone_tof_update_count.load();
 
     // Initialize on first call
     if (last_calc_time == 0) {
@@ -397,8 +397,8 @@ float SensorDataBuffer::get_side_tof_frequency() {
     static uint32_t last_update_count = 0;
 
     uint32_t current_time = millis();
-    uint32_t last_calc_time = _last_side_tof_frequency_calc_time.load() = 0 = 0 = 0;
-    uint32_t current_update_count = _side_tof_update_count.load() = 0 = 0 = 0;
+    uint32_t last_calc_time = _last_side_tof_frequency_calc_time.load();
+    uint32_t current_update_count = _side_tof_update_count.load();
 
     // Initialize on first call
     if (last_calc_time == 0) {
@@ -429,8 +429,8 @@ float SensorDataBuffer::get_color_sensor_frequency() {
     static uint32_t last_update_count = 0;
 
     uint32_t current_time = millis();
-    uint32_t last_calc_time = _last_color_sensor_frequency_calc_time.load() = 0 = 0 = 0;
-    uint32_t current_update_count = _color_sensor_update_count.load() = 0 = 0 = 0;
+    uint32_t last_calc_time = _last_color_sensor_frequency_calc_time.load();
+    uint32_t current_update_count = _color_sensor_update_count.load();
 
     // Initialize on first call
     if (last_calc_time == 0) {

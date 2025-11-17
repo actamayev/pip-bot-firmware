@@ -35,7 +35,7 @@ void TimeoutManager::enter_confirmation_state() {
     // Stop bytecode and prepare for sleep (same as long press logic)
     BytecodeVM::get_instance().stop_program();
     SensorDataBuffer::get_instance().stop_polling_all_sensors();
-    rgbLed.set_led_yellow();
+    rgb_led.set_led_yellow();
 
     _inConfirmationState = true;
     _confirmationStartTime = millis();
@@ -47,7 +47,7 @@ void TimeoutManager::cancel_confirmation() {
     }
 
     _inConfirmationState = false;
-    rgbLed.turn_all_leds_off();
+    rgb_led.turn_all_leds_off();
 
     // Reset activity timer
     _lastActivityTime = millis();

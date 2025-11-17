@@ -9,7 +9,7 @@ void MessageProcessor::handle_motor_control(const uint8_t* data) {
     auto left_speed = static_cast<int16_t>(data[1] | (data[2] << 8));
     auto right_speed = static_cast<int16_t>(data[3] | (data[4] << 8));
 
-    motorDriver.update_motor_pwm(left_speed, right_speed);
+    motor_driver.update_motor_pwm(left_speed, right_speed);
 }
 
 void MessageProcessor::handle_balance_command(BalanceStatus status) {
@@ -36,17 +36,17 @@ void MessageProcessor::handle_obstacle_avoidance_command(ObstacleAvoidanceStatus
 
 void MessageProcessor::handle_light_command(LightAnimationStatus light_animation_status) {
     if (light_animation_status == LightAnimationStatus::NO_ANIMATION) {
-        ledAnimations.stop_animation();
+        led_animations.stop_animation();
     } else if (light_animation_status == LightAnimationStatus::BREATHING) {
-        ledAnimations.start_breathing();
+        led_animations.start_breathing();
     } else if (light_animation_status == LightAnimationStatus::RAINBOW) {
-        ledAnimations.start_rainbow();
+        led_animations.start_rainbow();
     } else if (light_animation_status == LightAnimationStatus::STROBE) {
-        ledAnimations.start_strobing();
+        led_animations.start_strobing();
     } else if (light_animation_status == LightAnimationStatus::TURN_OFF) {
-        ledAnimations.turn_off();
+        led_animations.turn_off();
     } else if (light_animation_status == LightAnimationStatus::FADE_OUT) {
-        ledAnimations.fade_out();
+        led_animations.fade_out();
     }
 }
 
@@ -77,12 +77,12 @@ void MessageProcessor::handle_new_light_colors(NewLightColors new_light_colors) 
     auto back_right_b = (uint8_t)new_light_colors.backRightBlue;
 
     // Set each LED to its corresponding color
-    rgbLed.set_top_left_led(top_left_r, top_left_g, top_left_b);
-    rgbLed.set_top_right_led(top_right_r, top_right_g, top_right_b);
-    rgbLed.set_middle_left_led(middle_left_r, middle_left_g, middle_left_b);
-    rgbLed.set_middle_right_led(middle_right_r, middle_right_g, middle_right_b);
-    rgbLed.set_back_left_led(back_left_r, back_left_g, back_left_b);
-    rgbLed.set_back_right_led(back_right_r, back_right_g, back_right_b);
+    rgb_led.set_top_left_led(top_left_r, top_left_g, top_left_b);
+    rgb_led.set_top_right_led(top_right_r, top_right_g, top_right_b);
+    rgb_led.set_middle_left_led(middle_left_r, middle_left_g, middle_left_b);
+    rgb_led.set_middle_right_led(middle_right_r, middle_right_g, middle_right_b);
+    rgb_led.set_back_left_led(back_left_r, back_left_g, back_left_b);
+    rgb_led.set_back_right_led(back_right_r, back_right_g, back_right_b);
 }
 
 void MessageProcessor::handle_get_saved_wifi_networks() {
@@ -266,7 +266,7 @@ void MessageProcessor::process_binary_message(const uint8_t* data, uint16_t leng
             break;
         }
         case DataMessageType::SERIAL_END: {
-            rgbLed.turn_all_leds_off();
+            rgb_led.turn_all_leds_off();
             SerialManager::get_instance().isConnected = false;
             SensorDataBuffer::get_instance().stop_polling_all_sensors();
             Speaker::get_instance().stop_all_sounds();
@@ -278,9 +278,9 @@ void MessageProcessor::process_binary_message(const uint8_t* data, uint16_t leng
             } else {
                 auto status = static_cast<HeadlightStatus>(data[1]);
                 if (status == HeadlightStatus::ON) {
-                    rgbLed.turn_headlights_on();
+                    rgb_led.turn_headlights_on();
                 } else {
-                    rgbLed.turn_headlights_off();
+                    rgb_led.turn_headlights_off();
                 }
             }
             break;
@@ -386,26 +386,26 @@ void MessageProcessor::process_binary_message(const uint8_t* data, uint16_t leng
                             case MeetPipTriggerType::ENTER_CAREER:
                                 DisplayScreen::get_instance().turn_display_off();
                                 Speaker::get_instance().stop_all_sounds();
-                                ledAnimations.fade_out();
-                                rgbLed.turn_headlights_off();
+                                led_animations.fade_out();
+                                rgb_led.turn_headlights_off();
                                 break;
                             case MeetPipTriggerType::S2_P1_ENTER:
-                                careerQuestTriggers.start_s2_p1_sequence();
+                                career_quest_triggers.start_s2_p1_sequence();
                                 break;
                             case MeetPipTriggerType::S2_P1_EXIT:
-                                careerQuestTriggers.stop_s2_p1_sequence();
+                                career_quest_triggers.stop_s2_p1_sequence();
                                 break;
                             case MeetPipTriggerType::S2_P4_ENTER:
-                                careerQuestTriggers.start_s2_p4_light_show();
+                                career_quest_triggers.start_s2_p4_light_show();
                                 break;
                             case MeetPipTriggerType::S2_P4_EXIT:
-                                careerQuestTriggers.stop_s2_p4_light_show();
+                                career_quest_triggers.stop_s2_p4_light_show();
                                 break;
                             case MeetPipTriggerType::S3_P3_ENTER:
-                                careerQuestTriggers.start_s3_p3_display_demo();
+                                career_quest_triggers.start_s3_p3_display_demo();
                                 break;
                             case MeetPipTriggerType::S3_P3_EXIT:
-                                careerQuestTriggers.stop_s3_p3_display_demo();
+                                career_quest_triggers.stop_s3_p3_display_demo();
                                 break;
                             case MeetPipTriggerType::S4_P4_EXIT:
                                 Speaker::get_instance().stop_all_sounds();
@@ -420,13 +420,13 @@ void MessageProcessor::process_binary_message(const uint8_t* data, uint16_t leng
                                 SendSensorData::get_instance().set_send_sensor_data(true);
                                 SendSensorData::get_instance().set_euler_data_enabled(true);
                                 SendSensorData::get_instance().set_accel_data_enabled(true);
-                                careerQuestTriggers.start_s5_p4_led_visualization();
+                                career_quest_triggers.start_s5_p4_led_visualization();
                                 break;
                             case MeetPipTriggerType::S5_P4_EXIT:
                                 SendSensorData::get_instance().set_euler_data_enabled(false);
                                 SendSensorData::get_instance().set_accel_data_enabled(false);
                                 SendSensorData::get_instance().set_send_sensor_data(false);
-                                careerQuestTriggers.stop_s5_p4_led_visualization();
+                                career_quest_triggers.stop_s5_p4_led_visualization();
                                 break;
                             case MeetPipTriggerType::S5_P5_ENTER:
                                 SendSensorData::get_instance().set_send_sensor_data(true);
@@ -438,27 +438,27 @@ void MessageProcessor::process_binary_message(const uint8_t* data, uint16_t leng
                                 break;
                             case MeetPipTriggerType::S6_P4_ENTER:
                                 SendSensorData::get_instance().set_send_multizone_data(true);
-                                rgbLed.turn_headlights_faint_blue();
+                                rgb_led.turn_headlights_faint_blue();
                                 break;
                             case MeetPipTriggerType::S6_P4_EXIT:
                                 SendSensorData::get_instance().set_send_multizone_data(false);
-                                rgbLed.turn_headlights_off();
+                                rgb_led.turn_headlights_off();
                                 break;
                             case MeetPipTriggerType::S6_P6_ENTER:
                                 SendSensorData::get_instance().set_send_sensor_data(true);
                                 SendSensorData::get_instance().set_side_tof_data_enabled(true);
-                                rgbLed.turn_front_middle_leds_faint_blue();
+                                rgb_led.turn_front_middle_leds_faint_blue();
                                 break;
                             case MeetPipTriggerType::S6_P6_EXIT:
                                 SendSensorData::get_instance().set_side_tof_data_enabled(false);
                                 SendSensorData::get_instance().set_send_sensor_data(false);
-                                rgbLed.turn_front_middle_leds_off();
+                                rgb_led.turn_front_middle_leds_off();
                                 break;
                             case MeetPipTriggerType::S7_P4_ENTER:
-                                careerQuestTriggers.start_s7_p4_button_demo();
+                                career_quest_triggers.start_s7_p4_button_demo();
                                 break;
                             case MeetPipTriggerType::S7_P4_EXIT:
-                                careerQuestTriggers.stop_s7_p4_button_demo();
+                                career_quest_triggers.stop_s7_p4_button_demo();
                                 break;
                             case MeetPipTriggerType::S7_P6_ENTER:
                                 GameManager::get_instance().start_game(games::GameType::DINO_RUNNER);
@@ -482,15 +482,15 @@ void MessageProcessor::process_binary_message(const uint8_t* data, uint16_t leng
                                 DanceManager::get_instance().stop_dance(true);
                                 break;
                             case MeetPipTriggerType::S9_P6_ENTER:
-                                motorDriver.stop_both_motors(); // We need this to prevent students from turning against the motors.
+                                motor_driver.stop_both_motors(); // We need this to prevent students from turning against the motors.
                                 SendSensorData::get_instance().set_send_sensor_data(true);
                                 SendSensorData::get_instance().set_encoder_data_enabled(true);
-                                rgbLed.turn_headlights_faint_blue();
+                                rgb_led.turn_headlights_faint_blue();
                                 break;
                             case MeetPipTriggerType::S9_P6_EXIT:
                                 SendSensorData::get_instance().set_encoder_data_enabled(false);
                                 SendSensorData::get_instance().set_send_sensor_data(false);
-                                rgbLed.turn_back_leds_off();
+                                rgb_led.turn_back_leds_off();
                                 break;
                             default:
                                 SerialQueueManager::get_instance().queue_message("Unknown introduction trigger type");
@@ -529,7 +529,7 @@ void MessageProcessor::process_binary_message(const uint8_t* data, uint16_t leng
             if (length != 1) {
                 SerialQueueManager::get_instance().queue_message("Invalid stop career quest trigger message length");
             } else {
-                careerQuestTriggers.stop_all_career_quest_triggers(true);
+                career_quest_triggers.stop_all_career_quest_triggers(true);
             }
             break;
         }

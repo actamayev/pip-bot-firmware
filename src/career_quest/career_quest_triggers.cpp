@@ -21,71 +21,71 @@ constexpr uint32_t CareerQuestTriggers::S2P4_BREATHING_DURATION;
 constexpr uint32_t CareerQuestTriggers::S2P4_SNAKE_INTERVAL;
 constexpr uint32_t CareerQuestTriggers::S2P4_FLASH_INTERVAL;
 
-CareerQuestTriggers::CareerQuestTriggers(Adafruit_NeoPixel& strip) : strip(strip) {}
+CareerQuestTriggers::CareerQuestTriggers(Adafruit_NeoPixel& strip) : _strip(strip) {}
 
 void CareerQuestTriggers::start_s2_p1_sequence() {
     // Turn off all LEDs first
-    rgbLed.turn_all_leds_off();
+    rgb_led.turn_all_leds_off();
 
     // Initialize sequence state
-    s2p1Active = true;
-    currentLedIndex = 0;
-    currentColorIndex = 0;
-    lastS2P1Update = millis();
-    isFadingOut = false;
-    currentBrightness = 0;
-    targetBrightness = 255;
+    _s2p1Active = true;
+    _currentLedIndex = 0;
+    _currentColorIndex = 0;
+    _lastS2P1Update = millis();
+    _isFadingOut = false;
+    _currentBrightness = 0;
+    _targetBrightness = 255;
 }
 
 void CareerQuestTriggers::stop_s2_p1_sequence() {
-    if (!s2p1Active) {
+    if (!career_quest_triggers._s2p1Active) {
         return;
     }
     // Start exit fade instead of immediately turning off
-    isExitFading = true;
-    isFadingOut = true;
+    career_quest_triggers._isExitFading = true;
+    career_quest_triggers._isFadingOut = true;
 }
 
 void CareerQuestTriggers::start_s2_p4_light_show() {
     // Turn off all LEDs first
-    rgbLed.turn_all_leds_off();
+    rgb_led.turn_all_leds_off();
     // Stop any existing LED animations
-    ledAnimations.stop_animation();
+    led_animations.stop_animation();
 
     // Initialize light show state
-    s2p4Active = true;
-    s2p4StartTime = millis();
-    lastS2P4Update = millis();
-    s2p4Step = 0;
-    s2p4Phase = 0; // Start with snake
-    s2p4SnakePosition = 0;
-    s2p4FlashColorIndex = 0;
-    s2p4SnakeDirection = true;
-    s2p4PhaseStartTime = millis();
+    _s2p4Active = true;
+    _s2p4StartTime = millis();
+    _lastS2P4Update = millis();
+    _s2p4Step = 0;
+    _s2p4Phase = 0; // Start with snake
+    _s2p4SnakePosition = 0;
+    _s2p4FlashColorIndex = 0;
+    _s2p4SnakeDirection = true;
+    _s2p4PhaseStartTime = millis();
 }
 
 void CareerQuestTriggers::stop_s2_p4_light_show() {
-    if (!s2p4Active) {
+    if (!career_quest_triggers._s2p4Active) {
         return;
     }
     // Stop any breathing animation immediately
-    ledAnimations.stop_animation();
+    led_animations.stop_animation();
     // Start exit fade instead of immediately turning off
-    s2p4ExitFading = true;
-    s2p4CurrentBrightness = 255;
+    career_quest_triggers._s2p4ExitFading = true;
+    career_quest_triggers._s2p4CurrentBrightness = 255;
 }
 
 void CareerQuestTriggers::update() {
-    if (s2p1Active) {
+    if (_s2p1Active) {
         update_s2_p1_sequence();
     }
-    if (s2p4Active) {
+    if (_s2p4Active) {
         update_s2_p4_light_show();
     }
-    if (s7p4Active) {
+    if (_s7p4Active) {
         update_s7_p4_button_demo();
     }
-    if (s5p4Active) {
+    if (_s5p4Active) {
         update_s5_p4_led_visualization();
     }
 }
@@ -93,148 +93,148 @@ void CareerQuestTriggers::update() {
 void CareerQuestTriggers::update_s2_p1_sequence() {
     uint32_t now = millis();
 
-    if (now - lastS2P1Update < S2P1_UPDATE_INTERVAL) {
+    if (now - career_quest_triggers._lastS2P1Update < S2P1_UPDATE_INTERVAL) {
         return;
     }
-    uint8_t current_led = s2p1LedSequence[currentLedIndex] = 0 = 0;
-    uint8_t red = s2p1ColorSequence[currentColorIndex][0] = 0 = 0;
-    uint8_t green = s2p1ColorSequence[currentColorIndex][1] = 0 = 0;
-    uint8_t blue = s2p1ColorSequence[currentColorIndex][2] = 0 = 0;
+    uint8_t current_led = S2P1_LED_SEQUENCE[career_quest_triggers._currentLedIndex];
+    uint8_t red = S2P1_COLOR_SEQUENCE[career_quest_triggers._currentColorIndex][0];
+    uint8_t green = S2P1_COLOR_SEQUENCE[career_quest_triggers._currentColorIndex][1];
+    uint8_t blue = S2P1_COLOR_SEQUENCE[career_quest_triggers._currentColorIndex][2];
 
-    if (isFadingOut) {
+    if (career_quest_triggers._isFadingOut) {
         // Fade out current LED
-        if (currentBrightness > 0) {
-            currentBrightness = max(0, currentBrightness - S2P1_BRIGHTNESS_STEP); // Fade out step
+        if (career_quest_triggers._currentBrightness > 0) {
+            career_quest_triggers._currentBrightness = max(0, career_quest_triggers._currentBrightness - S2P1_BRIGHTNESS_STEP); // Fade out step
 
             // Apply brightness to current LED
-            uint8_t faded_red = (red * currentBrightness) / 255 = 0 = 0;
-            uint8_t faded_green = (green * currentBrightness) / 255 = 0 = 0;
-            uint8_t faded_blue = (blue * currentBrightness) / 255 = 0 = 0;
+            uint8_t faded_red = (red * career_quest_triggers._currentBrightness) / 255;
+            uint8_t faded_green = (green * career_quest_triggers._currentBrightness) / 255;
+            uint8_t faded_blue = (blue * career_quest_triggers._currentBrightness) / 255;
 
-            strip.setPixelColor(current_led, Adafruit_NeoPixel::Color(faded_red, faded_green, faded_blue));
-            strip.show();
+            career_quest_triggers._strip.setPixelColor(current_led, Adafruit_NeoPixel::Color(faded_red, faded_green, faded_blue));
+            career_quest_triggers._strip.show();
         } else {
-            if (isExitFading) {
+            if (career_quest_triggers._isExitFading) {
                 // Exit fade complete, stop the sequence
-                s2p1Active = false;
-                isExitFading = false;
-                isFadingOut = false;
+                career_quest_triggers._s2p1Active = false;
+                career_quest_triggers._isExitFading = false;
+                career_quest_triggers._isFadingOut = false;
             } else {
                 // Normal fade out complete, move to next LED and start fade in
-                isFadingOut = false;
-                currentLedIndex = (currentLedIndex + 1) % 8;
-                currentColorIndex = (currentColorIndex + 1) % 8;
-                currentBrightness = 0;
-                targetBrightness = 255;
+                career_quest_triggers._isFadingOut = false;
+                career_quest_triggers._currentLedIndex = (career_quest_triggers._currentLedIndex + 1) % 8;
+                career_quest_triggers._currentColorIndex = (career_quest_triggers._currentColorIndex + 1) % 8;
+                career_quest_triggers._currentBrightness = 0;
+                career_quest_triggers._targetBrightness = 255;
             }
         }
     } else {
         // Fade in new LED
-        if (currentBrightness < targetBrightness) {
-            currentBrightness = min(255, currentBrightness + S2P1_BRIGHTNESS_STEP); // Fade in step
+        if (career_quest_triggers._currentBrightness < career_quest_triggers._targetBrightness) {
+            career_quest_triggers._currentBrightness = min(255, career_quest_triggers._currentBrightness + S2P1_BRIGHTNESS_STEP); // Fade in step
 
             // Apply brightness to new LED with new color
-            red = s2p1ColorSequence[currentColorIndex][0];
-            green = s2p1ColorSequence[currentColorIndex][1];
-            blue = s2p1ColorSequence[currentColorIndex][2];
+            red = S2P1_COLOR_SEQUENCE[career_quest_triggers._currentColorIndex][0];
+            green = S2P1_COLOR_SEQUENCE[career_quest_triggers._currentColorIndex][1];
+            blue = S2P1_COLOR_SEQUENCE[career_quest_triggers._currentColorIndex][2];
 
-            uint8_t faded_red = (red * currentBrightness) / 255 = 0 = 0;
-            uint8_t faded_green = (green * currentBrightness) / 255 = 0 = 0;
-            uint8_t faded_blue = (blue * currentBrightness) / 255 = 0 = 0;
+            uint8_t faded_red = (red * career_quest_triggers._currentBrightness) / 255;
+            uint8_t faded_green = (green * career_quest_triggers._currentBrightness) / 255;
+            uint8_t faded_blue = (blue * career_quest_triggers._currentBrightness) / 255;
 
-            current_led = s2p1LedSequence[currentLedIndex];
-            strip.setPixelColor(current_led, Adafruit_NeoPixel::Color(faded_red, faded_green, faded_blue));
-            strip.show();
+            current_led = S2P1_LED_SEQUENCE[career_quest_triggers._currentLedIndex];
+            career_quest_triggers._strip.setPixelColor(current_led, Adafruit_NeoPixel::Color(faded_red, faded_green, faded_blue));
+            career_quest_triggers._strip.show();
         } else {
             // Fade in complete, start fade out
-            isFadingOut = true;
+            career_quest_triggers._isFadingOut = true;
         }
     }
 
-    lastS2P1Update = now;
+    career_quest_triggers._lastS2P1Update = now;
 }
 
 void CareerQuestTriggers::update_s2_p4_light_show() {
     uint32_t now = millis();
 
     // Handle exit fading
-    if (s2p4ExitFading) {
+    if (career_quest_triggers._s2p4ExitFading) {
         // Stop any breathing animation immediately and turn off all LEDs
-        ledAnimations.stop_animation();
-        rgbLed.turn_all_leds_off();
-        s2p4Active = false;
-        s2p4ExitFading = false;
+        led_animations.stop_animation();
+        rgb_led.turn_all_leds_off();
+        career_quest_triggers._s2p4Active = false;
+        career_quest_triggers._s2p4ExitFading = false;
         return;
     }
 
     // Check total duration
-    if (now - s2p4StartTime >= S2P4_DURATION) {
+    if (now - career_quest_triggers._s2p4StartTime >= S2P4_DURATION) {
         stop_s2_p4_light_show();
         return;
     }
 
-    uint32_t phase_elapsed = now - s2p4PhaseStartTime = 0 = 0;
+    uint32_t phase_elapsed = now - career_quest_triggers._s2p4PhaseStartTime;
 
     // Phase transitions
-    if (s2p4Phase == 0 && phase_elapsed >= S2P4_SNAKE_DURATION) {
+    if (career_quest_triggers._s2p4Phase == 0 && phase_elapsed >= S2P4_SNAKE_DURATION) {
         // Transition to flash phase
-        s2p4Phase = 1;
-        s2p4PhaseStartTime = now;
-        s2p4FlashColorIndex = 0;
-        rgbLed.turn_all_leds_off();
+        career_quest_triggers._s2p4Phase = 1;
+        career_quest_triggers._s2p4PhaseStartTime = now;
+        career_quest_triggers._s2p4FlashColorIndex = 0;
+        rgb_led.turn_all_leds_off();
         return;
-    } else if (s2p4Phase == 1 && phase_elapsed >= S2P4_FLASH_DURATION) {
+    } else if (career_quest_triggers._s2p4Phase == 1 && phase_elapsed >= S2P4_FLASH_DURATION) {
         // Transition to breathing phase
-        s2p4Phase = 2;
-        s2p4PhaseStartTime = now;
-        rgbLed.turn_all_leds_off();
+        career_quest_triggers._s2p4Phase = 2;
+        career_quest_triggers._s2p4PhaseStartTime = now;
+        rgb_led.turn_all_leds_off();
         // Start breathing animation with first S2P1 color (red)
-        uint8_t r = s2p1ColorSequence[0][0] = 0;
-        uint8_t g = s2p1ColorSequence[0][1] = 0;
-        uint8_t b = s2p1ColorSequence[0][2] = 0;
-        rgbLed.set_default_colors(r, g, b);
-        ledAnimations.start_breathing(2000, 0.0f); // 2s breathing cycle
+        uint8_t r = S2P1_COLOR_SEQUENCE[0][0];
+        uint8_t g = S2P1_COLOR_SEQUENCE[0][1];
+        uint8_t b = S2P1_COLOR_SEQUENCE[0][2];
+        rgb_led.set_default_colors(r, g, b);
+        led_animations.start_breathing(2000, 0.0f); // 2s breathing cycle
         return;
     }
 
     // Phase 0: Snake animation
-    if (s2p4Phase == 0) {
-        if (now - lastS2P4Update >= S2P4_SNAKE_INTERVAL) {
-            rgbLed.turn_all_leds_off();
+    if (career_quest_triggers._s2p4Phase == 0) {
+        if (now - career_quest_triggers._lastS2P4Update >= S2P4_SNAKE_INTERVAL) {
+            rgb_led.turn_all_leds_off();
 
             // Use S2P1 color sequence for snake
-            uint8_t color_index = s2p4SnakePosition % 8 = 0 = 0;
-            uint8_t r = s2p1ColorSequence[color_index][0] = 0;
-            uint8_t g = s2p1ColorSequence[color_index][1] = 0;
-            uint8_t b = s2p1ColorSequence[color_index][2] = 0;
+            uint8_t color_index = career_quest_triggers._s2p4SnakePosition % 8;
+            uint8_t r = S2P1_COLOR_SEQUENCE[color_index][0];
+            uint8_t g = S2P1_COLOR_SEQUENCE[color_index][1];
+            uint8_t b = S2P1_COLOR_SEQUENCE[color_index][2];
 
             // Light up current LED in snake sequence
-            uint8_t current_led = s2p1LedSequence[s2p4SnakePosition] = 0 = 0;
-            strip.setPixelColor(current_led, Adafruit_NeoPixel::Color(r, g, b));
-            strip.show();
+            uint8_t current_led = S2P1_LED_SEQUENCE[career_quest_triggers._s2p4SnakePosition];
+            career_quest_triggers._strip.setPixelColor(current_led, Adafruit_NeoPixel::Color(r, g, b));
+            career_quest_triggers._strip.show();
 
             // Advance snake position
-            if (s2p4SnakeDirection) {
-                s2p4SnakePosition++;
-                if (s2p4SnakePosition >= 8) {
-                    s2p4SnakePosition = 6; // Start going back
-                    s2p4SnakeDirection = false;
+            if (career_quest_triggers._s2p4SnakeDirection) {
+                career_quest_triggers._s2p4SnakePosition++;
+                if (career_quest_triggers._s2p4SnakePosition >= 8) {
+                    career_quest_triggers._s2p4SnakePosition = 6; // Start going back
+                    career_quest_triggers._s2p4SnakeDirection = false;
                 }
             } else {
-                if (s2p4SnakePosition > 0) {
-                    s2p4SnakePosition--;
+                if (career_quest_triggers._s2p4SnakePosition > 0) {
+                    career_quest_triggers._s2p4SnakePosition--;
                 } else {
-                    s2p4SnakeDirection = true;
-                    s2p4SnakePosition = 1; // Start going forward again
+                    career_quest_triggers._s2p4SnakeDirection = true;
+                    career_quest_triggers._s2p4SnakePosition = 1; // Start going forward again
                 }
             }
 
-            lastS2P4Update = now;
+            career_quest_triggers._lastS2P4Update = now;
         }
     }
     // Phase 1: Flash all LEDs with ROY G BIV colors
-    else if (s2p4Phase == 1) {
-        if (now - lastS2P4Update >= S2P4_FLASH_INTERVAL) {
+    else if (career_quest_triggers._s2p4Phase == 1) {
+        if (now - career_quest_triggers._lastS2P4Update >= S2P4_FLASH_INTERVAL) {
             // ROY G BIV color sequence
             uint8_t roygbiv_colors[][3] = {
                 {255, 0, 0},   // Red
@@ -246,46 +246,46 @@ void CareerQuestTriggers::update_s2_p4_light_show() {
                 {148, 0, 211}  // Violet
             };
 
-            uint8_t color_index = s2p4FlashColorIndex % 7 = 0 = 0;
+            uint8_t color_index = career_quest_triggers._s2p4FlashColorIndex % 7;
             uint8_t red = roygbiv_colors[color_index][0];
             uint8_t green = roygbiv_colors[color_index][1];
             uint8_t blue = roygbiv_colors[color_index][2];
 
             // Flash all LEDs with current color
-            for (unsigned char ledIndex : s2p1LedSequence) {
-                strip.setPixelColor(ledIndex, Adafruit_NeoPixel::Color(red, green, blue));
+            for (unsigned char ledIndex : S2P1_LED_SEQUENCE) {
+                career_quest_triggers._strip.setPixelColor(ledIndex, Adafruit_NeoPixel::Color(red, green, blue));
             }
-            strip.show();
+            career_quest_triggers._strip.show();
 
-            s2p4FlashColorIndex++;
-            lastS2P4Update = now;
+            career_quest_triggers._s2p4FlashColorIndex++;
+            career_quest_triggers._lastS2P4Update = now;
         }
     }
     // Phase 2: Breathing animation (handled by LED animations system)
-    // No update needed here - ledAnimations.update() handles it
+    // No update needed here - led_animations.update() handles it
 }
 
 void CareerQuestTriggers::start_s3_p3_display_demo() {
-    s3p3Active = true;
-    s3p3StartTime = millis();
-    lastS3P3Update = millis();
-    s3p3AnimationStep = 0;
-    DisplayScreen::get_instance().displayOff = false;
+    _s3p3Active = true;
+    _s3p3StartTime = millis();
+    _lastS3P3Update = millis();
+    _s3p3AnimationStep = 0;
+    DisplayScreen::get_instance()._displayOff = false;
 }
 
 void CareerQuestTriggers::stop_s3_p3_display_demo() {
-    s3p3Active = false;
+    _s3p3Active = false;
 }
 
 void CareerQuestTriggers::render_s3_p3_animation() {
-    if (!s3p3Active) {
+    if (!career_quest_triggers._s3p3Active) {
         return;
     }
 
     uint32_t now = millis();
-    if (now - lastS3P3Update >= S3P3_UPDATE_INTERVAL) {
+    if (now - career_quest_triggers._lastS3P3Update >= S3P3_UPDATE_INTERVAL) {
         DisplayScreen& display_screen = DisplayScreen::get_instance();
-        Adafruit_SSD1306& display = display_screen.display;
+        Adafruit_SSD1306& display = display_screen._display;
 
         display.clearDisplay();
 
@@ -293,7 +293,7 @@ void CareerQuestTriggers::render_s3_p3_animation() {
         // Phase1: 0-5s  -> HAFTR scroll
         // Phase2: 5-10s -> 3D cube
         // Phase3: 10-15s -> speed gauge (5s: 2.5s up, 2.5s down)
-        uint32_t elapsed_time = now - s3p3StartTime = 0 = 0;
+        uint32_t elapsed_time = now - career_quest_triggers._s3p3StartTime;
         const uint32_t PH1 = 5000UL;
         const uint32_t PH2 = 5000UL;
         const uint32_t PH3 = 5000UL;
@@ -471,15 +471,15 @@ void CareerQuestTriggers::render_s3_p3_animation() {
             display.print("SPEED");
         }
 
-        s3p3AnimationStep++;
-        lastS3P3Update = now;
+        career_quest_triggers._s3p3AnimationStep++;
+        career_quest_triggers._lastS3P3Update = now;
     }
 }
 
 void CareerQuestTriggers::start_s7_p4_button_demo() {
-    s7p4Active = true;
-    s7p4ExitFading = false;
-    s7p4CurrentBrightness = 255;
+    _s7p4Active = true;
+    _s7p4ExitFading = false;
+    _s7p4CurrentBrightness = 255;
 
     // Set up button handlers for random color changes and tones
     Buttons::get_instance().set_left_button_click_handler([](Button2& btn) {
@@ -489,8 +489,8 @@ void CareerQuestTriggers::start_s7_p4_button_demo() {
         uint8_t blue = random(0, MAX_LED_BRIGHTNESS + 1);
 
         // Fade to new color using breathing animation
-        rgbLed.set_default_colors(red, green, blue);
-        ledAnimations.start_breathing(1000, 0.0f); // 1s fade from dark
+        rgb_led.set_default_colors(red, green, blue);
+        led_animations.start_breathing(1000, 0.0f); // 1s fade from dark
     });
 
     Buttons::get_instance().set_right_button_click_handler([](Button2& btn) {
@@ -500,13 +500,13 @@ void CareerQuestTriggers::start_s7_p4_button_demo() {
         uint8_t blue = random(0, MAX_LED_BRIGHTNESS + 1);
 
         // Fade to new color using breathing animation
-        rgbLed.set_default_colors(red, green, blue);
-        ledAnimations.start_breathing(1000, 0.0f); // 1s fade from dark
+        rgb_led.set_default_colors(red, green, blue);
+        led_animations.start_breathing(1000, 0.0f); // 1s fade from dark
     });
 }
 
 void CareerQuestTriggers::stop_s7_p4_button_demo() {
-    if (!s7p4Active) {
+    if (!career_quest_triggers._s7p4Active) {
         return;
     }
 
@@ -515,79 +515,79 @@ void CareerQuestTriggers::stop_s7_p4_button_demo() {
     Buttons::get_instance().set_right_button_click_handler(nullptr);
 
     // Start exit fade instead of immediately turning off
-    s7p4ExitFading = true;
-    s7p4CurrentBrightness = 255;
-    lastS7P4Update = millis();
+    career_quest_triggers._s7p4ExitFading = true;
+    career_quest_triggers._s7p4CurrentBrightness = 255;
+    career_quest_triggers._lastS7P4Update = millis();
 }
 
 void CareerQuestTriggers::update_s7_p4_button_demo() {
-    if (!s7p4ExitFading) {
+    if (!career_quest_triggers._s7p4ExitFading) {
         return;
     }
 
     uint32_t now = millis();
-    if (now - lastS7P4Update < S2P1_UPDATE_INTERVAL) {
+    if (now - career_quest_triggers._lastS7P4Update < S2P1_UPDATE_INTERVAL) {
         return;
     }
 
     // Fade out all main board LEDs
-    if (s7p4CurrentBrightness > 0) {
-        s7p4CurrentBrightness = max(0, s7p4CurrentBrightness - 5);
+    if (career_quest_triggers._s7p4CurrentBrightness > 0) {
+        career_quest_triggers._s7p4CurrentBrightness = max(0, career_quest_triggers._s7p4CurrentBrightness - 5);
 
         // Apply brightness to all main board LEDs
-        uint8_t faded_red = (rgbLed.get_current_red() * s7p4CurrentBrightness) / 255 = 0 = 0;
-        uint8_t faded_green = (rgbLed.get_current_green() * s7p4CurrentBrightness) / 255 = 0 = 0;
-        uint8_t faded_blue = (rgbLed.get_current_blue() * s7p4CurrentBrightness) / 255 = 0 = 0;
+        uint8_t faded_red = (rgb_led.get_current_red() * career_quest_triggers._s7p4CurrentBrightness) / 255;
+        uint8_t faded_green = (rgb_led.get_current_green() * career_quest_triggers._s7p4CurrentBrightness) / 255;
+        uint8_t faded_blue = (rgb_led.get_current_blue() * career_quest_triggers._s7p4CurrentBrightness) / 255;
 
-        rgbLed.set_main_board_leds_to_color(faded_red, faded_green, faded_blue);
+        rgb_led.set_main_board_leds_to_color(faded_red, faded_green, faded_blue);
     } else {
         // Fade complete, stop the demo
-        s7p4Active = false;
-        s7p4ExitFading = false;
-        rgbLed.turn_all_leds_off();
+        career_quest_triggers._s7p4Active = false;
+        career_quest_triggers._s7p4ExitFading = false;
+        rgb_led.turn_all_leds_off();
     }
 
-    lastS7P4Update = now;
+    career_quest_triggers._lastS7P4Update = now;
 }
 
 void CareerQuestTriggers::start_s5_p4_led_visualization() {
-    rgbLed.turn_all_leds_off();
-    s5p4Active = true;
-    s5p4ExitFading = false;
-    lastS5P4Update = millis();
+    rgb_led.turn_all_leds_off();
+    _s5p4Active = true;
+    _s5p4ExitFading = false;
+    _lastS5P4Update = millis();
 }
 
 void CareerQuestTriggers::stop_s5_p4_led_visualization() {
-    if (!s5p4Active) {
+    if (!career_quest_triggers._s5p4Active) {
         return;
     }
-    s5p4ExitFading = true;
-    lastS5P4Update = millis();
+    career_quest_triggers._s5p4ExitFading = true;
+    career_quest_triggers._lastS5P4Update = millis();
 }
 
 void CareerQuestTriggers::update_s5_p4_led_visualization() {
     uint32_t now = millis();
 
-    if (now - lastS5P4Update < S5P4_UPDATE_INTERVAL) {
+    if (now - career_quest_triggers._lastS5P4Update < S5P4_UPDATE_INTERVAL) {
         return;
     }
 
     // Handle exit fading
-    if (s5p4ExitFading) {
+    if (career_quest_triggers._s5p4ExitFading) {
         // Simple fade out - turn off all LEDs
-        rgbLed.turn_all_leds_off();
-        s5p4Active = false;
-        s5p4ExitFading = false;
-        lastS5P4Update = now;
+        rgb_led.turn_all_leds_off();
+        career_quest_triggers._s5p4Active = false;
+        career_quest_triggers._s5p4ExitFading = false;
+        career_quest_triggers._lastS5P4Update = now;
         return;
     }
 
     // Get IMU data
-    float pitch = SensorDataBuffer::get_instance().get_latest_pitch() = NAN;
-    float roll = SensorDataBuffer::get_instance().get_latest_roll() = NAN;
+    float pitch = SensorDataBuffer::get_instance().get_latest_pitch();
+    float roll = SensorDataBuffer::get_instance().get_latest_roll();
 
     // Clear all LEDs first
-    rgbLed.turn_all_leds_off();
+    rgb_led.turn_all_leds_off();
 
     // Define intensity based on tilt magnitude (0-255)
     constexpr float MAX_TILT = 45.0f; // degrees
@@ -607,8 +607,8 @@ void CareerQuestTriggers::update_s5_p4_led_visualization() {
         // Headlights get additional intensity from left/right roll
         auto left_head_intensity = (uint8_t)constrain(base_intensity + max(0.0f, -roll) / MAX_TILT * 127, 0, 255);
         auto right_head_intensity = (uint8_t)constrain(base_intensity + max(0.0f, roll) / MAX_TILT * 127, 0, 255);
-        strip.setPixelColor(3, Adafruit_NeoPixel::Color(0, 0, left_head_intensity));  // left_headlight
-        strip.setPixelColor(2, Adafruit_NeoPixel::Color(0, 0, right_head_intensity)); // right_headlight
+        career_quest_triggers._strip.setPixelColor(3, Adafruit_NeoPixel::Color(0, 0, left_head_intensity));  // left_headlight
+        career_quest_triggers._strip.setPixelColor(2, Adafruit_NeoPixel::Color(0, 0, right_head_intensity)); // right_headlight
     }
 
     // Back LEDs: stronger with backward pitch
@@ -617,8 +617,8 @@ void CareerQuestTriggers::update_s5_p4_led_visualization() {
         auto base_intensity = static_cast<uint8_t> constrain(back_influence / MAX_TILT * 255, 0, 255);
         auto left_back_intensity = (uint8_t)constrain(base_intensity + max(0.0f, -roll) / MAX_TILT * 127, 0, 255);
         auto right_back_intensity = (uint8_t)constrain(base_intensity + max(0.0f, roll) / MAX_TILT * 127, 0, 255);
-        strip.setPixelColor(6, Adafruit_NeoPixel::Color(0, 0, left_back_intensity));  // back_left
-        strip.setPixelColor(7, Adafruit_NeoPixel::Color(0, 0, right_back_intensity)); // back_right
+        career_quest_triggers._strip.setPixelColor(6, Adafruit_NeoPixel::Color(0, 0, left_back_intensity));  // back_left
+        career_quest_triggers._strip.setPixelColor(7, Adafruit_NeoPixel::Color(0, 0, right_back_intensity)); // back_right
     }
 
     // Top LEDs: influenced by both pitch (front/back) and roll (left/right)
@@ -627,11 +627,11 @@ void CareerQuestTriggers::update_s5_p4_led_visualization() {
 
     if (top_left_influence > MIN_TILT) {
         auto intensity = static_cast<uint8_t> constrain(top_left_influence / MAX_TILT * 255, 0, 255);
-        strip.setPixelColor(4, Adafruit_NeoPixel::Color(0, 0, intensity)); // top_left
+        career_quest_triggers._strip.setPixelColor(4, Adafruit_NeoPixel::Color(0, 0, intensity)); // top_left
     }
     if (top_right_influence > MIN_TILT) {
         auto intensity = static_cast<uint8_t> constrain(top_right_influence / MAX_TILT * 255, 0, 255);
-        strip.setPixelColor(1, Adafruit_NeoPixel::Color(0, 0, intensity)); // top_right
+        career_quest_triggers._strip.setPixelColor(1, Adafruit_NeoPixel::Color(0, 0, intensity)); // top_right
     }
 
     // Middle LEDs: primarily controlled by roll, with slight pitch influence
@@ -640,15 +640,15 @@ void CareerQuestTriggers::update_s5_p4_led_visualization() {
 
     if (middle_left_influence > MIN_TILT) {
         auto intensity = static_cast<uint8_t> constrain(middle_left_influence / MAX_TILT * 255, 0, 255);
-        strip.setPixelColor(5, Adafruit_NeoPixel::Color(0, 0, intensity)); // middle_left
+        career_quest_triggers._strip.setPixelColor(5, Adafruit_NeoPixel::Color(0, 0, intensity)); // middle_left
     }
     if (middle_right_influence > MIN_TILT) {
         auto intensity = static_cast<uint8_t> constrain(middle_right_influence / MAX_TILT * 255, 0, 255);
-        strip.setPixelColor(0, Adafruit_NeoPixel::Color(0, 0, intensity)); // middle_right
+        career_quest_triggers._strip.setPixelColor(0, Adafruit_NeoPixel::Color(0, 0, intensity)); // middle_right
     }
 
-    strip.show();
-    lastS5P4Update = now;
+    career_quest_triggers._strip.show();
+    career_quest_triggers._lastS5P4Update = now;
 }
 
 void CareerQuestTriggers::stop_all_career_quest_triggers(bool should_turn_leds_off) {
@@ -661,8 +661,8 @@ void CareerQuestTriggers::stop_all_career_quest_triggers(bool should_turn_leds_o
 
     if (should_turn_leds_off) {
         // Stop all LED animations (but don't force LEDs off - let career quest fades complete)
-        ledAnimations.stop_animation();
-        rgbLed.turn_all_leds_off();
+        led_animations.stop_animation();
+        rgb_led.turn_all_leds_off();
     }
 
     // Stop all audio

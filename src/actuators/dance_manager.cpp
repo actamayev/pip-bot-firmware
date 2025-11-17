@@ -26,15 +26,15 @@ void DanceManager::start_dance() {
 
     // Start first dance step
     DanceStep first_step = DANCE_SEQUENCE[0];
-    motorDriver.update_motor_pwm(firstStep.leftSpeed, firstStep.rightSpeed);
+    motor_driver.update_motor_pwm(firstStep.leftSpeed, firstStep.rightSpeed);
 
     // Start LED animation
     if (first_step.ledAnimation == led_types::AnimationType::RAINBOW) {
-        ledAnimations.start_rainbow(2000);
+        led_animations.start_rainbow(2000);
     } else if (first_step.ledAnimation == led_types::AnimationType::BREATHING) {
-        ledAnimations.start_breathing(2000, 0.5f);
+        led_animations.start_breathing(2000, 0.5f);
     } else if (first_step.ledAnimation == led_types::AnimationType::STROBING) {
-        ledAnimations.start_strobing(500);
+        led_animations.start_strobing(500);
     }
 }
 
@@ -48,12 +48,12 @@ void DanceManager::stop_dance(bool should_turn_leds_off) {
     _currentStep = 0;
 
     // Stop motors immediately for safety
-    motorDriver.stop_both_motors();
+    motor_driver.stop_both_motors();
 
     if (should_turn_leds_off) {
         // Turn off LEDs
-        ledAnimations.turn_off();
-        rgbLed.turn_all_leds_off();
+        led_animations.turn_off();
+        rgb_led.turn_all_leds_off();
     }
 }
 
@@ -89,17 +89,17 @@ void DanceManager::update() {
     _nextStepTime = current_time + step.duration;
 
     // Update motors with gentle speeds
-    motorDriver.update_motor_pwm(step.leftSpeed, step.rightSpeed);
+    motor_driver.update_motor_pwm(step.leftSpeed, step.rightSpeed);
 
     // Update LED animation
     if (step.ledAnimation == led_types::AnimationType::RAINBOW) {
-        ledAnimations.start_rainbow(2000);
+        led_animations.start_rainbow(2000);
     } else if (step.ledAnimation == led_types::AnimationType::BREATHING) {
-        ledAnimations.start_breathing(2000, 0.5f);
+        led_animations.start_breathing(2000, 0.5f);
     } else if (step.ledAnimation == led_types::AnimationType::STROBING) {
-        ledAnimations.start_strobing(500);
+        led_animations.start_strobing(500);
     } else if (step.ledAnimation == led_types::AnimationType::NONE) {
-        ledAnimations.turn_off();
-        rgbLed.turn_all_leds_off();
+        led_animations.turn_off();
+        rgb_led.turn_all_leds_off();
     }
 }

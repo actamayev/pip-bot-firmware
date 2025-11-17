@@ -27,7 +27,7 @@ void Buttons::update() {
         if (millis() - _sleep_confirmation_start_time > SLEEP_CONFIRMATION_TIMEOUT) {
             _waiting_for_sleep_confirmation = false;
             _sleep_confirmation_start_time = 0;
-            rgbLed.turn_all_leds_off();
+            rgb_led.turn_all_leds_off();
         }
     }
 }
@@ -131,7 +131,7 @@ void Buttons::set_right_button_click_handler(std::function<void(Button2&)> callb
 
         // If we're waiting for confirmation, this click cancels deep sleep
         if (this->_waiting_for_sleep_confirmation) {
-            rgbLed.turn_all_leds_off();
+            rgb_led.turn_all_leds_off();
             this->_waiting_for_sleep_confirmation = false;
             this->_sleep_confirmation_start_time = 0;
             return; // Don't call the original callback in this case
@@ -190,7 +190,7 @@ void Buttons::setup_deep_sleep() {
         TimeoutManager::get_instance().reset_activity();
 
         BytecodeVM::get_instance().pause_program();
-        rgbLed.set_led_yellow();
+        rgb_led.set_led_yellow();
         this->_long_press_flag_for_sleep = true;
     });
 
