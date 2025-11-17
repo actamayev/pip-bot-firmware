@@ -372,7 +372,7 @@ void WiFiManager::check_async_scan_progress() {
 
     // Check for timeout
     if (scan_duration > ASYNC_SCAN_TIMEOUT_MS) {
-        SerialQueueManager::get_instance().queue_message("Async WiFi scan timed out after " + String(scanDuration) + "ms");
+        SerialQueueManager::get_instance().queue_message("Async WiFi scan timed out after " + String(scan_duration) + "ms");
         _asyncScanInProgress = false;
         rgb_led.turn_main_board_leds_off();
 
@@ -395,7 +395,7 @@ void WiFiManager::check_async_scan_progress() {
     }
     // Only handle completion (positive numbers) - ignore WIFI_SCAN_FAILED and WIFI_SCAN_RUNNING
     // Scan completed successfully
-    SerialQueueManager::get_instance().queue_message("Async WiFi scan completed in " + String(scanDuration) + "ms. Found " + String(scanResult) +
+    SerialQueueManager::get_instance().queue_message("Async WiFi scan completed in " + String(scan_duration) + "ms. Found " + String(scanResult) +
                                                      " networks");
     _asyncScanInProgress = false;
     rgb_led.turn_main_board_leds_off();

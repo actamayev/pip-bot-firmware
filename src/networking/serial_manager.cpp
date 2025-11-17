@@ -3,8 +3,8 @@
 void SerialManager::poll_serial() {
     if (Serial.available() <= 0) {
         // Check for timeout if we're connected but haven't received data for a while
-        if (is_connected && (millis() - last_activity_time > SERIAL_CONNECTION_TIMEOUT)) {
-            is_connected = false;
+        if (_isConnected && (millis() - last_activity_time > SERIAL_CONNECTION_TIMEOUT)) {
+            _isConnected = false;
             if (!WebSocketManager::get_instance().is_ws_connected()) {
                 career_quest_triggers.stop_all_career_quest_triggers(false);
             }
@@ -15,7 +15,7 @@ void SerialManager::poll_serial() {
     last_activity_time = millis();
 
     if (!is_serial_connected()) {
-        is_connected = true;
+        _isConnected = true;
         // If we were previously trying to connect to wifi (breathing red), we should turn it off when connecting to serial
         led_animations.stop_animation();
     }
@@ -24,82 +24,82 @@ void SerialManager::poll_serial() {
     while (Serial.available() > 0) {
         uint8_t in_byte = Serial.read();
 
-        switch (parse_state) {
-            case parse_state::WAITING_FOR_START:
+        switch (_parseState) {
+            case ParseState::WAITING_FOR_START:
                 if (in_byte == START_MARKER) {
                     // Start of a new message
-                    bufferPosition = 0;
-                    parse_state = parse_state::READING_MESSAGE_TYPE;
+                    _bufferPosition = 0;
+                    _parseState = ParseState::READING_MESSAGE_TYPE;
                 }
                 break;
 
-            case parse_state::READING_MESSAGE_TYPE:
-                receiveBuffer[bufferPosition++] = in_byte; // Store message type as first byte
-                parse_state = parse_state::READING_FORMAT_FLAG;
+            case ParseState::READING_MESSAGE_TYPE:
+                _receiveBuffer[_bufferPosition++] = in_byte; // Store message type as first byte
+                _parseState = ParseState::READING_FORMAT_FLAG;
                 break;
 
-            case parse_state::READING_FORMAT_FLAG:
-                useLongFormat = (in_byte != 0);
-                parse_state = parse_state::READING_LENGTH_BYTE1;
+            case ParseState::READING_FORMAT_FLAG:
+                _useLongFormat = (in_byte != 0);
+                _parseState = ParseState::READING_LENGTH_BYTE1;
                 break;
 
-            case parse_state::READING_LENGTH_BYTE1:
-                if (useLongFormat) {
+            case ParseState::READING_LENGTH_BYTE1:
+                if (_useLongFormat) {
                     // First byte of 16-bit length (little-endian)
                     _expectedPayloadLength = in_byte;
-                    parse_state = parse_state::READING_LENGTH_BYTE2;
+                    _parseState = ParseState::READING_LENGTH_BYTE2;
                 } else {
                     // 8-bit length
                     _expectedPayloadLength = in_byte;
 
                     // If payload length is 0, skip to waiting for end marker
                     if (_expectedPayloadLength == 0) {
-                        parse_state = parse_state::WAITING_FOR_END;
+                        _parseState = ParseState::WAITING_FOR_END;
                     } else {
-                        parse_state = parse_state::READING_PAYLOAD;
+                        _parseState = ParseState::READING_PAYLOAD;
                     }
                 }
                 break;
 
-            case parse_state::READING_LENGTH_BYTE2:
+            case ParseState::READING_LENGTH_BYTE2:
                 // Second byte of 16-bit length (little-endian)
                 _expectedPayloadLength |= (in_byte << 8);
 
                 // If payload length is 0, skip to waiting for end marker
                 if (_expectedPayloadLength == 0) {
-                    parse_state = parse_state::WAITING_FOR_END;
+                    _parseState = ParseState::WAITING_FOR_END;
                 } else {
-                    parse_state = parse_state::READING_PAYLOAD;
+                    _parseState = ParseState::READING_PAYLOAD;
                 }
                 break;
 
-            case parse_state::READING_PAYLOAD:
+            case ParseState::READING_PAYLOAD:
                 // Store payload byte
-                if (bufferPosition < sizeof(receiveBuffer)) {
-                    receiveBuffer[bufferPosition++] = in_byte;
+                if (_bufferPosition < sizeof(_receiveBuffer)) {
+                    _receiveBuffer[_bufferPosition++] = in_byte;
 
                     // Check if we've read the complete payload
                     if (bufferPosition >= _expectedPayloadLength + 1) { // +1 for message type
-                        parse_state = parse_state::WAITING_FOR_END;
+                        _parseState = ParseState::WAITING_FOR_END;
                     }
                 } else {
                     // Buffer overflow
                     SerialQueueManager::get_instance().queue_message("Serial buffer overflow");
-                    parse_state = parse_state::WAITING_FOR_START;
+                    _parseState = ParseState::WAITING_FOR_START;
                 }
                 break;
 
-            case parse_state::WAITING_FOR_END:
+            case ParseState::WAITING_FOR_END:
                 if (in_byte == END_MARKER) {
                     // Process the message
-                    MessageProcessor::get_instance().process_binary_message(receiveBuffer, bufferPosition);
+                    MessageProcessor::get_instance().process_binary_message(_receiveBuffer, _bufferPosition);
 
                     // Reset for next message
-                    parse_state = parse_state::WAITING_FOR_START;
+                    _parseState = ParseState::WAITING_FOR_START;
                 } else {
                     // Invalid end marker
                     SerialQueueManager::get_instance().queue_message("Invalid end marker");
-                    parse_state = parse_state::WAITING_FOR_START;
+                    _parseState = ParseState::WAITING_FOR_START;
                 }
                 break;
         }
