@@ -185,10 +185,10 @@ if (ColorSensor::get_instance().isInitialized()) {
 ### Color Sensor Calibration
 ```cpp
 // Perform black point calibration (on dark surface)
-ColorSensor::get_instance().calibrateBlackPoint();
+ColorSensor::get_instance().calibrate_black_point();
 
 // Perform white point calibration (on white surface)  
-ColorSensor::get_instance().calibrateWhitePoint();
+ColorSensor::get_instance().calibrate_white_point();
 ```
 
 ## Troubleshooting

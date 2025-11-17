@@ -20,9 +20,9 @@ class ColorSensor : public Singleton<ColorSensor> {
     void enable_color_sensor();
     void disable_color_sensor();
 
-    bool isInitialized = false;
-    bool sensorConnected = false;
-    bool sensorEnabled = false; // Track if sensor is actively enabled
+    bool _is_initialized = false;
+    bool _sensor_connected = false;
+    bool _sensor_enabled = false; // Track if sensor is actively enabled
 
     struct CalibrationValues {
         uint16_t blackRed = 3338;
@@ -31,11 +31,11 @@ class ColorSensor : public Singleton<ColorSensor> {
         uint16_t whiteRed = 37333;
         uint16_t whiteGreen = 65535;
         uint16_t whiteBlue = 40437;
-    } calibration;
+    } _calibration;
 
-    bool isCalibrated = true;
-    ColorSensorData colorSensorData;
-    uint32_t lastUpdateTime = 0;
+    bool _is_calibrated = true;
+    ColorSensorData _color_sensor_data;
+    uint32_t _last_update_time = 0;
     static constexpr uint32_t DELAY_BETWEEN_READINGS = 20; // ms - minimal delay like performance test
 
     // New buffer-based methods following the established pattern
