@@ -1,15 +1,13 @@
 # clang-tidy:
-# Lint entire codebase
-pio check
 
 # Lint specific environment
 pio check -e local
 
 # Lint specific files/directories
-pio check --pattern="src/main.cpp"
+pio check -e local --pattern="src/main.cpp"
 
 # Lint with verbose output
-pio check --verbose
+pio check -e local --verbose
 
 ===============================================================
 

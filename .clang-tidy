@@ -133,17 +133,7 @@ CheckOptions:
 
 WarningsAsErrors: ''
 
-HeaderFilterRegex: '.*'
+# CRITICAL: Only analyze headers in your src/ and lib/ directories
+HeaderFilterRegex: '^.*/(src|lib)/.*\.(h|hpp)$'
 
 FormatStyle: file
-
-# Arduino/Embedded specific warnings via cert and misc checks:
-# - cert-msc50-cpp: no rand() (non-deterministic)
-# - cert-msc51-cpp: proper seeding
-# - bugprone-infinite-loop: catch infinite loops
-# - misc-no-recursion: flag recursion (limited stack)
-# - performance-* : all performance checks for efficiency
-
-# Dynamic allocation checks via cppcoreguidelines:
-# - cppcoreguidelines-no-malloc: flags malloc/free
-# - cppcoreguidelines-owning-memory: ownership tracking
