@@ -219,24 +219,24 @@ class SensorDataBuffer : public Singleton<SensorDataBuffer> {
     }
 
     // Helper methods for bulk polling control
-    static void stop_polling_all_sensors();
+    void stop_polling_all_sensors();
 
     // Sensor type enum for selective control
     enum class SensorType : uint8_t { QUATERNION, ACCELEROMETER, GYROSCOPE, MAGNETOMETER, MULTIZONE_TOF, SIDE_TOF, COLOR };
 
     // Selective sensor polling control
-    static void stop_polling_sensor(SensorType sensor_type);
+    void stop_polling_sensor(SensorType sensor_type);
 
     // Get complete samples (for debugging/logging)
     ImuSample get_latest_imu_sample();
 
     // Frequency tracking methods
-    static float get_imu_frequency();
-    static float get_multizone_tof_frequency();
-    static float get_side_tof_frequency();
-    static float get_color_sensor_frequency();
+    float get_imu_frequency();
+    float get_multizone_tof_frequency();
+    float get_side_tof_frequency();
+    float get_color_sensor_frequency();
 
-    static bool should_enable_quaternion_extended();
+    bool should_enable_quaternion_extended();
 
     bool is_object_red();
     bool is_object_green();
@@ -273,7 +273,7 @@ class SensorDataBuffer : public Singleton<SensorDataBuffer> {
     std::atomic<uint32_t> _last_encoder_update_time{0}; // Separate timestamp for encoders
 
     // Timeout tracking for each report type
-    ReportTimeouts _timeouts;
+    mutable ReportTimeouts _timeouts;
 
     // Frequency tracking for sensors
     std::atomic<uint32_t> _imu_update_count{0};

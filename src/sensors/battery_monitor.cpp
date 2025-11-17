@@ -21,7 +21,7 @@ bool BatteryMonitor::initialize() {
     // Initial battery state update
     update_battery_state();
 
-    SerialQueueManager::get_instance().queue_message("✓ Battery monitor initialized - SOC: " + String(batteryState.realStateOfCharge) + "%");
+    SerialQueueManager::get_instance().queue_message("✓ Battery monitor initialized - SOC: " + String(_batteryState.realStateOfCharge) + "%");
 
     return true;
 }
@@ -40,7 +40,7 @@ void BatteryMonitor::update_battery_state() {
     _batteryState.fullCapacity = lipo.capacity(FULL);
     _batteryState.health = lipo.soh();
     // Prevent sub-0 values.
-    _batteryState.displayedStateOfCharge = max(0.0f, (batteryState.realStateOfCharge) * (slopeTerm) + yInterceptTerm);
+    _batteryState.displayedStateOfCharge = max(0.0f, (_batteryState.realStateOfCharge) * (SLOPE_TERM) + Y_INTERCEPT_TERM);
 
     // Update derived status flags
     update_status_flags();
@@ -51,7 +51,7 @@ void BatteryMonitor::update_battery_state() {
 
 void BatteryMonitor::update_status_flags() {
     // Charging/discharging status
-    if (batteryState.current < 0) {
+    if (_batteryState.current < 0) {
         _batteryState.isCharging = false;
         _batteryState.isDischarging = true;
     } else {
@@ -60,8 +60,8 @@ void BatteryMonitor::update_status_flags() {
     }
 
     // Battery level warnings
-    _batteryState.isLowBattery = (batteryState.realStateOfCharge <= LOW_BATTERY_THRESHOLD);
-    _batteryState.isCriticalBattery = (batteryState.realStateOfCharge <= CRITICAL_BATTERY_THRESHOLD);
+    _batteryState.isLowBattery = (_batteryState.realStateOfCharge <= LOW_BATTERY_THRESHOLD);
+    _batteryState.isCriticalBattery = (_batteryState.realStateOfCharge <= CRITICAL_BATTERY_THRESHOLD);
 }
 
 void BatteryMonitor::calculate_time_estimates() {
@@ -74,9 +74,9 @@ void BatteryMonitor::calculate_time_estimates() {
     } else if (_batteryState.isCharging && _batteryState.current > 0) {
         // Calculate time to full
         int charging_current = abs(_batteryState.current);
-        int remaining_to_full = _batteryState.fullCapacity - _batteryState.remainingCapacity = 0;
+        int remaining_to_full = _batteryState.fullCapacity - _batteryState.remainingCapacity;
         if (charging_current > 0 && remaining_to_full > 0) {
-            _batteryState.estimatedTimeToFull = (float)remainingToFull / chargingCurrent;
+            _batteryState.estimatedTimeToFull = (float)remaining_to_full / charging_current;
         }
     }
 }

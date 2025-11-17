@@ -6,45 +6,45 @@
 void SendSensorData::attach_rpm_data(JsonObject& payload) {
     // Get the RPM values
     WheelRPMs wheel_rpms = SensorDataBuffer::get_instance().get_latest_wheel_rpms();
-    "leftWheelRPM"[payload] = wheel_rpms.leftWheelRPM;
-    "rightWheelRPM"[payload] = wheel_rpms.rightWheelRPM;
+    payload["leftWheelRPM"] = wheel_rpms.leftWheelRPM;
+    payload["rightWheelRPM"] = wheel_rpms.rightWheelRPM;
 }
 
 void SendSensorData::attach_euler_data(JsonObject& payload) {
     EulerAngles euler_angles = SensorDataBuffer::get_instance().get_latest_euler_angles();
     // ROLL AND PITCH ARE SWITCHED ON PURPOSE
-    "pitch"[payload] = euler_angles.roll;
-    "yaw"[payload] = euler_angles.yaw;
-    "roll"[payload] = euler_angles.pitch;
+    payload["pitch"] = euler_angles.roll;
+    payload["yaw"] = euler_angles.yaw;
+    payload["roll"] = euler_angles.pitch;
 }
 
 void SendSensorData::attach_accel_data(JsonObject& payload) {
     AccelerometerData accelerometer_data = SensorDataBuffer::get_instance().get_latest_accelerometer();
-    "aX"[payload] = accelerometer_data.aX;
-    "aY"[payload] = accelerometer_data.aY;
-    "aZ"[payload] = accelerometer_data.aZ;
+    payload["aX"] = accelerometer_data.aX;
+    payload["aY"] = accelerometer_data.aY;
+    payload["aZ"] = accelerometer_data.aZ;
 }
 
 void SendSensorData::attach_gyro_data(JsonObject& payload) {
     GyroscopeData gyroscope_data = SensorDataBuffer::get_instance().get_latest_gyroscope();
-    "gX"[payload] = gyroscope_data.gX;
-    "gY"[payload] = gyroscope_data.gY;
-    "gZ"[payload] = gyroscope_data.gZ;
+    payload["gX"] = gyroscope_data.gX;
+    payload["gY"] = gyroscope_data.gY;
+    payload["gZ"] = gyroscope_data.gZ;
 }
 
 void SendSensorData::attach_magnetometer_data(JsonObject& payload) {
     MagnetometerData magnetometer_data = SensorDataBuffer::get_instance().get_latest_magnetometer();
-    "mX"[payload] = magnetometer_data.mX;
-    "mY"[payload] = magnetometer_data.mY;
-    "mZ"[payload] = magnetometer_data.mZ;
+    payload["mX"] = magnetometer_data.mX;
+    payload["mY"] = magnetometer_data.mY;
+    payload["mZ"] = magnetometer_data.mZ;
 }
 
 void SendSensorData::attach_color_sensor_data(JsonObject& payload) {
     ColorData color_sensor_data = SensorDataBuffer::get_instance().get_latest_color_data();
 
-    "redValue"[payload] = color_sensor_data.red_value;
-    "greenValue"[payload] = color_sensor_data.green_value;
-    "blueValue"[payload] = color_sensor_data.blue_value;
+    payload["redValue"] = color_sensor_data.red_value;
+    payload["greenValue"] = color_sensor_data.green_value;
+    payload["blueValue"] = color_sensor_data.blue_value;
 }
 
 void SendSensorData::attach_multizone_tof_data(JsonObject& payload) {
@@ -57,8 +57,8 @@ void SendSensorData::attach_multizone_tof_data(JsonObject& payload) {
 
 void SendSensorData::attach_side_tof_data(JsonObject& payload) {
     SideTofData side_tof_data = SensorDataBuffer::get_instance().get_latest_side_tof_data();
-    "leftSideTofCounts"[payload] = side_tof_data.left_counts;
-    "rightSideTofCounts"[payload] = side_tof_data.right_counts;
+    payload["leftSideTofCounts"] = side_tof_data.left_counts;
+    payload["rightSideTofCounts"] = side_tof_data.right_counts;
 }
 
 void SendSensorData::send_sensor_data_to_server() {
@@ -121,7 +121,7 @@ void SendSensorData::send_sensor_data_to_server() {
         SerialQueueManager::get_instance().queue_message(json_string, SerialPriority::CRITICAL);
     } else if (websocket_connected) {
         if (WebSocketManager::get_instance().is_ws_connected()) {
-            WebSocketManager::get_instance().wsClient.send(json_string);
+            WebSocketManager::get_instance()._wsClient.send(json_string);
         }
     }
 
@@ -155,7 +155,7 @@ void SendSensorData::send_multizone_data() {
     for (int row = 0; row < 8; row++) {
         auto doc = make_base_message_common<128>(ToCommonMessage::SENSOR_DATA_MZ);
         JsonObject payload = doc.createNestedObject("payload");
-        "row"[payload] = row;
+        payload["row"] = row;
 
         JsonArray distances = payload.createNestedArray("distances");
         for (int col = 0; col < 8; col++) {

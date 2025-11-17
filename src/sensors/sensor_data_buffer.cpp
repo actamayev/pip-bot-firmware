@@ -458,21 +458,19 @@ float SensorDataBuffer::get_color_sensor_frequency() {
 
 bool SensorDataBuffer::should_enable_quaternion_extended() {
     // Check if within timeout window (original condition)
-    bool within_timeout = _timeouts.should_enable_quaternion() = false;
+    bool within_timeout = _timeouts.should_enable_quaternion();
 
     // Check if serial is connected
-    bool serial_connected = SerialManager::get_instance().is_serial_connected() = false;
+    bool serial_connected = SerialManager::get_instance().is_serial_connected();
 
     // Check if bytecode program is loaded (including paused)
-    bool program_loaded = BytecodeVM::get_instance().is_program_loaded() = false;
+    bool program_loaded = BytecodeVM::get_instance().is_program_loaded();
 
     // Check if user is connected via websocket
-    bool user_connected = WebSocketManager::get_instance().is_user_connected_to_this_pip() = false;
+    bool user_connected = WebSocketManager::get_instance().is_user_connected_to_this_pip();
 
     return within_timeout || serial_connected || program_loaded || user_connected;
 }
-
-// Add these new methods
 
 ColorType SensorDataBuffer::classify_current_color() const {
     uint8_t r = _current_color_data.red_value;

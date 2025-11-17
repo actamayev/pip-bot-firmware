@@ -18,11 +18,6 @@ class WiFiManager : public Singleton<WiFiManager> {
     friend class Singleton<WiFiManager>;
 
   public:
-    void print_network_list(const std::vector<WiFiNetworkInfo>& networks);
-    int get_selected_network_index() const {
-        return _selectedNetworkIndex;
-    }
-    void set_selected_network_index(int index);
     const std::vector<WiFiNetworkInfo>& get_available_networks() const {
         return _availableNetworks;
     }
@@ -31,9 +26,6 @@ class WiFiManager : public Singleton<WiFiManager> {
     }
     uint32_t get_last_scan_complete_time() const {
         return _lastScanCompleteTime;
-    }
-    void clear_available_networks() {
-        _availableNetworks.clear();
     }
     void clear_networks_if_stale();
 
@@ -65,7 +57,6 @@ class WiFiManager : public Singleton<WiFiManager> {
     void sort_networks_by_signal_strength(std::vector<WiFiNetworkInfo>& networks);
 
     std::vector<WiFiNetworkInfo> _availableNetworks{};
-    int _selectedNetworkIndex = 0;
 
     bool attempt_direct_connection_to_saved_networks();
     uint32_t _lastReconnectAttempt = 0;

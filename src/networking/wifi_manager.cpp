@@ -103,54 +103,6 @@ void WiFiManager::sort_networks_by_signal_strength(std::vector<WiFiNetworkInfo>&
     std::sort(networks.begin(), networks.end(), [](const WiFiNetworkInfo& a, const WiFiNetworkInfo& b) { return a.rssi > b.rssi; });
 }
 
-static void WiFiManager::print_network_list(const std::vector<WiFiNetworkInfo>& networks) {
-    SerialQueueManager::get_instance().queue_message("Available WiFi Networks (sorted by signal strength):");
-    SerialQueueManager::get_instance().queue_message("----------------------------------------------------");
-
-    for (uint16_t i = 0; i < networks.size(); i++) {
-        const auto& network = networks[i];
-        String encryption = "";
-
-        // Convert encryption type to readable format
-        switch (network.encryptionType) {
-            case WIFI_AUTH_OPEN:
-                encryption = "Open";
-                break;
-            case WIFI_AUTH_WEP:
-                encryption = "WEP";
-                break;
-            case WIFI_AUTH_WPA_PSK:
-                encryption = "WPA";
-                break;
-            case WIFI_AUTH_WPA2_PSK:
-                encryption = "WPA2";
-                break;
-            case WIFI_AUTH_WPA_WPA2_PSK:
-                encryption = "WPA/WPA2";
-                break;
-            default:
-                encryption = "Unknown";
-                break;
-        }
-    }
-    SerialQueueManager::get_instance().queue_message("----------------------------------------------------");
-}
-
-void WiFiManager::set_selected_network_index(int index) {
-    if (_availableNetworks.empty()) {
-        return;
-    }
-
-    // Apply bounds checking
-    if (index < 0) {
-        _selectedNetworkIndex = 0;
-    } else if (index >= (int)_availableNetworks.size()) {
-        _selectedNetworkIndex = _availableNetworks.size() - 1;
-    } else {
-        _selectedNetworkIndex = index;
-    }
-}
-
 // For storing WiFi credentials:
 void WiFiManager::store_wifi_credentials(const String& ssid, const String& password, int index) {
     PreferencesManager::get_instance().store_wifi_credentials(ssid, password, index);
@@ -284,7 +236,7 @@ bool WiFiManager::test_connection_only(const String& ssid, const String& passwor
                     status_str = "UNKNOWN(" + String(WiFiClass::status()) + ")";
                     break;
             }
-            SerialQueueManager::get_instance().queue_message("WiFi Status: " + statusStr);
+            SerialQueueManager::get_instance().queue_message("WiFi Status: " + status_str);
             last_status_log = millis();
         }
 
@@ -304,7 +256,7 @@ bool WiFiManager::test_connection_only(const String& ssid, const String& passwor
     return connected;
 }
 
-static std::vector<WiFiCredentials> WiFiManager::get_saved_networks_for_response() {
+std::vector<WiFiCredentials> WiFiManager::get_saved_networks_for_response() {
     // Check if any networks exist
     if (!PreferencesManager::get_instance().has_stored_wifi_networks()) {
         SerialQueueManager::get_instance().queue_message("No saved networks found");
@@ -330,7 +282,6 @@ bool WiFiManager::start_async_scan() {
 
     // Clear any previous scan results
     _availableNetworks.clear();
-    _selectedNetworkIndex = 0;
 
     // Prepare WiFi for scanning
     WiFi.disconnect(true);
@@ -416,7 +367,6 @@ void WiFiManager::check_async_scan_progress() {
 
     // Update class members
     _availableNetworks = networks;
-    _selectedNetworkIndex = 0;
 
     // Clean up scan results to free memory
     WiFi.scanDelete();

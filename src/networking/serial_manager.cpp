@@ -79,7 +79,7 @@ void SerialManager::poll_serial() {
                     _receiveBuffer[_bufferPosition++] = in_byte;
 
                     // Check if we've read the complete payload
-                    if (bufferPosition >= _expectedPayloadLength + 1) { // +1 for message type
+                    if (_bufferPosition >= _expectedPayloadLength + 1) { // +1 for message type
                         _parseState = ParseState::WAITING_FOR_END;
                     }
                 } else {
