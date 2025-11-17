@@ -105,7 +105,7 @@ void DinoRunner::update() {
         static uint32_t last_ramp = 0;
         if ((millis() - last_ramp) >= DIFFICULTY_RAMP_MS) {
             if (spawn_interval_ms > 350) {
-                spawn_interval_ms = max(350UL, spawn_interval_ms - 120);
+                spawn_interval_ms = max(350U, spawn_interval_ms - 120);
             }
             obstacle_speed += SPEED_INCREMENT;
             last_ramp = millis();

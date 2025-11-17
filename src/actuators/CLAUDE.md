@@ -67,7 +67,7 @@ MotorDriver::get_instance().stop_both_motors(); // Emergency stop
 
 ### LED Animation
 ```cpp
-RgbLed& leds = RgbLed::get_instance();
+RgbLed& leds = rgbLed;
 leds.setAnimation(led_types::BREATHING, 5); // Speed 1-10
 leds.setLedColor(0, 255, 0, 0); // LED 0 to red
 ```

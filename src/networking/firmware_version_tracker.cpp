@@ -47,7 +47,7 @@ void FirmwareVersionTracker::retrieve_latest_firmware_from_server(uint16_t new_v
 
     // Get endpoint
     String url = getServerFirmwareEndpoint();
-    CareerQuestTriggers::get_instance().stop_all_career_quest_triggers(true); // Stop all sensors, movement when updating
+    careerQuestTriggers.stop_all_career_quest_triggers(true); // Stop all sensors, movement when updating
 
     // Perform the update
     t_httpUpdate_return result = http_update.update(*http_client, url);
@@ -72,7 +72,7 @@ void FirmwareVersionTracker::retrieve_latest_firmware_from_server(uint16_t new_v
 
 void FirmwareVersionTracker::update_progress_leds(int progress, int total) {
     // Stop any active LED animations to prevent interference
-    LedAnimations::get_instance().stop_animation();
+    ledAnimations.stop_animation();
 
     // Calculate percentage (0-100)
     int percentage = (progress * 100) / total;
@@ -106,22 +106,22 @@ void FirmwareVersionTracker::update_progress_leds(int progress, int total) {
         // Set the appropriate LED
         switch (i) {
             case 0: // Bottom right
-                RgbLed::get_instance().set_back_right_led(0, led_brightness, 0);
+                rgbLed.set_back_right_led(0, led_brightness, 0);
                 break;
             case 1: // Middle right
-                RgbLed::get_instance().set_middle_right_led(0, led_brightness, 0);
+                rgbLed.set_middle_right_led(0, led_brightness, 0);
                 break;
             case 2: // Top right
-                RgbLed::get_instance().set_top_right_led(0, led_brightness, 0);
+                rgbLed.set_top_right_led(0, led_brightness, 0);
                 break;
             case 3: // Top left
-                RgbLed::get_instance().set_top_left_led(0, led_brightness, 0);
+                rgbLed.set_top_left_led(0, led_brightness, 0);
                 break;
             case 4: // Middle left
-                RgbLed::get_instance().set_middle_left_led(0, led_brightness, 0);
+                rgbLed.set_middle_left_led(0, led_brightness, 0);
                 break;
             case 5: // Bottom left
-                RgbLed::get_instance().set_back_left_led(0, led_brightness, 0);
+                rgbLed.set_back_left_led(0, led_brightness, 0);
                 break;
         }
     }

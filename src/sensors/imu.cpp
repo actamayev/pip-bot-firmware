@@ -26,99 +26,99 @@ void ImuSensor::update_enabled_reports() {
 
     // Enable/disable quaternion reports based on extended conditions
     bool shouldEnableQuat = SensorDataBuffer::get_instance().should_enable_quaternion_extended();
-    if (shouldEnableQuat && !enabledReports.gameRotationVector) {
+    if (shouldEnableQuat && !_enabledReports.gameRotationVector) {
         enable_game_rotation_vector();
-    } else if (!shouldEnableQuat && enabledReports.gameRotationVector) {
+    } else if (!shouldEnableQuat && _enabledReports.gameRotationVector) {
         disable_game_rotation_vector();
     }
 
     // Enable/disable accelerometer reports (unchanged)
     bool shouldEnableAccel = timeouts.should_enable_accelerometer();
-    if (shouldEnableAccel && !enabledReports.accelerometer) {
+    if (shouldEnableAccel && !_enabledReports.accelerometer) {
         enable_accelerometer();
-    } else if (!shouldEnableAccel && enabledReports.accelerometer) {
+    } else if (!shouldEnableAccel && _enabledReports.accelerometer) {
         disable_accelerometer();
     }
 
     // Enable/disable gyroscope reports (unchanged)
     bool shouldEnableGyro = timeouts.should_enable_gyroscope();
-    if (shouldEnableGyro && !enabledReports.gyroscope) {
+    if (shouldEnableGyro && !_enabledReports.gyroscope) {
         enable_gyroscope();
-    } else if (!shouldEnableGyro && enabledReports.gyroscope) {
+    } else if (!shouldEnableGyro && _enabledReports.gyroscope) {
         disable_gyroscope();
     }
 
     // Enable/disable magnetometer reports (unchanged)
     bool shouldEnableMag = timeouts.should_enable_magnetometer();
-    if (shouldEnableMag && !enabledReports.magneticField) {
+    if (shouldEnableMag && !_enabledReports.magneticField) {
         enable_magnetic_field();
-    } else if (!shouldEnableMag && enabledReports.magneticField) {
+    } else if (!shouldEnableMag && _enabledReports.magneticField) {
         disable_magnetic_field();
     }
 }
 
 void ImuSensor::enable_game_rotation_vector() {
-    if (!isInitialized || enabledReports.gameRotationVector) return;
+    if (!isInitialized || _enabledReports.gameRotationVector) return;
 
     if (!imu.enableReport(SH2_GAME_ROTATION_VECTOR, IMU_UPDATE_FREQ_MICROSECS)) {
         SerialQueueManager::get_instance().queue_message("Could not enable game rotation vector");
         return;
     }
 
-    enabledReports.gameRotationVector = true;
+    _enabledReports.gameRotationVector = true;
 }
 
 void ImuSensor::enable_accelerometer() {
-    if (!isInitialized || enabledReports.accelerometer) return;
+    if (!isInitialized || _enabledReports.accelerometer) return;
 
     if (!imu.enableReport(SH2_ACCELEROMETER, IMU_UPDATE_FREQ_MICROSECS)) {
         SerialQueueManager::get_instance().queue_message("Could not enable accelerometer");
         return;
     }
 
-    enabledReports.accelerometer = true;
+    _enabledReports.accelerometer = true;
     return;
 }
 
 void ImuSensor::enable_gyroscope() {
-    if (!isInitialized || enabledReports.gyroscope) return;
+    if (!isInitialized || _enabledReports.gyroscope) return;
 
     if (!imu.enableReport(SH2_GYROSCOPE_CALIBRATED, IMU_UPDATE_FREQ_MICROSECS)) {
         SerialQueueManager::get_instance().queue_message("Could not enable gyroscope");
         return;
     }
 
-    enabledReports.gyroscope = true;
+    _enabledReports.gyroscope = true;
     return;
 }
 
 void ImuSensor::enable_magnetic_field() {
-    if (!isInitialized || enabledReports.magneticField) return;
+    if (!isInitialized || _enabledReports.magneticField) return;
 
     if (!imu.enableReport(SH2_MAGNETIC_FIELD_CALIBRATED, IMU_UPDATE_FREQ_MICROSECS)) {
         SerialQueueManager::get_instance().queue_message("Could not enable magnetic field");
         return;
     }
 
-    enabledReports.magneticField = true;
+    _enabledReports.magneticField = true;
     return;
 }
 
 void ImuSensor::disable_game_rotation_vector() {
     // Note: BNO08x doesn't have a clean disable method, so we just mark as disabled
-    enabledReports.gameRotationVector = false;
+    _enabledReports.gameRotationVector = false;
 }
 
 void ImuSensor::disable_accelerometer() {
-    enabledReports.accelerometer = false;
+    _enabledReports.accelerometer = false;
 }
 
 void ImuSensor::disable_gyroscope() {
-    enabledReports.gyroscope = false;
+    _enabledReports.gyroscope = false;
 }
 
 void ImuSensor::disable_magnetic_field() {
-    enabledReports.magneticField = false;
+    _enabledReports.magneticField = false;
 }
 
 bool ImuSensor::should_be_polling() const {
@@ -192,8 +192,8 @@ void ImuSensor::update_sensor_data() {
 
 void ImuSensor::turn_off() {
     // Disable all reports
-    enabledReports.accelerometer = false;
-    enabledReports.gyroscope = false;
-    enabledReports.magneticField = false;
-    enabledReports.gameRotationVector = false;
+    _enabledReports.accelerometer = false;
+    _enabledReports.gyroscope = false;
+    _enabledReports.magneticField = false;
+    _enabledReports.gameRotationVector = false;
 }

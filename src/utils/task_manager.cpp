@@ -81,7 +81,7 @@ void TaskManager::imu_sensor_task(void* parameter) {
     SerialQueueManager::get_instance().queue_message("IMU sensor task started");
 
     // Wait for centralized initialization to complete
-    while (!SensorInitializer::get_instance().isSensorInitialized(SensorInitializer::IMU)) {
+    while (!SensorInitializer::get_instance().is_sensor_initialized(SensorInitializer::IMU)) {
         vTaskDelay(pdMS_TO_TICKS(50)); // Check every 50ms
     }
     SerialQueueManager::get_instance().queue_message("IMU centralized initialization complete.");
@@ -113,7 +113,7 @@ void TaskManager::multizone_tof_sensor_task(void* parameter) {
     SerialQueueManager::get_instance().queue_message("Multizone TOF sensor task started");
 
     // Wait for centralized initialization to complete
-    while (!SensorInitializer::get_instance().isSensorInitialized(SensorInitializer::MULTIZONE_TOF)) {
+    while (!SensorInitializer::get_instance().is_sensor_initialized(SensorInitializer::MULTIZONE_TOF)) {
         vTaskDelay(pdMS_TO_TICKS(50)); // Check every 50ms
     }
     SerialQueueManager::get_instance().queue_message("Multizone TOF centralized initialization complete.");
@@ -150,7 +150,7 @@ void TaskManager::color_sensor_task(void* parameter) {
     SerialQueueManager::get_instance().queue_message("Color sensor task started");
 
     // Wait for centralized initialization to complete
-    while (!SensorInitializer::get_instance().isSensorInitialized(SensorInitializer::COLOR_SENSOR)) {
+    while (!SensorInitializer::get_instance().is_sensor_initialized(SensorInitializer::COLOR_SENSOR)) {
         vTaskDelay(pdMS_TO_TICKS(50)); // Check every 50ms
     }
     SerialQueueManager::get_instance().queue_message("Color sensor centralized initialization complete.");
@@ -220,7 +220,7 @@ void TaskManager::web_socket_polling_task(void* parameter) {
     for (;;) {
         // Only poll WebSocket if WiFi is connected
         if (WiFi.status() == WL_CONNECTED) {
-            WebSocketManager::get_instance().poll_web_socket();
+            WebSocketManager::get_instance().poll_websocket();
         }
 
         // Fast update rate for real-time WebSocket communication
@@ -353,29 +353,30 @@ bool TaskManager::create_display_task() {
 
 bool TaskManager::create_network_management_task() {
     return create_task("NetworkMgmt", network_management_task, NETWORK_MANAGEMENT_STACK_SIZE, Priority::COMMUNICATION, Core::CORE_1,
-                      &network_management_task_handle);
+                       &network_management_task_handle);
 }
 
 bool TaskManager::create_send_sensor_data_task() {
     return create_task("SendSensorData", send_sensor_data_task, SEND_SENSOR_DATA_STACK_SIZE, Priority::REALTIME_COMM, Core::CORE_1,
-                      &send_sensor_data_task_handle);
+                       &send_sensor_data_task_handle);
 }
 
 bool TaskManager::create_web_socket_polling_task() {
     return create_task("WebSocketPoll", web_socket_polling_task, WEBSOCKET_POLLING_STACK_SIZE, Priority::REALTIME_COMM, Core::CORE_1,
-                      &web_socket_polling_task_handle);
+                       &web_socket_polling_task_handle);
 }
 
 bool TaskManager::create_serial_queue_task() {
     // Pass the SerialQueueManager instance as parameter
     SerialQueueManager::get_instance().initialize();
     void* instance = &SerialQueueManager::get_instance();
-    return create_task("SerialQueue", serial_queue_task, SERIAL_QUEUE_STACK_SIZE, Priority::CRITICAL, Core::CORE_1, &serial_queue_task_handle, instance);
+    return create_task("SerialQueue", serial_queue_task, SERIAL_QUEUE_STACK_SIZE, Priority::CRITICAL, Core::CORE_1, &serial_queue_task_handle,
+                       instance);
 }
 
 bool TaskManager::create_battery_monitor_task() {
     return create_task("BatteryMonitor", battery_monitor_task, BATTERY_MONITOR_STACK_SIZE, Priority::BACKGROUND, Core::CORE_1,
-                      &battery_monitor_task_handle);
+                       &battery_monitor_task_handle);
 }
 
 bool TaskManager::create_speaker_task() {
@@ -408,12 +409,13 @@ bool TaskManager::create_imu_sensor_task() {
 }
 
 bool TaskManager::create_encoder_sensor_task() {
-    return create_task("EncoderSensor", encoder_sensor_task, ENCODER_SENSOR_STACK_SIZE, Priority::CRITICAL, Core::CORE_0, &encoder_sensor_task_handle);
+    return create_task("EncoderSensor", encoder_sensor_task, ENCODER_SENSOR_STACK_SIZE, Priority::CRITICAL, Core::CORE_0,
+                       &encoder_sensor_task_handle);
 }
 
 bool TaskManager::create_multizone_tof_sensor_task() {
     return create_task("MultizoneTOF", multizone_tof_sensor_task, MULTIZONE_TOF_STACK_SIZE, Priority::COMMUNICATION, Core::CORE_0,
-                      &multizone_tof_sensor_task_handle);
+                       &multizone_tof_sensor_task_handle);
 }
 
 bool TaskManager::create_side_tof_sensor_task() {
@@ -434,7 +436,7 @@ bool TaskManager::is_display_initialized() {
 }
 
 bool TaskManager::create_task(const char* name, TaskFunction_t task_function, uint32_t stack_size, Priority priority, Core core_id,
-                             TaskHandle_t* task_handle, void* parameters) {
+                              TaskHandle_t* task_handle, void* parameters) {
     // Safety check: don't create if task already exists
     if (task_handle != nullptr && *task_handle != NULL) {
         SerialQueueManager::get_instance().queue_message(String("Task already exists: ") + name + ", skipping creation");

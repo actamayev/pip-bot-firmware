@@ -156,7 +156,7 @@ bool SideTimeOfFlightSensor::perform_calibration() {
     }
 
     // Store calibration in NVS
-    PreferencesManager::get_instance().storeSideTofCalibration(sensorAddress, baselineValue, useHardwareCalibration);
+    PreferencesManager::get_instance().store_side_tof_calibration(sensorAddress, baselineValue, useHardwareCalibration);
 
     isCalibrated = true;
 
