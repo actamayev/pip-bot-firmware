@@ -2,8 +2,8 @@
 #include <Arduino.h>
 
 struct WiFiCredentials {
-	String ssid;
-	String password;
+    String ssid;
+    String password;
 };
 
 struct WiFiNetworkInfo {
@@ -20,29 +20,29 @@ struct EnabledReports {
 };
 
 struct QuaternionData {
-    float qX, qY, qZ, qW;
+    float qX{}, qY{}, qZ{}, qW{};
     bool isValid = false;
 };
 
 struct EulerAngles {
-    float yaw;
-    float pitch;
-    float roll;
+    float yaw{};
+    float pitch{};
+    float roll{};
     bool isValid = false;
 };
 
 struct AccelerometerData {
-    float aX, aY, aZ;
+    float aX{}, aY{}, aZ{};
     bool isValid = false;
 };
 
 struct GyroscopeData {
-    float gX, gY, gZ;
+    float gX{}, gY{}, gZ{};
     bool isValid = false;
 };
 
 struct MagnetometerData {
-    float mX, mY, mZ;
+    float mX{}, mY{}, mZ{};
     bool isValid = false;
 };
 
@@ -69,62 +69,48 @@ struct SideTofCounts {
     uint16_t rightCounts;
 };
 
-namespace LedTypes {
-    enum AnimationType {
-        NONE,
-        BREATHING,
-        STROBING,
-        RAINBOW
-    };
+namespace led_types {
+enum class AnimationType : uint8_t { NONE, BREATHING, STROBING, RAINBOW };
 }
 
-namespace Demo {
-    enum DemoType {
-        NONE,
-        BALANCE_CONTROLLER,
-        OBSTACLE_AVOIDER
-    };
+namespace demo {
+enum class DemoType : uint8_t { NONE, BALANCE_CONTROLLER, OBSTACLE_AVOIDER };
 }
 
 struct LedState {
-    uint8_t colors[8][3];  // Colors for all 8 LEDs
-    LedTypes::AnimationType animation;
+    uint8_t colors[8][3]; // Colors for all 8 LEDs
+    led_types::AnimationType animation;
     int animationSpeed;
     bool wasAnimationActive;
 };
 
 struct BatteryState {
-    unsigned int realStateOfCharge = 0;      // Battery percentage (0-100%)
-    unsigned int voltage = 0;            // Battery voltage (mV)
-    int current = 0;                     // Current draw/charge (mA, + = discharging, - = charging)
-    int power = 0;                       // Power consumption (mW)
-    unsigned int remainingCapacity = 0;  // Remaining capacity (mAh)
-    unsigned int fullCapacity = 0;       // Full capacity (mAh)
-    int health = 0;                      // Battery health (0-100%)
-    bool isCharging = false;             // True if battery is charging
-    bool isDischarging = false;          // True if battery is discharging
-    bool isLowBattery = false;           // True if battery is below threshold
-    bool isCriticalBattery = false;      // True if battery is critically low
-    float estimatedTimeToEmpty = 0.0;    // Hours until empty (0 if charging/standby)
-    float estimatedTimeToFull = 0.0;     // Hours until full (0 if discharging/standby)
-    bool isInitialized = false;          // True if BQ27441 is successfully initialized
-    float displayedStateOfCharge = 0;      // Battery percentage (0-100%)
+    uint32_t realStateOfCharge = 0;   // Battery percentage (0-100%)
+    uint32_t voltage = 0;             // Battery voltage (mV)
+    int current = 0;                  // Current draw/charge (mA, + = discharging, - = charging)
+    int power = 0;                    // Power consumption (mW)
+    uint32_t remainingCapacity = 0;   // Remaining capacity (mAh)
+    uint32_t fullCapacity = 0;        // Full capacity (mAh)
+    int health = 0;                   // Battery health (0-100%)
+    bool isCharging = false;          // True if battery is charging
+    bool isDischarging = false;       // True if battery is discharging
+    bool isLowBattery = false;        // True if battery is below threshold
+    bool isCriticalBattery = false;   // True if battery is critically low
+    float estimatedTimeToEmpty = 0.0; // Hours until empty (0 if charging/standby)
+    float estimatedTimeToFull = 0.0;  // Hours until full (0 if discharging/standby)
+    bool isInitialized = false;       // True if BQ27441 is successfully initialized
+    float displayedStateOfCharge = 0; // Battery percentage (0-100%)
 };
 
 // Can go to both Serial and Server
-enum class ToCommonMessage {
-    SENSOR_DATA,
-    SENSOR_DATA_MZ,
-    DINO_SCORE,
-    PIP_TURNING_OFF
-};
+enum class ToCommonMessage : uint8_t { SENSOR_DATA, SENSOR_DATA_MZ, DINO_SCORE, PIP_TURNING_OFF };
 
-enum class ToServerMessage {
+enum class ToServerMessage : uint8_t {
     DEVICE_INITIAL_DATA,
     BATTERY_MONITOR_DATA_FULL,
 };
 
-enum class ToSerialMessage {
+enum class ToSerialMessage : uint8_t {
     BYTECODE_STATUS,
     WIFI_CONNECTION_RESULT,
     PIP_ID,

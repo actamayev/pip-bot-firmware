@@ -1,77 +1,82 @@
 #pragma once
 
-#include "esp_wifi.h"
 #include <WiFi.h>
-#include <vector>
+
 #include <algorithm>
-#include "utils/config.h"
-#include "utils/structs.h"
-#include "utils/singleton.h"
-#include "websocket_manager.h"
-#include "serial_queue_manager.h"
+#include <vector>
+
 #include "actuators/led/rgb_led.h"
+#include "esp_wifi.h"
 #include "sensors/encoder_manager.h"
+#include "serial_queue_manager.h"
+#include "utils/config.h"
+#include "utils/singleton.h"
+#include "utils/structs.h"
+#include "websocket_manager.h"
 
 class WiFiManager : public Singleton<WiFiManager> {
     friend class Singleton<WiFiManager>;
 
-	public:
-		void printNetworkList(const std::vector<WiFiNetworkInfo>& networks);
-		int getSelectedNetworkIndex() const { return _selectedNetworkIndex; }
-		void setSelectedNetworkIndex(int index);
-		const std::vector<WiFiNetworkInfo>& getAvailableNetworks() const { return _availableNetworks; }
-		bool hasAvailableNetworks() const { return !_availableNetworks.empty(); }
-		unsigned long getLastScanCompleteTime() const { return _lastScanCompleteTime; }
-		void clearAvailableNetworks() { _availableNetworks.clear(); }
-		void clearNetworksIfStale();
+  public:
+    const std::vector<WiFiNetworkInfo>& get_available_networks() const {
+        return _availableNetworks;
+    }
+    bool has_available_networks() const {
+        return !_availableNetworks.empty();
+    }
+    uint32_t get_last_scan_complete_time() const {
+        return _lastScanCompleteTime;
+    }
+    void clear_networks_if_stale();
 
-		void storeWiFiCredentials(const String& ssid, const String& password, int index);
-		void checkAndReconnectWiFi();
+    void store_wifi_credentials(const String& ssid, const String& password, int index);
+    void check_and_reconnect_wifi();
 
-		struct WiFiTestResult {
-			bool wifiConnected;
-			bool websocketConnected;
-		};
-		
-		void startWiFiCredentialTest(const String& ssid, const String& password);
-		void processWiFiCredentialTest();
-		std::vector<WiFiCredentials> getSavedNetworksForResponse();
-		bool startAsyncScan();
-		void checkAsyncScanProgress();
-		bool isAsyncScanInProgress() const { return _asyncScanInProgress; }
-		bool isConnectedToSSID(const String& ssid) const;
+    struct WiFiTestResult {
+        bool wifiConnected;
+        bool websocketConnected;
+    };
 
-	private:
-		WiFiManager();
+    void start_wifi_credential_test(const String& ssid, const String& password);
+    void process_wifi_credential_test();
+    std::vector<WiFiCredentials> get_saved_networks_for_response();
+    bool start_async_scan();
+    void check_async_scan_progress();
+    bool is_async_scan_in_progress() const {
+        return _asyncScanInProgress;
+    }
+    static bool is_connected_to_ssid(const String& ssid);
 
-		void connectToStoredWiFi();
-		bool attemptNewWifiConnection(WiFiCredentials wifiCredentials);
+  private:
+    WiFiManager();
 
-		// std::vector<WiFiNetworkInfo> scanWiFiNetworkInfos();
-		void sortNetworksBySignalStrength(std::vector<WiFiNetworkInfo>& networks);
-		
-		std::vector<WiFiNetworkInfo> _availableNetworks;
-		int _selectedNetworkIndex = 0;
+    void connect_to_stored_wifi();
+    bool attempt_new_wifi_connection(const WiFiCredentials& wifi_credentials);
 
-		bool attemptDirectConnectionToSavedNetworks();
-		unsigned long _lastReconnectAttempt = 0;
-		bool _isConnecting = false;
-        static constexpr unsigned long WIFI_RECONNECT_TIMEOUT = 3000; // 3 second timeout
+    // std::vector<WiFiNetworkInfo> scanWiFiNetworkInfos();
+    void sort_networks_by_signal_strength(std::vector<WiFiNetworkInfo>& networks);
 
-		const unsigned long CONNECT_TO_SINGLE_NETWORK_TIMEOUT = 5000;  // 5-second timeout
+    std::vector<WiFiNetworkInfo> _availableNetworks{};
 
-		const unsigned long printInterval = 100;  // Print dots every 100ms
-		const unsigned long checkInterval = 500;  // Check serial every 500ms
+    bool attempt_direct_connection_to_saved_networks();
+    uint32_t _lastReconnectAttempt = 0;
+    bool _isConnecting = false;
+    static constexpr uint32_t WIFI_RECONNECT_TIMEOUT = 3000; // 3 second timeout
 
-		bool testConnectionOnly(const String& ssid, const String& password);
+    const uint32_t CONNECT_TO_SINGLE_NETWORK_TIMEOUT = 5000; // 5-second timeout
 
-		bool _isTestingCredentials = false;
-		String _testSSID = "";
-		String _testPassword = "";
-		bool _asyncScanInProgress = false;
-		unsigned long _asyncScanStartTime = 0;
-		static constexpr unsigned long ASYNC_SCAN_TIMEOUT_MS = 10000; // 10 seconds
-		static constexpr unsigned long ASYNC_SCAN_MIN_CHECK_DELAY = 500; // Don't check status for first 500ms
-		unsigned long _lastScanCompleteTime = 0;
-		static constexpr unsigned long STALE_SCAN_TIMEOUT_MS = 1800000; // 30 minutes
+    const uint32_t PRINT_INTERVAL = 100; // Print dots every 100ms
+    const uint32_t CHECK_INTERVAL = 500; // Check serial every 500ms
+
+    bool test_connection_only(const String& ssid, const String& password) const;
+
+    bool _isTestingCredentials = false;
+    String _testSSID = "";
+    String _testPassword = "";
+    bool _asyncScanInProgress = false;
+    uint32_t _asyncScanStartTime = 0;
+    static constexpr uint32_t ASYNC_SCAN_TIMEOUT_MS = 10000;    // 10 seconds
+    static constexpr uint32_t ASYNC_SCAN_MIN_CHECK_DELAY = 500; // Don't check status for first 500ms
+    uint32_t _lastScanCompleteTime = 0;
+    static constexpr uint32_t STALE_SCAN_TIMEOUT_MS = 1800000; // 30 minutes
 };

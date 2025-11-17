@@ -1,98 +1,106 @@
 #include "dance_manager.h"
+
 #include "networking/serial_manager.h"
 
 // Define the static constexpr array
-constexpr const DanceManager::DanceStep DanceManager::danceSequence[];
+constexpr const DanceManager::DanceStep DanceManager::DANCE_SEQUENCE[];
 
-void DanceManager::startDance() {
+void DanceManager::start_dance() {
     // Safety check - only dance if USB is not connected
-    // if (SerialManager::getInstance().isSerialConnected()) {
-    //     SerialQueueManager::getInstance().queueMessage("Dance blocked - USB connected for safety");
+    // if (SerialManager::get_instance().isSerialConnected()) {
+    //     SerialQueueManager::get_instance().queue_message("Dance blocked - USB connected for safety");
     //     return;
     // }
-    
-    if (isCurrentlyDancing) {
-        SerialQueueManager::getInstance().queueMessage("Dance already in progress");
+
+    if (_isCurrentlyDancing) {
+        SerialQueueManager::get_instance().queue_message("Dance already in progress");
         return;
     }
-    
-    SerialQueueManager::getInstance().queueMessage("Starting dance sequence");
-    isCurrentlyDancing = true;
-    currentStep = 0;
-    stepStartTime = millis();
 
-    nextStepTime = stepStartTime + danceSequence[0].duration;
-    
+    SerialQueueManager::get_instance().queue_message("Starting dance sequence");
+    _isCurrentlyDancing = true;
+    _currentStep = 0;
+    _stepStartTime = millis();
+
+    _nextStepTime = _stepStartTime + DANCE_SEQUENCE[0].duration;
+
     // Start first dance step
-    DanceStep firstStep = danceSequence[0];
-    motorDriver.updateMotorPwm(firstStep.leftSpeed, firstStep.rightSpeed);
-    
+    const DanceStep FIRST_STEP = DANCE_SEQUENCE[0];
+    motor_driver.update_motor_pwm(FIRST_STEP.leftSpeed, FIRST_STEP.rightSpeed);
+
     // Start LED animation
-    if (firstStep.ledAnimation == LedTypes::RAINBOW) {
-        ledAnimations.startRainbow(2000);
-    } else if (firstStep.ledAnimation == LedTypes::BREATHING) {
-        ledAnimations.startBreathing(2000, 0.5f);
-    } else if (firstStep.ledAnimation == LedTypes::STROBING) {
-        ledAnimations.startStrobing(500);
+    if (FIRST_STEP.ledAnimation == led_types::AnimationType::RAINBOW) {
+        led_animations.start_rainbow(2000);
+    } else if (FIRST_STEP.ledAnimation == led_types::AnimationType::BREATHING) {
+        led_animations.start_breathing(2000, 0.5f);
+    } else if (FIRST_STEP.ledAnimation == led_types::AnimationType::STROBING) {
+        led_animations.start_strobing(500);
     }
 }
 
-void DanceManager::stopDance(bool shouldTurnLedsOff) {
-    if (!isCurrentlyDancing) return;
-    
-    SerialQueueManager::getInstance().queueMessage("Stopping dance sequence");
-    isCurrentlyDancing = false;
-    currentStep = 0;
-    
-    // Stop motors immediately for safety
-    motorDriver.stop_both_motors();
-    
-    if (shouldTurnLedsOff) {
-        // Turn off LEDs
-        ledAnimations.turnOff();
-        rgbLed.turn_all_leds_off();
+void DanceManager::stop_dance(bool should_turn_leds_off) {
+    if (!_isCurrentlyDancing) {
+        return;
     }
+
+    SerialQueueManager::get_instance().queue_message("Stopping dance sequence");
+    _isCurrentlyDancing = false;
+    _currentStep = 0;
+
+    // Stop motors immediately for safety
+    motor_driver.stop_both_motors();
+
+    if (!should_turn_leds_off) {
+        return;
+    }
+    // Turn off LEDs
+    led_animations.turn_off();
+    rgb_led.turn_all_leds_off();
 }
 
 void DanceManager::update() {
-    if (!isCurrentlyDancing) return;
-    
+    if (!_isCurrentlyDancing) {
+        return;
+    }
+
     // Safety check during dance - stop if USB gets connected
-    // if (SerialManager::getInstance().isSerialConnected()) {
-    //     SerialQueueManager::getInstance().queueMessage("USB connected during dance - stopping for safety");
+    // if (SerialManager::get_instance().isSerialConnected()) {
+    //     SerialQueueManager::get_instance().queue_message("USB connected during dance - stopping for safety");
     //     stopDance();
     //     return;
     // }
-    
-    unsigned long currentTime = millis();
-    
+
+    const uint32_t CURRENT_TIME = millis();
+
     // Check if it's time for the next step
-    if (currentTime < nextStepTime) return;
-    currentStep++;
-    
-    // Check if dance is complete
-    if (currentStep >= DANCE_SEQUENCE_LENGTH) {
-        stopDance(true);
+    if (CURRENT_TIME < _nextStepTime) {
         return;
     }
-    
+    _currentStep++;
+
+    // Check if dance is complete
+    if (_currentStep >= DANCE_SEQUENCE_LENGTH) {
+        stop_dance(true);
+        return;
+    }
+
     // Execute next dance step
-    DanceStep step = danceSequence[currentStep];
-    stepStartTime = currentTime;
-    nextStepTime = currentTime + step.duration;
-    
+    const DanceStep STEP = DANCE_SEQUENCE[_currentStep];
+    _stepStartTime = CURRENT_TIME;
+    _nextStepTime = CURRENT_TIME + STEP.duration;
+
     // Update motors with gentle speeds
-    motorDriver.updateMotorPwm(step.leftSpeed, step.rightSpeed);
-    
+    motor_driver.update_motor_pwm(STEP.leftSpeed, STEP.rightSpeed);
+
     // Update LED animation
-    if (step.ledAnimation == LedTypes::RAINBOW) {
-        ledAnimations.startRainbow(2000);
-    } else if (step.ledAnimation == LedTypes::BREATHING) {
-        ledAnimations.startBreathing(2000, 0.5f);
-    } else if (step.ledAnimation == LedTypes::STROBING) {
-        ledAnimations.startStrobing(500);
-    } else if (step.ledAnimation == LedTypes::NONE) {
-        ledAnimations.turnOff();
-        rgbLed.turn_all_leds_off();
+    if (STEP.ledAnimation == led_types::AnimationType::RAINBOW) {
+        led_animations.start_rainbow(2000);
+    } else if (STEP.ledAnimation == led_types::AnimationType::BREATHING) {
+        led_animations.start_breathing(2000, 0.5f);
+    } else if (STEP.ledAnimation == led_types::AnimationType::STROBING) {
+        led_animations.start_strobing(500);
+    } else if (STEP.ledAnimation == led_types::AnimationType::NONE) {
+        led_animations.turn_off();
+        rgb_led.turn_all_leds_off();
     }
 }

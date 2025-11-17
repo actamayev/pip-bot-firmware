@@ -52,7 +52,7 @@ This directory contains all output devices and user interface components for the
 - **Power state awareness**: Coordinated shutdown
 
 ### Communication Patterns
-- **Singleton managers**: Thread-safe access via `::getInstance()`
+- **Singleton managers**: Thread-safe access via `::get_instance()`
 - **Command queuing**: Non-blocking control interfaces
 - **State persistence**: Settings survive power cycles
 - **Error reporting**: Status feedback to main system
@@ -61,20 +61,20 @@ This directory contains all output devices and user interface components for the
 
 ### Motor Control
 ```cpp
-MotorDriver::getInstance().setMotorSpeeds(leftSpeed, rightSpeed);
-MotorDriver::getInstance().stopMotors(); // Emergency stop
+MotorDriver::get_instance().set_motor_speeds(leftSpeed, rightSpeed);
+MotorDriver::get_instance().stop_both_motors(); // Emergency stop
 ```
 
 ### LED Animation
 ```cpp
-RgbLed& leds = RgbLed::getInstance();
-leds.setAnimation(LedTypes::BREATHING, 5); // Speed 1-10
+RgbLed& leds = rgb_led;
+leds.setAnimation(led_types::BREATHING, 5); // Speed 1-10
 leds.setLedColor(0, 255, 0, 0); // LED 0 to red
 ```
 
 ### Audio Playback
 ```cpp
-Speaker::getInstance().setVolume(2.0); // 0.0-4.0 range
+Speaker::get_instance().setVolume(2.0); // 0.0-4.0 range
 ```
 
 ## Hardware Dependencies

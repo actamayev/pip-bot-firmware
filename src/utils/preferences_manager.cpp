@@ -2,246 +2,259 @@
 
 PreferencesManager::~PreferencesManager() {
     // Ensure preferences are closed when the application exits
-    if (currentNamespace.length() > 0) {
-        preferences.end();
+    if (_current_namespace.length() > 0) {
+        _preferences.end();
     }
 }
 
-bool PreferencesManager::beginNamespace(const char* ns) {
+bool PreferencesManager::begin_namespace(const char* ns) {
     // If already in the requested namespace, do nothing
-    if (currentNamespace.equals(ns)) return true;
+    if (_current_namespace.equals(ns)) {
+        return true;
+    }
 
     // Close current namespace if open
-    if (currentNamespace.length() > 0) {
-        preferences.end();
+    if (_current_namespace.length() > 0) {
+        _preferences.end();
     }
-    
+
     // Open the requested namespace
-    bool success = preferences.begin(ns, false);
-    if (success) {
-        currentNamespace = ns;
+    bool const SUCCESS = _preferences.begin(ns, false);
+    if (SUCCESS) {
+        _current_namespace = ns;
     } else {
-        currentNamespace = "";
-        char logMessage[128];
-        snprintf(logMessage, sizeof(logMessage), "Failed to open preferences namespace: %s", ns);
-        SerialQueueManager::getInstance().queueMessage(logMessage);
+        _current_namespace = "";
+        const String LOG_MESSAGE = String("Failed to open preferences namespace: ") + ns;
+        SerialQueueManager::get_instance().queue_message(LOG_MESSAGE);
     }
-    
-    return success;
+
+    return SUCCESS;
 }
 
 // Cache loading methods
-void PreferencesManager::loadPipIdCache() {
-    if (cache.pipIdLoaded) return;
-
-    if (!beginNamespace(NS_PIP_ID)) {
-        cache.pipId = String(getDefaultPipId());
-        cache.pipIdLoaded = true;
+void PreferencesManager::load_pip_id_cache() {
+    if (_cache.pip_id_loaded) {
         return;
     }
 
-    cache.pipId = preferences.getString(KEY_PIP_ID, "");
-
-    if (cache.pipId.length() == 0) {
-        cache.pipId = String(getDefaultPipId());
-        preferences.putString(KEY_PIP_ID, cache.pipId);
+    if (!begin_namespace(NS_PIP_ID)) {
+        _cache.pip_id = String(get_default_pip_id());
+        _cache.pip_id_loaded = true;
+        return;
     }
 
-    cache.pipIdLoaded = true;
+    _cache.pip_id = _preferences.getString(KEY_PIP_ID, "");
+
+    if (_cache.pip_id.length() == 0) {
+        _cache.pip_id = String(get_default_pip_id());
+        _preferences.putString(KEY_PIP_ID, _cache.pip_id);
+    }
+
+    _cache.pip_id_loaded = true;
 }
 
-void PreferencesManager::loadFirmwareVersionCache() {
-    if (cache.firmwareVersionLoaded) return;
-
-    if (!beginNamespace(NS_FIRMWARE)) {
-        cache.firmwareVersion = 0;
-        cache.firmwareVersionLoaded = true;
+void PreferencesManager::load_firmware_version_cache() {
+    if (_cache.firmware_version_loaded) {
         return;
     }
 
-    cache.firmwareVersion = preferences.getInt(KEY_FW_VERSION, 0);
-    cache.firmwareVersionLoaded = true;
+    if (!begin_namespace(NS_FIRMWARE)) {
+        _cache.firmware_version = 0;
+        _cache.firmware_version_loaded = true;
+        return;
+    }
+
+    _cache.firmware_version = _preferences.getInt(KEY_FW_VERSION, 0);
+    _cache.firmware_version_loaded = true;
 }
 
-void PreferencesManager::loadWifiDataCache() {
-    if (cache.wifiDataLoaded) return;
-
-    cache.wifiNetworks.clear();
-
-    if (!beginNamespace(NS_WIFI)) {
-        cache.wifiCount = 0;
-        cache.wifiDataLoaded = true;
+void PreferencesManager::load_wifi_data_cache() {
+    if (_cache.wifi_data_loaded) {
         return;
     }
 
-    cache.wifiCount = 0;
-    if (preferences.isKey(WIFI_COUNT)) {
-        cache.wifiCount = preferences.getInt(WIFI_COUNT, 0);
+    _cache.wifi_networks.clear();
+
+    if (!begin_namespace(NS_WIFI)) {
+        _cache.wifi_count = 0;
+        _cache.wifi_data_loaded = true;
+        return;
     }
 
-    for (int i = 0; i < cache.wifiCount; i++) {
+    _cache.wifi_count = 0;
+    if (_preferences.isKey(WIFI_COUNT)) {
+        _cache.wifi_count = _preferences.getInt(WIFI_COUNT, 0);
+    }
+
+    for (int i = 0; i < _cache.wifi_count; i++) {
         WiFiCredentials creds;
 
-        char ssidKey[128], passwordKey[128];
-        sprintf(ssidKey, "ssid_%d", i);
-        sprintf(passwordKey, "pwd_%d", i);
+        const String SSID_KEY = String("ssid_") + i;
+        const String PASSWORD_KEY = String("pwd_") + i;
 
-        creds.ssid = preferences.getString(ssidKey, "");
-        creds.password = preferences.getString(passwordKey, "");
+        creds.ssid = _preferences.getString(SSID_KEY.c_str(), "");
+        creds.password = _preferences.getString(PASSWORD_KEY.c_str(), "");
 
         if (!creds.ssid.isEmpty()) {
-            cache.wifiNetworks.push_back(creds);
+            _cache.wifi_networks.push_back(creds);
         }
     }
 
-    cache.wifiDataLoaded = true;
+    _cache.wifi_data_loaded = true;
 }
 
 // PIP ID methods
-String PreferencesManager::getPipId() {
-    loadPipIdCache();
-    return cache.pipId;
+String PreferencesManager::get_pip_id() {
+    load_pip_id_cache();
+    return _cache.pip_id;
 }
 
 // Firmware version methods
-int PreferencesManager::getFirmwareVersion() {
-    loadFirmwareVersionCache();
-    return cache.firmwareVersion;
+int PreferencesManager::get_firmware_version() {
+    load_firmware_version_cache();
+    return _cache.firmware_version;
 }
 
-void PreferencesManager::setFirmwareVersion(int version) {
-    if (!beginNamespace(NS_FIRMWARE)) return;  // Can't access preferences
+void PreferencesManager::set_firmware_version(int version) {
+    if (!begin_namespace(NS_FIRMWARE)) {
+        return; // Can't access preferences
+    }
 
-    preferences.putInt(KEY_FW_VERSION, version);
+    _preferences.putInt(KEY_FW_VERSION, version);
 
     // Update cache
-    cache.firmwareVersion = version;
-    cache.firmwareVersionLoaded = true;
+    _cache.firmware_version = version;
+    _cache.firmware_version_loaded = true;
 }
 
 // WiFi methods
-void PreferencesManager::storeWiFiCredentials(const String& ssid, const String& password, int index) {
-    if (!beginNamespace(NS_WIFI)) return;  // Can't access preferences
-
-    // Generate keys with index
-    char ssidKey[128], passwordKey[128];
-    sprintf(ssidKey, "ssid_%d", index);
-    sprintf(passwordKey, "pwd_%d", index);
-
-    preferences.putString(ssidKey, ssid);
-    preferences.putString(passwordKey, password);
-
-    // Initialize wifi_count if it doesn't exist, or update if necessary
-    int currentCount = 0;
-    if (preferences.isKey(WIFI_COUNT)) {
-        currentCount = preferences.getInt(WIFI_COUNT, 0);
+void PreferencesManager::store_wifi_credentials(const String& ssid, const String& password, int index) {
+    if (!begin_namespace(NS_WIFI)) {
+        return; // Can't access preferences
     }
 
-    if (index >= currentCount) {
-        preferences.putInt(WIFI_COUNT, index + 1);
+    // Generate keys with index
+    const String SSID_KEY = String("ssid_") + index;
+    const String PASSWORD_KEY = String("pwd_") + index;
+
+    _preferences.putString(SSID_KEY.c_str(), ssid);
+    _preferences.putString(PASSWORD_KEY.c_str(), password);
+
+    // Initialize wifi_count if it doesn't exist, or update if necessary
+    int current_count = 0;
+    if (_preferences.isKey(WIFI_COUNT)) {
+        current_count = _preferences.getInt(WIFI_COUNT, 0);
+    }
+
+    if (index >= current_count) {
+        _preferences.putInt(WIFI_COUNT, index + 1);
     }
 
     // Invalidate WiFi cache to force reload
-    cache.wifiDataLoaded = false;
-    cache.wifiNetworks.clear();
-    cache.wifiCount = 0;
+    _cache.wifi_data_loaded = false;
+    _cache.wifi_networks.clear();
+    _cache.wifi_count = 0;
 }
 
-bool PreferencesManager::hasStoredWiFiNetworks() {
-    loadWifiDataCache();
-    return cache.wifiCount > 0;
+bool PreferencesManager::has_stored_wifi_networks() {
+    load_wifi_data_cache();
+    return _cache.wifi_count > 0;
 }
 
-// Updated getAllStoredWiFiNetworks method:
-std::vector<WiFiCredentials> PreferencesManager::getAllStoredWiFiNetworks() {
-    loadWifiDataCache();
-    return cache.wifiNetworks;
+// Updated get_all_stored_wifi_networks method:
+std::vector<WiFiCredentials> PreferencesManager::get_all_stored_wifi_networks() {
+    load_wifi_data_cache();
+    return _cache.wifi_networks;
 }
 
 // Side TOF calibration methods
-bool PreferencesManager::hasSideTofCalibration(uint8_t sensorAddress) {
-    if (!beginNamespace(NS_SIDE_TOF)) return false;
-    
-    char baselineKey[32];
-    sprintf(baselineKey, "baseline_%02X", sensorAddress);
-    
-    return preferences.isKey(baselineKey);
+bool PreferencesManager::has_side_tof_calibration(uint8_t sensor_address) {
+    if (!begin_namespace(NS_SIDE_TOF)) {
+        return false;
+    }
+
+    const String BASELINE_KEY = String("baseline_") + String(sensor_address, HEX);
+
+    return _preferences.isKey(BASELINE_KEY.c_str());
 }
 
-void PreferencesManager::storeSideTofCalibration(uint8_t sensorAddress, uint16_t baseline, bool useHardwareCalibration) {
-    if (!beginNamespace(NS_SIDE_TOF)) return;
-    
-    char baselineKey[32], hwCalibKey[32];
-    sprintf(baselineKey, "baseline_%02X", sensorAddress);
-    sprintf(hwCalibKey, "hw_calib_%02X", sensorAddress);
-    
-    preferences.putUShort(baselineKey, baseline);
-    preferences.putBool(hwCalibKey, useHardwareCalibration);
+void PreferencesManager::store_side_tof_calibration(uint8_t sensor_address, uint16_t baseline, bool use_hardware_calibration) {
+    if (!begin_namespace(NS_SIDE_TOF)) {
+        return;
+    }
+
+    const String BASELINE_KEY = String("baseline_") + String(sensor_address, HEX);
+    const String HW_CALIB_KEY = String("hw_calib_") + String(sensor_address, HEX);
+
+    _preferences.putUShort(BASELINE_KEY.c_str(), baseline);
+    _preferences.putBool(HW_CALIB_KEY.c_str(), use_hardware_calibration);
 }
 
-uint16_t PreferencesManager::getSideTofBaseline(uint8_t sensorAddress) {
-    if (!beginNamespace(NS_SIDE_TOF)) return 0;
-    
-    char baselineKey[32];
-    sprintf(baselineKey, "baseline_%02X", sensorAddress);
-    
-    return preferences.getUShort(baselineKey, 0);
+uint16_t PreferencesManager::get_side_tof_baseline(uint8_t sensor_address) {
+    if (!begin_namespace(NS_SIDE_TOF)) {
+        return 0;
+    }
+
+    const String BASELINE_KEY = String("baseline_") + String(sensor_address, HEX);
+
+    return _preferences.getUShort(BASELINE_KEY.c_str(), 0);
 }
 
-bool PreferencesManager::getSideTofUseHardwareCalibration(uint8_t sensorAddress) {
-    if (!beginNamespace(NS_SIDE_TOF)) return false;
-    
-    char hwCalibKey[32];
-    sprintf(hwCalibKey, "hw_calib_%02X", sensorAddress);
-    
-    return preferences.getBool(hwCalibKey, false);
+bool PreferencesManager::get_side_tof_use_hardware_calibration(uint8_t sensor_address) {
+    if (!begin_namespace(NS_SIDE_TOF)) {
+        return false;
+    }
+
+    const String HW_CALIB_KEY = String("hw_calib_") + String(sensor_address, HEX);
+
+    return _preferences.getBool(HW_CALIB_KEY.c_str(), false);
 }
 
-bool PreferencesManager::forgetWiFiNetwork(const String& targetSSID) {
-    if (!beginNamespace(NS_WIFI)) return false;
+bool PreferencesManager::forget_wifi_network(const String& target_ssid) {
+    if (!begin_namespace(NS_WIFI)) {
+        return false;
+    }
 
     // Get all current networks
-    std::vector<WiFiCredentials> allNetworks = getAllStoredWiFiNetworks();
+    std::vector<WiFiCredentials> all_networks = get_all_stored_wifi_networks();
 
-    // Filter out networks matching targetSSID
-    std::vector<WiFiCredentials> filteredNetworks;
-    for (const auto& network : allNetworks) {
-        if (network.ssid != targetSSID) {
-            filteredNetworks.push_back(network);
+    // Filter out networks matching target_ssid
+    std::vector<WiFiCredentials> filtered_networks;
+    for (const auto& network : all_networks) {
+        if (network.ssid != target_ssid) {
+            filtered_networks.push_back(network);
         }
     }
 
     // If no networks were removed, return false
-    if (filteredNetworks.size() == allNetworks.size()) {
+    if (filtered_networks.size() == all_networks.size()) {
         return false; // Network not found
     }
 
     // Clear all existing network data
-    int currentCount = preferences.getInt(WIFI_COUNT, 0);
-    for (int i = 0; i < currentCount; i++) {
-        char ssidKey[128], passwordKey[128];
-        sprintf(ssidKey, "ssid_%d", i);
-        sprintf(passwordKey, "pwd_%d", i);
-        preferences.remove(ssidKey);
-        preferences.remove(passwordKey);
+    int const CURRENT_COUNT = _preferences.getInt(WIFI_COUNT, 0);
+    for (int i = 0; i < CURRENT_COUNT; i++) {
+        const String SSID_KEY = String("ssid_") + i;
+        const String PASSWORD_KEY = String("pwd_") + i;
+        _preferences.remove(SSID_KEY.c_str());
+        _preferences.remove(PASSWORD_KEY.c_str());
     }
 
     // Re-store filtered networks with contiguous indices
-    for (size_t i = 0; i < filteredNetworks.size(); i++) {
-        char ssidKey[128], passwordKey[128];
-        sprintf(ssidKey, "ssid_%d", (int)i);
-        sprintf(passwordKey, "pwd_%d", (int)i);
-        preferences.putString(ssidKey, filteredNetworks[i].ssid);
-        preferences.putString(passwordKey, filteredNetworks[i].password);
+    for (size_t i = 0; i < filtered_networks.size(); i++) {
+        const String SSID_KEY = String("ssid_") + static_cast<int>(i);
+        const String PASSWORD_KEY = String("pwd_") + static_cast<int>(i);
+        _preferences.putString(SSID_KEY.c_str(), filtered_networks[i].ssid);
+        _preferences.putString(PASSWORD_KEY.c_str(), filtered_networks[i].password);
     }
 
     // Update wifi_count
-    preferences.putInt(WIFI_COUNT, filteredNetworks.size());
+    _preferences.putInt(WIFI_COUNT, filtered_networks.size());
 
     // Invalidate WiFi cache to force reload
-    cache.wifiDataLoaded = false;
-    cache.wifiNetworks.clear();
-    cache.wifiCount = 0;
+    _cache.wifi_data_loaded = false;
+    _cache.wifi_networks.clear();
+    _cache.wifi_count = 0;
 
     return true;
 }

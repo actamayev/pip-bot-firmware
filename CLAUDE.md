@@ -51,7 +51,7 @@ POWER_EN=38
 - Demo management, bytecode interpreter
 
 ### Key Design Patterns
-- **Singleton pattern**: All managers use `::getInstance()`
+- **Singleton pattern**: All managers use `::get_instance()`
 - **Task-based architecture**: 15+ specialized FreeRTOS tasks
 - **Centralized initialization**: `SensorInitializer` prevents I2C conflicts
 - **Rate limiting**: All sensors have configurable update intervals

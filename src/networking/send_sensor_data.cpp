@@ -1,153 +1,180 @@
 #include "send_sensor_data.h"
+
 #include "utils/utils.h"
 
 // Add RPM data to the provided JSON payload
-void SendSensorData::attachRPMData(JsonObject& payload) {
+void SendSensorData::attach_rpm_data(JsonObject& payload) {
     // Get the RPM values
-    WheelRPMs wheelRpms = SensorDataBuffer::getInstance().getLatestWheelRPMs();
-    payload["leftWheelRPM"] = wheelRpms.leftWheelRPM;
-    payload["rightWheelRPM"] = wheelRpms.rightWheelRPM;
+    WheelRPMs wheel_rpms = SensorDataBuffer::get_instance().get_latest_wheel_rpms();
+    payload["leftWheelRPM"] = wheel_rpms.leftWheelRPM;
+    payload["rightWheelRPM"] = wheel_rpms.rightWheelRPM;
 }
 
-void SendSensorData::attachEulerData(JsonObject& payload) {
-    EulerAngles eulerAngles = SensorDataBuffer::getInstance().getLatestEulerAngles();
-    //ROLL AND PITCH ARE SWITCHED ON PURPOSE
-    payload["pitch"] = eulerAngles.roll;
-    payload["yaw"] = eulerAngles.yaw;
-    payload["roll"] = eulerAngles.pitch;
+void SendSensorData::attach_euler_data(JsonObject& payload) {
+    EulerAngles euler_angles = SensorDataBuffer::get_instance().get_latest_euler_angles();
+    // ROLL AND PITCH ARE SWITCHED ON PURPOSE
+    payload["pitch"] = euler_angles.roll;
+    payload["yaw"] = euler_angles.yaw;
+    payload["roll"] = euler_angles.pitch;
 }
 
-void SendSensorData::attachAccelData(JsonObject& payload) {
-    AccelerometerData accelerometerData = SensorDataBuffer::getInstance().getLatestAccelerometer();
-    payload["aX"] = accelerometerData.aX;
-    payload["aY"] = accelerometerData.aY;
-    payload["aZ"] = accelerometerData.aZ;
+void SendSensorData::attach_accel_data(JsonObject& payload) {
+    AccelerometerData accelerometer_data = SensorDataBuffer::get_instance().get_latest_accelerometer();
+    payload["aX"] = accelerometer_data.aX;
+    payload["aY"] = accelerometer_data.aY;
+    payload["aZ"] = accelerometer_data.aZ;
 }
 
-void SendSensorData::attachGyroData(JsonObject& payload) {
-    GyroscopeData gyroscopeData = SensorDataBuffer::getInstance().getLatestGyroscope();
-    payload["gX"] = gyroscopeData.gX;
-    payload["gY"] = gyroscopeData.gY;
-    payload["gZ"] = gyroscopeData.gZ;
+void SendSensorData::attach_gyro_data(JsonObject& payload) {
+    GyroscopeData gyroscope_data = SensorDataBuffer::get_instance().get_latest_gyroscope();
+    payload["gX"] = gyroscope_data.gX;
+    payload["gY"] = gyroscope_data.gY;
+    payload["gZ"] = gyroscope_data.gZ;
 }
 
-void SendSensorData::attachMagnetometerData(JsonObject& payload) {
-    MagnetometerData magnetometerData = SensorDataBuffer::getInstance().getLatestMagnetometer();
-    payload["mX"] = magnetometerData.mX;
-    payload["mY"] = magnetometerData.mY;
-    payload["mZ"] = magnetometerData.mZ;
+void SendSensorData::attach_magnetometer_data(JsonObject& payload) {
+    MagnetometerData magnetometer_data = SensorDataBuffer::get_instance().get_latest_magnetometer();
+    payload["mX"] = magnetometer_data.mX;
+    payload["mY"] = magnetometer_data.mY;
+    payload["mZ"] = magnetometer_data.mZ;
 }
 
-void SendSensorData::attachColorSensorData(JsonObject& payload) {
-    ColorData colorSensorData = SensorDataBuffer::getInstance().getLatestColorData();
+void SendSensorData::attach_color_sensor_data(JsonObject& payload) {
+    ColorData color_sensor_data = SensorDataBuffer::get_instance().get_latest_color_data();
 
-    payload["redValue"] = colorSensorData.redValue;
-    payload["greenValue"] = colorSensorData.greenValue;
-    payload["blueValue"] = colorSensorData.blueValue;
+    payload["redValue"] = color_sensor_data.red_value;
+    payload["greenValue"] = color_sensor_data.green_value;
+    payload["blueValue"] = color_sensor_data.blue_value;
 }
 
-void SendSensorData::attachMultizoneTofData(JsonObject& payload) {
-    TofData tofData = SensorDataBuffer::getInstance().getLatestTofData();    
-    JsonArray distanceArray = payload.createNestedArray("distanceGrid");
-    for (int i = 0; i < 64; i++) {
-        distanceArray.add(tofData.rawData.distance_mm[i]);
+void SendSensorData::attach_multizone_tof_data(JsonObject& payload) {
+    TofData tof_data = SensorDataBuffer::get_instance().get_latest_tof_data();
+    JsonArray distance_array = payload.createNestedArray("distanceGrid");
+    for (short& i : tof_data.raw_data.distance_mm) {
+        distance_array.add(i);
     }
 }
 
-void SendSensorData::attachSideTofData(JsonObject& payload) {
-    SideTofData sideTofData = SensorDataBuffer::getInstance().getLatestSideTofData();
-    payload["leftSideTofCounts"] = sideTofData.leftCounts;
-    payload["rightSideTofCounts"] = sideTofData.rightCounts;
+void SendSensorData::attach_side_tof_data(JsonObject& payload) {
+    SideTofData side_tof_data = SensorDataBuffer::get_instance().get_latest_side_tof_data();
+    payload["leftSideTofCounts"] = side_tof_data.left_counts;
+    payload["rightSideTofCounts"] = side_tof_data.right_counts;
 }
 
-void SendSensorData::sendSensorDataToServer() {
-    if (!sendSensorData) return;
+void SendSensorData::send_sensor_data_to_server() {
+    if (!_sendSensorData) {
+        return;
+    }
 
     // Check available connections - prioritize serial over websocket
-    bool serialConnected = SerialManager::getInstance().isSerialConnected();
-    bool websocketConnected = WebSocketManager::getInstance().isWsConnected();
+    bool serial_connected = SerialManager::get_instance().is_serial_connected();
+    bool websocket_connected = WebSocketManager::get_instance().is_ws_connected();
 
     // Must have at least one connection
-    if (!serialConnected && !websocketConnected) return;
+    if (!serial_connected && !websocket_connected) {
+        return;
+    }
 
-    unsigned long currentTime = millis();
+    uint32_t current_time = millis();
     // Use different intervals based on connection type
-    unsigned long requiredInterval = serialConnected ? SERIAL_SEND_INTERVAL : WS_SEND_INTERVAL;
-    if (currentTime - lastSendTime < requiredInterval) return;
+    uint32_t required_interval = serial_connected ? SERIAL_SEND_INTERVAL : WS_SEND_INTERVAL;
+    if (current_time - _lastSendTime < required_interval) {
+        return;
+    }
 
     // Create a JSON document with both routing information and payload
-    auto doc = makeBaseMessageCommon<256>(ToCommonMessage::SENSOR_DATA);
+    auto doc = make_base_message_common<256>(ToCommonMessage::SENSOR_DATA);
 
     // Add the actual payload
     JsonObject payload = doc.createNestedObject("payload");
 
     // Attach different types of sensor data based on current flags
-    if (sendEncoderData) attachRPMData(payload);
-    if (sendColorSensorData) attachColorSensorData(payload);
-    if (sendEulerData) attachEulerData(payload);
-    if (sendAccelData) attachAccelData(payload);
-    if (sendGyroData) attachGyroData(payload);
-    if (sendMagnetometerData) attachMagnetometerData(payload);
-    if (sendSideTofData) attachSideTofData(payload);
-    // Multizone ToF data is now sent separately via sendMultizoneData()
+    if (_sendEncoderData) {
+        attach_rpm_data(payload);
+    }
+    if (_sendColorSensorData) {
+        attach_color_sensor_data(payload);
+    }
+    if (_sendEulerData) {
+        attach_euler_data(payload);
+    }
+    if (_sendAccelData) {
+        attach_accel_data(payload);
+    }
+    if (_sendGyroData) {
+        attach_gyro_data(payload);
+    }
+    if (_sendMagnetometerData) {
+        attach_magnetometer_data(payload);
+    }
+    if (_sendSideTofData) {
+        attach_side_tof_data(payload);
+    }
+    // Multizone ToF data is now sent separately via send_multizone_data()
 
     // Serialize JSON
-    String jsonString;
-    serializeJson(doc, jsonString);
+    String json_string;
+    serializeJson(doc, json_string);
 
     // Send via serial if connected (preferred), otherwise websocket
-    if (serialConnected) {
-        SerialQueueManager::getInstance().queueMessage(jsonString, SerialPriority::CRITICAL);
-    } else if (websocketConnected) {
-        if (WebSocketManager::getInstance().isWsConnected()) {
-            WebSocketManager::getInstance().wsClient.send(jsonString);
+    if (serial_connected) {
+        SerialQueueManager::get_instance().queue_message(json_string, SerialPriority::CRITICAL);
+    } else if (websocket_connected) {
+        if (WebSocketManager::get_instance().is_ws_connected()) {
+            WebSocketManager::get_instance()._wsClient.send(json_string);
         }
     }
 
-    lastSendTime = currentTime;
+    _lastSendTime = current_time;
 }
 
-void SendSensorData::sendMultizoneData() {
-    if (!sendMzData) return;
+void SendSensorData::send_multizone_data() {
+    if (!_sendMzData) {
+        return;
+    }
 
     // Check available connections - prioritize serial over websocket
-    bool serialConnected = SerialManager::getInstance().isSerialConnected();
-    bool websocketConnected = WebSocketManager::getInstance().isWsConnected();
+    bool serial_connected = SerialManager::get_instance().is_serial_connected();
+    bool websocket_connected = WebSocketManager::get_instance().is_ws_connected();
 
     // Must have at least one connection
-    if (!serialConnected && !websocketConnected) return;
+    if (!serial_connected && !websocket_connected) {
+        return;
+    }
 
-    unsigned long currentTime = millis();
+    uint32_t current_time = millis();
     // Use different intervals based on connection type
-    unsigned long requiredMzInterval = serialConnected ? SERIAL_MZ_INTERVAL : WS_MZ_INTERVAL;
-    if (currentTime - lastMzSendTime < requiredMzInterval) return;
+    uint32_t required_mz_interval = serial_connected ? SERIAL_MZ_INTERVAL : WS_MZ_INTERVAL;
+    if (current_time - _lastMzSendTime < required_mz_interval) {
+        return;
+    }
 
-    TofData tofData = SensorDataBuffer::getInstance().getLatestTofData();
-    
+    TofData tof_data = SensorDataBuffer::get_instance().get_latest_tof_data();
+
     // Send 8 messages (one per row) in burst mode
     for (int row = 0; row < 8; row++) {
-        auto doc = makeBaseMessageCommon<128>(ToCommonMessage::SENSOR_DATA_MZ);
+        auto doc = make_base_message_common<128>(ToCommonMessage::SENSOR_DATA_MZ);
         JsonObject payload = doc.createNestedObject("payload");
         payload["row"] = row;
-        
+
         JsonArray distances = payload.createNestedArray("distances");
         for (int col = 0; col < 8; col++) {
-            int16_t distance = tofData.rawData.distance_mm[row * 8 + col];
+            int16_t distance = tof_data.raw_data.distance_mm[(row * 8) + col];
             distances.add(distance == 0 ? -1 : distance);
         }
-        
-        String jsonString;
-        serializeJson(doc, jsonString);
-        
+
+        String json_string;
+        serializeJson(doc, json_string);
+
         // Send via serial if connected (preferred), otherwise websocket
-        if (serialConnected) {
-            SerialQueueManager::getInstance().queueMessage(jsonString, SerialPriority::CRITICAL);
-        } else if (websocketConnected) {
-            if (WebSocketManager::getInstance().isWsConnected()) {
-                WebSocketManager::getInstance().wsClient.send(jsonString);
+        if (serial_connected) {
+            SerialQueueManager::get_instance().queue_message(json_string, SerialPriority::CRITICAL);
+        } else if (websocket_connected) {
+            if (WebSocketManager::get_instance().is_ws_connected()) {
+                WebSocketManager::get_instance()._wsClient.send(json_string);
             }
         }
     }
 
-    lastMzSendTime = currentTime;
+    _lastMzSendTime = current_time;
 }
