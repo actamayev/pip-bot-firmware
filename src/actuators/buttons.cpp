@@ -41,7 +41,7 @@ void Buttons::set_left_button_click_handler(std::function<void(Button2&)> callba
 
         BytecodeVM& vm = BytecodeVM::get_instance();
         // Handle resume for paused programs (only if we didn't just pause)
-        if (vm.isPaused == BytecodeVM::RUNNING || vm.isPaused == BytecodeVM::PROGRAM_FINISHED) {
+        if (vm._isPaused == BytecodeVM::RUNNING || vm._isPaused == BytecodeVM::PROGRAM_FINISHED) {
             vm.pause_program();
             this->_just_paused_on_press = true;
             return;
@@ -76,14 +76,14 @@ void Buttons::set_left_button_click_handler(std::function<void(Button2&)> callba
                 return; // Skip start on same press/release cycle
             }
             if (!vm.can_start_program()) return;
-            vm.isPaused = BytecodeVM::RUNNING;
+            vm._isPaused = BytecodeVM::RUNNING;
             vm.waitingForButtonPressToStart = false;
             vm.increment_pc();
             return;
         }
 
         // Handle resume for paused programs (only if we didn't just pause)
-        if (vm.isPaused == BytecodeVM::PAUSED) {
+        if (vm._isPaused == BytecodeVM::PAUSED) {
             if (this->_just_paused_on_press) {
                 this->_just_paused_on_press = false;
                 return; // Skip resume on same press/release cycle
@@ -93,13 +93,13 @@ void Buttons::set_left_button_click_handler(std::function<void(Button2&)> callba
         }
 
         // Handle restart for finished programs
-        if (vm.isPaused == BytecodeVM::PROGRAM_FINISHED) {
+        if (vm._isPaused == BytecodeVM::PROGRAM_FINISHED) {
             vm.resume_program(); // This will restart from beginning
             return;
         }
 
         // If no program is running and we're not waiting to start, use original callback
-        if (vm.isPaused == BytecodeVM::PROGRAM_NOT_STARTED) {
+        if (vm._isPaused == BytecodeVM::PROGRAM_NOT_STARTED) {
             if (originalCallback) {
                 originalCallback(btn);
             }
@@ -141,7 +141,7 @@ void Buttons::set_right_button_click_handler(std::function<void(Button2&)> callb
         // BytecodeVM& vm = BytecodeVM::get_instance();
 
         // // Handle pause for running programs
-        // if (vm.isPaused == BytecodeVM::RUNNING || vm.isPaused == BytecodeVM::PROGRAM_FINISHED) {
+        // if (vm._isPaused == BytecodeVM::RUNNING || vm._isPaused == BytecodeVM::PROGRAM_FINISHED) {
         //     vm.pause_program();
         //     return;
         // }

@@ -1,7 +1,5 @@
 #include "balance_controller.h"
 
-#include <math.h>
-
 #include <cmath>
 
 void BalanceController::enable() {
@@ -16,7 +14,7 @@ void BalanceController::enable() {
     _lastError = 0.0f;
     _lastUpdateTime = millis();
 
-    float current_angle = SensorDataBuffer::get_instance().get_latest_pitch() = NAN;
+    float current_angle = SensorDataBuffer::get_instance().get_latest_pitch();
     _lastValidAngle = current_angle;
 
     // Initialize buffers with the current angle
@@ -58,7 +56,7 @@ void BalanceController::update() {
     // _lastUpdateTime = current_time;
 
     // Get current pitch
-    float raw_angle = SensorDataBuffer::get_instance().get_latest_pitch() = NAN;
+    float raw_angle = SensorDataBuffer::get_instance().get_latest_pitch();
     float current_angle = raw_angle;
 
     // Update safety monitoring buffer
@@ -76,7 +74,7 @@ void BalanceController::update() {
 
     // Validate reading against control average for PID input
     float deviation = abs(raw_angle - control_average);
-    if (deviation > _MAX_SAFE_ANGLE_DEVIATION / 3 && _angleBufferCount > 0) {
+    if (deviation > _max_safe_angle_rotation / 3 && _angleBufferCount > 0) {
         // Reading differs too much from average - use last valid reading
         current_angle = _lastValidAngle;
     } else {
@@ -92,17 +90,17 @@ void BalanceController::update() {
     }
 
     // Safety check
-    if (abs(safety_average - _TARGET_ANGLE) > _MAX_SAFE_ANGLE_DEVIATION) {
+    if (abs(safety_average - _target_angle) > _max_safe_angle_rotation) {
         disable();
         return;
     }
 
     // PID calculation
-    float error = _TARGET_ANGLE - current_angle;
-    float gyro_rate = SensorDataBuffer::get_instance().get_latest_y_rotation_rate() = NAN;
+    float error = _target_angle - current_angle;
+    float gyro_rate = SensorDataBuffer::get_instance().get_latest_y_rotation_rate();
 
     // If within deadband angle and rotation rate is low, stop motors
-    if (abs(error) < _DEADBAND_ANGLE && abs(gyro_rate) < _MAX_STABLE_ROTATION) {
+    if (abs(error) < _deadband_angle && abs(gyro_rate) < _max_stable_rotation) {
         // Within deadband and stable - stop motors
         motor_driver.stop_both_motors();
 
@@ -112,9 +110,9 @@ void BalanceController::update() {
     }
 
     // Calculate motor power using PID formula
-    float proportional_term = _P_GAIN * error;
-    float integral_term = _I_GAIN * _errorSum;
-    float derivative_term = _D_GAIN * -gyro_rate;
+    float proportional_term = _p_gain * error;
+    float integral_term = _i_gain * _errorSum;
+    float derivative_term = _d_gain * -gyro_rate;
     // float yAccel = SensorDataBuffer::get_instance().get_latest_y_accel();
     // float feedforwardTerm = _FF_GAIN * yAccel;
 
@@ -122,9 +120,9 @@ void BalanceController::update() {
 
     int adjusted_pwm = motor_power;
     if (motor_power > 0) {
-        adjusted_pwm = constrain(motor_power, _MIN_EFFECTIVE_PWM, MAX_MOTOR_PWM);
+        adjusted_pwm = constrain(motor_power, _min_effective_pwm, MAX_MOTOR_PWM);
     } else if (motor_power < 0) {
-        adjusted_pwm = constrain(motor_power, -MAX_MOTOR_PWM, -_MIN_EFFECTIVE_PWM);
+        adjusted_pwm = constrain(motor_power, -MAX_MOTOR_PWM, -_min_effective_pwm);
     }
 
     // Apply motor power
@@ -135,14 +133,14 @@ void BalanceController::update() {
 }
 
 void BalanceController::update_balance_pids(NewBalancePids new_balance_pids) {
-    _P_GAIN = new_balance_pids.pValue;                                  // 0-255
-    _I_GAIN = new_balance_pids.iValue;                                  // 0-255
-    _D_GAIN = new_balance_pids.dValue;                                  // 0-255
-    _FF_GAIN = new_balance_pids.ffValue;                                // 0-255
-    _TARGET_ANGLE = new_balance_pids.targetAngle;                       // 0-255
-    _MAX_SAFE_ANGLE_DEVIATION = new_balance_pids.maxSafeAngleDeviation; // 0-255
-    _UPDATE_INTERVAL = new_balance_pids.updateInterval;                 // 0-255
-    _DEADBAND_ANGLE = new_balance_pids.deadbandAngle;                   // 0-255
-    _MAX_STABLE_ROTATION = new_balance_pids.maxStableRotation;          // 0-255
-    _MIN_EFFECTIVE_PWM = new_balance_pids.minEffectivePwm;
+    _p_gain = new_balance_pids.pValue;                                 // 0-255
+    _i_gain = new_balance_pids.iValue;                                 // 0-255
+    _d_gain = new_balance_pids.dValue;                                 // 0-255
+    _ff_gain = new_balance_pids.ffValue;                               // 0-255
+    _target_angle = new_balance_pids.targetAngle;                      // 0-255
+    _max_safe_angle_rotation = new_balance_pids.maxSafeAngleDeviation; // 0-255
+    _update_interval = new_balance_pids.updateInterval;                // 0-255
+    _deadband_angle = new_balance_pids.deadbandAngle;                  // 0-255
+    _max_stable_rotation = new_balance_pids.maxStableRotation;         // 0-255
+    _min_effective_pwm = new_balance_pids.minEffectivePwm;
 }

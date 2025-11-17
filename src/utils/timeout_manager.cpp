@@ -6,7 +6,7 @@
 #include "networking/serial_queue_manager.h"
 
 void TimeoutManager::reset_activity() {
-    _lastActivityTime = millis();
+    _last_activity_time = millis();
 
     // If we were in confirmation state, cancel it
     if (!_inConfirmationState) {
@@ -20,7 +20,7 @@ void TimeoutManager::update() {
 
     if (!_inConfirmationState) {
         // Check for initial inactivity timeout
-        if (current_time - _lastActivityTime >= INACTIVITY_TIMEOUT) {
+        if (current_time - _last_activity_time >= INACTIVITY_TIMEOUT) {
             enter_confirmation_state();
         }
     } else {
@@ -50,5 +50,5 @@ void TimeoutManager::cancel_confirmation() {
     rgb_led.turn_all_leds_off();
 
     // Reset activity timer
-    _lastActivityTime = millis();
+    _last_activity_time = millis();
 }

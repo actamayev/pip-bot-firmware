@@ -16,7 +16,7 @@ class TimeoutManager : public Singleton<TimeoutManager> {
   private:
     TimeoutManager() = default;
 
-    uint32_t _lastActivityTime = 0;
+    uint32_t _last_activity_time = 0;
     bool _inConfirmationState = false;
     uint32_t _confirmationStartTime = 0;
 

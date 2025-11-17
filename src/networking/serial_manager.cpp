@@ -3,7 +3,7 @@
 void SerialManager::poll_serial() {
     if (Serial.available() <= 0) {
         // Check for timeout if we're connected but haven't received data for a while
-        if (is_connected && (millis() - lastActivityTime > SERIAL_CONNECTION_TIMEOUT)) {
+        if (is_connected && (millis() - last_activity_time > SERIAL_CONNECTION_TIMEOUT)) {
             is_connected = false;
             if (!WebSocketManager::get_instance().is_ws_connected()) {
                 career_quest_triggers.stop_all_career_quest_triggers(false);
@@ -12,7 +12,7 @@ void SerialManager::poll_serial() {
         return;
     }
 
-    lastActivityTime = millis();
+    last_activity_time = millis();
 
     if (!is_serial_connected()) {
         is_connected = true;

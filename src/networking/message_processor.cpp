@@ -52,29 +52,29 @@ void MessageProcessor::handle_light_command(LightAnimationStatus light_animation
 
 void MessageProcessor::handle_new_light_colors(NewLightColors new_light_colors) {
     // Cast from float to uint8_t, assuming values are already in 0-255 range
-    auto top_left_r = (uint8_t)new_light_colors.topLeftRed;
-    auto top_left_g = (uint8_t)new_light_colors.topLeftGreen;
-    auto top_left_b = (uint8_t)new_light_colors.topLeftBlue;
+    auto top_left_r = new_light_colors.topLeftRed;
+    auto top_left_g = new_light_colors.topLeftGreen;
+    auto top_left_b = new_light_colors.topLeftBlue;
 
-    auto top_right_r = (uint8_t)new_light_colors.topRightRed;
-    auto top_right_g = (uint8_t)new_light_colors.topRightGreen;
-    auto top_right_b = (uint8_t)new_light_colors.topRightBlue;
+    auto top_right_r = new_light_colors.topRightRed;
+    auto top_right_g = new_light_colors.topRightGreen;
+    auto top_right_b = new_light_colors.topRightBlue;
 
-    auto middle_left_r = (uint8_t)new_light_colors.middleLeftRed;
-    auto middle_left_g = (uint8_t)new_light_colors.middleLeftGreen;
-    auto middle_left_b = (uint8_t)new_light_colors.middleLeftBlue;
+    auto middle_left_r = new_light_colors.middleLeftRed;
+    auto middle_left_g = new_light_colors.middleLeftGreen;
+    auto middle_left_b = new_light_colors.middleLeftBlue;
 
-    auto middle_right_r = (uint8_t)new_light_colors.middleRightRed;
-    auto middle_right_g = (uint8_t)new_light_colors.middleRightGreen;
-    auto middle_right_b = (uint8_t)new_light_colors.middleRightBlue;
+    auto middle_right_r = new_light_colors.middleRightRed;
+    auto middle_right_g = new_light_colors.middleRightGreen;
+    auto middle_right_b = new_light_colors.middleRightBlue;
 
-    auto back_left_r = (uint8_t)new_light_colors.backLeftRed;
-    auto back_left_g = (uint8_t)new_light_colors.backLeftGreen;
-    auto back_left_b = (uint8_t)new_light_colors.backLeftBlue;
+    auto back_left_r = new_light_colors.backLeftRed;
+    auto back_left_g = new_light_colors.backLeftGreen;
+    auto back_left_b = new_light_colors.backLeftBlue;
 
-    auto back_right_r = (uint8_t)new_light_colors.backRightRed;
-    auto back_right_g = (uint8_t)new_light_colors.backRightGreen;
-    auto back_right_b = (uint8_t)new_light_colors.backRightBlue;
+    auto back_right_r = new_light_colors.backRightRed;
+    auto back_right_g = new_light_colors.backRightGreen;
+    auto back_right_b = new_light_colors.backRightBlue;
 
     // Set each LED to its corresponding color
     rgb_led.set_top_left_led(top_left_r, top_left_g, top_left_b);
@@ -87,33 +87,33 @@ void MessageProcessor::handle_new_light_colors(NewLightColors new_light_colors) 
 
 void MessageProcessor::handle_get_saved_wifi_networks() {
     // Get saved networks from WiFiManager
-    std::vector<WiFiCredentials> savedNetworks = WiFiManager::get_instance().get_saved_networks_for_response();
+    std::vector<WiFiCredentials> saved_networks = WiFiManager::get_instance().get_saved_networks_for_response();
 
     // Send response via SerialManager
-    SerialManager::get_instance().send_saved_networks_response(savedNetworks);
+    SerialManager::get_instance().send_saved_networks_response(saved_networks);
 }
 
 void MessageProcessor::handle_soft_scan_wifi_networks() {
     // Check if we have recent scan results (within 1 minute)
     WiFiManager& wifi_manager = WiFiManager::get_instance();
     if (wifi_manager.has_available_networks()) {
-        SerialManager::get_instance().send_scan_results_response(wifiManager.get_available_networks());
+        SerialManager::get_instance().send_scan_results_response(wifi_manager.get_available_networks());
         return;
     }
-    uint32_t now = millis();
-    if (now - wifi_manager.get_last_scan_complete_time() < 60000) {
+    const uint32_t NOW = millis();
+    if (NOW - wifi_manager.get_last_scan_complete_time() < 60000) {
         return;
     }
     // Start async scan instead of blocking scan
-    bool success = wifi_manager.start_async_scan();
+    const bool SUCCESS = wifi_manager.start_async_scan();
 
-    if (success) {
+    if (SUCCESS) {
         return; // Note: Results will be sent asynchronously when scan completes
     }
     SerialQueueManager::get_instance().queue_message("Failed to start WiFi scan");
     // Send empty scan results to indicate failure
-    std::vector<WiFiNetworkInfo> emptyNetworks;
-    SerialManager::get_instance().send_scan_results_response(emptyNetworks);
+    std::vector<WiFiNetworkInfo> empty_networks;
+    SerialManager::get_instance().send_scan_results_response(empty_networks);
 }
 
 void MessageProcessor::handle_hard_scan_wifi_networks() {
@@ -122,8 +122,8 @@ void MessageProcessor::handle_hard_scan_wifi_networks() {
         return;
     }
     SerialQueueManager::get_instance().queue_message("Failed to start hard WiFi scan");
-    std::vector<WiFiNetworkInfo> emptyNetworks;
-    SerialManager::get_instance().send_scan_results_response(emptyNetworks);
+    std::vector<WiFiNetworkInfo> empty_networks;
+    SerialManager::get_instance().send_scan_results_response(empty_networks);
 }
 
 void MessageProcessor::process_binary_message(const uint8_t* data, uint16_t length) {
@@ -161,7 +161,7 @@ void MessageProcessor::process_binary_message(const uint8_t* data, uint16_t leng
                 SerialQueueManager::get_instance().queue_message("Invalid sound command message length");
             } else {
                 auto tone_type = static_cast<ToneType>(data[1]);
-                Speaker::get_instance().play_tone(toneType);
+                Speaker::get_instance().play_tone(tone_type);
             }
             break;
         }
@@ -208,7 +208,7 @@ void MessageProcessor::process_binary_message(const uint8_t* data, uint16_t leng
             } else {
                 NewBalancePids new_balance_pids{};
                 memcpy(&new_balance_pids, &data[1], sizeof(NewBalancePids));
-                BalanceController::get_instance().update_balance_pids(newBalancePids);
+                BalanceController::get_instance().update_balance_pids(new_balance_pids);
             }
             break;
         }
@@ -218,7 +218,7 @@ void MessageProcessor::process_binary_message(const uint8_t* data, uint16_t leng
             uint16_t bytecode_length = length - 1;
 
             // Execute the bytecode
-            BytecodeVM::get_instance().load_program(bytecodeData, bytecodeLength);
+            BytecodeVM::get_instance().load_program(bytecode_data, bytecode_length);
             break;
         }
         case DataMessageType::STOP_SANDBOX_CODE: {
@@ -249,25 +249,25 @@ void MessageProcessor::process_binary_message(const uint8_t* data, uint16_t leng
             break;
         }
         case DataMessageType::SERIAL_HANDSHAKE: {
-            SerialManager::get_instance().isConnected = true;
-            SerialManager::get_instance().lastActivityTime = millis();
+            SerialManager::get_instance()._isConnected = true;
+            SerialManager::get_instance().last_activity_time = millis();
             SerialManager::get_instance().send_pip_id_message();
 
             // Send initial battery data on handshake
             const BatteryState& battery_state = BatteryMonitor::get_instance().get_battery_state();
             if (battery_state.isInitialized) {
                 SerialManager::get_instance().send_battery_monitor_data();
-                BatteryMonitor::get_instance().lastBatteryLogTime = millis();
+                BatteryMonitor::get_instance()._lastBatteryLogTime = millis();
             }
             break;
         }
         case DataMessageType::SERIAL_KEEPALIVE: {
-            SerialManager::get_instance().lastActivityTime = millis();
+            SerialManager::get_instance().last_activity_time = millis();
             break;
         }
         case DataMessageType::SERIAL_END: {
             rgb_led.turn_all_leds_off();
-            SerialManager::get_instance().isConnected = false;
+            SerialManager::get_instance()._isConnected = false;
             SensorDataBuffer::get_instance().stop_polling_all_sensors();
             Speaker::get_instance().stop_all_sounds();
             break;
@@ -291,26 +291,26 @@ void MessageProcessor::process_binary_message(const uint8_t* data, uint16_t leng
                 break;
             }
 
-            uint8_t ssid_length = data[1];
-            if (ssid_length == 0 || 2 + ssid_length >= length) {
+            const uint8_t SSID_LENGTH = data[1];
+            if (SSID_LENGTH == 0 || 2 + SSID_LENGTH >= length) {
                 SerialQueueManager::get_instance().queue_message("Invalid SSID length");
                 break;
             }
 
             String ssid = "";
-            for (uint8_t i = 0; i < ssid_length; i++) {
+            for (uint8_t i = 0; i < SSID_LENGTH; i++) {
                 ssid += static_cast<char>(data[2 + i]);
             }
 
-            uint8_t password_length = data[2 + ssid_length];
-            if (2 + ssid_length + 1 + password_length != length) {
+            const uint8_t PASSWORD_LENGTH = data[2 + SSID_LENGTH];
+            if (2 + SSID_LENGTH + 1 + PASSWORD_LENGTH != length) {
                 SerialQueueManager::get_instance().queue_message("Invalid password length");
                 break;
             }
 
             String password = "";
-            for (uint8_t i = 0; i < password_length; i++) {
-                password += static_cast<char>(data[3 + ssid_length + i]);
+            for (uint8_t i = 0; i < PASSWORD_LENGTH; i++) {
+                password += static_cast<char>(data[3 + SSID_LENGTH + i]);
             }
 
             // Test WiFi credentials before storing permanently

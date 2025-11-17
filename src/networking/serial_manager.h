@@ -19,7 +19,7 @@ class SerialManager : public Singleton<SerialManager> {
     bool is_serial_connected() const {
         return _isConnected;
     }
-    uint32_t lastActivityTime = 0;
+    uint32_t last_activity_time = 0;
     void send_json_message(ToSerialMessage route, const String& status);
     void send_pip_id_message();
     void send_saved_networks_response(const std::vector<WiFiCredentials>& networks);
@@ -50,8 +50,8 @@ class SerialManager : public Singleton<SerialManager> {
     const uint32_t SERIAL_CONNECTION_TIMEOUT = 400;
     bool _isConnected = false;
 
-    static void send_battery_data_item(const String& key, int value);
-    static void send_battery_data_item(const String& key, uint32_t value);
-    static void send_battery_data_item(const String& key, float value);
-    static void send_battery_data_item(const String& key, bool value);
+    void send_battery_data_item(const String& key, int value);
+    void send_battery_data_item(const String& key, uint32_t value);
+    void send_battery_data_item(const String& key, float value);
+    void send_battery_data_item(const String& key, bool value);
 };
