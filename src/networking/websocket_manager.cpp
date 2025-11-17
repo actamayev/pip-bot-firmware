@@ -137,7 +137,7 @@ void WebSocketManager::send_battery_monitor_data() {
 }
 
 void WebSocketManager::poll_websocket() {
-    unsigned long current_time = millis();
+    uint32_t current_time = millis();
     if (current_time - lastPollTime < POLL_INTERVAL) return;
 
     lastPollTime = current_time;
@@ -204,7 +204,7 @@ void WebSocketManager::kill_wifi_processes() {
 
 void WebSocketManager::send_pip_turning_off() {
     if (!wsConnected) return;
-    auto pipTurningOffDoc = makeBaseMessageCommon<256>(ToCommonMessage::PIP_TURNING_OFF);
+    auto pipTurningOffDoc = make_base_message_common<256>(ToCommonMessage::PIP_TURNING_OFF);
     JsonObject payload = pipTurningOffDoc.createNestedObject("payload");
     payload["reason"] = "Pip is turning off";
     String jsonString;
@@ -215,7 +215,7 @@ void WebSocketManager::send_pip_turning_off() {
 void WebSocketManager::send_dino_score(int score) {
     if (!wsConnected) return;
 
-    auto doc = makeBaseMessageCommon<256>(ToCommonMessage::DINO_SCORE);
+    auto doc = make_base_message_common<256>(ToCommonMessage::DINO_SCORE);
     JsonObject payload = doc.createNestedObject("payload");
     payload["score"] = score;
 

@@ -10,13 +10,13 @@ CareerQuestTriggers careerQuestTriggers(strip);
 // Define static constexpr arrays
 constexpr uint8_t CareerQuestTriggers::s2p1LedSequence[8];
 constexpr uint8_t CareerQuestTriggers::s2p1ColorSequence[8][3];
-constexpr unsigned long CareerQuestTriggers::S5P4_UPDATE_INTERVAL;
-constexpr unsigned long CareerQuestTriggers::S2P4_DURATION;
-constexpr unsigned long CareerQuestTriggers::S2P4_SNAKE_DURATION;
-constexpr unsigned long CareerQuestTriggers::S2P4_FLASH_DURATION;
-constexpr unsigned long CareerQuestTriggers::S2P4_BREATHING_DURATION;
-constexpr unsigned long CareerQuestTriggers::S2P4_SNAKE_INTERVAL;
-constexpr unsigned long CareerQuestTriggers::S2P4_FLASH_INTERVAL;
+constexpr uint32_t CareerQuestTriggers::S5P4_UPDATE_INTERVAL;
+constexpr uint32_t CareerQuestTriggers::S2P4_DURATION;
+constexpr uint32_t CareerQuestTriggers::S2P4_SNAKE_DURATION;
+constexpr uint32_t CareerQuestTriggers::S2P4_FLASH_DURATION;
+constexpr uint32_t CareerQuestTriggers::S2P4_BREATHING_DURATION;
+constexpr uint32_t CareerQuestTriggers::S2P4_SNAKE_INTERVAL;
+constexpr uint32_t CareerQuestTriggers::S2P4_FLASH_INTERVAL;
 
 CareerQuestTriggers::CareerQuestTriggers(Adafruit_NeoPixel& strip) : strip(strip) {}
 
@@ -76,7 +76,7 @@ void CareerQuestTriggers::update() {
 }
 
 void CareerQuestTriggers::update_s2_p1_sequence() {
-    unsigned long now = millis();
+    uint32_t now = millis();
 
     if (now - lastS2P1Update < S2P1_UPDATE_INTERVAL) return;
     uint8_t currentLed = s2p1LedSequence[currentLedIndex];
@@ -138,7 +138,7 @@ void CareerQuestTriggers::update_s2_p1_sequence() {
 }
 
 void CareerQuestTriggers::update_s2_p4_light_show() {
-    unsigned long now = millis();
+    uint32_t now = millis();
 
     // Handle exit fading
     if (s2p4ExitFading) {
@@ -156,7 +156,7 @@ void CareerQuestTriggers::update_s2_p4_light_show() {
         return;
     }
 
-    unsigned long phaseElapsed = now - s2p4PhaseStartTime;
+    uint32_t phaseElapsed = now - s2p4PhaseStartTime;
 
     // Phase transitions
     if (s2p4Phase == 0 && phaseElapsed >= S2P4_SNAKE_DURATION) {
@@ -264,7 +264,7 @@ void CareerQuestTriggers::stop_s3_p3_display_demo() {
 void CareerQuestTriggers::render_s3_p3_animation() {
     if (!s3p3Active) return;
 
-    unsigned long now = millis();
+    uint32_t now = millis();
     if (now - lastS3P3Update >= S3P3_UPDATE_INTERVAL) {
         DisplayScreen& displayScreen = DisplayScreen::get_instance();
         Adafruit_SSD1306& display = displayScreen.display;
@@ -275,12 +275,12 @@ void CareerQuestTriggers::render_s3_p3_animation() {
         // Phase1: 0-5s  -> HAFTR scroll
         // Phase2: 5-10s -> 3D cube
         // Phase3: 10-15s -> speed gauge (5s: 2.5s up, 2.5s down)
-        unsigned long elapsedTime = now - s3p3StartTime;
-        const unsigned long PH1 = 5000UL;
-        const unsigned long PH2 = 5000UL;
-        const unsigned long PH3 = 5000UL;
-        const unsigned long TOTAL = PH1 + PH2 + PH3; // 15000 ms
-        unsigned long cycleTime = elapsedTime % TOTAL;
+        uint32_t elapsedTime = now - s3p3StartTime;
+        const uint32_t PH1 = 5000UL;
+        const uint32_t PH2 = 5000UL;
+        const uint32_t PH3 = 5000UL;
+        const uint32_t TOTAL = PH1 + PH2 + PH3; // 15000 ms
+        uint32_t cycleTime = elapsedTime % TOTAL;
 
         if (cycleTime < PH1) {
             // Phase 1: HAFTR scrolling (0-5 seconds)
@@ -306,7 +306,7 @@ void CareerQuestTriggers::render_s3_p3_animation() {
             display.setTextWrap(true); // restore wrap
         } else if (cycleTime < (PH1 + PH2)) {
             // Phase 2: 3D rotating cube (5-10 seconds) — half the previous rotation speed
-            unsigned long t = cycleTime - PH1; // 0..PH2-1
+            uint32_t t = cycleTime - PH1; // 0..PH2-1
 
             // half-speed rotations (previously 0.003f / 0.004f / 0.0025f)
             float ax = (float)t * 0.0015f;
@@ -369,8 +369,8 @@ void CareerQuestTriggers::render_s3_p3_animation() {
             }
         } else {
             // Phase 3: Speed gauge (10-15s) -> 5 seconds total: 2.5s up, 2.5s down
-            unsigned long t = cycleTime - (PH1 + PH2); // 0 .. PH3-1
-            const unsigned long HALF = PH3 / 2;        // 2500 ms
+            uint32_t t = cycleTime - (PH1 + PH2); // 0 .. PH3-1
+            const uint32_t HALF = PH3 / 2;        // 2500 ms
             float progress;
             if (t < HALF) {
                 progress = (float)t / (float)HALF; // 0..1 (rev up)
@@ -491,7 +491,7 @@ void CareerQuestTriggers::stop_s7_p4_button_demo() {
 void CareerQuestTriggers::update_s7_p4_button_demo() {
     if (!s7p4ExitFading) return;
 
-    unsigned long now = millis();
+    uint32_t now = millis();
     if (now - lastS7P4Update < S2P1_UPDATE_INTERVAL) return;
 
     // Fade out all main board LEDs
@@ -528,7 +528,7 @@ void CareerQuestTriggers::stop_s5_p4_led_visualization() {
 }
 
 void CareerQuestTriggers::update_s5_p4_led_visualization() {
-    unsigned long now = millis();
+    uint32_t now = millis();
 
     if (now - lastS5P4Update < S5P4_UPDATE_INTERVAL) return;
 

@@ -96,7 +96,7 @@ void MessageProcessor::handle_soft_scan_wifi_networks() {
         SerialManager::get_instance().send_scan_results_response(wifiManager.get_available_networks());
         return;
     }
-    unsigned long now = millis();
+    uint32_t now = millis();
     if (now - wifiManager.get_last_scan_complete_time() < 60000) return;
     // Start async scan instead of blocking scan
     bool success = wifiManager.start_async_scan();

@@ -17,7 +17,7 @@ void SerialManager::poll_serial() {
     if (!isConnected) {
         isConnected = true;
         // If we were previously trying to connect to wifi (breathing red), we should turn it off when connecting to serial
-        ledAnimations.stopAnimation();
+        ledAnimations.stop_animation();
     }
 
     // Read available bytes and process according to the current state
@@ -109,7 +109,7 @@ void SerialManager::poll_serial() {
 void SerialManager::send_pip_id_message() {
     if (!isConnected) return;
 
-    auto doc = makeBaseMessageSerial<256>(ToSerialMessage::PIP_ID);
+    auto doc = make_base_message_serial<256>(ToSerialMessage::PIP_ID);
     JsonObject payload = doc.createNestedObject("payload");
     payload["pipId"] = PreferencesManager::get_instance().get_pip_id();
 
@@ -122,7 +122,7 @@ void SerialManager::send_pip_id_message() {
 void SerialManager::send_json_message(ToSerialMessage route, const String& status) {
     if (!isConnected) return;
 
-    auto doc = makeBaseMessageSerial<256>(route);
+    auto doc = make_base_message_serial<256>(route);
     JsonObject payload = doc.createNestedObject("payload");
     payload["status"] = status;
 
@@ -137,7 +137,7 @@ void SerialManager::send_saved_networks_response(const std::vector<WiFiCredentia
     if (!isConnected) return;
 
     // Build JSON response
-    auto doc = makeBaseMessageSerial<1024>(ToSerialMessage::SAVED_NETWORKS);
+    auto doc = make_base_message_serial<1024>(ToSerialMessage::SAVED_NETWORKS);
     JsonArray payload = doc.createNestedArray("payload");
 
     for (size_t i = 0; i < networks.size(); i++) {
@@ -157,7 +157,7 @@ void SerialManager::send_scan_results_response(const std::vector<WiFiNetworkInfo
 
     // Send each network as individual message
     for (size_t i = 0; i < networks.size(); i++) {
-        auto doc = makeBaseMessageSerial<256>(ToSerialMessage::SCAN_RESULT_ITEM);
+        auto doc = make_base_message_serial<256>(ToSerialMessage::SCAN_RESULT_ITEM);
         JsonObject payload = doc.createNestedObject("payload");
         payload["ssid"] = networks[i].ssid;
         payload["rssi"] = networks[i].rssi;
@@ -170,7 +170,7 @@ void SerialManager::send_scan_results_response(const std::vector<WiFiNetworkInfo
     }
 
     // Send completion message
-    auto completeDoc = makeBaseMessageSerial<256>(ToSerialMessage::SCAN_COMPLETE);
+    auto completeDoc = make_base_message_serial<256>(ToSerialMessage::SCAN_COMPLETE);
     JsonObject completePayload = completeDoc.createNestedObject("payload");
     completePayload["totalNetworks"] = networks.size();
 
@@ -183,7 +183,7 @@ void SerialManager::send_scan_results_response(const std::vector<WiFiNetworkInfo
 void SerialManager::send_scan_started_message() {
     if (!isConnected) return;
 
-    auto doc = makeBaseMessageSerial<256>(ToSerialMessage::SCAN_STARTED);
+    auto doc = make_base_message_serial<256>(ToSerialMessage::SCAN_STARTED);
     JsonObject payload = doc.createNestedObject("payload");
     payload["scanning"] = true;
 
@@ -214,7 +214,7 @@ void SerialManager::send_battery_monitor_data() {
     send_battery_data_item("estimatedTimeToEmpty", batteryState.estimatedTimeToEmpty);
     send_battery_data_item("estimatedTimeToFull", batteryState.estimatedTimeToFull);
 
-    auto completeDoc = makeBaseMessageSerial<256>(ToSerialMessage::BATTERY_MONITOR_DATA_COMPLETE);
+    auto completeDoc = make_base_message_serial<256>(ToSerialMessage::BATTERY_MONITOR_DATA_COMPLETE);
     JsonObject completePayload = completeDoc.createNestedObject("payload");
     completePayload["totalItems"] = 13; // Number of battery data fields sent
 
@@ -227,7 +227,7 @@ void SerialManager::send_battery_monitor_data() {
 void SerialManager::send_battery_data_item(const String& key, int value) {
     if (!isConnected) return;
 
-    auto doc = makeBaseMessageSerial<256>(ToSerialMessage::BATTERY_MONITOR_DATA_ITEM);
+    auto doc = make_base_message_serial<256>(ToSerialMessage::BATTERY_MONITOR_DATA_ITEM);
     JsonObject payload = doc.createNestedObject("payload");
     payload["key"] = key;
     payload["value"] = value;
@@ -238,10 +238,10 @@ void SerialManager::send_battery_data_item(const String& key, int value) {
     SerialQueueManager::get_instance().queue_message(jsonString, SerialPriority::CRITICAL);
 }
 
-void SerialManager::send_battery_data_item(const String& key, unsigned int value) {
+void SerialManager::send_battery_data_item(const String& key, uint32_t value) {
     if (!isConnected) return;
 
-    auto doc = makeBaseMessageSerial<256>(ToSerialMessage::BATTERY_MONITOR_DATA_ITEM);
+    auto doc = make_base_message_serial<256>(ToSerialMessage::BATTERY_MONITOR_DATA_ITEM);
     JsonObject payload = doc.createNestedObject("payload");
     payload["key"] = key;
     payload["value"] = value;
@@ -255,7 +255,7 @@ void SerialManager::send_battery_data_item(const String& key, unsigned int value
 void SerialManager::send_battery_data_item(const String& key, float value) {
     if (!isConnected) return;
 
-    auto doc = makeBaseMessageSerial<256>(ToSerialMessage::BATTERY_MONITOR_DATA_ITEM);
+    auto doc = make_base_message_serial<256>(ToSerialMessage::BATTERY_MONITOR_DATA_ITEM);
     JsonObject payload = doc.createNestedObject("payload");
     payload["key"] = key;
     payload["value"] = value;
@@ -269,7 +269,7 @@ void SerialManager::send_battery_data_item(const String& key, float value) {
 void SerialManager::send_battery_data_item(const String& key, bool value) {
     if (!isConnected) return;
 
-    auto doc = makeBaseMessageSerial<256>(ToSerialMessage::BATTERY_MONITOR_DATA_ITEM);
+    auto doc = make_base_message_serial<256>(ToSerialMessage::BATTERY_MONITOR_DATA_ITEM);
     JsonObject payload = doc.createNestedObject("payload");
     payload["key"] = key;
     payload["value"] = value;
@@ -283,7 +283,7 @@ void SerialManager::send_battery_data_item(const String& key, bool value) {
 void SerialManager::send_dino_score(int score) {
     if (!isConnected) return;
 
-    auto doc = makeBaseMessageCommon<256>(ToCommonMessage::DINO_SCORE);
+    auto doc = make_base_message_common<256>(ToCommonMessage::DINO_SCORE);
     JsonObject payload = doc.createNestedObject("payload");
     payload["score"] = score;
 
@@ -296,7 +296,7 @@ void SerialManager::send_dino_score(int score) {
 void SerialManager::send_network_deleted_response(bool success) {
     if (!isConnected) return;
 
-    auto doc = makeBaseMessageSerial<256>(ToSerialMessage::WIFI_DELETED_NETWORK);
+    auto doc = make_base_message_serial<256>(ToSerialMessage::WIFI_DELETED_NETWORK);
     JsonObject payload = doc.createNestedObject("payload");
     payload["status"] = success;
 
@@ -309,7 +309,7 @@ void SerialManager::send_network_deleted_response(bool success) {
 void SerialManager::send_pip_turning_off() {
     if (!isConnected) return;
 
-    auto pipTurningOffDoc = makeBaseMessageCommon<256>(ToCommonMessage::PIP_TURNING_OFF);
+    auto pipTurningOffDoc = make_base_message_common<256>(ToCommonMessage::PIP_TURNING_OFF);
     JsonObject payload = pipTurningOffDoc.createNestedObject("payload");
     payload["reason"] = "PIP is turning off";
 

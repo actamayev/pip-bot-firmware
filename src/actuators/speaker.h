@@ -59,7 +59,7 @@ class Speaker : public Singleton<Speaker> {
 
     // LED synchronization for entertainer melody
     struct MelodyNote {
-        unsigned long duration;      // in milliseconds
+        uint32_t duration;           // in milliseconds
         uint8_t led_r, led_g, led_b; // LED color for this note
     };
 
@@ -91,7 +91,7 @@ class Speaker : public Singleton<Speaker> {
     // LED sync state
     bool _is_led_sequence_playing = false;
     int _current_led_step = 0;
-    unsigned long _led_step_start_time = 0;
+    uint32_t _led_step_start_time = 0;
 
     const uint8_t I2S_DOUT = 13;
     const uint8_t I2S_BCLK = 14;
@@ -107,6 +107,6 @@ class Speaker : public Singleton<Speaker> {
     void update_continuous_tone();
     const char* get_tone_rtttl(ToneType tone);
 
-    unsigned long _last_tone_refresh_time = 0;
-    static const unsigned long TONE_AUTO_STOP_MS = 200; // Stop if not refreshed within 200ms
+    uint32_t _last_tone_refresh_time = 0;
+    static const uint32_t TONE_AUTO_STOP_MS = 200; // Stop if not refreshed within 200ms
 };

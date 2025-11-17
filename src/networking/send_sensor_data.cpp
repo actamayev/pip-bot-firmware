@@ -71,13 +71,13 @@ void SendSensorData::send_sensor_data_to_server() {
     // Must have at least one connection
     if (!serialConnected && !websocketConnected) return;
 
-    unsigned long current_time = millis();
+    uint32_t current_time = millis();
     // Use different intervals based on connection type
-    unsigned long requiredInterval = serialConnected ? SERIAL_SEND_INTERVAL : WS_SEND_INTERVAL;
+    uint32_t requiredInterval = serialConnected ? SERIAL_SEND_INTERVAL : WS_SEND_INTERVAL;
     if (current_time - lastSendTime < requiredInterval) return;
 
     // Create a JSON document with both routing information and payload
-    auto doc = makeBaseMessageCommon<256>(ToCommonMessage::SENSOR_DATA);
+    auto doc = make_base_message_common<256>(ToCommonMessage::SENSOR_DATA);
 
     // Add the actual payload
     JsonObject payload = doc.createNestedObject("payload");
@@ -118,16 +118,16 @@ void SendSensorData::send_multizone_data() {
     // Must have at least one connection
     if (!serialConnected && !websocketConnected) return;
 
-    unsigned long current_time = millis();
+    uint32_t current_time = millis();
     // Use different intervals based on connection type
-    unsigned long requiredMzInterval = serialConnected ? SERIAL_MZ_INTERVAL : WS_MZ_INTERVAL;
+    uint32_t requiredMzInterval = serialConnected ? SERIAL_MZ_INTERVAL : WS_MZ_INTERVAL;
     if (current_time - lastMzSendTime < requiredMzInterval) return;
 
     TofData tofData = SensorDataBuffer::get_instance().get_latest_tof_data();
 
     // Send 8 messages (one per row) in burst mode
     for (int row = 0; row < 8; row++) {
-        auto doc = makeBaseMessageCommon<128>(ToCommonMessage::SENSOR_DATA_MZ);
+        auto doc = make_base_message_common<128>(ToCommonMessage::SENSOR_DATA_MZ);
         JsonObject payload = doc.createNestedObject("payload");
         payload["row"] = row;
 

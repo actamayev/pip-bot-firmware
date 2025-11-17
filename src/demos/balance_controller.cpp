@@ -41,7 +41,7 @@ void BalanceController::disable() {
 void BalanceController::update() {
     if (_balancingEnabled != BalanceStatus::BALANCED) return;
 
-    // unsigned long current_time = millis();
+    // uint32_t current_time = millis();
     // if (current_time - _lastUpdateTime < _UPDATE_INTERVAL) {
     //     return; // Maintain update rate
     // }

@@ -41,8 +41,8 @@ void MultizoneTofSensor::update_sensor_data() {
     if (!isInitialized) return;
 
     // Throttle VL53L7CX checks to 50Hz max (every 20ms) to reduce I2C load
-    static unsigned long lastCheckTime = 0;
-    unsigned long current_time = millis();
+    static uint32_t lastCheckTime = 0;
+    uint32_t current_time = millis();
 
     if (current_time - lastCheckTime < CHECK_SENSOR_TIME) return;
 

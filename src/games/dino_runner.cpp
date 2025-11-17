@@ -65,8 +65,8 @@ void DinoRunner::handle_button_press(bool rightPressed) {
 void DinoRunner::update() {
     if (!gameActive) return;
 
-    unsigned long now = millis();
-    unsigned long dtMs = now - lastFrameMs;
+    uint32_t now = millis();
+    uint32_t dtMs = now - lastFrameMs;
     lastFrameMs = now;
     float dt = dtMs / 16.0f; // normalize relative to ~60FPS
 
@@ -102,7 +102,7 @@ void DinoRunner::update() {
         }
 
         // Ramp difficulty
-        static unsigned long lastRamp = 0;
+        static uint32_t lastRamp = 0;
         if ((millis() - lastRamp) >= DIFFICULTY_RAMP_MS) {
             if (spawnIntervalMs > 350) {
                 spawnIntervalMs = max(350UL, spawnIntervalMs - 120);

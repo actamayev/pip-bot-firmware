@@ -1,27 +1,30 @@
 #pragma once
 
 #include <Arduino.h>
-#include "utils/utils.h"
-#include "utils/singleton.h"
-#include "networking/protocol.h"
+
 #include "actuators/led/rgb_led.h"
 #include "actuators/motor_driver.h"
+#include "networking/protocol.h"
+#include "utils/singleton.h"
+#include "utils/utils.h"
 
 class ObstacleAvoider : public Singleton<ObstacleAvoider> {
     friend class Singleton<ObstacleAvoider>;
 
-    public:
-        void enable();
-        void disable();
-        void update();
-        bool is_enabled() const { return _avoidanceEnabled == ObstacleAvoidanceStatus::AVOID; }
+  public:
+    void enable();
+    void disable();
+    void update();
+    bool is_enabled() const {
+        return _avoidanceEnabled == ObstacleAvoidanceStatus::AVOID;
+    }
 
-    private:
-        ObstacleAvoider() = default;
+  private:
+    ObstacleAvoider() = default;
 
-        // State
-        ObstacleAvoidanceStatus _avoidanceEnabled = ObstacleAvoidanceStatus::STOP_AVOIDANCE;
+    // State
+    ObstacleAvoidanceStatus _avoidanceEnabled = ObstacleAvoidanceStatus::STOP_AVOIDANCE;
 
-        unsigned long _lastUpdateTime = 0;
-        unsigned long _UPDATE_INTERVAL = 3; // 3ms (333Hz)
+    uint32_t _lastUpdateTime = 0;
+    uint32_t _UPDATE_INTERVAL = 3; // 3ms (333Hz)
 };

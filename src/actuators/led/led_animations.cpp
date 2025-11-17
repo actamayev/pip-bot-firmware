@@ -153,8 +153,8 @@ void LedAnimations::update() {
 }
 
 void LedAnimations::update_breathing() {
-    unsigned long current_time = millis();
-    unsigned long time_per_step = _breath_speed / 255;
+    uint32_t current_time = millis();
+    uint32_t time_per_step = _breath_speed / 255;
     time_per_step = max(1UL, time_per_step);
 
     if (current_time - _last_breath_update < time_per_step) return;
@@ -193,7 +193,7 @@ void LedAnimations::update_breathing() {
 }
 
 void LedAnimations::update_strobing() {
-    unsigned long current_time = millis();
+    uint32_t current_time = millis();
 
     if (current_time - _last_strobe_update >= _strobe_speed) {
         _last_strobe_update = current_time;
@@ -210,7 +210,7 @@ void LedAnimations::update_strobing() {
 }
 
 void LedAnimations::update_rainbow() {
-    unsigned long current_time = millis();
+    uint32_t current_time = millis();
 
     if (current_time - _last_rainbow_update < _rainbow_step_time) return;
     _last_rainbow_update = current_time;

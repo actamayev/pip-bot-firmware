@@ -1,8 +1,8 @@
 #include "sensor_loggers.h"
 
 void imu_logger() {
-    static unsigned long lastImuPrintTime = 0;
-    const unsigned long IMU_PRINT_INTERVAL = 1000; // Print frequency every 1 second
+    static uint32_t lastImuPrintTime = 0;
+    const uint32_t IMU_PRINT_INTERVAL = 1000; // Print frequency every 1 second
 
     // Print frequency report every second
     if (millis() - lastImuPrintTime < IMU_PRINT_INTERVAL) return;
@@ -20,8 +20,8 @@ void imu_logger() {
 }
 
 void side_tofs_logger() {
-    static unsigned long lastPrintTime = 0;
-    const unsigned long PRINT_INTERVAL = 50; // Print every 500ms
+    static uint32_t lastPrintTime = 0;
+    const uint32_t PRINT_INTERVAL = 50; // Print every 500ms
 
     if (millis() - lastPrintTime < PRINT_INTERVAL) return;
     SideTofData tofCounts = SensorDataBuffer::get_instance().get_latest_side_tof_data();
@@ -34,7 +34,8 @@ void side_tofs_logger() {
 }
 
 void setup_button_loggers() {
-    Buttons::get_instance().set_left_button_click_handler([](Button2& btn) { SerialQueueManager::get_instance().queue_message("Left Button clicked!"); });
+    Buttons::get_instance().set_left_button_click_handler(
+        [](Button2& btn) { SerialQueueManager::get_instance().queue_message("Left Button clicked!"); });
 
     Buttons::get_instance().set_right_button_click_handler(
         [](Button2& btn) { SerialQueueManager::get_instance().queue_message("Right Button clicked!"); });
@@ -49,8 +50,8 @@ void setup_button_loggers() {
 }
 
 void multizone_tof_logger() {
-    static unsigned long lastPrintTime = 0;
-    const unsigned long PRINT_INTERVAL = 1000; // Print frequency every 1 second
+    static uint32_t lastPrintTime = 0;
+    const uint32_t PRINT_INTERVAL = 1000; // Print frequency every 1 second
 
     if (millis() - lastPrintTime < PRINT_INTERVAL) return;
 
@@ -66,8 +67,8 @@ void multizone_tof_logger() {
 }
 
 void side_tof_logger() {
-    static unsigned long lastPrintTime = 0;
-    const unsigned long PRINT_INTERVAL = 1000; // Print frequency every 1 second
+    static uint32_t lastPrintTime = 0;
+    const uint32_t PRINT_INTERVAL = 1000; // Print frequency every 1 second
 
     if (millis() - lastPrintTime < PRINT_INTERVAL) return;
 
@@ -82,8 +83,8 @@ void side_tof_logger() {
 }
 
 void color_sensor_logger() {
-    static unsigned long lastPrintTime = 0;
-    const unsigned long PRINT_INTERVAL = 1000; // Print frequency every 1 second
+    static uint32_t lastPrintTime = 0;
+    const uint32_t PRINT_INTERVAL = 1000; // Print frequency every 1 second
 
     if (millis() - lastPrintTime < PRINT_INTERVAL) return;
 
@@ -99,8 +100,8 @@ void color_sensor_logger() {
 }
 
 void log_motor_rpm() {
-    static unsigned long lastPrintTime = 0;
-    const unsigned long PRINT_INTERVAL = 500;
+    static uint32_t lastPrintTime = 0;
+    const uint32_t PRINT_INTERVAL = 500;
 
     if (millis() - lastPrintTime < PRINT_INTERVAL) return;
 
@@ -114,8 +115,8 @@ void log_motor_rpm() {
 }
 
 void display_performance_logger() {
-    static unsigned long lastPrintTime = 0;
-    const unsigned long PRINT_INTERVAL = 1000; // Print frequency every 1 second
+    static uint32_t lastPrintTime = 0;
+    const uint32_t PRINT_INTERVAL = 1000; // Print frequency every 1 second
 
     if (millis() - lastPrintTime < PRINT_INTERVAL) return;
 

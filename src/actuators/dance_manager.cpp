@@ -65,7 +65,7 @@ void DanceManager::update() {
     //     return;
     // }
 
-    unsigned long current_time = millis();
+    uint32_t current_time = millis();
 
     // Check if it's time for the next step
     if (current_time < _nextStepTime) return;

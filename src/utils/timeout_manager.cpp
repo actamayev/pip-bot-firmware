@@ -14,7 +14,7 @@ void TimeoutManager::reset_activity() {
 }
 
 void TimeoutManager::update() {
-    unsigned long current_time = millis();
+    uint32_t current_time = millis();
 
     if (!_inConfirmationState) {
         // Check for initial inactivity timeout
@@ -43,7 +43,7 @@ void TimeoutManager::cancel_confirmation() {
     if (!_inConfirmationState) return;
 
     _inConfirmationState = false;
-            rgbLed.turn_all_leds_off();
+    rgbLed.turn_all_leds_off();
 
     // Reset activity timer
     _lastActivityTime = millis();

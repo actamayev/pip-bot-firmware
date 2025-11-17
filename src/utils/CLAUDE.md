@@ -86,7 +86,7 @@ struct EulerAngles { float yaw, pitch, roll; bool isValid; };
 
 // Battery comprehensive monitoring
 struct BatteryState {
-    unsigned int realStateOfCharge, voltage;
+    uint32_t realStateOfCharge, voltage;
     int current, power;
     float estimatedTimeToEmpty;
     bool isCharging, isLowBattery, isCriticalBattery;

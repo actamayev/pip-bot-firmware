@@ -104,7 +104,7 @@ void MotorDriver::set_motor_speeds(int16_t left_target, int16_t right_target, bo
 
 void MotorDriver::update() {
     // Check brake timers first
-    unsigned long current_time = millis();
+    uint32_t current_time = millis();
 
     if (_left_brake_active && (current_time - _left_brake_start_time >= BRAKE_RELEASE_TIME_MS)) {
         left_motor_stop();

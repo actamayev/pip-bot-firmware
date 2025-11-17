@@ -108,7 +108,7 @@ void TurningManager::update() {
 
 void TurningManager::update_velocity() {
     float currentHeading = -SensorDataBuffer::get_instance().get_latest_yaw();
-    unsigned long current_time = millis();
+    uint32_t current_time = millis();
 
     if (lastTime != 0) {
         float deltaTime = (current_time - lastTime) / 1000.0f;
@@ -176,7 +176,7 @@ float TurningManager::calculate_velocity_error() const {
 
 uint16_t TurningManager::calculate_pwm(float velocityError) {
     // Calculate deltaTime for integral term
-    unsigned long current_time = millis();
+    uint32_t current_time = millis();
     float deltaTime = 0.0f;
 
     if (lastIntegralTime != 0) {

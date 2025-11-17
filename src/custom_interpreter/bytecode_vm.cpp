@@ -637,7 +637,7 @@ void BytecodeVM::execute_instruction(const BytecodeInstruction& instr) {
 
             // Set up timed movement
             timedMotorMovementInProgress = true;
-            motorMovementEndTime = millis() + static_cast<unsigned long>(seconds * 1000.0f);
+            motorMovementEndTime = millis() + static_cast<uint32_t>(seconds * 1000.0f);
 
             break;
         }

@@ -57,7 +57,7 @@ void ColorSensor::update_sensor_data() {
 
     if (!sensorEnabled || !sensorConnected) return; // Skip if sensor not enabled or connected
 
-    unsigned long current_time = millis();
+    uint32_t current_time = millis();
     if (current_time - lastUpdateTime < DELAY_BETWEEN_READINGS) return;
 
     // Read current sensor data (rate controlled by 50ms task delay ~20Hz)

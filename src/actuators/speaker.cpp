@@ -174,7 +174,7 @@ void Speaker::update() {
     if (!_initialized) return;
 
     if (_is_playing_tone) {
-        static unsigned long lastUpdateDebug = 0;
+        static uint32_t lastUpdateDebug = 0;
         if (millis() - lastUpdateDebug > 1000) {
             SerialQueueManager::get_instance().queue_message("Speaker::update() calling updateContinuousTone()");
             lastUpdateDebug = millis();
@@ -205,7 +205,7 @@ void Speaker::update_melody() {
 
     // LED sequence update (doesn't touch audio objects, but keep under mutex to keep state consistent)
     if (_is_led_sequence_playing) {
-        unsigned long current_time = millis();
+        uint32_t current_time = millis();
         if (current_time >= _led_step_start_time + entertainer_led_sequence[_current_led_step].duration) {
             _current_led_step++;
             if (_current_led_step >= ENTERTAINER_LED_SEQUENCE_LENGTH) {

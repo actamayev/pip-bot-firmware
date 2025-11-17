@@ -35,7 +35,7 @@ bool DisplayScreen::init(bool showStartup) {
 void DisplayScreen::update() {
     if (!initialized) return;
 
-    unsigned long current_time = millis();
+    uint32_t current_time = millis();
 
     // Only generate content at regular intervals
     if (current_time - lastContentGeneration < UPDATE_INTERVAL) return;
@@ -323,7 +323,7 @@ void DisplayScreen::copy_current_buffer() {
 }
 
 float DisplayScreen::get_display_update_rate() const {
-    unsigned long elapsed = millis() - perfStartTime;
+    uint32_t elapsed = millis() - perfStartTime;
     if (elapsed == 0) return 0.0;
     return (float)displayUpdates * 1000.0 / (float)elapsed;
 }

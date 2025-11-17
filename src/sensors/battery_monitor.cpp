@@ -104,7 +104,7 @@ void BatteryMonitor::handle_battery_logging() {
     // Only log if connected to serial
     if (!SerialManager::get_instance().is_serial_connected() && !WebSocketManager::get_instance().is_ws_connected()) return;
 
-    unsigned long current_time = millis();
+    uint32_t current_time = millis();
     if (current_time - lastBatteryLogTime < BATTERY_LOG_INTERVAL_MS) return;
     // Log battery data every 30 seconds
 
@@ -113,7 +113,7 @@ void BatteryMonitor::handle_battery_logging() {
 }
 
 void BatteryMonitor::retry_initialization_if_needed() {
-    unsigned long current_time = millis();
+    uint32_t current_time = millis();
 
     if (current_time - lastInitAttempt > INIT_RETRY_INTERVAL_MS) {
         initialize();

@@ -64,16 +64,16 @@ bool WiFiManager::attempt_new_wifi_connection(WiFiCredentials wifiCredentials) {
 
     WiFi.begin(wifiCredentials.ssid, wifiCredentials.password);
 
-    unsigned long startAttemptTime = millis();
-    unsigned long lastPrintTime = startAttemptTime;
-    unsigned long lastCheckTime = startAttemptTime;
+    uint32_t startAttemptTime = millis();
+    uint32_t lastPrintTime = startAttemptTime;
+    uint32_t lastCheckTime = startAttemptTime;
 
     while (WiFi.status() != WL_CONNECTED && (millis() - startAttemptTime < CONNECT_TO_SINGLE_NETWORK_TIMEOUT)) {
         // Give other tasks time to run - CRITICAL for sensor performance
         vTaskDelay(pdMS_TO_TICKS(250)); // 250ms delay reduces sensor impact
 
         // Non-blocking print of dots
-        unsigned long current_time = millis();
+        uint32_t current_time = millis();
         if (current_time - lastPrintTime >= printInterval) {
             lastPrintTime = current_time;
             yield(); // Allow the ESP32 to handle background tasks
@@ -161,7 +161,7 @@ void WiFiManager::check_and_reconnect_wifi() {
     // Quick check if any networks exist before trying to get them
     if (!PreferencesManager::get_instance().hasStoredWiFiNetworks()) return;
 
-    unsigned long current_time = millis();
+    uint32_t current_time = millis();
 
     if (current_time - _lastReconnectAttempt < WIFI_RECONNECT_TIMEOUT) return;
     SerialQueueManager::get_instance().queue_message("WiFi disconnected, attempting to reconnect...");
@@ -205,8 +205,8 @@ void WiFiManager::process_wifi_credential_test() {
         // Test WebSocket connection
         WebSocketManager::get_instance().connect_to_websocket();
 
-        unsigned long startTime = millis();
-        const unsigned long WEBSOCKET_TIMEOUT = 10000;
+        uint32_t startTime = millis();
+        const uint32_t WEBSOCKET_TIMEOUT = 10000;
         bool websocketConnected = false;
 
         while (millis() - startTime < WEBSOCKET_TIMEOUT) {
@@ -241,8 +241,8 @@ bool WiFiManager::test_connection_only(const String& ssid, const String& passwor
     WiFi.mode(WIFI_STA);
     WiFi.begin(ssid, password);
 
-    unsigned long startTime = millis();
-    unsigned long lastStatusLog = 0;
+    uint32_t startTime = millis();
+    uint32_t lastStatusLog = 0;
 
     while (WiFi.status() != WL_CONNECTED && (millis() - startTime < CONNECT_TO_SINGLE_NETWORK_TIMEOUT)) {
         // Log WiFi status every second for debugging
@@ -350,8 +350,8 @@ bool WiFiManager::start_async_scan() {
 void WiFiManager::check_async_scan_progress() {
     if (!_asyncScanInProgress) return; // No scan in progress
 
-    unsigned long current_time = millis();
-    unsigned long scanDuration = current_time - _asyncScanStartTime;
+    uint32_t current_time = millis();
+    uint32_t scanDuration = current_time - _asyncScanStartTime;
 
     // Don't check status too soon - give the scan time to actually start
     if (scanDuration < ASYNC_SCAN_MIN_CHECK_DELAY) return; // Too early to check
@@ -410,7 +410,7 @@ void WiFiManager::check_async_scan_progress() {
 }
 
 void WiFiManager::clear_networks_if_stale() {
-    unsigned long now = millis();
+    uint32_t now = millis();
     if (_availableNetworks.empty() || (now - _lastScanCompleteTime <= STALE_SCAN_TIMEOUT_MS)) return;
     _availableNetworks.clear();
     SerialQueueManager::get_instance().queue_message("WiFi scan results cleared (stale > 30 min)");

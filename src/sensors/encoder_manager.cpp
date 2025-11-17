@@ -38,8 +38,8 @@ bool EncoderManager::initialize() {
 }
 
 void EncoderManager::update() {
-    unsigned long current_time = millis();
-    unsigned long elapsedTime = current_time - _lastUpdateTime;
+    uint32_t current_time = millis();
+    uint32_t elapsedTime = current_time - _lastUpdateTime;
 
     // Only update if enough time has passed
     if (elapsedTime < RPM_CALC_INTERVAL) return;

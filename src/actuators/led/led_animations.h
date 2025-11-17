@@ -44,19 +44,19 @@ class LedAnimations {
     uint8_t _breath_max[3] = {0, 0, 0};
     float _breath_progress = 0.0;
     int _breath_speed = 2000;
-    unsigned long _last_breath_update = 0;
+    uint32_t _last_breath_update = 0;
 
     // Strobing animation parameters
     uint8_t _strobe_color[3] = {0, 0, 0};
     int _strobe_speed = 500;
     bool _strobe_state = false;
-    unsigned long _last_strobe_update = 0;
+    uint32_t _last_strobe_update = 0;
 
     // Rainbow animation parameters
     int _rainbow_cycle_time = 2000;
-    unsigned long _rainbow_step_time = 0;
+    uint32_t _rainbow_step_time = 0;
     uint8_t _rainbow_hue = 0;
-    unsigned long _last_rainbow_update = 0;
+    uint32_t _last_rainbow_update = 0;
 
     // Helper methods
     void update_breathing();

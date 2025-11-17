@@ -81,7 +81,7 @@ struct CalibrationValues {
 static constexpr float GEAR_RATIO = 297.924;
 static constexpr uint8_t ENCODER_CPR = 3;
 static constexpr float WHEEL_DIAMETER_CM = 3.9;
-static constexpr unsigned long RPM_CALC_INTERVAL = 20; // ms
+static constexpr uint32_t RPM_CALC_INTERVAL = 20; // ms
 ```
 
 ### Battery Monitor (`battery_monitor.h/cpp`)
@@ -94,8 +94,8 @@ static constexpr unsigned long RPM_CALC_INTERVAL = 20; // ms
 #### Battery Data
 ```cpp
 struct BatteryState {
-    unsigned int realStateOfCharge;    // 0-100%
-    unsigned int voltage;              // mV
+    uint32_t realStateOfCharge;    // 0-100%
+    uint32_t voltage;              // mV
     int current;                       // mA (+ discharge, - charge)
     int power;                         // mW
     float estimatedTimeToEmpty;        // hours
