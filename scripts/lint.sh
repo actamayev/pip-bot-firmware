@@ -23,12 +23,12 @@ case "$1" in
             "$2"
         ;;
     "fix-all")
-        # Fix all files in src/ directory
+        # Fix all files in src/ directory only
         echo "Running clang-tidy fix on all source files..."
         pio run -t compiledb -e local > /dev/null 2>&1
         
-        # Find all .cpp and .h files in src/ and lib/
-        find src lib -type f \( -name "*.cpp" -o -name "*.h" -o -name "*.hpp" \) | while read -r file; do
+        # Only process src/ directory, not lib/
+        find src -type f \( -name "*.cpp" -o -name "*.h" -o -name "*.hpp" \) | while read -r file; do
             echo "Fixing: $file"
             /opt/homebrew/opt/llvm/bin/clang-tidy \
                 --config-file=.clang-tidy \
@@ -83,7 +83,7 @@ case "$1" in
         echo "Commands:"
         echo "  check              - Run all static analysis checks"
         echo "  fix <file>         - Auto-fix issues in a single file"
-        echo "  fix-all            - Auto-fix issues in all source files"
+        echo "  fix-all            - Auto-fix issues in all source files (src/ only)"
         echo "  fix-dir <dir>      - Auto-fix issues in a directory"
         echo "  format <path>      - Format file or directory"
         echo ""
