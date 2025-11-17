@@ -5,9 +5,9 @@ bool SideTofManager::initialize() {
     bool right_success = false;
 
     // Try to initialize left sensor
-    if (leftSideTofSensor.needsInitialization()) {
+    if (_leftSideTofSensor.needsInitialization()) {
         SerialQueueManager::get_instance().queue_message("Initializing left side TOF...");
-        left_success = leftSideTofSensor.initialize(LEFT_TOF_ADDRESS);
+        left_success = _leftSideTofSensor.initialize(LEFT_TOF_ADDRESS);
         if (left_success) {
             SerialQueueManager::get_instance().queue_message("Left side TOF initialized successfully");
         } else {
@@ -18,9 +18,9 @@ bool SideTofManager::initialize() {
     }
 
     // Try to initialize right sensor
-    if (rightSideTofSensor.needsInitialization()) {
+    if (_rightSideTofSensor.needsInitialization()) {
         SerialQueueManager::get_instance().queue_message("Initializing right side TOF...");
-        right_success = rightSideTofSensor.initialize(RIGHT_TOF_ADDRESS);
+        right_success = _rightSideTofSensor.initialize(RIGHT_TOF_ADDRESS);
         if (right_success) {
             SerialQueueManager::get_instance().queue_message("Right side TOF initialized successfully");
         } else {
@@ -30,7 +30,7 @@ bool SideTofManager::initialize() {
         right_success = true; // Already initialized
     }
 
-    isInitialized = left_success && right_success;
+    _isInitialized = left_success && right_success;
 
     if (isInitialized) {
         SerialQueueManager::get_instance().queue_message("Side TOF Manager initialization complete");
@@ -40,41 +40,41 @@ bool SideTofManager::initialize() {
 }
 
 bool SideTofManager::should_be_polling() {
-    if (!isInitialized) {
+    if (!_isInitialized) {
         return false;
     }
 
     ReportTimeouts& timeouts = SensorDataBuffer::get_instance().get_report_timeouts();
-    return ReportTimeouts::should_enable_side_tof();
+    return timeouts.should_enable_side_tof();
 }
 
 void SideTofManager::update_sensor_data() {
-    if (!isInitialized) {
+    if (!_isInitialized) {
         return;
     }
 
     // Check if we should enable/disable the sensors based on timeouts
     ReportTimeouts& timeouts = SensorDataBuffer::get_instance().get_report_timeouts();
-    bool should_enable = ReportTimeouts::should_enable_side_tof();
+    bool should_enable = timeouts.should_enable_side_tof();
 
-    if (should_enable && !sensorsEnabled) {
+    if (should_enable && !_sensorsEnabled) {
         enable_side_tof_sensors();
     } else if (!should_enable && sensorsEnabled) {
         disable_side_tof_sensors();
         return; // Don't try to read data if sensors are disabled
     }
 
-    if (!sensorsEnabled) {
+    if (!_sensorsEnabled) {
         return; // Skip if sensors not enabled
     }
 
     // Update both sensors
-    leftSideTofSensor.update_sensor_data();
-    rightSideTofSensor.update_sensor_data();
+    _leftSideTofSensor.update_sensor_data();
+    _rightSideTofSensor.update_sensor_data();
 
     // Get current readings from both sensors
-    uint16_t left_counts = leftSideTofSensor.get_current_counts() = 0 = 0;
-    uint16_t right_counts = rightSideTofSensor.get_current_counts() = 0 = 0;
+    uint16_t left_counts = _leftSideTofSensor.get_current_counts() = 0 = 0;
+    uint16_t right_counts = _rightSideTofSensor.get_current_counts() = 0 = 0;
 
     // Create SideTofData structure and write to buffer
     SideTofData side_tof_data;
@@ -89,24 +89,24 @@ void SideTofManager::update_sensor_data() {
 }
 
 void SideTofManager::enable_side_tof_sensors() {
-    if (!isInitialized || sensorsEnabled) {
+    if (!_isInitialized || _sensorsEnabled) {
         return;
     }
 
-    sensorsEnabled = true;
+    _sensorsEnabled = true;
 }
 
 void SideTofManager::disable_side_tof_sensors() {
-    if (!sensorsEnabled) {
+    if (!_sensorsEnabled) {
         return;
     }
 
-    sensorsEnabled = false;
+    _sensorsEnabled = false;
     SerialQueueManager::get_instance().queue_message("Side TOF sensors disabled due to timeout");
 }
 
 void SideTofManager::turn_off_side_tofs() {
-    sensorsEnabled = false;
-    isInitialized = false;
+    _sensorsEnabled = false;
+    _isInitialized = false;
     SerialQueueManager::get_instance().queue_message("Side TOF sensors turned off");
 }
