@@ -89,13 +89,11 @@ void PreferencesManager::loadWifiDataCache() {
     for (int i = 0; i < _cache.wifiCount; i++) {
         WiFiCredentials creds;
 
-        char ssidKey[128];
-        char passwordKey[128];
-        sprintf(ssidKey, "ssid_%d", i);
-        sprintf(passwordKey, "pwd_%d", i);
+        const String SSID_KEY = String("ssid_") + i;
+        const String PASSWORD_KEY = String("pwd_") + i;
 
-        creds.ssid = _preferences.getString(ssidKey, "");
-        creds.password = _preferences.getString(passwordKey, "");
+        creds.ssid = _preferences.getString(SSID_KEY.c_str(), "");
+        creds.password = _preferences.getString(PASSWORD_KEY.c_str(), "");
 
         if (!creds.ssid.isEmpty()) {
             _cache.wifiNetworks.push_back(creds);
@@ -136,13 +134,11 @@ void PreferencesManager::storeWiFiCredentials(const String& ssid, const String& 
     }
 
     // Generate keys with index
-    char ssidKey[128];
-    char passwordKey[128];
-    sprintf(ssidKey, "ssid_%d", index);
-    sprintf(passwordKey, "pwd_%d", index);
+    const String SSID_KEY = String("ssid_") + index;
+    const String PASSWORD_KEY = String("pwd_") + index;
 
-    _preferences.putString(ssidKey, ssid);
-    _preferences.putString(passwordKey, password);
+    _preferences.putString(SSID_KEY.c_str(), ssid);
+    _preferences.putString(PASSWORD_KEY.c_str(), password);
 
     // Initialize wifi_count if it doesn't exist, or update if necessary
     int currentCount = 0;
@@ -177,10 +173,9 @@ bool PreferencesManager::hasSideTofCalibration(uint8_t sensorAddress) {
         return false;
     }
 
-    char baselineKey[32];
-    sprintf(baselineKey, "baseline_%02X", sensorAddress);
+    const String BASELINE_KEY = String("baseline_") + String(sensorAddress, HEX);
 
-    return _preferences.isKey(baselineKey);
+    return _preferences.isKey(BASELINE_KEY.c_str());
 }
 
 void PreferencesManager::storeSideTofCalibration(uint8_t sensorAddress, uint16_t baseline, bool useHardwareCalibration) {
@@ -188,13 +183,11 @@ void PreferencesManager::storeSideTofCalibration(uint8_t sensorAddress, uint16_t
         return;
     }
 
-    char baselineKey[32];
-    char hwCalibKey[32];
-    sprintf(baselineKey, "baseline_%02X", sensorAddress);
-    sprintf(hwCalibKey, "hw_calib_%02X", sensorAddress);
+    const String BASELINE_KEY = String("baseline_") + String(sensorAddress, HEX);
+    const String HW_CALIB_KEY = String("hw_calib_") + String(sensorAddress, HEX);
 
-    _preferences.putUShort(baselineKey, baseline);
-    _preferences.putBool(hwCalibKey, useHardwareCalibration);
+    _preferences.putUShort(BASELINE_KEY.c_str(), baseline);
+    _preferences.putBool(HW_CALIB_KEY.c_str(), useHardwareCalibration);
 }
 
 uint16_t PreferencesManager::getSideTofBaseline(uint8_t sensorAddress) {
@@ -202,10 +195,9 @@ uint16_t PreferencesManager::getSideTofBaseline(uint8_t sensorAddress) {
         return 0;
     }
 
-    char baselineKey[32];
-    sprintf(baselineKey, "baseline_%02X", sensorAddress);
+    const String BASELINE_KEY = String("baseline_") + String(sensorAddress, HEX);
 
-    return _preferences.getUShort(baselineKey, 0);
+    return _preferences.getUShort(BASELINE_KEY.c_str(), 0);
 }
 
 bool PreferencesManager::getSideTofUseHardwareCalibration(uint8_t sensorAddress) {
@@ -213,10 +205,9 @@ bool PreferencesManager::getSideTofUseHardwareCalibration(uint8_t sensorAddress)
         return false;
     }
 
-    char hwCalibKey[32];
-    sprintf(hwCalibKey, "hw_calib_%02X", sensorAddress);
+    const String HW_CALIB_KEY = String("hw_calib_") + String(sensorAddress, HEX);
 
-    return _preferences.getBool(hwCalibKey, false);
+    return _preferences.getBool(HW_CALIB_KEY.c_str(), false);
 }
 
 bool PreferencesManager::forgetWiFiNetwork(const String& targetSSID) {
@@ -243,22 +234,18 @@ bool PreferencesManager::forgetWiFiNetwork(const String& targetSSID) {
     // Clear all existing network data
     int const CURRENT_COUNT = _preferences.getInt(WIFI_COUNT, 0);
     for (int i = 0; i < CURRENT_COUNT; i++) {
-        char ssidKey[128];
-        char passwordKey[128];
-        sprintf(ssidKey, "ssid_%d", i);
-        sprintf(passwordKey, "pwd_%d", i);
-        _preferences.remove(ssidKey);
-        _preferences.remove(passwordKey);
+        const String SSID_KEY = String("ssid_") + i;
+        const String PASSWORD_KEY = String("pwd_") + i;
+        _preferences.remove(SSID_KEY.c_str());
+        _preferences.remove(PASSWORD_KEY.c_str());
     }
 
     // Re-store filtered networks with contiguous indices
     for (size_t i = 0; i < filteredNetworks.size(); i++) {
-        char ssidKey[128];
-        char passwordKey[128];
-        sprintf(ssidKey, "ssid_%d", static_cast<int>(i));
-        sprintf(passwordKey, "pwd_%d", static_cast<int>(i));
-        _preferences.putString(ssidKey, filteredNetworks[i].ssid);
-        _preferences.putString(passwordKey, filteredNetworks[i].password);
+        const String SSID_KEY = String("ssid_") + static_cast<int>(i);
+        const String PASSWORD_KEY = String("pwd_") + static_cast<int>(i);
+        _preferences.putString(SSID_KEY.c_str(), filteredNetworks[i].ssid);
+        _preferences.putString(PASSWORD_KEY.c_str(), filteredNetworks[i].password);
     }
 
     // Update wifi_count
