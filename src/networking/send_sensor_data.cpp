@@ -62,13 +62,13 @@ void SendSensorData::attach_side_tof_data(JsonObject& payload) {
 }
 
 void SendSensorData::send_sensor_data_to_server() {
-    if (!sendSensorData) {
+    if (!_sendSensorData) {
         return;
     }
 
     // Check available connections - prioritize serial over websocket
-    bool serial_connected = SerialManager::get_instance().is_serial_connected() = false;
-    bool websocket_connected = WebSocketManager::get_instance().is_ws_connected() = false;
+    bool serial_connected = SerialManager::get_instance().is_serial_connected();
+    bool websocket_connected = WebSocketManager::get_instance().is_ws_connected();
 
     // Must have at least one connection
     if (!serial_connected && !websocket_connected) {
@@ -78,7 +78,7 @@ void SendSensorData::send_sensor_data_to_server() {
     uint32_t current_time = millis();
     // Use different intervals based on connection type
     uint32_t required_interval = serial_connected ? SERIAL_SEND_INTERVAL : WS_SEND_INTERVAL;
-    if (current_time - lastSendTime < required_interval) {
+    if (current_time - _lastSendTime < required_interval) {
         return;
     }
 
@@ -89,25 +89,25 @@ void SendSensorData::send_sensor_data_to_server() {
     JsonObject payload = doc.createNestedObject("payload");
 
     // Attach different types of sensor data based on current flags
-    if (sendEncoderData) {
+    if (_sendEncoderData) {
         attach_rpm_data(payload);
     }
-    if (sendColorSensorData) {
+    if (_sendColorSensorData) {
         attach_color_sensor_data(payload);
     }
-    if (sendEulerData) {
+    if (_sendEulerData) {
         attach_euler_data(payload);
     }
-    if (sendAccelData) {
+    if (_sendAccelData) {
         attach_accel_data(payload);
     }
-    if (sendGyroData) {
+    if (_sendGyroData) {
         attach_gyro_data(payload);
     }
-    if (sendMagnetometerData) {
+    if (_sendMagnetometerData) {
         attach_magnetometer_data(payload);
     }
-    if (sendSideTofData) {
+    if (_sendSideTofData) {
         attach_side_tof_data(payload);
     }
     // Multizone ToF data is now sent separately via send_multizone_data()
@@ -125,17 +125,17 @@ void SendSensorData::send_sensor_data_to_server() {
         }
     }
 
-    lastSendTime = current_time;
+    _lastSendTime = current_time;
 }
 
 void SendSensorData::send_multizone_data() {
-    if (!sendMzData) {
+    if (!_sendMzData) {
         return;
     }
 
     // Check available connections - prioritize serial over websocket
-    bool serial_connected = SerialManager::get_instance().is_serial_connected() = false;
-    bool websocket_connected = WebSocketManager::get_instance().is_ws_connected() = false;
+    bool serial_connected = SerialManager::get_instance().is_serial_connected();
+    bool websocket_connected = WebSocketManager::get_instance().is_ws_connected();
 
     // Must have at least one connection
     if (!serial_connected && !websocket_connected) {
@@ -145,7 +145,7 @@ void SendSensorData::send_multizone_data() {
     uint32_t current_time = millis();
     // Use different intervals based on connection type
     uint32_t required_mz_interval = serial_connected ? SERIAL_MZ_INTERVAL : WS_MZ_INTERVAL;
-    if (current_time - lastMzSendTime < required_mz_interval) {
+    if (current_time - _lastMzSendTime < required_mz_interval) {
         return;
     }
 
@@ -171,10 +171,10 @@ void SendSensorData::send_multizone_data() {
             SerialQueueManager::get_instance().queue_message(json_string, SerialPriority::CRITICAL);
         } else if (websocket_connected) {
             if (WebSocketManager::get_instance().is_ws_connected()) {
-                WebSocketManager::get_instance().wsClient.send(json_string);
+                WebSocketManager::get_instance()._wsClient.send(json_string);
             }
         }
     }
 
-    lastMzSendTime = current_time;
+    _lastMzSendTime = current_time;
 }

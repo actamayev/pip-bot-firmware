@@ -6,14 +6,14 @@
 #include "utils/structs.h"
 
 WebSocketManager::WebSocketManager() {
-    wsConnected = false;
-    lastConnectionAttempt = 0;
+    _wsConnected = false;
+    _lastConnectionAttempt = 0;
     String pip_id = PreferencesManager::get_instance().get_pip_id();
-    wsClient.addHeader("X-Pip-Id", pipId);
+    _wsClient.addHeader("X-Pip-Id", pip_id);
     if (DEFAULT_ENVIRONMENT == "local") {
         return;
     }
-    wsClient.setCACert(ROOT_CA_CERTIFICATE);
+    _wsClient.setCACert(ROOT_CA_CERTIFICATE);
 }
 
 void WebSocketManager::handle_binary_message(WebsocketsMessage message) {
@@ -51,7 +51,7 @@ void WebSocketManager::handle_binary_message(WebsocketsMessage message) {
             }
 
             // Process the extracted message
-            MessageProcessor::get_instance().process_binary_message(processedData, payloadLength + 1);
+            MessageProcessor::get_instance().process_binary_message(processed_data, payload_length + 1);
 
             delete[] processed_data;
         } else {
@@ -61,34 +61,34 @@ void WebSocketManager::handle_binary_message(WebsocketsMessage message) {
 }
 
 void WebSocketManager::connect_to_websocket() {
-    wsClient.onMessage([this](WebsocketsMessage message) { this->handle_binary_message(message); });
+    _wsClient.onMessage([this](WebsocketsMessage message) { this->handle_binary_message(message); });
 
-    wsClient.onEvent([this](WebsocketsEvent event, String data) {
+    _wsClient.onEvent([this](WebsocketsEvent event, String data) {
         switch (event) {
             case WebsocketsEvent::ConnectionOpened:
-                this->wsConnected = true;
-                this->hasKilledWiFiProcesses = false; // Reset the flag
-                this->lastPingTime = millis();        // Initialize ping time
+                this->_wsConnected = true;
+                this->_hasKilledWiFiProcesses = false; // Reset the flag
+                this->_lastPingTime = millis();        // Initialize ping time
                 this->send_initial_data();
                 break;
             case WebsocketsEvent::ConnectionClosed:
                 SerialQueueManager::get_instance().queue_message("WebSocket disconnected");
                 kill_wifi_processes();
-                this->wsConnected = false;
+                this->_wsConnected = false;
                 break;
             case WebsocketsEvent::GotPing:
                 SerialQueueManager::get_instance().queue_message("Got ping");
-                this->lastPingTime = millis(); // Update ping time
+                this->_lastPingTime = millis(); // Update ping time
                 break;
             case WebsocketsEvent::GotPong:
                 SerialQueueManager::get_instance().queue_message("Got pong");
                 // TODO 11/13/25: Should this be lastPingTime?
-                this->lastPingTime = millis(); // Update ping time
+                this->_lastPingTime = millis(); // Update ping time
                 break;
         }
     });
 
-    lastConnectionAttempt = 0; // Force an immediate connection attempt in the next poll
+    _lastConnectionAttempt = 0; // Force an immediate connection attempt in the next poll
 }
 
 void WebSocketManager::add_battery_data_to_payload(JsonObject& payload) {
@@ -116,86 +116,89 @@ void WebSocketManager::add_battery_data_to_payload(JsonObject& payload) {
 void WebSocketManager::send_initial_data() {
     SerialQueueManager::get_instance().queue_message("WebSocket connected. Sending initial data...");
     auto init_doc = make_base_message_server<256>(ToServerMessage::DEVICE_INITIAL_DATA);
-    JsonObject payload = initDoc.createNestedObject("payload");
+    JsonObject payload = init_doc.createNestedObject("payload");
     payload["firmwareVersion"] = FirmwareVersionTracker::get_instance().get_firmware_version();
 
     // Add battery data to the same request
     add_battery_data_to_payload(payload);
 
     String json_string;
-    serializeJson(initDoc, json_string);
+    serializeJson(init_doc, json_string);
     WiFiClass::mode(WIFI_STA);
-    wsClient.send(jsonString);
+    WebSocketManager::get_instance()._wsClient.send(json_string);
 }
 
 void WebSocketManager::send_battery_monitor_data() {
-    if (!wsConnected) {
+    WebSocketManager& instance = WebSocketManager::get_instance();
+    if (!instance._wsConnected) {
         return;
     }
 
     auto battery_doc = make_base_message_server<256>(ToServerMessage::BATTERY_MONITOR_DATA_FULL);
-    JsonObject payload = batteryDoc.createNestedObject("payload");
+    JsonObject payload = battery_doc.createNestedObject("payload");
     add_battery_data_to_payload(payload);
 
     String json_string;
-    serializeJson(batteryDoc, json_string);
-    wsClient.send(jsonString);
+    serializeJson(battery_doc, json_string);
+    instance._wsClient.send(json_string);
 }
 
 void WebSocketManager::poll_websocket() {
+    WebSocketManager& instance = WebSocketManager::get_instance();
     uint32_t current_time = millis();
-    if (current_time - lastPollTime < POLL_INTERVAL) {
+    if (current_time - instance._lastPollTime < POLL_INTERVAL) {
         return;
     }
 
-    lastPollTime = current_time;
+    instance._lastPollTime = current_time;
 
     if (WiFiClass::status() != WL_CONNECTED) {
-        if (wsConnected) {
+        if (instance._wsConnected) {
             SerialQueueManager::get_instance().queue_message("WiFi lost during WebSocket session", SerialPriority::HIGH_PRIO);
-            wsConnected = false;
+            instance._wsConnected = false;
             kill_wifi_processes();
         }
         return;
     }
 
-    if (wsConnected && (current_time - lastPingTime >= WS_TIMEOUT)) {
+    if (instance._wsConnected && (current_time - instance._lastPingTime >= WS_TIMEOUT)) {
         SerialQueueManager::get_instance().queue_message("WebSocket ping timeout - connection lost", SerialPriority::HIGH_PRIO);
-        wsConnected = false;
+        instance._wsConnected = false;
         kill_wifi_processes();
     }
 
     // Connection management - try to connect if not connected
-    if (!wsConnected && (current_time - lastConnectionAttempt >= CONNECTION_INTERVAL)) {
-        lastConnectionAttempt = current_time;
+    if (!instance._wsConnected && (current_time - instance._lastConnectionAttempt >= CONNECTION_INTERVAL)) {
+        instance._lastConnectionAttempt = current_time;
 
         SerialQueueManager::get_instance().queue_message("Attempting to connect to WebSocket...");
 
-        if (!wsClient.connect(get_ws_server_url())) {
+        if (!instance._wsClient.connect(get_ws_server_url())) {
             SerialQueueManager::get_instance().queue_message("WebSocket connection failed. Will try again in 3 seconds");
         } else {
             SerialQueueManager::get_instance().queue_message("WebSocket connected successfully");
-            wsConnected = true;
+            instance._wsConnected = true;
         }
         return;
     }
 
     // Only poll if connected
-    if (!wsConnected) {
+    if (!instance._wsConnected) {
         return;
     }
     try {
-        wsClient.poll();
+        instance._wsClient.poll();
     } catch (const std::exception& e) {
         // SerialQueueManager::get_instance().queue_message("Error during WebSocket poll: %s\n", e.what());
-        wsConnected = false; // Mark as disconnected to trigger reconnect
+        instance._wsConnected = false; // Mark as disconnected to trigger reconnect
     }
 }
 
 void WebSocketManager::kill_wifi_processes() {
+    WebSocketManager& instance = WebSocketManager::get_instance();
     // This method activates when the ESP has been disconnected from WS.
     // Should only run once.
-    if (hasKilledWiFiProcesses) {
+    if (instance._hasKilledWiFiProcesses) {
         return;
     }
     career_quest_triggers.stop_all_career_quest_triggers(false);
@@ -210,24 +213,26 @@ void WebSocketManager::kill_wifi_processes() {
     SendSensorData::get_instance().set_color_sensor_data_enabled(false);
     SendSensorData::get_instance().set_encoder_data_enabled(false);
 
-    hasKilledWiFiProcesses = true;
-    userConnectedToThisPip = false;
+    instance._hasKilledWiFiProcesses = true;
+    instance._userConnectedToThisPip = false;
 }
 
 void WebSocketManager::send_pip_turning_off() {
-    if (!wsConnected) {
+    WebSocketManager& instance = WebSocketManager::get_instance();
+    if (!instance._wsConnected) {
         return;
     }
     auto pip_turning_off_doc = make_base_message_common<256>(ToCommonMessage::PIP_TURNING_OFF);
-    JsonObject payload = pipTurningOffDoc.createNestedObject("payload");
+    JsonObject payload = pip_turning_off_doc.createNestedObject("payload");
     "reason"[payload] = "Pip is turning off";
     String json_string;
-    serializeJson(pipTurningOffDoc, json_string);
-    wsClient.send(jsonString);
+    serializeJson(pip_turning_off_doc, json_string);
+    instance._wsClient.send(json_string);
 }
 
 void WebSocketManager::send_dino_score(int score) {
-    if (!wsConnected) {
+    WebSocketManager& instance = WebSocketManager::get_instance();
+    if (!instance._wsConnected) {
         return;
     }
 
@@ -237,11 +242,11 @@ void WebSocketManager::send_dino_score(int score) {
 
     String json_string;
     serializeJson(doc, json_string);
-    wsClient.send(jsonString);
+    instance._wsClient.send(json_string);
 }
 
 void WebSocketManager::set_is_user_connected_to_this_pip(bool new_is_user_connected_to_this_pip) {
-    userConnectedToThisPip = newIsUserConnectedToThisPip;
+    _userConnectedToThisPip = new_is_user_connected_to_this_pip;
     if (new_is_user_connected_to_this_pip) {
         return;
     }

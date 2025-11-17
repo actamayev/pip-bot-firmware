@@ -3,8 +3,8 @@
 void SerialManager::poll_serial() {
     if (Serial.available() <= 0) {
         // Check for timeout if we're connected but haven't received data for a while
-        if (isConnected && (millis() - lastActivityTime > SERIAL_CONNECTION_TIMEOUT)) {
-            isConnected = false;
+        if (is_connected && (millis() - lastActivityTime > SERIAL_CONNECTION_TIMEOUT)) {
+            is_connected = false;
             if (!WebSocketManager::get_instance().is_ws_connected()) {
                 career_quest_triggers.stop_all_career_quest_triggers(false);
             }
@@ -14,8 +14,8 @@ void SerialManager::poll_serial() {
 
     lastActivityTime = millis();
 
-    if (!isConnected) {
-        isConnected = true;
+    if (!is_serial_connected()) {
+        is_connected = true;
         // If we were previously trying to connect to wifi (breathing red), we should turn it off when connecting to serial
         led_animations.stop_animation();
     }
@@ -107,7 +107,7 @@ void SerialManager::poll_serial() {
 }
 
 void SerialManager::send_pip_id_message() {
-    if (!isConnected) {
+    if (!is_serial_connected()) {
         return;
     }
 
@@ -118,11 +118,11 @@ void SerialManager::send_pip_id_message() {
     String json_string;
     serializeJson(doc, json_string);
 
-    SerialQueueManager::get_instance().queue_message(jsonString, SerialPriority::CRITICAL);
+    SerialQueueManager::get_instance().queue_message(json_string, SerialPriority::CRITICAL);
 }
 
 void SerialManager::send_json_message(ToSerialMessage route, const String& status) {
-    if (!isConnected) {
+    if (!is_serial_connected()) {
         return;
     }
 
@@ -134,11 +134,11 @@ void SerialManager::send_json_message(ToSerialMessage route, const String& statu
     serializeJson(doc, json_string);
 
     // Browser responses are CRITICAL
-    SerialQueueManager::get_instance().queue_message(jsonString, SerialPriority::CRITICAL);
+    SerialQueueManager::get_instance().queue_message(json_string, SerialPriority::CRITICAL);
 }
 
 static void SerialManager::send_saved_networks_response(const std::vector<WiFiCredentials>& networks) {
-    if (!isConnected) {
+    if (!is_serial_connected()) {
         return;
     }
 
@@ -155,11 +155,11 @@ static void SerialManager::send_saved_networks_response(const std::vector<WiFiCr
     String json_string;
     serializeJson(doc, json_string);
 
-    SerialQueueManager::get_instance().queue_message(jsonString, SerialPriority::CRITICAL);
+    SerialQueueManager::get_instance().queue_message(json_string, SerialPriority::CRITICAL);
 }
 
 static void SerialManager::send_scan_results_response(const std::vector<WiFiNetworkInfo>& networks) {
-    if (!isConnected) {
+    if (!is_serial_connected()) {
         return;
     }
 
@@ -174,7 +174,7 @@ static void SerialManager::send_scan_results_response(const std::vector<WiFiNetw
         String json_string;
         serializeJson(doc, json_string);
 
-        SerialQueueManager::get_instance().queue_message(jsonString, SerialPriority::CRITICAL);
+        SerialQueueManager::get_instance().queue_message(json_string, SerialPriority::CRITICAL);
     }
 
     // Send completion message
@@ -185,11 +185,11 @@ static void SerialManager::send_scan_results_response(const std::vector<WiFiNetw
     String complete_json_string;
     serializeJson(completeDoc, complete_json_string);
 
-    SerialQueueManager::get_instance().queue_message(completeJsonString, SerialPriority::CRITICAL);
+    SerialQueueManager::get_instance().queue_message(completejson_string, SerialPriority::CRITICAL);
 }
 
 void SerialManager::send_scan_started_message() {
-    if (!isConnected) {
+    if (!is_serial_connected()) {
         return;
     }
 
@@ -201,11 +201,11 @@ void SerialManager::send_scan_started_message() {
     serializeJson(doc, json_string);
 
     // Use CRITICAL priority for browser responses
-    SerialQueueManager::get_instance().queue_message(jsonString, SerialPriority::CRITICAL);
+    SerialQueueManager::get_instance().queue_message(json_string, SerialPriority::CRITICAL);
 }
 
 void SerialManager::send_battery_monitor_data() {
-    if (!isConnected) {
+    if (!is_serial_connected()) {
         return;
     }
 
@@ -233,11 +233,11 @@ void SerialManager::send_battery_monitor_data() {
     String complete_json_string;
     serializeJson(completeDoc, complete_json_string);
 
-    SerialQueueManager::get_instance().queue_message(completeJsonString, SerialPriority::CRITICAL);
+    SerialQueueManager::get_instance().queue_message(completejson_string, SerialPriority::CRITICAL);
 }
 
 void SerialManager::send_battery_data_item(const String& key, int value) {
-    if (!isConnected) {
+    if (!is_serial_connected()) {
         return;
     }
 
@@ -249,11 +249,11 @@ void SerialManager::send_battery_data_item(const String& key, int value) {
     String json_string;
     serializeJson(doc, json_string);
 
-    SerialQueueManager::get_instance().queue_message(jsonString, SerialPriority::CRITICAL);
+    SerialQueueManager::get_instance().queue_message(json_string, SerialPriority::CRITICAL);
 }
 
 void SerialManager::send_battery_data_item(const String& key, uint32_t value) {
-    if (!isConnected) {
+    if (!is_serial_connected()) {
         return;
     }
 
@@ -265,11 +265,11 @@ void SerialManager::send_battery_data_item(const String& key, uint32_t value) {
     String json_string;
     serializeJson(doc, json_string);
 
-    SerialQueueManager::get_instance().queue_message(jsonString, SerialPriority::CRITICAL);
+    SerialQueueManager::get_instance().queue_message(json_string, SerialPriority::CRITICAL);
 }
 
 void SerialManager::send_battery_data_item(const String& key, float value) {
-    if (!isConnected) {
+    if (!is_serial_connected()) {
         return;
     }
 
@@ -281,11 +281,11 @@ void SerialManager::send_battery_data_item(const String& key, float value) {
     String json_string;
     serializeJson(doc, json_string);
 
-    SerialQueueManager::get_instance().queue_message(jsonString, SerialPriority::CRITICAL);
+    SerialQueueManager::get_instance().queue_message(json_string, SerialPriority::CRITICAL);
 }
 
 void SerialManager::send_battery_data_item(const String& key, bool value) {
-    if (!isConnected) {
+    if (!is_serial_connected()) {
         return;
     }
 
@@ -297,11 +297,11 @@ void SerialManager::send_battery_data_item(const String& key, bool value) {
     String json_string;
     serializeJson(doc, json_string);
 
-    SerialQueueManager::get_instance().queue_message(jsonString, SerialPriority::CRITICAL);
+    SerialQueueManager::get_instance().queue_message(json_string, SerialPriority::CRITICAL);
 }
 
 void SerialManager::send_dino_score(int score) {
-    if (!isConnected) {
+    if (!is_serial_connected()) {
         return;
     }
 
@@ -312,11 +312,11 @@ void SerialManager::send_dino_score(int score) {
     String json_string;
     serializeJson(doc, json_string);
 
-    SerialQueueManager::get_instance().queue_message(jsonString, SerialPriority::CRITICAL);
+    SerialQueueManager::get_instance().queue_message(json_string, SerialPriority::CRITICAL);
 }
 
 void SerialManager::send_network_deleted_response(bool success) {
-    if (!isConnected) {
+    if (!is_serial_connected()) {
         return;
     }
 
@@ -327,11 +327,11 @@ void SerialManager::send_network_deleted_response(bool success) {
     String json_string;
     serializeJson(doc, json_string);
 
-    SerialQueueManager::get_instance().queue_message(jsonString, SerialPriority::CRITICAL);
+    SerialQueueManager::get_instance().queue_message(json_string, SerialPriority::CRITICAL);
 }
 
 void SerialManager::send_pip_turning_off() {
-    if (!isConnected) {
+    if (!is_serial_connected()) {
         return;
     }
 
@@ -342,5 +342,5 @@ void SerialManager::send_pip_turning_off() {
     String json_string;
     serializeJson(pipTurningOffDoc, json_string);
 
-    SerialQueueManager::get_instance().queue_message(jsonString, SerialPriority::CRITICAL);
+    SerialQueueManager::get_instance().queue_message(json_string, SerialPriority::CRITICAL);
 }

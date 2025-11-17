@@ -82,7 +82,7 @@ class DinoRunner : public Singleton<DinoRunner> {
     static void spawn_obstacle();
     void update_obstacles(float dt);
     static void update_dino(float dt);
-    static bool check_collision(const Obstacle& o);
+    bool check_collision(const Obstacle& o);
     static void game_over();
 
     // Drawing methods (using display buffer)

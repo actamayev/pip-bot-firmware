@@ -190,11 +190,11 @@ void DisplayScreen::show_low_battery_screen() {
     instance._display.clearDisplay();
 
     // Draw warning icon (triangle with exclamation)
-    int center_x = instance._display.width() / 2;
-    instance._display.drawTriangle(center_x - 8, 20, center_x + 8, 20, center_x, 5, SSD1306_WHITE);
-    instance._display.drawPixel(center_x, 10, SSD1306_WHITE);
-    instance._display.drawPixel(center_x, 12, SSD1306_WHITE);
-    instance._display.drawPixel(center_x, 16, SSD1306_WHITE);
+    const int CENTER_X = instance._display.width() / 2;
+    instance._display.drawTriangle(CENTER_X - 8, 20, CENTER_X + 8, 20, CENTER_X, 5, SSD1306_WHITE);
+    instance._display.drawPixel(CENTER_X, 10, SSD1306_WHITE);
+    instance._display.drawPixel(CENTER_X, 12, SSD1306_WHITE);
+    instance._display.drawPixel(CENTER_X, 16, SSD1306_WHITE);
 
     // Draw "LOW BATTERY" text
     draw_centered_text("LOW BATTERY", 25, 1);
@@ -318,7 +318,7 @@ void DisplayScreen::generate_content_to_buffer() {
     // uint8_t* displayBuffer = _display.getBuffer();
     // memcpy(_stagingBuffer, displayBuffer, DISPLAY_BUFFER_SIZE);
     // return;
-    if (career_quest_triggers.isS3P3Active()) {
+    if (career_quest_triggers.is_s3_p3_active()) {
         career_quest_triggers.render_s3_p3_animation();
         // Copy display buffer to staging buffer
         uint8_t* display_buffer = instance._display.getBuffer();
