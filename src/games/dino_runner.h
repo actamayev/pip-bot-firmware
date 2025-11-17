@@ -27,7 +27,7 @@ class DinoRunner : public Singleton<DinoRunner> {
     DinoRunner() = default;
 
     // Game states
-    enum class GameState { MENU, RUNNING, GAME_OVER };
+    enum class GameState : uint8_t { MENU, RUNNING, GAME_OVER };
     GameState _game_state = GameState::MENU;
     bool _game_active = false;
 

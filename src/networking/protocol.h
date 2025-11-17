@@ -34,50 +34,21 @@ enum class DataMessageType : uint8_t {
 };
 
 // Speaker status
-enum class SpeakerStatus : uint8_t {
-    UNMUTED = 0,
-    MUTED = 1
-};
+enum class SpeakerStatus : uint8_t { UNMUTED = 0, MUTED = 1 };
 
-enum class HeadlightStatus {
-    OFF = 0,
-    ON = 1
-};
+enum class HeadlightStatus : uint8_t { OFF = 0, ON = 1 };
 
-enum class BalanceStatus : uint8_t {
-    UNBALANCED = 0,
-    BALANCED = 1
-};
+enum class BalanceStatus : uint8_t { UNBALANCED = 0, BALANCED = 1 };
 
-enum class ObstacleAvoidanceStatus : uint8_t {
-    STOP_AVOIDANCE = 0,
-    AVOID = 1
-};
+enum class ObstacleAvoidanceStatus : uint8_t { STOP_AVOIDANCE = 0, AVOID = 1 };
 
-enum class UserConnectedStatus : uint8_t {
-    NOT_CONNECTED = 0,
-    CONNECTED = 1
-};
+enum class UserConnectedStatus : uint8_t { NOT_CONNECTED = 0, CONNECTED = 1 };
 
-enum class LightAnimationStatus : uint8_t {
-    NO_ANIMATION = 0,
-    BREATHING = 1,
-    RAINBOW = 2,
-    STROBE = 3,
-    TURN_OFF = 4,
-    FADE_OUT = 5
-};
+enum class LightAnimationStatus : uint8_t { NO_ANIMATION = 0, BREATHING = 1, RAINBOW = 2, STROBE = 3, TURN_OFF = 4, FADE_OUT = 5 };
 
-enum class WiFiConnectionStatus : uint8_t {
-    FAILED = 0,
-    WIFI_ONLY = 1,
-    WIFI_AND_WEBSOCKET_SUCCESS = 2
-};
+enum class WiFiConnectionStatus : uint8_t { FAILED = 0, WIFI_ONLY = 1, WIFI_AND_WEBSOCKET_SUCCESS = 2 };
 
-enum class CareerType : uint8_t {
-    MEET_PIP = 1,
-    TURRET_ARCADE = 2
-};
+enum class CareerType : uint8_t { MEET_PIP = 1, TURRET_ARCADE = 2 };
 
 enum class MeetPipTriggerType : uint8_t {
     ENTER_CAREER = 0,
@@ -110,22 +81,19 @@ enum class MeetPipTriggerType : uint8_t {
     S4_P4_EXIT = 27,
 };
 
-enum class TurretArcadeTriggerType : uint8_t {
-    ENTER_TURRET_ARCADE = 0,
-    EXIT_TURRET_ARCADE = 1
-};
+enum class TurretArcadeTriggerType : uint8_t { ENTER_TURRET_ARCADE = 0, EXIT_TURRET_ARCADE = 1 };
 
 struct NewBalancePids {
-    float pValue;               // 4 bytes
-    float iValue;               // 4 bytes
-    float dValue;               // 4 bytes
-    float ffValue;              // 4 bytes
-    float targetAngle;          // 4 bytes
+    float pValue;                // 4 bytes
+    float iValue;                // 4 bytes
+    float dValue;                // 4 bytes
+    float ffValue;               // 4 bytes
+    float targetAngle;           // 4 bytes
     float maxSafeAngleDeviation; // 4 bytes
-    float updateInterval;       // 4 bytes
-    float deadbandAngle;        // 4 bytes
-    float maxStableRotation;    // 4 bytes
-    float minEffectivePwm;    // 4 bytes
+    float updateInterval;        // 4 bytes
+    float deadbandAngle;         // 4 bytes
+    float maxStableRotation;     // 4 bytes
+    float minEffectivePwm;       // 4 bytes
 };
 
 struct NewLightColors {

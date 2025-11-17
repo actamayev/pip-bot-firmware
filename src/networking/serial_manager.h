@@ -32,7 +32,7 @@ class SerialManager : public Singleton<SerialManager> {
 
   private:
     SerialManager() = default; // Make constructor private and implement it
-    enum class ParseState {
+    enum class ParseState : uint8_t {
         WAITING_FOR_START,
         READING_MESSAGE_TYPE,
         READING_FORMAT_FLAG,

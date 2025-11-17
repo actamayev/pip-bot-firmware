@@ -100,7 +100,7 @@ struct ImuSample {
 };
 
 // Timeout tracking for each report type
-// Timeout tracking for each report type
+// NOLINTBEGIN(readability-convert-member-functions-to-static)
 struct ReportTimeouts {
     std::atomic<uint32_t> quaternion_last_request{0};
     std::atomic<uint32_t> accelerometer_last_request{0};
@@ -147,6 +147,7 @@ struct ReportTimeouts {
         return last_request > 0 && (millis() - last_request) < TIMEOUT_MS;
     }
 };
+// NOLINTEND(readability-convert-member-functions-to-static)
 
 class SensorDataBuffer : public Singleton<SensorDataBuffer> {
     friend class Singleton<SensorDataBuffer>;
@@ -221,7 +222,7 @@ class SensorDataBuffer : public Singleton<SensorDataBuffer> {
     static void stop_polling_all_sensors();
 
     // Sensor type enum for selective control
-    enum class SensorType { QUATERNION, ACCELEROMETER, GYROSCOPE, MAGNETOMETER, MULTIZONE_TOF, SIDE_TOF, COLOR };
+    enum class SensorType : uint8_t { QUATERNION, ACCELEROMETER, GYROSCOPE, MAGNETOMETER, MULTIZONE_TOF, SIDE_TOF, COLOR };
 
     // Selective sensor polling control
     static void stop_polling_sensor(SensorType sensor_type);

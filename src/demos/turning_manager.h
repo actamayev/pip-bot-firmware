@@ -5,9 +5,9 @@
 #include "networking/serial_queue_manager.h"
 #include "sensors/sensor_data_buffer.h"
 
-enum class TurningDirection { NONE, CLOCKWISE, COUNTER_CLOCKWISE };
+enum class TurningDirection : uint8_t { NONE, CLOCKWISE, COUNTER_CLOCKWISE };
 
-enum class TurningState { IDLE, TURNING, OVERSHOOT_BRAKING };
+enum class TurningState : uint8_t { IDLE, TURNING, OVERSHOOT_BRAKING };
 
 class TurningManager : public Singleton<TurningManager> {
     friend class Singleton<TurningManager>;
