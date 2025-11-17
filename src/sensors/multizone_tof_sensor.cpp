@@ -24,7 +24,7 @@ bool MultizoneTofSensor::initialize() {
     }
 
     SerialQueueManager::get_instance().queue_message("MZ TOF sensor initialization failed");
-    // scanI2C();  // Scan I2C bus to help debug
+    // scan_i2_c();  // Scan I2C bus to help debug
     return false;
 }
 

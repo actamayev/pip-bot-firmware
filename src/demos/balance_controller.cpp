@@ -48,7 +48,7 @@ void BalanceController::update() {
     // _lastUpdateTime = currentTime;
 
     // Get current pitch
-    float rawAngle = SensorDataBuffer::get_instance().getLatestPitch();
+    float rawAngle = SensorDataBuffer::get_instance().get_latest_pitch();
     float currentAngle = rawAngle;
 
     // Update safety monitoring buffer
@@ -57,10 +57,10 @@ void BalanceController::update() {
     if (_safetyBufferCount < ANGLE_BUFFER_SIZE) _safetyBufferCount++;
 
     // Calculate safety buffer average using circular mean
-    float safetyAverage = calculateCircularMean(_safetyBuffer, _safetyBufferCount);
+    float safetyAverage = calculate_circular_mean(_safetyBuffer, _safetyBufferCount);
 
     // Calculate control buffer average using circular mean
-    float controlAverage = calculateCircularMean(_angleBuffer, _angleBufferCount);
+    float controlAverage = calculate_circular_mean(_angleBuffer, _angleBufferCount);
 
     // Validate reading against control average for PID input
     float deviation = abs(rawAngle - controlAverage);

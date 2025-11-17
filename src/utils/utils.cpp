@@ -1,10 +1,10 @@
 #include "utils.h"
 
-void quaternionToEuler(float qr, float qi, float qj, float qk, float& yaw, float& pitch, float& roll) {
+void quaternion_to_euler(float qr, float qi, float qj, float qk, float& yaw, float& pitch, float& roll) {
     // Roll (x-axis rotation)
-    float const sinrCosp = 2 * (qr * qi + qj * qk);
-    float const cosrCosp = 1 - (2 * (qi * qi + qj * qj));
-    roll = atan2(sinrCosp, cosrCosp);
+    float const sinr_cosp = 2 * (qr * qi + qj * qk);
+    float const cosr_cosp = 1 - (2 * (qi * qi + qj * qj));
+    roll = atan2(sinr_cosp, cosr_cosp);
 
     // Pitch (y-axis rotation)
     float const sinp = 2 * (qr * qj - qk * qi);
@@ -15,9 +15,9 @@ void quaternionToEuler(float qr, float qi, float qj, float qk, float& yaw, float
     }
 
     // Yaw (z-axis rotation)
-    float const sinyCosp = 2 * (qr * qk + qi * qj);
-    float const cosyCosp = 1 - (2 * (qj * qj + qk * qk));
-    yaw = atan2(sinyCosp, cosyCosp);
+    float const siny_cosp = 2 * (qr * qk + qi * qj);
+    float const cosy_cosp = 1 - (2 * (qj * qj + qk * qk));
+    yaw = atan2(siny_cosp, cosy_cosp);
 
     // Convert to degrees
     yaw *= RAD_TO_DEG;
@@ -25,36 +25,36 @@ void quaternionToEuler(float qr, float qi, float qj, float qk, float& yaw, float
     roll *= RAD_TO_DEG;
 }
 
-bool checkAddressOnI2cLine(uint8_t addr) {
+bool check_address_on_i2c_line(uint8_t addr) {
     byte error = 0;
 
-    char logMessage[64];
-    snprintf(logMessage, sizeof(logMessage), "Checking for device at address %d...", addr);
-    SerialQueueManager::get_instance().queue_message(logMessage);
+    char log_message[64];
+    snprintf(log_message, sizeof(log_message), "Checking for device at address %d...", addr);
+    SerialQueueManager::get_instance().queue_message(log_message);
 
     Wire.beginTransmission(addr);
     error = Wire.endTransmission();
 
     if (error == 0) {
-        snprintf(logMessage, sizeof(logMessage), "Device found at address %d!", addr);
-        SerialQueueManager::get_instance().queue_message(logMessage);
+        snprintf(log_message, sizeof(log_message), "Device found at address %d!", addr);
+        SerialQueueManager::get_instance().queue_message(log_message);
         return true;
     }
     if (error == 4) {
-        snprintf(logMessage, sizeof(logMessage), "Unknown error while checking address %d", addr);
-        SerialQueueManager::get_instance().queue_message(logMessage);
+        snprintf(log_message, sizeof(log_message), "Unknown error while checking address %d", addr);
+        SerialQueueManager::get_instance().queue_message(log_message);
     } else {
-        snprintf(logMessage, sizeof(logMessage), "No device found at address %d", addr);
-        SerialQueueManager::get_instance().queue_message(logMessage);
+        snprintf(log_message, sizeof(log_message), "No device found at address %d", addr);
+        SerialQueueManager::get_instance().queue_message(log_message);
     }
     return false;
 }
 
-void scanI2C() {
+void scan_i2_c() {
     byte error;
     byte address;
-    int devicesFound = 0;
-    char logMessage[64];
+    int devices_found = 0;
+    char log_message[64];
 
     SerialQueueManager::get_instance().queue_message("Scanning I2C bus...");
 
@@ -63,42 +63,42 @@ void scanI2C() {
         error = Wire.endTransmission();
 
         if (error == 0) {
-            snprintf(logMessage, sizeof(logMessage), "Device found at address 0x%02X", address);
-            SerialQueueManager::get_instance().queue_message(logMessage);
-            devicesFound++;
+            snprintf(log_message, sizeof(log_message), "Device found at address 0x%02X", address);
+            SerialQueueManager::get_instance().queue_message(log_message);
+            devices_found++;
         }
     }
 
-    if (devicesFound == 0) {
+    if (devices_found == 0) {
         SerialQueueManager::get_instance().queue_message("No I2C devices found");
     } else {
-        snprintf(logMessage, sizeof(logMessage), "Found %d device(s)", devicesFound);
-        SerialQueueManager::get_instance().queue_message(logMessage);
+        snprintf(log_message, sizeof(log_message), "Found %d device(s)", devices_found);
+        SerialQueueManager::get_instance().queue_message(log_message);
     }
 }
 
-float calculateCircularMean(const float angles[], uint8_t count) {
+float calculate_circular_mean(const float angles[], uint8_t count) {
     if (count == 0) {
         return 0.0F;
     }
 
-    float sumSin = 0.0F;
-    float sumCos = 0.0F;
+    float sum_sin = 0.0F;
+    float sum_cos = 0.0F;
 
     for (uint8_t i = 0; i < count; i++) {
         // Convert angle to radians for trigonometric functions
-        float const angleRad = angles[i] * PI / 180.0F;
-        sumSin += sin(angleRad);
-        sumCos += cos(angleRad);
+        float const angle_rad = angles[i] * PI / 180.0F;
+        sum_sin += sin(angle_rad);
+        sum_cos += cos(angle_rad);
     }
 
     // Calculate mean angle in radians and convert back to degrees
-    float meanAngle = atan2(sumSin, sumCos) * 180.0F / PI;
+    float mean_angle = atan2(sum_sin, sum_cos) * 180.0F / PI;
 
-    return meanAngle;
+    return mean_angle;
 }
 
-const char* routeToStringCommon(ToCommonMessage route) {
+const char* route_to_string_common(ToCommonMessage route) {
     switch (route) {
         case ToCommonMessage::SENSOR_DATA:
             return "/sensor-data";
@@ -113,7 +113,7 @@ const char* routeToStringCommon(ToCommonMessage route) {
     }
 }
 
-const char* routeToStringServer(ToServerMessage route) {
+const char* route_to_string_server(ToServerMessage route) {
     switch (route) {
         case ToServerMessage::DEVICE_INITIAL_DATA:
             return "/device-initial-data";
@@ -124,7 +124,7 @@ const char* routeToStringServer(ToServerMessage route) {
     }
 }
 
-const char* routeToStringSerial(ToSerialMessage route) {
+const char* route_to_string_serial(ToSerialMessage route) {
     switch (route) {
         case ToSerialMessage::BYTECODE_STATUS:
             return "/bytecode-status";

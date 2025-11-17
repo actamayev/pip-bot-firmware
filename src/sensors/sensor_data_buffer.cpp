@@ -12,7 +12,7 @@ void SensorDataBuffer::update_quaternion(const QuaternionData& quaternion) {
     currentSample.quaternion = quaternion;
     // Update derived Euler angles if quaternion is valid
     if (quaternion.isValid) {
-        quaternionToEuler(quaternion.qW, quaternion.qX, quaternion.qY, quaternion.qZ, currentSample.eulerAngles.yaw, currentSample.eulerAngles.pitch,
+        quaternion_to_euler(quaternion.qW, quaternion.qX, quaternion.qY, quaternion.qZ, currentSample.eulerAngles.yaw, currentSample.eulerAngles.pitch,
                           currentSample.eulerAngles.roll);
         currentSample.eulerAngles.isValid = true;
     }
