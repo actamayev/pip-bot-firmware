@@ -35,11 +35,11 @@ bool DisplayScreen::init(bool showStartup) {
 void DisplayScreen::update() {
     if (!initialized) return;
 
-    unsigned long currentTime = millis();
+    unsigned long current_time = millis();
 
     // Only generate content at regular intervals
-    if (currentTime - lastContentGeneration < UPDATE_INTERVAL) return;
-    lastContentGeneration = currentTime;
+    if (current_time - lastContentGeneration < UPDATE_INTERVAL) return;
+    lastContentGeneration = current_time;
 
     // Generate content to staging buffer
     generate_content_to_buffer();
@@ -58,7 +58,7 @@ void DisplayScreen::update() {
     copy_current_buffer();
 
     displayUpdates++;
-    lastDisplayUpdate = currentTime;
+    lastDisplayUpdate = current_time;
 }
 
 // Show the start screen

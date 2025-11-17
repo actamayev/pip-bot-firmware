@@ -71,10 +71,10 @@ void SendSensorData::send_sensor_data_to_server() {
     // Must have at least one connection
     if (!serialConnected && !websocketConnected) return;
 
-    unsigned long currentTime = millis();
+    unsigned long current_time = millis();
     // Use different intervals based on connection type
     unsigned long requiredInterval = serialConnected ? SERIAL_SEND_INTERVAL : WS_SEND_INTERVAL;
-    if (currentTime - lastSendTime < requiredInterval) return;
+    if (current_time - lastSendTime < requiredInterval) return;
 
     // Create a JSON document with both routing information and payload
     auto doc = makeBaseMessageCommon<256>(ToCommonMessage::SENSOR_DATA);
@@ -105,7 +105,7 @@ void SendSensorData::send_sensor_data_to_server() {
         }
     }
 
-    lastSendTime = currentTime;
+    lastSendTime = current_time;
 }
 
 void SendSensorData::send_multizone_data() {
@@ -118,10 +118,10 @@ void SendSensorData::send_multizone_data() {
     // Must have at least one connection
     if (!serialConnected && !websocketConnected) return;
 
-    unsigned long currentTime = millis();
+    unsigned long current_time = millis();
     // Use different intervals based on connection type
     unsigned long requiredMzInterval = serialConnected ? SERIAL_MZ_INTERVAL : WS_MZ_INTERVAL;
-    if (currentTime - lastMzSendTime < requiredMzInterval) return;
+    if (current_time - lastMzSendTime < requiredMzInterval) return;
 
     TofData tofData = SensorDataBuffer::get_instance().get_latest_tof_data();
 
@@ -150,5 +150,5 @@ void SendSensorData::send_multizone_data() {
         }
     }
 
-    lastMzSendTime = currentTime;
+    lastMzSendTime = current_time;
 }

@@ -73,13 +73,13 @@ bool WiFiManager::attempt_new_wifi_connection(WiFiCredentials wifiCredentials) {
         vTaskDelay(pdMS_TO_TICKS(250)); // 250ms delay reduces sensor impact
 
         // Non-blocking print of dots
-        unsigned long currentTime = millis();
-        if (currentTime - lastPrintTime >= printInterval) {
-            lastPrintTime = currentTime;
+        unsigned long current_time = millis();
+        if (current_time - lastPrintTime >= printInterval) {
+            lastPrintTime = current_time;
             yield(); // Allow the ESP32 to handle background tasks
         }
-        if (currentTime - lastCheckTime >= checkInterval) {
-            lastCheckTime = currentTime;
+        if (current_time - lastCheckTime >= checkInterval) {
+            lastCheckTime = current_time;
 
             // Poll serial to update connection status
             SerialManager::get_instance().poll_serial();
@@ -161,13 +161,13 @@ void WiFiManager::check_and_reconnect_wifi() {
     // Quick check if any networks exist before trying to get them
     if (!PreferencesManager::get_instance().hasStoredWiFiNetworks()) return;
 
-    unsigned long currentTime = millis();
+    unsigned long current_time = millis();
 
-    if (currentTime - _lastReconnectAttempt < WIFI_RECONNECT_TIMEOUT) return;
+    if (current_time - _lastReconnectAttempt < WIFI_RECONNECT_TIMEOUT) return;
     SerialQueueManager::get_instance().queue_message("WiFi disconnected, attempting to reconnect...");
 
     // Update last reconnect attempt time
-    _lastReconnectAttempt = currentTime;
+    _lastReconnectAttempt = current_time;
 
     // Set connecting flag
     _isConnecting = true;
@@ -350,8 +350,8 @@ bool WiFiManager::start_async_scan() {
 void WiFiManager::check_async_scan_progress() {
     if (!_asyncScanInProgress) return; // No scan in progress
 
-    unsigned long currentTime = millis();
-    unsigned long scanDuration = currentTime - _asyncScanStartTime;
+    unsigned long current_time = millis();
+    unsigned long scanDuration = current_time - _asyncScanStartTime;
 
     // Don't check status too soon - give the scan time to actually start
     if (scanDuration < ASYNC_SCAN_MIN_CHECK_DELAY) return; // Too early to check
@@ -380,7 +380,7 @@ void WiFiManager::check_async_scan_progress() {
     // Only handle completion (positive numbers) - ignore WIFI_SCAN_FAILED and WIFI_SCAN_RUNNING
     // Scan completed successfully
     SerialQueueManager::get_instance().queue_message("Async WiFi scan completed in " + String(scanDuration) + "ms. Found " + String(scanResult) +
-                                                    " networks");
+                                                     " networks");
     _asyncScanInProgress = false;
     rgbLed.turn_main_board_leds_off();
     _lastScanCompleteTime = millis();

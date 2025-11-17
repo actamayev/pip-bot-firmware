@@ -205,8 +205,8 @@ void Speaker::update_melody() {
 
     // LED sequence update (doesn't touch audio objects, but keep under mutex to keep state consistent)
     if (_is_led_sequence_playing) {
-        unsigned long currentTime = millis();
-        if (currentTime >= _led_step_start_time + entertainer_led_sequence[_current_led_step].duration) {
+        unsigned long current_time = millis();
+        if (current_time >= _led_step_start_time + entertainer_led_sequence[_current_led_step].duration) {
             _current_led_step++;
             if (_current_led_step >= ENTERTAINER_LED_SEQUENCE_LENGTH) {
                 _is_led_sequence_playing = false;
@@ -214,7 +214,7 @@ void Speaker::update_melody() {
             } else {
                 const MelodyNote& note = entertainer_led_sequence[_current_led_step];
                 rgbLed.set_main_board_leds_to_color(note.led_r, note.led_g, note.led_b);
-                _led_step_start_time = currentTime;
+                _led_step_start_time = current_time;
             }
         }
     }

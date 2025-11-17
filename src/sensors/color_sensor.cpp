@@ -57,12 +57,12 @@ void ColorSensor::update_sensor_data() {
 
     if (!sensorEnabled || !sensorConnected) return; // Skip if sensor not enabled or connected
 
-    unsigned long currentTime = millis();
-    if (currentTime - lastUpdateTime < DELAY_BETWEEN_READINGS) return;
+    unsigned long current_time = millis();
+    if (current_time - lastUpdateTime < DELAY_BETWEEN_READINGS) return;
 
     // Read current sensor data (rate controlled by 50ms task delay ~20Hz)
     read_color_sensor();
-    lastUpdateTime = currentTime;
+    lastUpdateTime = current_time;
 
     // Create ColorData structure and write to buffer
     ColorData color_data;
@@ -70,7 +70,7 @@ void ColorSensor::update_sensor_data() {
     color_data.green_value = colorSensorData.greenValue;
     color_data.blue_value = colorSensorData.blueValue;
     color_data.is_valid = sensorConnected;
-    color_data.timestamp = currentTime;
+    color_data.timestamp = current_time;
 
     // Write to buffer
     SensorDataBuffer::get_instance().update_color_data(color_data);

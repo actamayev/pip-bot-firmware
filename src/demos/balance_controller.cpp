@@ -41,11 +41,11 @@ void BalanceController::disable() {
 void BalanceController::update() {
     if (_balancingEnabled != BalanceStatus::BALANCED) return;
 
-    // unsigned long currentTime = millis();
-    // if (currentTime - _lastUpdateTime < _UPDATE_INTERVAL) {
+    // unsigned long current_time = millis();
+    // if (current_time - _lastUpdateTime < _UPDATE_INTERVAL) {
     //     return; // Maintain update rate
     // }
-    // _lastUpdateTime = currentTime;
+    // _lastUpdateTime = current_time;
 
     // Get current pitch
     float rawAngle = SensorDataBuffer::get_instance().get_latest_pitch();

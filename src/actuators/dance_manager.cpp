@@ -65,10 +65,10 @@ void DanceManager::update() {
     //     return;
     // }
 
-    unsigned long currentTime = millis();
+    unsigned long current_time = millis();
 
     // Check if it's time for the next step
-    if (currentTime < _nextStepTime) return;
+    if (current_time < _nextStepTime) return;
     _currentStep++;
 
     // Check if dance is complete
@@ -79,8 +79,8 @@ void DanceManager::update() {
 
     // Execute next dance step
     DanceStep step = DANCE_SEQUENCE[_currentStep];
-    _stepStartTime = currentTime;
-    _nextStepTime = currentTime + step.duration;
+    _stepStartTime = current_time;
+    _nextStepTime = current_time + step.duration;
 
     // Update motors with gentle speeds
     motorDriver.update_motor_pwm(step.leftSpeed, step.rightSpeed);
