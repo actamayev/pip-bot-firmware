@@ -5,20 +5,20 @@ constexpr const Speaker::MelodyNote Speaker::entertainer_led_sequence[];
 
 Speaker::~Speaker() {
     cleanup();
-    if (!audio_mutex) return;
-    vSemaphoreDelete(audio_mutex);
-    audio_mutex = nullptr;
+    if (!_audio_mutex) return;
+    vSemaphoreDelete(_audio_mutex);
+    _audio_mutex = nullptr;
 }
 
 bool Speaker::initialize() {
-    if (initialized) return true;
+    if (_initialized) return true;
 
     SerialQueueManager::get_instance().queue_message("Initializing Speaker...");
 
     // Create mutex for thread safety
-    if (!audio_mutex) {
-        audio_mutex = xSemaphoreCreateMutex();
-        if (!audio_mutex) {
+    if (!_audio_mutex) {
+        _audio_mutex = xSemaphoreCreateMutex();
+        if (!_audio_mutex) {
             SerialQueueManager::get_instance().queue_message("✗ Speaker: Failed to create mutex");
             return false;
         }
@@ -29,9 +29,9 @@ bool Speaker::initialize() {
         return false;
     }
 
-    initialized = true;
-    audio_objects_valid = true;
-    SerialQueueManager::get_instance().queue_message("✓ Speaker initialized");
+    _initialized = true;
+    _audio_objects_valid = true;
+    SerialQueueManager::get_instance().queue_message("✓ Speaker _initialized");
     return true;
 }
 
@@ -39,18 +39,18 @@ bool Speaker::initialize_audio() {
     // Clean up any existing objects first
     cleanup();
 
-    audio_output = new (std::nothrow) AudioOutputI2S();
-    if (!audio_output) {
+    _audio_output = new (std::nothrow) AudioOutputI2S();
+    if (!_audio_output) {
         SerialQueueManager::get_instance().queue_message("✗ Failed to create AudioOutputI2S");
         cleanup();
         return false;
     }
 
     // Configure I2S pins
-    audio_output->SetPinout(I2S_BCLK, I2S_LRC, I2S_DOUT);
-    audio_output->SetGain(current_volume);
+    _audio_output->SetPinout(I2S_BCLK, I2S_LRC, I2S_DOUT);
+    _audio_output->SetGain(_current_volume);
 
-    audio_objects_valid = true;
+    _audio_objects_valid = true;
     return true;
 }
 
@@ -75,73 +75,73 @@ bool Speaker::recreate_audio_objects() {
 }
 
 bool Speaker::validate_audio_objects() {
-    return audio_objects_valid && audio_output != nullptr;
+    return _audio_objects_valid && _audio_output != nullptr;
 }
 
 void Speaker::cleanup() {
     // Take mutex if available (don't block forever)
     bool hasMutex = false;
-    if (audio_mutex && xSemaphoreTake(audio_mutex, pdMS_TO_TICKS(200)) == pdTRUE) {
+    if (_audio_mutex && xSemaphoreTake(_audio_mutex, pdMS_TO_TICKS(200)) == pdTRUE) {
         hasMutex = true;
     }
 
-    if (tone_generator && tone_generator->isRunning()) {
-        tone_generator->stop();
+    if (_tone_generator && _tone_generator->isRunning()) {
+        _tone_generator->stop();
         vTaskDelay(pdMS_TO_TICKS(50));
     }
 
-    if (tone_source) {
-        delete tone_source;
-        tone_source = nullptr;
+    if (_tone_source) {
+        delete _tone_source;
+        _tone_source = nullptr;
     }
-    if (tone_generator) {
-        delete tone_generator;
-        tone_generator = nullptr;
+    if (_tone_generator) {
+        delete _tone_generator;
+        _tone_generator = nullptr;
     }
-    is_playing_tone = false;
+    _is_playing_tone = false;
 
-    if (rtttl_generator && rtttl_generator->isRunning()) {
-        rtttl_generator->stop();
+    if (_rtttl_generator && _rtttl_generator->isRunning()) {
+        _rtttl_generator->stop();
         vTaskDelay(pdMS_TO_TICKS(50));
     }
 
-    if (rtttl_source) {
-        delete rtttl_source;
-        rtttl_source = nullptr;
+    if (_rtttl_source) {
+        delete _rtttl_source;
+        _rtttl_source = nullptr;
     }
-    if (rtttl_generator) {
-        delete rtttl_generator;
-        rtttl_generator = nullptr;
+    if (_rtttl_generator) {
+        delete _rtttl_generator;
+        _rtttl_generator = nullptr;
     }
-    if (audio_output) {
-        delete audio_output;
-        audio_output = nullptr;
+    if (_audio_output) {
+        delete _audio_output;
+        _audio_output = nullptr;
     }
 
-    is_melody_playing = false;
-    audio_objects_valid = false;
+    _is_melody_playing = false;
+    _audio_objects_valid = false;
 
     if (hasMutex) {
-        xSemaphoreGive(audio_mutex);
+        xSemaphoreGive(_audio_mutex);
     }
     vTaskDelay(pdMS_TO_TICKS(50));
 }
 
 void Speaker::set_muted(bool should_mute) {
-    muted = shouldMute;
-    SerialQueueManager::get_instance().queue_message("Speaker muted: " + String(shouldMute ? "MUTING" : "UNMUTING"));
-    if (shouldMute) {
+    _muted = should_mute;
+    SerialQueueManager::get_instance().queue_message("Speaker _muted: " + String(should_mute ? "MUTING" : "UNMUTING"));
+    if (should_mute) {
         stop_all_sounds();
     }
 }
 
 void Speaker::set_volume(float volume) {
-    current_volume = constrain(volume, 0.0f, 3.9f);
-    SerialQueueManager::get_instance().queue_message("Speaker initialized: " + String(initialized));
-    SerialQueueManager::get_instance().queue_message("Audio output set: " + String(audio_output != nullptr));
-    if (initialized && audio_output) {
-        SerialQueueManager::get_instance().queue_message("Setting volume to: " + String(current_volume));
-        audio_output->SetGain(current_volume);
+    _current_volume = constrain(volume, 0.0f, 3.9f);
+    SerialQueueManager::get_instance().queue_message("Speaker _initialized: " + String(_initialized));
+    SerialQueueManager::get_instance().queue_message("Audio output set: " + String(_audio_output != nullptr));
+    if (_initialized && _audio_output) {
+        SerialQueueManager::get_instance().queue_message("Setting volume to: " + String(_current_volume));
+        _audio_output->SetGain(_current_volume);
     }
 }
 
@@ -151,29 +151,29 @@ void Speaker::stop_all_sounds() {
     SerialQueueManager::get_instance().queue_message("Stopped playback");
 
     // Stop RTTTL melody if playing
-    if (is_melody_playing && rtttl_generator && rtttl_generator->isRunning()) {
+    if (_is_melody_playing && _rtttl_generator && _rtttl_generator->isRunning()) {
         SerialQueueManager::get_instance().queue_message("Stopping RTTTL");
-        rtttl_generator->stop();
-        is_melody_playing = false;
+        _rtttl_generator->stop();
+        _is_melody_playing = false;
 
         // Stop LED sequence and turn off LEDs
-        is_led_sequence_playing = false;
+        _is_led_sequence_playing = false;
         rgbLed.turn_all_leds_off();
 
         SerialQueueManager::get_instance().queue_message("Stopped entertainer melody and LED sync");
 
         // Clean up RTTTL resources
-        if (rtttl_source) {
-            delete rtttl_source;
-            rtttl_source = nullptr;
+        if (_rtttl_source) {
+            delete _rtttl_source;
+            _rtttl_source = nullptr;
         }
     }
 }
 
 void Speaker::update() {
-    if (!initialized) return;
+    if (!_initialized) return;
 
-    if (is_playing_tone) {
+    if (_is_playing_tone) {
         static unsigned long lastUpdateDebug = 0;
         if (millis() - lastUpdateDebug > 1000) {
             SerialQueueManager::get_instance().queue_message("Speaker::update() calling updateContinuousTone()");
@@ -185,8 +185,8 @@ void Speaker::update() {
     }
 
     // Keep melody processing as before but protect shared state
-    if (is_melody_playing) {
-        // melody functions will take audio_mutex internally (see update_melody)
+    if (_is_melody_playing) {
+        // melody functions will take _audio_mutex internally (see update_melody)
         update_melody();
         return;
     }
@@ -194,97 +194,97 @@ void Speaker::update() {
 
 void Speaker::update_melody() {
     // Acquire mutex around operations that touch audio/LED state
-    if (!audio_mutex || xSemaphoreTake(audio_mutex, pdMS_TO_TICKS(100)) != pdTRUE) {
+    if (!_audio_mutex || xSemaphoreTake(_audio_mutex, pdMS_TO_TICKS(100)) != pdTRUE) {
         return;
     }
 
-    if (!is_melody_playing || !rtttl_generator) {
-        xSemaphoreGive(audio_mutex);
+    if (!_is_melody_playing || !_rtttl_generator) {
+        xSemaphoreGive(_audio_mutex);
         return;
     }
 
     // LED sequence update (doesn't touch audio objects, but keep under mutex to keep state consistent)
-    if (is_led_sequence_playing) {
+    if (_is_led_sequence_playing) {
         unsigned long currentTime = millis();
-        if (currentTime >= led_step_start_time + entertainer_led_sequence[current_led_step].duration) {
-            current_led_step++;
-            if (current_led_step >= ENTERTAINER_LED_SEQUENCE_LENGTH) {
-                is_led_sequence_playing = false;
+        if (currentTime >= _led_step_start_time + entertainer_led_sequence[_current_led_step].duration) {
+            _current_led_step++;
+            if (_current_led_step >= ENTERTAINER_LED_SEQUENCE_LENGTH) {
+                _is_led_sequence_playing = false;
                 rgbLed.turn_all_leds_off();
             } else {
-                const MelodyNote& note = entertainer_led_sequence[current_led_step];
+                const MelodyNote& note = entertainer_led_sequence[_current_led_step];
                 rgbLed.set_main_board_leds_to_color(note.led_r, note.led_g, note.led_b);
-                led_step_start_time = currentTime;
+                _led_step_start_time = currentTime;
             }
         }
     }
 
     // Keep RTTTL generator running safely while mutex held
-    if (rtttl_generator->isRunning()) {
-        if (!rtttl_generator->loop()) {
-            is_melody_playing = false;
-            is_led_sequence_playing = false;
+    if (_rtttl_generator->isRunning()) {
+        if (!_rtttl_generator->loop()) {
+            _is_melody_playing = false;
+            _is_led_sequence_playing = false;
             rgbLed.turn_all_leds_off();
             SerialQueueManager::get_instance().queue_message("Entertainer melody completed");
-            if (rtttl_source) {
-                delete rtttl_source;
-                rtttl_source = nullptr;
+            if (_rtttl_source) {
+                delete _rtttl_source;
+                _rtttl_source = nullptr;
             }
         }
     }
 
-    xSemaphoreGive(audio_mutex);
+    xSemaphoreGive(_audio_mutex);
 }
 
 void Speaker::start_entertainer_melody() {
-    if (muted || is_melody_playing) return;
+    if (_muted || _is_melody_playing) return;
 
     SerialQueueManager::get_instance().queue_message("Starting The Entertainer melody with LED sync");
 
     // Take mutex for RTTTL creation and start
-    if (!audio_mutex || xSemaphoreTake(audio_mutex, pdMS_TO_TICKS(200)) != pdTRUE) {
+    if (!_audio_mutex || xSemaphoreTake(_audio_mutex, pdMS_TO_TICKS(200)) != pdTRUE) {
         SerialQueueManager::get_instance().queue_message("✗ Failed to acquire audio mutex for melody start");
         return;
     }
 
     static const uint8_t entertainerRTTTL[] = "TheEntertainer:d=4,o=5,b=140:8d,8d#,8e,c6,8e,c6,8e,c6,c,8c6,8a,8g,8f#,8a,8c6,8e,8d,8c,8a,2d";
 
-    if (!rtttl_generator) {
-        rtttl_generator = new AudioGeneratorRTTTL();
+    if (!_rtttl_generator) {
+        _rtttl_generator = new AudioGeneratorRTTTL();
     }
-    if (rtttl_source) {
-        delete rtttl_source;
-        rtttl_source = nullptr;
+    if (_rtttl_source) {
+        delete _rtttl_source;
+        _rtttl_source = nullptr;
     }
-    rtttl_source = new AudioFileSourcePROGMEM(entertainerRTTTL, sizeof(entertainerRTTTL));
+    _rtttl_source = new AudioFileSourcePROGMEM(entertainerRTTTL, sizeof(entertainerRTTTL));
 
-    if (audio_output && rtttl_generator->begin(rtttl_source, audio_output)) {
-        is_melody_playing = true;
-        is_led_sequence_playing = true;
-        current_led_step = 0;
-        led_step_start_time = millis();
+    if (_audio_output && _rtttl_generator->begin(_rtttl_source, _audio_output)) {
+        _is_melody_playing = true;
+        _is_led_sequence_playing = true;
+        _current_led_step = 0;
+        _led_step_start_time = millis();
         const MelodyNote& firstNote = entertainer_led_sequence[0];
         rgbLed.set_main_board_leds_to_color(firstNote.led_r, firstNote.led_g, firstNote.led_b);
         SerialQueueManager::get_instance().queue_message("✓ Entertainer melody and LED sync started");
     } else {
         SerialQueueManager::get_instance().queue_message("✗ Failed to start Entertainer playback");
-        if (rtttl_source) {
-            delete rtttl_source;
-            rtttl_source = nullptr;
+        if (_rtttl_source) {
+            delete _rtttl_source;
+            _rtttl_source = nullptr;
         }
     }
 
-    xSemaphoreGive(audio_mutex);
+    xSemaphoreGive(_audio_mutex);
 }
 
 void Speaker::play_tone(ToneType tone) {
-    if (!initialized) {
-        SerialQueueManager::get_instance().queue_message("ERROR: Speaker not initialized!");
+    if (!_initialized) {
+        SerialQueueManager::get_instance().queue_message("ERROR: Speaker not _initialized!");
         return;
     }
 
-    if (muted) {
-        SerialQueueManager::get_instance().queue_message("Speaker muted");
+    if (_muted) {
+        SerialQueueManager::get_instance().queue_message("Speaker _muted");
         return;
     }
 
@@ -297,18 +297,18 @@ void Speaker::play_tone(ToneType tone) {
     }
 
     // If already playing this exact tone, continue (don't restart)
-    if (is_playing_tone && current_tone == tone) {
+    if (_is_playing_tone && _current_tone == tone) {
         // Update refresh timestamp to prevent auto-stop
-        last_tone_refresh_time = millis();
+        _last_tone_refresh_time = millis();
         SerialQueueManager::get_instance().queue_message("Already playing this tone - continuing");
         return;
     }
 
     // Update refresh timestamp for new tone requests
-    last_tone_refresh_time = millis();
+    _last_tone_refresh_time = millis();
 
     // Take mutex for tone creation and start
-    if (!audio_mutex || xSemaphoreTake(audio_mutex, pdMS_TO_TICKS(200)) != pdTRUE) {
+    if (!_audio_mutex || xSemaphoreTake(_audio_mutex, pdMS_TO_TICKS(200)) != pdTRUE) {
         SerialQueueManager::get_instance().queue_message("Failed to acquire mutex for tone");
         return;
     }
@@ -316,106 +316,106 @@ void Speaker::play_tone(ToneType tone) {
     SerialQueueManager::get_instance().queue_message("Stopping any existing playback");
 
     // Stop melody if playing
-    if (is_melody_playing && rtttl_generator && rtttl_generator->isRunning()) {
-        rtttl_generator->stop();
-        is_melody_playing = false;
-        is_led_sequence_playing = false;
+    if (_is_melody_playing && _rtttl_generator && _rtttl_generator->isRunning()) {
+        _rtttl_generator->stop();
+        _is_melody_playing = false;
+        _is_led_sequence_playing = false;
         rgbLed.turn_all_leds_off();
     }
 
     // Stop existing tone if any
-    if (is_playing_tone && tone_generator && tone_generator->isRunning()) {
-        tone_generator->stop();
+    if (_is_playing_tone && _tone_generator && _tone_generator->isRunning()) {
+        _tone_generator->stop();
         vTaskDelay(pdMS_TO_TICKS(20));
     }
 
     // Clean up old tone resources
-    if (tone_source) {
-        delete tone_source;
-        tone_source = nullptr;
+    if (_tone_source) {
+        delete _tone_source;
+        _tone_source = nullptr;
     }
-    if (tone_generator) {
-        delete tone_generator;
-        tone_generator = nullptr;
+    if (_tone_generator) {
+        delete _tone_generator;
+        _tone_generator = nullptr;
     }
 
     // Create new tone generator
     const char* rtttlString = get_tone_rtttl(tone);
     if (!rtttlString) {
         SerialQueueManager::get_instance().queue_message("Failed to get RTTTL for tone");
-        xSemaphoreGive(audio_mutex);
+        xSemaphoreGive(_audio_mutex);
         return;
     }
 
-    tone_generator = new AudioGeneratorRTTTL();
-    tone_source = new AudioFileSourcePROGMEM(rtttlString, strlen(rtttlString) + 1);
+    _tone_generator = new AudioGeneratorRTTTL();
+    _tone_source = new AudioFileSourcePROGMEM(rtttlString, strlen(rtttlString) + 1);
 
-    if (audio_output && tone_generator->begin(tone_source, audio_output)) {
-        current_tone = tone;
-        is_playing_tone = true;
+    if (_audio_output && _tone_generator->begin(_tone_source, _audio_output)) {
+        _current_tone = tone;
+        _is_playing_tone = true;
         SerialQueueManager::get_instance().queue_message("Tone playback started successfully");
     } else {
         SerialQueueManager::get_instance().queue_message("Failed to start tone playback");
-        if (tone_source) {
-            delete tone_source;
-            tone_source = nullptr;
+        if (_tone_source) {
+            delete _tone_source;
+            _tone_source = nullptr;
         }
-        if (tone_generator) {
-            delete tone_generator;
-            tone_generator = nullptr;
+        if (_tone_generator) {
+            delete _tone_generator;
+            _tone_generator = nullptr;
         }
     }
 
-    xSemaphoreGive(audio_mutex);
+    xSemaphoreGive(_audio_mutex);
 }
 
 void Speaker::stop_tone() {
-    if (!is_playing_tone) return;
+    if (!_is_playing_tone) return;
 
-    if (!audio_mutex || xSemaphoreTake(audio_mutex, pdMS_TO_TICKS(200)) != pdTRUE) {
+    if (!_audio_mutex || xSemaphoreTake(_audio_mutex, pdMS_TO_TICKS(200)) != pdTRUE) {
         return;
     }
 
-    if (tone_generator && tone_generator->isRunning()) {
-        tone_generator->stop();
+    if (_tone_generator && _tone_generator->isRunning()) {
+        _tone_generator->stop();
         vTaskDelay(pdMS_TO_TICKS(20));
     }
 
-    if (tone_source) {
-        delete tone_source;
-        tone_source = nullptr;
+    if (_tone_source) {
+        delete _tone_source;
+        _tone_source = nullptr;
     }
-    if (tone_generator) {
-        delete tone_generator;
-        tone_generator = nullptr;
+    if (_tone_generator) {
+        delete _tone_generator;
+        _tone_generator = nullptr;
     }
 
-    is_playing_tone = false;
+    _is_playing_tone = false;
     SerialQueueManager::get_instance().queue_message("Tone stopped");
 
-    xSemaphoreGive(audio_mutex);
+    xSemaphoreGive(_audio_mutex);
 }
 
 void Speaker::update_continuous_tone() {
-    if (!audio_mutex || xSemaphoreTake(audio_mutex, pdMS_TO_TICKS(100)) != pdTRUE) {
+    if (!_audio_mutex || xSemaphoreTake(_audio_mutex, pdMS_TO_TICKS(100)) != pdTRUE) {
         return;
     }
 
-    if (!is_playing_tone || !tone_generator) {
-        xSemaphoreGive(audio_mutex);
+    if (!_is_playing_tone || !_tone_generator) {
+        xSemaphoreGive(_audio_mutex);
         return;
     }
 
-    if (tone_generator->isRunning()) {
-        if (!tone_generator->loop()) {
+    if (_tone_generator->isRunning()) {
+        if (!_tone_generator->loop()) {
             // Tone finished - restart it QUICKLY to minimize gap
 
             // OPTIMIZATION: Pre-get the RTTTL string before any deletions
-            const char* rtttlString = get_tone_rtttl(current_tone);
+            const char* rtttlString = get_tone_rtttl(_current_tone);
             if (!rtttlString) {
                 SerialQueueManager::get_instance().queue_message("Failed to get RTTTL for restart");
-                is_playing_tone = false;
-                xSemaphoreGive(audio_mutex);
+                _is_playing_tone = false;
+                xSemaphoreGive(_audio_mutex);
                 return;
             }
 
@@ -423,22 +423,22 @@ void Speaker::update_continuous_tone() {
             AudioFileSourcePROGMEM* newSource = new AudioFileSourcePROGMEM(rtttlString, strlen(rtttlString) + 1);
 
             // Now delete the old source
-            if (tone_source) {
-                delete tone_source;
+            if (_tone_source) {
+                delete _tone_source;
             }
-            tone_source = newSource;
+            _tone_source = newSource;
 
             // Restart immediately - no delay between delete and begin
-            if (!tone_generator->begin(tone_source, audio_output)) {
+            if (!_tone_generator->begin(_tone_source, _audio_output)) {
                 SerialQueueManager::get_instance().queue_message("Failed to restart tone");
-                is_playing_tone = false;
-                if (tone_source) {
-                    delete tone_source;
-                    tone_source = nullptr;
+                _is_playing_tone = false;
+                if (_tone_source) {
+                    delete _tone_source;
+                    _tone_source = nullptr;
                 }
-                if (tone_generator) {
-                    delete tone_generator;
-                    tone_generator = nullptr;
+                if (_tone_generator) {
+                    delete _tone_generator;
+                    _tone_generator = nullptr;
                 }
             }
             // If successful, tone continues seamlessly (with minimal 20-50ms gap)
@@ -446,10 +446,10 @@ void Speaker::update_continuous_tone() {
     } else {
         // Tone unexpectedly stopped
         SerialQueueManager::get_instance().queue_message("Tone stopped unexpectedly");
-        is_playing_tone = false;
+        _is_playing_tone = false;
     }
 
-    xSemaphoreGive(audio_mutex);
+    xSemaphoreGive(_audio_mutex);
 }
 
 const char* Speaker::get_tone_rtttl(ToneType tone) {

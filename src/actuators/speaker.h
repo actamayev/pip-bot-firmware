@@ -29,22 +29,22 @@ class Speaker : public Singleton<Speaker> {
     bool initialize();
 
     void update(); // Call this periodically to keep audio playing
-    bool muted = false;
-    bool initialized = false;
-    float current_volume = 3.9f;
+    bool _muted = false;
+    bool _initialized = false;
+    float _current_volume = 3.9f;
 
     // Audio objects
-    AudioOutputI2S* audio_output = nullptr;
+    AudioOutputI2S* _audio_output = nullptr;
 
     // RTTTL objects for melody playback
-    AudioGeneratorRTTTL* rtttl_generator = nullptr;
-    AudioFileSourcePROGMEM* rtttl_source = nullptr;
+    AudioGeneratorRTTTL* _rtttl_generator = nullptr;
+    AudioFileSourcePROGMEM* _rtttl_source = nullptr;
 
     // Enhanced state management
-    bool audio_objects_valid = false;
+    bool _audio_objects_valid = false;
 
     // Thread safety
-    SemaphoreHandle_t audio_mutex = nullptr;
+    SemaphoreHandle_t _audio_mutex = nullptr;
 
     bool initialize_audio();
     void cleanup();
@@ -55,7 +55,7 @@ class Speaker : public Singleton<Speaker> {
     void update_melody();
 
     // Melody playback state
-    bool is_melody_playing = false;
+    bool _is_melody_playing = false;
 
     // LED synchronization for entertainer melody
     struct MelodyNote {
@@ -89,24 +89,24 @@ class Speaker : public Singleton<Speaker> {
     static constexpr size_t ENTERTAINER_LED_SEQUENCE_LENGTH = sizeof(entertainer_led_sequence) / sizeof(entertainer_led_sequence[0]);
 
     // LED sync state
-    bool is_led_sequence_playing = false;
-    int current_led_step = 0;
-    unsigned long led_step_start_time = 0;
+    bool _is_led_sequence_playing = false;
+    int _current_led_step = 0;
+    unsigned long _led_step_start_time = 0;
 
     const uint8_t I2S_DOUT = 13;
     const uint8_t I2S_BCLK = 14;
     const uint8_t I2S_LRC = 21;
 
-    bool is_playing_tone = false;
-    ToneType current_tone = ToneType::TONE_A;
+    bool _is_playing_tone = false;
+    ToneType _current_tone = ToneType::TONE_A;
 
     // RTTTL objects for tone playback (separate from melody)
-    AudioGeneratorRTTTL* tone_generator = nullptr;
-    AudioFileSourcePROGMEM* tone_source = nullptr;
+    AudioGeneratorRTTTL* _tone_generator = nullptr;
+    AudioFileSourcePROGMEM* _tone_source = nullptr;
 
     void update_continuous_tone();
     const char* get_tone_rtttl(ToneType tone);
 
-    unsigned long last_tone_refresh_time = 0;
+    unsigned long _last_tone_refresh_time = 0;
     static const unsigned long TONE_AUTO_STOP_MS = 200; // Stop if not refreshed within 200ms
 };
