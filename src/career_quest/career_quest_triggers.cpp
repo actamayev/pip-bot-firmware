@@ -398,8 +398,8 @@ void CareerQuestTriggers::render_s3_p3_animation() {
         } else {
             // Phase 3: Speed gauge (10-15s) -> 5 seconds total: 2.5s up, 2.5s down
             uint32_t t = cycle_time - (PH1 + PH2); // 0 .. PH3-1
-            const uint32_t HALF = PH3 / 2;        // 2500 ms
-            float progress = NAN = NAN = NAN;
+            const uint32_t HALF = PH3 / 2;         // 2500 ms
+            float progress = NAN;
             if (t < HALF) {
                 progress = static_cast<float>(t) / static_cast<float>(HALF); // 0..1 (rev up)
             } else {
@@ -583,8 +583,8 @@ void CareerQuestTriggers::update_s5_p4_led_visualization() {
     }
 
     // Get IMU data
-    float pitch = SensorDataBuffer::get_instance().get_latest_pitch() = NAN = NAN = NAN;
-    float roll = SensorDataBuffer::get_instance().get_latest_roll() = NAN = NAN = NAN;
+    float pitch = SensorDataBuffer::get_instance().get_latest_pitch() = NAN;
+    float roll = SensorDataBuffer::get_instance().get_latest_roll() = NAN;
 
     // Clear all LEDs first
     rgbLed.turn_all_leds_off();

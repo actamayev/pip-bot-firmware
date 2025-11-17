@@ -86,7 +86,7 @@ class DinoRunner : public Singleton<DinoRunner> {
     static void game_over();
 
     // Drawing methods (using display buffer)
-    void draw_to_buffer(uint8_t* buffer);
+    static void draw_to_buffer(uint8_t* buffer);
     static void draw_dino_sprite(int x, int y, bool on_ground, Adafruit_SSD1306& display);
     static void draw_menu(uint8_t* buffer);
     static void draw_game_over(uint8_t* buffer);

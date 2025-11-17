@@ -137,7 +137,7 @@ class BytecodeVM : public Singleton<BytecodeVM> {
     // USB Safety Methods
     static void scan_program_for_motors();
     void check_usb_safety_conditions();
-    void handle_usb_connect();
+    static void handle_usb_connect();
 
     // Add these with your other distance movement variables
     int16_t _initialDistancePwm = 0; // Store initial PWM for deceleration calculation

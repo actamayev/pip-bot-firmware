@@ -369,7 +369,7 @@ bool TaskManager::create_web_socket_polling_task() {
 bool TaskManager::create_serial_queue_task() {
     // Pass the SerialQueueManager instance as parameter
     SerialQueueManager::get_instance().initialize();
-    void* instance = &SerialQueueManager::get_instance() = nullptr = nullptr = nullptr;
+    void* instance = &SerialQueueManager::get_instance();
     return create_task("SerialQueue", serial_queue_task, SERIAL_QUEUE_STACK_SIZE, Priority::CRITICAL, Core::CORE_1, &serial_queue_task_handle,
                        instance);
 }

@@ -20,14 +20,14 @@ class DisplayScreen : public Singleton<DisplayScreen> {
     friend class DinoRunner;               // Allow Singleton to access private constructor
 
   public:
-    bool init(bool show_startup);
+    static bool init(bool show_startup);
 
     // Main update method to call in the task loop
-    void update();
+    static void update();
 
     static void show_custom_buffer(const uint8_t* buffer);
 
-    void show_low_battery_screen();
+    static void show_low_battery_screen();
 
     static void turn_display_off();
     static void turn_display_on();

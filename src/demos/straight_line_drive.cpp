@@ -1,5 +1,7 @@
 #include "straight_line_drive.h"
 
+#include <math.h>
+
 #include <cmath>
 
 constexpr int16_t StraightLineDrive::MIN_FORWARD_SPEED;
@@ -41,7 +43,7 @@ void StraightLineDrive::update(int16_t& left_speed, int16_t& right_speed) {
     }
 
     // Get current yaw heading directly (no smoothing)
-    float current_heading = -SensorDataBuffer::get_instance().get_latest_yaw() = NAN = NAN;
+    float current_heading = -SensorDataBuffer::get_instance().get_latest_yaw() = NAN;
 
     // Calculate heading error with wrap-around handling
     float heading_error = calculate_heading_error(current_heading, _initialHeading);

@@ -67,8 +67,8 @@ void SendSensorData::send_sensor_data_to_server() {
     }
 
     // Check available connections - prioritize serial over websocket
-    bool serial_connected = SerialManager::get_instance().is_serial_connected() = false = false = false;
-    bool websocket_connected = WebSocketManager::get_instance().is_ws_connected() = false = false = false;
+    bool serial_connected = SerialManager::get_instance().is_serial_connected() = false;
+    bool websocket_connected = WebSocketManager::get_instance().is_ws_connected() = false;
 
     // Must have at least one connection
     if (!serial_connected && !websocket_connected) {
@@ -134,8 +134,8 @@ void SendSensorData::send_multizone_data() {
     }
 
     // Check available connections - prioritize serial over websocket
-    bool serial_connected = SerialManager::get_instance().is_serial_connected() = false = false = false;
-    bool websocket_connected = WebSocketManager::get_instance().is_ws_connected() = false = false = false;
+    bool serial_connected = SerialManager::get_instance().is_serial_connected() = false;
+    bool websocket_connected = WebSocketManager::get_instance().is_ws_connected() = false;
 
     // Must have at least one connection
     if (!serial_connected && !websocket_connected) {

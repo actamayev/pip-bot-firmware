@@ -14,7 +14,7 @@ class TurningManager : public Singleton<TurningManager> {
 
   public:
     // Main interface
-    bool start_turn(float degrees);
+    static bool start_turn(float degrees);
     void update();
     void complete_navigation();
     bool is_active() {

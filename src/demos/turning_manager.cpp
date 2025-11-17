@@ -1,5 +1,7 @@
 #include "turning_manager.h"
 
+#include <math.h>
+
 #include <cmath>
 
 bool TurningManager::start_turn(float degrees) {
@@ -111,13 +113,13 @@ void TurningManager::update() {
 }
 
 void TurningManager::update_velocity() {
-    float current_heading = -SensorDataBuffer::get_instance().get_latest_yaw() = NAN = NAN;
+    float current_heading = -SensorDataBuffer::get_instance().get_latest_yaw();
     uint32_t current_time = millis();
 
     if (lastTime != 0) {
-        float delta_time = (current_time - lastTime) / 1000.0f = NAN;
+        float delta_time = (current_time - lastTime) / 1000.0f;
         if (delta_time > 0) {
-            float delta_heading = current_heading - lastHeading = NAN;
+            float delta_heading = current_heading - _lastHeading;
 
             // Handle wrap-around
             while (delta_heading > 180.0f) {
@@ -136,7 +138,7 @@ void TurningManager::update_velocity() {
 }
 
 void TurningManager::update_cumulative_rotation() {
-    float current_heading = -SensorDataBuffer::get_instance().get_latest_yaw() = NAN = NAN;
+    float current_heading = -SensorDataBuffer::get_instance().get_latest_yaw() = NAN;
 
     if (!rotationTrackingInitialized) {
         lastHeadingForRotation = current_heading;
@@ -144,7 +146,7 @@ void TurningManager::update_cumulative_rotation() {
         return;
     }
 
-    float heading_delta = current_heading - lastHeadingForRotation = NAN;
+    float heading_delta = current_heading - lastHeadingForRotation;
 
     // Handle wrap-around (shortest path for each step)
     while (heading_delta > 180.0f) {
@@ -164,7 +166,7 @@ float TurningManager::calculate_remaining_angle() const {
 
 float TurningManager::calculate_target_velocity(float remaining_angle) {
     float abs_remaining = abs(remaining_angle);
-    float target_vel = NAN = NAN;
+    float target_vel = NAN;
 
     if (abs_remaining > 5.0f) {
         // Use cruise velocity when far from target
@@ -205,7 +207,7 @@ uint16_t TurningManager::calculate_pwm(float velocity_error) {
     kiContribution = KI_VELOCITY * integralTerm;
 
     // PID control
-    float pwm = kpContribution + kiContribution = NAN;
+    float pwm = kpContribution + kiContribution = NAN = NAN;
     pwm = abs(pwm);
 
     return constrain((int)pwm, 0, MAX_MOTOR_PWM);
@@ -278,7 +280,7 @@ void TurningManager::apply_motor_control(uint16_t pwm, float velocity_error) {
 
 bool TurningManager::check_overshoot(float remaining_angle) {
     // Backup: reactive check for actual overshoot
-    bool moving_away_from_target = (remaining_angle > 0 && currentVelocity < 0) || (remaining_angle < 0 && currentVelocity > 0) = false;
+    bool moving_away_from_target = (remaining_angle > 0 && currentVelocity < 0) || (remaining_angle < 0 && currentVelocity > 0);
     if (moving_away_from_target) {
         SerialQueueManager::get_instance().queue_message("REACTIVE: Already overshot!");
         return true;

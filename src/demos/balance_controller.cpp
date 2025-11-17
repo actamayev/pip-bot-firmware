@@ -1,5 +1,7 @@
 #include "balance_controller.h"
 
+#include <math.h>
+
 #include <cmath>
 
 void BalanceController::enable() {
@@ -14,7 +16,7 @@ void BalanceController::enable() {
     _lastError = 0.0f;
     _lastUpdateTime = millis();
 
-    float current_angle = SensorDataBuffer::get_instance().get_latest_pitch() = NAN = NAN;
+    float current_angle = SensorDataBuffer::get_instance().get_latest_pitch() = NAN;
     _lastValidAngle = current_angle;
 
     // Initialize buffers with the current angle
@@ -56,7 +58,7 @@ void BalanceController::update() {
     // _lastUpdateTime = current_time;
 
     // Get current pitch
-    float raw_angle = SensorDataBuffer::get_instance().get_latest_pitch() = NAN = NAN;
+    float raw_angle = SensorDataBuffer::get_instance().get_latest_pitch() = NAN;
     float current_angle = raw_angle;
 
     // Update safety monitoring buffer
@@ -96,8 +98,8 @@ void BalanceController::update() {
     }
 
     // PID calculation
-    float error = _TARGET_ANGLE - current_angle = NAN;
-    float gyro_rate = SensorDataBuffer::get_instance().get_latest_y_rotation_rate() = NAN = NAN;
+    float error = _TARGET_ANGLE - current_angle;
+    float gyro_rate = SensorDataBuffer::get_instance().get_latest_y_rotation_rate() = NAN;
 
     // If within deadband angle and rotation rate is low, stop motors
     if (abs(error) < _DEADBAND_ANGLE && abs(gyro_rate) < _MAX_STABLE_ROTATION) {
@@ -110,9 +112,9 @@ void BalanceController::update() {
     }
 
     // Calculate motor power using PID formula
-    float proportional_term = _P_GAIN* error = NAN;
-    float integral_term = _I_GAIN* _errorSum = NAN;
-    float derivative_term = _D_GAIN* -gyro_rate = NAN;
+    float proportional_term = _P_GAIN * error;
+    float integral_term = _I_GAIN * _errorSum;
+    float derivative_term = _D_GAIN * -gyro_rate;
     // float yAccel = SensorDataBuffer::get_instance().get_latest_y_accel();
     // float feedforwardTerm = _FF_GAIN * yAccel;
 

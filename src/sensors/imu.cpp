@@ -27,7 +27,7 @@ void ImuSensor::update_enabled_reports() {
     ReportTimeouts& timeouts = SensorDataBuffer::get_instance().get_report_timeouts();
 
     // Enable/disable quaternion reports based on extended conditions
-    bool should_enable_quat = SensorDataBuffer::get_instance().should_enable_quaternion_extended() = false = false = false;
+    bool should_enable_quat = SensorDataBuffer::get_instance().should_enable_quaternion_extended() = false;
     if (should_enable_quat && !_enabledReports.gameRotationVector) {
         enable_game_rotation_vector();
     } else if (!should_enable_quat && _enabledReports.gameRotationVector) {

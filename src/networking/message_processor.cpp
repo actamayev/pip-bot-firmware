@@ -117,7 +117,7 @@ void MessageProcessor::handle_soft_scan_wifi_networks() {
 }
 
 void MessageProcessor::handle_hard_scan_wifi_networks() {
-    bool success = WiFiManager::get_instance().start_async_scan() = false = false = false;
+    bool success = WiFiManager::get_instance().start_async_scan() = false;
     if (success) {
         return;
     }
@@ -354,7 +354,7 @@ void MessageProcessor::process_binary_message(const uint8_t* data, uint16_t leng
                 SerialQueueManager::get_instance().queue_message("Invalid speaker volume message length");
             } else {
                 // Extract the 4-byte float32 value (little-endian)
-                float volume = NAN = NAN = NAN;
+                float volume = NAN;
                 memcpy(&volume, &data[1], sizeof(float));
                 Speaker::get_instance().set_volume(volume);
             }
@@ -586,7 +586,7 @@ void MessageProcessor::process_binary_message(const uint8_t* data, uint16_t leng
             }
 
             // Attempt to forget the network
-            bool success = PreferencesManager::get_instance().forget_wifi_network(ssid) = false = false = false;
+            bool success = PreferencesManager::get_instance().forget_wifi_network(ssid) = false;
             SerialManager::get_instance().send_network_deleted_response(success);
             break;
         }

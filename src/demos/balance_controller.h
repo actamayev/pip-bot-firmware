@@ -34,17 +34,17 @@ class BalanceController : public Singleton<BalanceController> {
     uint32_t _lastUpdateTime = 0;
 
     // Fixed parameters - not configurable as per your request
-    float _TARGET_ANGLE = 93.6F; // Fixed target angle
+    float TARGET_ANGLE = 93.6F; // Fixed target angle
 
     // PID Constants
-    float _P_GAIN = 28.5F;
-    float _I_GAIN = 0.0F;
-    float _D_GAIN = 0.0F;  // Previously 6.0f
-    float _FF_GAIN = 0.0F; // Not using this
+    float P_GAIN = 28.5F;
+    float I_GAIN = 0.0F;
+    float D_GAIN = 0.0F;  // Previously 6.0f
+    float FF_GAIN = 0.0F; // Not using this
 
     // Limits and safety parameters
-    float _MAX_SAFE_ANGLE_DEVIATION = 30.0F;
-    uint32_t _UPDATE_INTERVAL = 3; // 3ms (333Hz)
+    float MAX_SAFE_ANGLE_DEVIATION = 30.0F;
+    uint32_t UPDATE_INTERVAL = 3; // 3ms (333Hz)
 
     // Filtering buffers
     static constexpr uint8_t ANGLE_BUFFER_SIZE = 5;
@@ -57,8 +57,8 @@ class BalanceController : public Singleton<BalanceController> {
     uint8_t _safetyBufferIndex = 0;
     uint8_t _safetyBufferCount = 0;
 
-    float _DEADBAND_ANGLE = 1.0F;
-    float _MAX_STABLE_ROTATION = 0.1F; // degrees/second
+    float DEADBAND_ANGLE = 1.0F;
+    float MAX_STABLE_ROTATION = 0.1F; // degrees/second
 
-    float _MIN_EFFECTIVE_PWM = 330;
+    float MIN_EFFECTIVE_PWM = 330;
 };

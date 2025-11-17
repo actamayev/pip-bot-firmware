@@ -1,5 +1,7 @@
 #include "led_animations.h"
 
+#include <math.h>
+
 #include <cmath>
 
 LedAnimations::LedAnimations(Adafruit_NeoPixel& strip) : _strip(strip) {}
@@ -164,7 +166,7 @@ void LedAnimations::update_breathing() {
     }
     _last_breath_update = current_time;
 
-    float factor = NAN = NAN;
+    float factor = NAN;
 
     // Calculate the breathing factor using sine wave
     factor = (sin(_breath_progress * PI) + 1.0) / 2.0;

@@ -1,5 +1,7 @@
 #include "bytecode_vm.h"
 
+#include <math.h>
+
 #include <algorithm>
 #include <cmath>
 
@@ -13,27 +15,27 @@ const std::map<BytecodeOpCode, std::vector<BytecodeVM::SensorType>> BytecodeVM::
     {OP_MOTOR_TURN, {SENSOR_QUATERNION}}};
 
 BytecodeVM::BytecodeVM() {
-    programMutex = xSemaphoreCreateMutex();
-    if (programMutex == nullptr) {
+    _programMutex = xSemaphoreCreateMutex();
+    if (_programMutex == nullptr) {
         SerialQueueManager::get_instance().queue_message("Failed to create BytecodeVM mutex");
     }
 }
 
 BytecodeVM::~BytecodeVM() {
     reset_state_variables(true);
-    if (programMutex != nullptr) {
-        vSemaphoreDelete(programMutex);
-        programMutex = nullptr;
+    if (_programMutex != nullptr) {
+        vSemaphoreDelete(_programMutex);
+        _programMutex = nullptr;
     }
 }
 
 bool BytecodeVM::load_program(const uint8_t* byte_code, uint16_t size) {
-    if (programMutex == nullptr) {
+    if (_programMutex == nullptr) {
         return false;
     }
 
     // Acquire mutex with timeout to prevent deadlock
-    if (xSemaphoreTake(programMutex, pdMS_TO_TICKS(100)) != pdTRUE) {
+    if (xSemaphoreTake(_programMutex, pdMS_TO_TICKS(100)) != pdTRUE) {
         SerialQueueManager::get_instance().queue_message("load_program: Failed to acquire mutex");
         return false;
     }
@@ -43,118 +45,118 @@ bool BytecodeVM::load_program(const uint8_t* byte_code, uint16_t size) {
 
     // Validate bytecode size (must be multiple of 20 now)
     if (size % INSTRUCTION_SIZE != 0 || size / INSTRUCTION_SIZE > MAX_PROGRAM_SIZE) {
-        xSemaphoreGive(programMutex);
+        xSemaphoreGive(_programMutex);
         return false;
     }
 
-    programSize = size / INSTRUCTION_SIZE;
-    program = new (std::nothrow) BytecodeInstruction[programSize];
-    if (!program) {
-        xSemaphoreGive(programMutex);
+    _programSize = size / INSTRUCTION_SIZE;
+    _program = new (std::nothrow) BytecodeInstruction[_programSize];
+    if (!_program) {
+        xSemaphoreGive(_programMutex);
         return false;
     }
 
     // Iterate through program indices (0 to programSize-1)
-    for (uint16_t i = 0; i < programSize; i++) {
+    for (uint16_t i = 0; i < _programSize; i++) {
         uint16_t offset = i * INSTRUCTION_SIZE;
 
         // Read opcode (as float but cast to enum)
-        float opcode_float = NAN = NAN;
+        float opcode_float = NAN;
         memcpy(&opcode_float, &byte_code[offset], sizeof(float));
-        program[i].opcode = static_cast<BytecodeOpCode>(static_cast<uint32_t>(opcodeFloat));
+        _program[i].opcode = static_cast<BytecodeOpCode>(static_cast<uint32_t>(opcode_float));
 
         // Read float operands - direct memory copy to preserve exact bit pattern
-        memcpy(&program[i].operand1, &byte_code[offset + 4], sizeof(float));
-        memcpy(&program[i].operand2, &byte_code[offset + 8], sizeof(float));
-        memcpy(&program[i].operand3, &byte_code[offset + 12], sizeof(float));
-        memcpy(&program[i].operand4, &byte_code[offset + 16], sizeof(float));
+        memcpy(&_program[i].operand1, &byte_code[offset + 4], sizeof(float));
+        memcpy(&_program[i].operand2, &byte_code[offset + 8], sizeof(float));
+        memcpy(&_program[i].operand3, &byte_code[offset + 12], sizeof(float));
+        memcpy(&_program[i].operand4, &byte_code[offset + 16], sizeof(float));
     }
 
     // Check if the first instruction is OP_WAIT_FOR_BUTTON
-    if (programSize > 0 && program[0].opcode == OP_WAIT_FOR_BUTTON) {
+    if (_programSize > 0 && _program[0].opcode == OP_WAIT_FOR_BUTTON) {
         // Program has a start button - set to waiting state
-        isPaused = PROGRAM_NOT_STARTED;
-        waitingForButtonPressToStart = true;
+        _isPaused = PROGRAM_NOT_STARTED;
+        _waitingForButtonPressToStart = true;
     } else {
         // Program has no start button - set to auto-running
-        isPaused = RUNNING;
-        waitingForButtonPressToStart = false;
+        _isPaused = RUNNING;
+        _waitingForButtonPressToStart = false;
     }
 
     scan_program_for_motors();
     activate_sensors_for_program(); // Activate sensors needed by the program
-    stoppedDueToUsbSafety = false;  // Reset safety flag on new program load
+    _stoppedDueToUsbSafety = false;  // Reset safety flag on new program load
 
-    xSemaphoreGive(programMutex);
+    xSemaphoreGive(_programMutex);
     return true;
 }
 
 void BytecodeVM::update() {
-    if (programMutex == nullptr) {
+    if (_programMutex == nullptr) {
         return;
     }
 
     // Try to acquire mutex without blocking to avoid delays in real-time execution
-    if (xSemaphoreTake(programMutex, 0) != pdTRUE) {
+    if (xSemaphoreTake(_programMutex, 0) != pdTRUE) {
         return; // Skip this update cycle if mutex is locked
     }
 
     check_usb_safety_conditions();
-    if (!program || isPaused == PauseState::PAUSED || isPaused == PauseState::PROGRAM_FINISHED) {
-        xSemaphoreGive(programMutex);
+    if (!_program || _isPaused == PauseState::PAUSED || _isPaused == PauseState::PROGRAM_FINISHED) {
+        xSemaphoreGive(_programMutex);
         return;
     }
 
     // Check if program has naturally completed (pc reached or exceeded program size)
-    if (pc >= programSize) {
-        if (isPaused != PROGRAM_FINISHED) {
-            isPaused = PROGRAM_FINISHED;
+    if (_pc >= _programSize) {
+        if (_isPaused != PROGRAM_FINISHED) {
+            _isPaused = PROGRAM_FINISHED;
             reset_state_variables(false);
         }
-        xSemaphoreGive(programMutex);
+        xSemaphoreGive(_programMutex);
         return;
     }
 
     // Check if we're waiting for a delay to complete
-    if (waitingForDelay) {
-        if (millis() < delayUntil) {
-            xSemaphoreGive(programMutex);
+    if (_waitingForDelay) {
+        if (millis() < _delayUntil) {
+            xSemaphoreGive(_programMutex);
             return; // Still waiting
         }
-        waitingForDelay = false;
+        _waitingForDelay = false;
     }
 
-    if (timedMotorMovementInProgress) {
+    if (_timedMotorMovementInProgress) {
         update_timed_motor_movement();
-        xSemaphoreGive(programMutex);
+        xSemaphoreGive(_programMutex);
         return; // Don't execute next instruction until movement is complete
     }
 
     // Handle turning operation if in progress
     if (TurningManager::get_instance().is_active()) {
         TurningManager::get_instance().update();
-        xSemaphoreGive(programMutex);
+        xSemaphoreGive(_programMutex);
         return; // Don't execute next instruction until turn is complete
     }
 
-    if (distanceMovementInProgress) {
+    if (_distanceMovementInProgress) {
         update_distance_movement();
-        xSemaphoreGive(programMutex);
+        xSemaphoreGive(_programMutex);
         return; // Don't execute next instruction until movement is complete
     }
 
     // Execute current instruction
-    execute_instruction(program[pc]);
-    if (!waitingForButtonPressToStart) {
-        pc++; // Move to next instruction
+    execute_instruction(_program[_pc]);
+    if (!_waitingForButtonPressToStart) {
+        _pc++; // Move to next instruction
     }
 
-    xSemaphoreGive(programMutex);
+    xSemaphoreGive(_programMutex);
 }
 
 bool BytecodeVM::compare_values(ComparisonOp op, float left_operand, float right_operand) {
-    float left_value = NAN = NAN;
-    float right_value = NAN = NAN;
+    float left_value = NAN;
+    float right_value = NAN;
 
     // Process left operand - check if high bit is set, indicating a register
     if (left_operand < 32768.0f) {
@@ -163,14 +165,14 @@ bool BytecodeVM::compare_values(ComparisonOp op, float left_operand, float right
     } else {
         uint16_t reg_id = static_cast<uint16_t>(left_operand) & 0x7FFF;
 
-        if (regId < MAX_REGISTERS && registerInitialized[regId]) {
+        if (reg_id < MAX_REGISTERS && _registerInitialized[reg_id]) {
             // Get value from register
-            if (registerTypes[regId] == VAR_FLOAT) {
-                leftValue = registers[regId].asFloat;
-            } else if (registerTypes[regId] == VAR_INT) {
-                leftValue = registers[regId].asInt;
+            if (_registerTypes[reg_id] == VAR_FLOAT) {
+                left_value = _registers[reg_id].asFloat;
+            } else if (_registerTypes[reg_id] == VAR_INT) {
+                left_value = _registers[reg_id].asInt;
             } else {
-                leftValue = registers[regId].asBool ? 1.0f : 0.0f;
+                left_value = _registers[reg_id].asBool ? 1.0f : 0.0f;
             }
         } else {
             return false; // Invalid register
@@ -184,14 +186,14 @@ bool BytecodeVM::compare_values(ComparisonOp op, float left_operand, float right
     } else {
         uint16_t reg_id = static_cast<uint16_t>(right_operand) & 0x7FFF;
 
-        if (regId < MAX_REGISTERS && registerInitialized[regId]) {
+        if (reg_id < MAX_REGISTERS && _registerInitialized[reg_id]) {
             // Get value from register
-            if (registerTypes[regId] == VAR_FLOAT) {
-                rightValue = registers[regId].asFloat;
-            } else if (registerTypes[regId] == VAR_INT) {
-                rightValue = registers[regId].asInt;
+            if (_registerTypes[reg_id] == VAR_FLOAT) {
+                right_value = _registers[reg_id].asFloat;
+            } else if (_registerTypes[reg_id] == VAR_INT) {
+                right_value = _registers[reg_id].asInt;
             } else {
-                rightValue = registers[regId].asBool ? 1.0f : 0.0f;
+                right_value = _registers[reg_id].asBool ? 1.0f : 0.0f;
             }
         } else {
             return false; // Invalid register
@@ -225,17 +227,17 @@ void BytecodeVM::execute_instruction(const BytecodeInstruction& instr) {
 
         case OP_END:
             // End program execution
-            pc = programSize; // Set PC past the end to stop execution
-            isPaused = PROGRAM_FINISHED;
+            _pc = _programSize; // Set PC past the end to stop execution
+            _isPaused = PROGRAM_FINISHED;
             break;
 
         case OP_WAIT: {
             // Delay execution for specified milliseconds
             // This converts from seconds (ie. 1.5s into milliseconds).
-            // delayMs can be uint32_t since it will always be
+            // delay_ms can be uint32_t since it will always be
             auto delay_ms = static_cast<uint32_t>(instr.operand1 * 1000.0f);
-            delayUntil = millis() + delayMs;
-            waitingForDelay = true;
+            _delayUntil = millis() + delay_ms;
+            _waitingForDelay = true;
             break;
         }
 
@@ -289,94 +291,94 @@ void BytecodeVM::execute_instruction(const BytecodeInstruction& instr) {
                         value = SensorDataBuffer::get_instance().get_latest_magnetic_field_z();
                         break;
                     case SENSOR_SIDE_LEFT_PROXIMITY: {
-                        uint16_t counts = SensorDataBuffer::get_instance().get_latest_left_side_tof_counts() = 0 = 0;
-                        registers[regId].asBool = (counts > LEFT_PROXIMITY_THRESHOLD);
-                        registerTypes[regId] = VAR_BOOL;
-                        registerInitialized[regId] = true;
+                        uint16_t counts = SensorDataBuffer::get_instance().get_latest_left_side_tof_counts();
+                        _registers[reg_id].asBool = (counts > LEFT_PROXIMITY_THRESHOLD);
+                        _registerTypes[reg_id] = VAR_BOOL;
+                        _registerInitialized[reg_id] = true;
                         skip_default_assignment = true; // Set flag to skip default assignment
                         break;
                     }
                     case SENSOR_SIDE_RIGHT_PROXIMITY: {
-                        uint16_t counts = SensorDataBuffer::get_instance().get_latest_right_side_tof_counts() = 0 = 0;
-                        registers[regId].asBool = (counts > RIGHT_PROXIMITY_THRESHOLD);
-                        registerTypes[regId] = VAR_BOOL;
-                        registerInitialized[regId] = true;
+                        uint16_t counts = SensorDataBuffer::get_instance().get_latest_right_side_tof_counts();
+                        _registers[reg_id].asBool = (counts > RIGHT_PROXIMITY_THRESHOLD);
+                        _registerTypes[reg_id] = VAR_BOOL;
+                        _registerInitialized[reg_id] = true;
                         skip_default_assignment = true; // Set flag to skip default assignment
                         break;
                     }
                     case SENSOR_FRONT_PROXIMITY: {
-                        bool is_object_detected = SensorDataBuffer::get_instance().is_object_detected_tof() = false = false;
-                        registers[regId].asBool = isObjectDetected;
-                        registerTypes[regId] = VAR_BOOL;
-                        registerInitialized[regId] = true;
+                        bool is_object_detected = SensorDataBuffer::get_instance().is_object_detected_tof();
+                        _registers[reg_id].asBool = is_object_detected;
+                        _registerTypes[reg_id] = VAR_BOOL;
+                        _registerInitialized[reg_id] = true;
                         skip_default_assignment = true; // Set flag
                         break;
                     }
                     case SENSOR_COLOR_RED: {
-                        bool is_red = SensorDataBuffer::get_instance().is_object_red() = false = false;
-                        registers[regId].asBool = isRed;
-                        registerTypes[regId] = VAR_BOOL;
-                        registerInitialized[regId] = true;
+                        bool is_red = SensorDataBuffer::get_instance().is_object_red();
+                        _registers[reg_id].asBool = is_red;
+                        _registerTypes[reg_id] = VAR_BOOL;
+                        _registerInitialized[reg_id] = true;
                         skip_default_assignment = true;
                         break;
                     }
                     case SENSOR_COLOR_GREEN: {
-                        bool is_green = SensorDataBuffer::get_instance().is_object_green() = false = false;
-                        registers[regId].asBool = isGreen;
-                        registerTypes[regId] = VAR_BOOL;
-                        registerInitialized[regId] = true;
+                        bool is_green = SensorDataBuffer::get_instance().is_object_green();
+                        _registers[reg_id].asBool = is_green;
+                        _registerTypes[reg_id] = VAR_BOOL;
+                        _registerInitialized[reg_id] = true;
                         skip_default_assignment = true;
                         break;
                     }
                     case SENSOR_COLOR_BLUE: {
-                        bool is_blue = SensorDataBuffer::get_instance().is_object_blue() = false = false;
-                        registers[regId].asBool = isBlue;
-                        registerTypes[regId] = VAR_BOOL;
-                        registerInitialized[regId] = true;
+                        bool is_blue = SensorDataBuffer::get_instance().is_object_blue();
+                        _registers[reg_id].asBool = is_blue;
+                        _registerTypes[reg_id] = VAR_BOOL;
+                        _registerInitialized[reg_id] = true;
                         skip_default_assignment = true;
                         break;
                     }
                     case SENSOR_COLOR_WHITE: {
-                        bool is_white = SensorDataBuffer::get_instance().is_object_white() = false = false;
-                        registers[regId].asBool = isWhite;
-                        registerTypes[regId] = VAR_BOOL;
-                        registerInitialized[regId] = true;
+                        bool is_white = SensorDataBuffer::get_instance().is_object_white();
+                        _registers[reg_id].asBool = is_white;
+                        _registerTypes[reg_id] = VAR_BOOL;
+                        _registerInitialized[reg_id] = true;
                         skip_default_assignment = true;
                         break;
                     }
                     case SENSOR_COLOR_BLACK: {
-                        bool is_black = SensorDataBuffer::get_instance().is_object_black() = false = false;
-                        registers[regId].asBool = isBlack;
-                        registerTypes[regId] = VAR_BOOL;
-                        registerInitialized[regId] = true;
+                        bool is_black = SensorDataBuffer::get_instance().is_object_black();
+                        _registers[reg_id].asBool = is_black;
+                        _registerTypes[reg_id] = VAR_BOOL;
+                        _registerInitialized[reg_id] = true;
                         skip_default_assignment = true;
                         break;
                     }
                     case SENSOR_COLOR_YELLOW: {
-                        bool is_yellow = SensorDataBuffer::get_instance().is_object_yellow() = false = false;
-                        registers[regId].asBool = isYellow;
-                        registerTypes[regId] = VAR_BOOL;
-                        registerInitialized[regId] = true;
+                        bool is_yellow = SensorDataBuffer::get_instance().is_object_yellow();
+                        _registers[reg_id].asBool = is_yellow;
+                        _registerTypes[reg_id] = VAR_BOOL;
+                        _registerInitialized[reg_id] = true;
                         skip_default_assignment = true;
                         break;
                     }
                     case FRONT_TOF_DISTANCE: {
-                        float front_distance = SensorDataBuffer::get_instance().get_front_tof_distance() = NAN = NAN;
+                        float front_distance = SensorDataBuffer::get_instance().get_front_tof_distance();
                         value = (front_distance < 0) ? 999.0f : front_distance; // Return 999 inches if no valid reading
                         break;
                     }
                     default: {
                         char log_message[32];
                         snprintf(log_message, sizeof(log_message), "Unknown sensor type: %u", sensor_type);
-                        SerialQueueManager::get_instance().queue_message(logMessage);
+                        SerialQueueManager::get_instance().queue_message(log_message);
                         break;
                     }
                 }
 
                 if (!skip_default_assignment) {
-                    registers[regId].asFloat = value;
-                    registerTypes[regId] = VAR_FLOAT;
-                    registerInitialized[regId] = true;
+                    _registers[reg_id].asFloat = value;
+                    _registerTypes[reg_id] = VAR_FLOAT;
+                    _registerInitialized[reg_id] = true;
                 }
             }
             break;
@@ -398,7 +400,7 @@ void BytecodeVM::execute_instruction(const BytecodeInstruction& instr) {
             float left_value = instr.operand2;
             float right_value = instr.operand3;
 
-            lastComparisonResult = compare_values(op, leftValue, rightValue);
+            _lastComparisonResult = compare_values(op, left_value, right_value);
 
             break;
         }
@@ -407,9 +409,9 @@ void BytecodeVM::execute_instruction(const BytecodeInstruction& instr) {
             // Unconditional jump
             auto low = static_cast<uint8_t>(instr.operand1);
             auto high = static_cast<uint8_t>(instr.operand2);
-            uint16_t jump_offset = (high << 8) | low;                               // Combine high and low bytes into 16-bit offset
-            uint16_t target_instruction = pc + (jumpOffset / INSTRUCTION_SIZE) = 0 = 0; // 20 bytes per instruction
-            pc = targetInstruction - 1;                                        // Subtract 1 because pc increments after this
+            uint16_t jump_offset = (high << 8) | low;                                       // Combine high and low bytes into 16-bit offset
+            uint16_t target_instruction = _pc + (jump_offset / INSTRUCTION_SIZE); // 20 bytes per instruction
+            _pc = target_instruction - 1;                                                     // Subtract 1 because pc increments after this
             break;
         }
 
@@ -417,32 +419,32 @@ void BytecodeVM::execute_instruction(const BytecodeInstruction& instr) {
             // Backward jump (used in for loops)
             auto low = static_cast<uint8_t>(instr.operand1);
             auto high = static_cast<uint8_t>(instr.operand2);
-            uint16_t jump_offset = (high << 8) | low;                               // Combine high and low bytes into 16-bit offset
-            uint16_t target_instruction = pc - (jumpOffset / INSTRUCTION_SIZE) = 0 = 0; // Subtract for backward jump
-            pc = targetInstruction - 1;                                        // Subtract 1 because pc increments after
+            uint16_t jump_offset = (high << 8) | low;                                       // Combine high and low bytes into 16-bit offset
+            uint16_t target_instruction = _pc - (jump_offset / INSTRUCTION_SIZE); // Subtract for backward jump
+            _pc = target_instruction - 1;                                                     // Subtract 1 because pc increments after
             break;
         }
 
         case OP_JUMP_IF_TRUE: {
             // Conditional jump if last comparison was true
-            if (lastComparisonResult) {
+            if (_lastComparisonResult) {
                 auto low = static_cast<uint8_t>(instr.operand1);
                 auto high = static_cast<uint8_t>(instr.operand2);
-                uint16_t jump_offset = (high << 8) | low;                               // Combine high and low bytes into 16-bit offset
-                uint16_t target_instruction = pc + (jumpOffset / INSTRUCTION_SIZE) = 0 = 0; // 20 bytes per instruction
-                pc = targetInstruction - 1;                                        // Subtract 1 because pc increments after
+                uint16_t jump_offset = (high << 8) | low;                                       // Combine high and low bytes into 16-bit offset
+                uint16_t target_instruction = _pc + (jump_offset / INSTRUCTION_SIZE); // 20 bytes per instruction
+                _pc = target_instruction - 1;                                                     // Subtract 1 because pc increments after
             }
             break;
         }
 
         case OP_JUMP_IF_FALSE: {
             // Conditional jump if last comparison was false
-            if (!lastComparisonResult) {
+            if (!_lastComparisonResult) {
                 auto low = static_cast<uint8_t>(instr.operand1);
                 auto high = static_cast<uint8_t>(instr.operand2);
-                uint16_t jump_offset = (high << 8) | low;                               // Combine high and low bytes into 16-bit offset
-                uint16_t target_instruction = pc + (jumpOffset / INSTRUCTION_SIZE) = 0 = 0; // 20 bytes per instruction
-                pc = targetInstruction - 1;                                        // Subtract 1 because pc increments after
+                uint16_t jump_offset = (high << 8) | low;                                       // Combine high and low bytes into 16-bit offset
+                uint16_t target_instruction = _pc + (jump_offset / INSTRUCTION_SIZE); // 20 bytes per instruction
+                _pc = target_instruction - 1;                                                     // Subtract 1 because pc increments after
             }
             break;
         }
@@ -452,20 +454,20 @@ void BytecodeVM::execute_instruction(const BytecodeInstruction& instr) {
             auto type = (BytecodeVarType)instr.operand2;
 
             if (reg_id < MAX_REGISTERS) {
-                registerTypes[regId] = type;
+                _registerTypes[reg_id] = type;
                 // Initialize with default values
                 switch (type) {
                     case VAR_FLOAT:
-                        registers[regId].asFloat = 0.0f;
+                        _registers[reg_id].asFloat = 0.0f;
                         break;
                     case VAR_INT:
-                        registers[regId].asInt = 0;
+                        _registers[reg_id].asInt = 0;
                         break;
                     case VAR_BOOL:
-                        registers[regId].asBool = false;
+                        _registers[reg_id].asBool = false;
                         break;
                 }
-                registerInitialized[regId] = true;
+                _registerInitialized[reg_id] = true;
             }
             break;
         }
@@ -474,23 +476,23 @@ void BytecodeVM::execute_instruction(const BytecodeInstruction& instr) {
             auto reg_id = static_cast<uint16_t>(instr.operand1);
 
             if (reg_id < MAX_REGISTERS) {
-                switch (registerTypes[regId]) {
+                switch (_registerTypes[reg_id]) {
                     case VAR_FLOAT: {
                         // Direct assignment - no reconstruction needed
-                        registers[regId].asFloat = instr.operand2;
+                        _registers[reg_id].asFloat = instr.operand2;
                         break;
                     }
                     case VAR_INT: {
                         // Cast float to int directly
-                        registers[regId].asInt = static_cast<int32_t>(instr.operand2);
+                        _registers[reg_id].asInt = static_cast<int32_t>(instr.operand2);
                         break;
                     }
                     case VAR_BOOL:
                         // Cast float to bool (non-zero = true)
-                        registers[regId].asBool = (instr.operand2 != 0.0f);
+                        _registers[reg_id].asBool = (instr.operand2 != 0.0f);
                         break;
                 }
-                registerInitialized[regId] = true;
+                _registerInitialized[reg_id] = true;
             }
             break;
         }
@@ -504,10 +506,10 @@ void BytecodeVM::execute_instruction(const BytecodeInstruction& instr) {
             auto low = static_cast<uint8_t>(instr.operand1);
             auto high = static_cast<uint8_t>(instr.operand2);
             uint16_t offset_to_start = (high << 8) | low;
-            if (offsetToStart <= pc * INSTRUCTION_SIZE) {
-                pc = pc - (offsetToStart / INSTRUCTION_SIZE);
+            if (offset_to_start <= _pc * INSTRUCTION_SIZE) {
+                _pc = _pc - (offset_to_start / INSTRUCTION_SIZE);
             } else {
-                pc = programSize;
+                _pc = _programSize;
                 SerialQueueManager::get_instance().queue_message("Invalid loop jump - stopping execution");
             }
             break;
@@ -518,11 +520,11 @@ void BytecodeVM::execute_instruction(const BytecodeInstruction& instr) {
             auto reg_id = static_cast<uint16_t>(instr.operand1);
 
             if (reg_id < MAX_REGISTERS) {
-                registerTypes[regId] = VAR_INT;
+                _registerTypes[reg_id] = VAR_INT;
 
                 // Cast the float value to int
-                registers[regId].asInt = static_cast<int32_t>(instr.operand2);
-                registerInitialized[regId] = true;
+                _registers[reg_id].asInt = static_cast<int32_t>(instr.operand2);
+                _registerInitialized[reg_id] = true;
             }
             break;
         }
@@ -531,15 +533,15 @@ void BytecodeVM::execute_instruction(const BytecodeInstruction& instr) {
             // Check if counter < end value
             auto reg_id = static_cast<uint16_t>(instr.operand1);
 
-            if (regId < MAX_REGISTERS && registerInitialized[regId]) {
+            if (reg_id < MAX_REGISTERS && _registerInitialized[reg_id]) {
                 // Cast the float value to int
                 auto end_value = static_cast<int32_t>(instr.operand2);
 
                 // Compare counter with end value
-                lastComparisonResult = (registers[regId].asInt < endValue);
+                _lastComparisonResult = (_registers[reg_id].asInt < end_value);
             } else {
                 // Invalid register, exit loop
-                lastComparisonResult = false;
+                _lastComparisonResult = false;
             }
             break;
         }
@@ -548,8 +550,8 @@ void BytecodeVM::execute_instruction(const BytecodeInstruction& instr) {
             // Increment counter by 1
             auto reg_id = static_cast<uint16_t>(instr.operand1);
 
-            if (regId < MAX_REGISTERS && registerInitialized[regId]) {
-                registers[regId].asInt++;
+            if (reg_id < MAX_REGISTERS && _registerInitialized[reg_id]) {
+                _registers[reg_id].asInt++;
             }
             break;
         }
@@ -606,7 +608,7 @@ void BytecodeVM::execute_instruction(const BytecodeInstruction& instr) {
 
             // Use TurningManager for precise turning
             float signed_degrees = clockwise ? degrees : -degrees;
-            if (!TurningManager::get_instance().start_turn(signedDegrees)) {
+            if (!TurningManager::get_instance().start_turn(signed_degrees)) {
                 SerialQueueManager::get_instance().queue_message("Failed to start turn - turn already in progress");
             }
 
@@ -628,7 +630,7 @@ void BytecodeVM::execute_instruction(const BytecodeInstruction& instr) {
                 break;
             }
 
-            throttlePercent = std::min<uint8_t>(throttlePercent, 100);
+            throttle_percent = std::min<uint8_t>(throttle_percent, 100);
 
             // Convert percentage to motor speed
             uint16_t motor_speed = map(throttle_percent, 0, 100, 0, MAX_MOTOR_PWM);
@@ -641,8 +643,8 @@ void BytecodeVM::execute_instruction(const BytecodeInstruction& instr) {
             }
 
             // Set up timed movement
-            timedMotorMovementInProgress = true;
-            motorMovementEndTime = millis() + static_cast<uint32_t>(seconds * 1000.0f);
+            _timedMotorMovementInProgress = true;
+            _motorMovementEndTime = millis() + static_cast<uint32_t>(seconds * 1000.0f);
 
             break;
         }
@@ -661,24 +663,24 @@ void BytecodeVM::execute_instruction(const BytecodeInstruction& instr) {
                 break;
             }
 
-            throttlePercent = std::min<uint8_t>(throttlePercent, 100);
+            throttle_percent = std::min<uint8_t>(throttle_percent, 100);
 
             // Convert percentage to motor speed
             uint16_t motor_speed = map(throttle_percent, 0, 100, 0, MAX_MOTOR_PWM);
 
             // Reset distance tracking - store current distance as starting point
-            startingDistanceIn = SensorDataBuffer::get_instance().get_latest_distance_traveled_in();
+            _startingDistanceIn = SensorDataBuffer::get_instance().get_latest_distance_traveled_in();
 
             // Set up distance movement
-            distanceMovementInProgress = true;
-            targetDistanceIn = distanceIn;
+            _distanceMovementInProgress = true;
+            _targetDistanceIn = distance_in;
 
             // Set motors based on direction and store initial PWM with correct sign
             if (is_forward) {
-                initialDistancePwm = motorSpeed;
+                _initialDistancePwm = motor_speed;
                 motorDriver.update_motor_pwm(motor_speed, motor_speed);
             } else {
-                initialDistancePwm = -motorSpeed; // Store as negative for backward
+                _initialDistancePwm = -motor_speed; // Store as negative for backward
                 motorDriver.update_motor_pwm(-motor_speed, -motor_speed);
             }
 
@@ -686,7 +688,7 @@ void BytecodeVM::execute_instruction(const BytecodeInstruction& instr) {
         }
 
         case OP_WAIT_FOR_BUTTON: {
-            waitingForButtonPressToStart = true;
+            _waitingForButtonPressToStart = true;
 
             // Don't increment PC here - we'll do it when the button is pressed
             return; // Return without incrementing PC
@@ -696,11 +698,11 @@ void BytecodeVM::execute_instruction(const BytecodeInstruction& instr) {
             uint16_t reg_id = instr.operand1; // Register to store result
 
             if (reg_id < MAX_REGISTERS) {
-                bool is_pressed = Buttons::get_instance().is_right_button_pressed() = false = false;
+                bool is_pressed = Buttons::get_instance().is_right_button_pressed();
 
-                registers[regId].asBool = isPressed;
-                registerTypes[regId] = VAR_BOOL;
-                registerInitialized[regId] = true;
+                _registers[reg_id].asBool = is_pressed;
+                _registerTypes[reg_id] = VAR_BOOL;
+                _registerInitialized[reg_id] = true;
             }
             break;
         }
@@ -709,44 +711,44 @@ void BytecodeVM::execute_instruction(const BytecodeInstruction& instr) {
             auto tone_value = static_cast<uint8_t>(instr.operand1);
 
             // ADD THESE DEBUG LINES:
-            SerialQueueManager::get_instance().queue_message("PLAY_TONE opcode hit with value: " + String(toneValue));
+            SerialQueueManager::get_instance().queue_message("PLAY_TONE opcode hit with value: " + String(tone_value));
 
-            // toneValue = 0 means stop, 1-7 are valid tones
+            // tone_value = 0 means stop, 1-7 are valid tones
             if (tone_value <= 7) {
                 auto tone_type = static_cast<ToneType>(tone_value);
-                Speaker::get_instance().play_tone(toneType);
+                Speaker::get_instance().play_tone(tone_type);
             } else if (tone_value == 8) {
                 Speaker::get_instance().stop_tone();
             } else {
-                SerialQueueManager::get_instance().queue_message("Invalid tone value: " + String(toneValue));
+                SerialQueueManager::get_instance().queue_message("Invalid tone value: " + String(tone_value));
             }
             break;
         }
 
         default:
             // Unknown opcode, stop execution
-            pc = programSize;
+            _pc = _programSize;
             break;
     }
 }
 
 void BytecodeVM::update_timed_motor_movement() {
     // Check if the timed movement has completed
-    if (millis() < motorMovementEndTime) {
+    if (millis() < _motorMovementEndTime) {
         return;
     }
     // Movement complete - brake motors
     motorDriver.reset_command_state(true);
 
     // Reset timed movement state
-    timedMotorMovementInProgress = false;
+    _timedMotorMovementInProgress = false;
 }
 
 void BytecodeVM::update_distance_movement() {
     // Get distance traveled from sensor data buffer (relative to starting point)
-    float total_distance = SensorDataBuffer::get_instance().get_latest_distance_traveled_in() = NAN = NAN;
-    float current_distance = abs(totalDistance - startingDistanceIn);
-    float remaining_distance = targetDistanceIn - currentDistance = NAN = NAN;
+    float total_distance = SensorDataBuffer::get_instance().get_latest_distance_traveled_in();
+    float current_distance = abs(total_distance - _startingDistanceIn);
+    float remaining_distance = _targetDistanceIn - current_distance;
 
     // Check if we've reached the target distance
     if (remaining_distance <= 0.0f) {
@@ -754,22 +756,22 @@ void BytecodeVM::update_distance_movement() {
         motorDriver.reset_command_state(true);
 
         // Reset distance movement state
-        distanceMovementInProgress = false;
-        targetDistanceIn = 0.0f;
-        startingDistanceIn = 0.0f;
-        initialDistancePwm = 0;
+        _distanceMovementInProgress = false;
+        _targetDistanceIn = 0.0f;
+        _startingDistanceIn = 0.0f;
+        _initialDistancePwm = 0;
         vTaskDelay(pdMS_TO_TICKS(250));
         return;
     }
 
     // Calculate braking distance using physics equation
-    int16_t abs_pwm = abs(initialDistancePwm);
+    int16_t abs_pwm = abs(_initialDistancePwm);
     float braking_distance = (abs_pwm * abs_pwm - MIN_DECELERATION_PWM * MIN_DECELERATION_PWM) / (2.0f * DECELERATION_RATE);
-    SerialQueueManager::get_instance().queue_message("brakingDistance" + String(brakingDistance));
+    SerialQueueManager::get_instance().queue_message("brakingDistance" + String(braking_distance));
 
     // Ensure braking distance doesn't exceed total distance (edge case for short distances)
-    if (brakingDistance > targetDistanceIn) {
-        brakingDistance = targetDistanceIn;
+    if (braking_distance > _targetDistanceIn) {
+        braking_distance = _targetDistanceIn;
     }
 
     // Determine target PWM based on remaining distance
@@ -787,12 +789,12 @@ void BytecodeVM::update_distance_movement() {
         target_pwm = MIN_DECELERATION_PWM + ((abs_pwm - MIN_DECELERATION_PWM) * sigmoid_value);
 
         // Maintain direction (forward/backward)
-        if (initialDistancePwm < 0) {
+        if (_initialDistancePwm < 0) {
             target_pwm = -target_pwm;
         }
 
-        SerialQueueManager::get_instance().queue_message("sigmoidValue" + String(sigmoidValue));
-        SerialQueueManager::get_instance().queue_message("targetPwm" + String(targetPwm));
+        SerialQueueManager::get_instance().queue_message("sigmoidValue" + String(sigmoid_value));
+        SerialQueueManager::get_instance().queue_message("targetPwm" + String(target_pwm));
 
         // Set motor speeds directly without ramping
         motorDriver.set_motor_speeds(target_pwm, target_pwm, false);
@@ -801,65 +803,65 @@ void BytecodeVM::update_distance_movement() {
 }
 
 void BytecodeVM::stop_program() {
-    if (programMutex == nullptr) {
+    if (_programMutex == nullptr) {
         return;
     }
 
     // Acquire mutex with timeout
-    if (xSemaphoreTake(programMutex, pdMS_TO_TICKS(100)) != pdTRUE) {
+    if (xSemaphoreTake(_programMutex, pdMS_TO_TICKS(100)) != pdTRUE) {
         SerialQueueManager::get_instance().queue_message("stop_program: Failed to acquire mutex");
         return;
     }
 
     reset_state_variables(true);
-    xSemaphoreGive(programMutex);
+    xSemaphoreGive(_programMutex);
 }
 
 void BytecodeVM::reset_state_variables(bool is_full_reset) {
-    pc = 0;
-    delayUntil = 0;
-    waitingForDelay = false;
-    lastComparisonResult = false;
+    _pc = 0;
+    _delayUntil = 0;
+    _waitingForDelay = false;
+    _lastComparisonResult = false;
 
     // Reset TurningManager state
     TurningManager::get_instance().complete_navigation();
-    timedMotorMovementInProgress = false;
-    distanceMovementInProgress = false;
-    initialDistancePwm = 0;
-    motorMovementEndTime = 0;
-    targetDistanceIn = 0.0f;
-    startingDistanceIn = 0.0f;
-    waitingForButtonPressToStart = false;
+    _timedMotorMovementInProgress = false;
+    _distanceMovementInProgress = false;
+    _initialDistancePwm = 0;
+    _motorMovementEndTime = 0;
+    _targetDistanceIn = 0.0f;
+    _startingDistanceIn = 0.0f;
+    _waitingForButtonPressToStart = false;
 
     // ADD THESE USB safety resets:
-    stoppedDueToUsbSafety = false;
-    // Note: Don't reset programContainsMotors or lastUsbState here as they persist across pause/resume
+    _stoppedDueToUsbSafety = false;
+    // Note: Don't reset _programContainsMotors or _lastUsbState here as they persist across pause/resume
 
     // Force reset motor driver state completely
     motorDriver.reset_command_state(false);
 
     // Reset registers
     for (uint16_t i = 0; i < MAX_REGISTERS; i++) {
-        registerInitialized[i] = false;
-        registers[i].asFloat = 0.0f;
-        registers[i].asInt = 0;
-        registers[i].asBool = false;
+        _registerInitialized[i] = false;
+        _registers[i].asFloat = 0.0f;
+        _registers[i].asInt = 0;
+        _registers[i].asBool = false;
     }
     for (uint16_t i = 0; i < MAX_REGISTERS; i++) {
-        registerTypes[i] = VAR_FLOAT;
+        _registerTypes[i] = VAR_FLOAT;
     }
     for (uint16_t i = 0; i < MAX_REGISTERS; i++) {
-        registerInitialized[i] = false;
+        _registerInitialized[i] = false;
     }
     if (is_full_reset) {
-        delete[] program;
-        program = nullptr;
-        isPaused = PROGRAM_NOT_STARTED;
-        programSize = 0;
+        delete[] _program;
+        _program = nullptr;
+        _isPaused = PROGRAM_NOT_STARTED;
+        _programSize = 0;
 
         // ADD THESE for full reset:
-        programContainsMotors = false;
-        lastUsbState = false;
+        _programContainsMotors = false;
+        _lastUsbState = false;
     }
     rgbLed.turn_all_leds_off();
     Speaker::get_instance().stop_all_sounds();
@@ -867,69 +869,69 @@ void BytecodeVM::reset_state_variables(bool is_full_reset) {
 }
 
 void BytecodeVM::pause_program() {
-    if (programMutex == nullptr) {
+    if (_programMutex == nullptr) {
         return;
     }
 
-    if (xSemaphoreTake(programMutex, pdMS_TO_TICKS(100)) != pdTRUE) {
+    if (xSemaphoreTake(_programMutex, pdMS_TO_TICKS(100)) != pdTRUE) {
         SerialQueueManager::get_instance().queue_message("pause_program: Failed to acquire mutex");
         return;
     }
 
-    if (!program || isPaused == PAUSED) {
-        xSemaphoreGive(programMutex);
+    if (!_program || _isPaused == PAUSED) {
+        xSemaphoreGive(_programMutex);
         return;
     }
 
     reset_state_variables();
-    isPaused = PAUSED;
-    xSemaphoreGive(programMutex);
+    _isPaused = PAUSED;
+    xSemaphoreGive(_programMutex);
 }
 
 void BytecodeVM::resume_program() {
-    if (programMutex == nullptr) {
+    if (_programMutex == nullptr) {
         return;
     }
 
-    if (xSemaphoreTake(programMutex, pdMS_TO_TICKS(100)) != pdTRUE) {
+    if (xSemaphoreTake(_programMutex, pdMS_TO_TICKS(100)) != pdTRUE) {
         SerialQueueManager::get_instance().queue_message("resume_program: Failed to acquire mutex");
         return;
     }
 
-    if (!program || isPaused == RUNNING) {
+    if (!_program || _isPaused == RUNNING) {
         SerialQueueManager::get_instance().queue_message("resume_program: Not paused or no program");
-        xSemaphoreGive(programMutex);
+        xSemaphoreGive(_programMutex);
         return;
     }
 
     if (!can_start_program()) {
-        xSemaphoreGive(programMutex);
+        xSemaphoreGive(_programMutex);
         return;
     }
 
     // Reset state variables for finished programs to start fresh
-    if (isPaused == PROGRAM_FINISHED) {
+    if (_isPaused == PROGRAM_FINISHED) {
         reset_state_variables();
     }
 
-    isPaused = RUNNING;
+    _isPaused = RUNNING;
 
     // Check if the first instruction is a WAIT_FOR_BUTTON (start block)
-    if (programSize > 0 && program[0].opcode == OP_WAIT_FOR_BUTTON) {
+    if (_programSize > 0 && _program[0].opcode == OP_WAIT_FOR_BUTTON) {
         SerialQueueManager::get_instance().queue_message("Resuming program - skipping initial wait for button");
-        pc = 1;                               // Start after the wait for button instruction
-        waitingForButtonPressToStart = false; // ← FIX: Clear the flag!
+        _pc = 1;                               // Start after the wait for button instruction
+        _waitingForButtonPressToStart = false; // ← FIX: Clear the flag!
     } else {
         SerialQueueManager::get_instance().queue_message("Resuming program from beginning");
-        pc = 0;                               // Start from the beginning for scripts without a start block
-        waitingForButtonPressToStart = false; // ← FIX: Clear here too for consistency
+        _pc = 0;                               // Start from the beginning for scripts without a start block
+        _waitingForButtonPressToStart = false; // ← FIX: Clear here too for consistency
     }
 
-    xSemaphoreGive(programMutex);
+    xSemaphoreGive(_programMutex);
 }
 
 void BytecodeVM::activate_sensors_for_program() {
-    if (!program || programSize == 0) {
+    if (!_program || _programSize == 0) {
         return;
     }
 
@@ -943,8 +945,8 @@ void BytecodeVM::activate_sensors_for_program() {
     bool need_color_sensor = false;
 
     // Scan through the entire program
-    for (uint16_t i = 0; i < programSize; i++) {
-        const BytecodeInstruction& instr = program[i];
+    for (uint16_t i = 0; i < _programSize; i++) {
+        const BytecodeInstruction& instr = _program[i];
 
         // Handle OP_READ_SENSOR dynamically based on sensor type
         if (instr.opcode != OP_READ_SENSOR) {
@@ -954,22 +956,22 @@ void BytecodeVM::activate_sensors_for_program() {
                 for (SensorType sensorType : it->second) {
                     switch (sensorType) {
                         case SENSOR_QUATERNION:
-                            needQuaternion = true;
+                            need_quaternion = true;
                             break;
                         case SENSOR_ACCELEROMETER:
-                            needAccelerometer = true;
+                            need_accelerometer = true;
                             break;
                         case SENSOR_GYROSCOPE:
-                            needGyroscope = true;
+                            need_gyroscope = true;
                             break;
                         case SENSOR_MAGNETOMETER:
-                            needMagnetometer = true;
+                            need_magnetometer = true;
                             break;
                         case SENSOR_TOF:
-                            needTof = true;
+                            need_tof = true;
                             break;
                         case SENSOR_SIDE_TOF:
-                            needSideTof = true;
+                            need_side_tof = true;
                             break;
                     }
                 }
@@ -1054,9 +1056,9 @@ void BytecodeVM::activate_sensors_for_program() {
 }
 
 void BytecodeVM::scan_program_for_motors() {
-    programContainsMotors = false;
+    _programContainsMotors = false;
 
-    if (!program || programSize == 0) {
+    if (!_program || _programSize == 0) {
         return;
     }
 
@@ -1064,10 +1066,10 @@ void BytecodeVM::scan_program_for_motors() {
     const BytecodeOpCode MOTOR_OPCODES[] = {OP_MOTOR_GO, OP_MOTOR_STOP, OP_MOTOR_TURN, OP_MOTOR_GO_TIME, OP_MOTOR_GO_DISTANCE, MOTOR_SPIN};
 
     // Scan entire program for any motor commands
-    for (uint16_t i = 0; i < programSize; i++) {
+    for (uint16_t i = 0; i < _programSize; i++) {
         for (const auto& motor_opcode : MOTOR_OPCODES) {
-            if (program[i].opcode == motorOpcode) {
-                programContainsMotors = true;
+            if (_program[i].opcode == motor_opcode) {
+                _programContainsMotors = true;
                 return;
             }
         }
@@ -1075,25 +1077,25 @@ void BytecodeVM::scan_program_for_motors() {
 }
 
 void BytecodeVM::check_usb_safety_conditions() {
-    bool current_usb_state = SerialManager::get_instance().is_serial_connected() = false = false;
+    bool current_usb_state = SerialManager::get_instance().is_serial_connected();
 
     // Detect USB connection change (disconnected -> connected)
-    if (!lastUsbState && currentUsbState) {
+    if (!_lastUsbState && current_usb_state) {
         handle_usb_connect();
     }
 
-    lastUsbState = currentUsbState;
+    _lastUsbState = current_usb_state;
 }
 
 void BytecodeVM::handle_usb_connect() {
     // If program contains motors and is currently running, stop it
-    if (programContainsMotors && isPaused == RUNNING) {
+    if (_programContainsMotors && _isPaused == RUNNING) {
         stop_program();
-        stoppedDueToUsbSafety = true;
+        _stoppedDueToUsbSafety = true;
     }
 }
 
 bool BytecodeVM::can_start_program() {
     // Block start if program contains motors and USB is connected
-    return !programContainsMotors || !SerialManager::get_instance().is_serial_connected();
+    return !_programContainsMotors || !SerialManager::get_instance().is_serial_connected();
 }

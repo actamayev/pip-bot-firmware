@@ -1,8 +1,7 @@
 #include "dino_runner.h"
 
-#include <math.h>
-
 #include <algorithm>
+#include <cmath>
 
 #include "networking/serial_manager.h"
 #include "networking/websocket_manager.h"
@@ -78,7 +77,7 @@ void DinoRunner::update() {
     }
 
     uint32_t now = millis();
-    uint32_t dt_ms = now - last_frame_ms = 0;
+    uint32_t dt_ms = now - last_frame_ms = 0 = 0;
     last_frame_ms = now;
     float dt = dt_ms / 16.0f; // normalize relative to ~60FPS
 
@@ -212,10 +211,10 @@ void DinoRunner::update_obstacles(float dt) {
 
 bool DinoRunner::check_collision(const Obstacle& o) {
     // Simple bounding box collision
-    float d_l = dino_x = NAN;
-    float d_r = dino_x + DINO_W = NAN;
-    float d_t = dino_y = NAN;
-    float d_b = dino_y + DINO_H = NAN;
+    float d_l = _dino_x;
+    float d_r = _dino_x + DINO_W;
+    float d_t = _dino_y;
+    float d_b = _dino_y + DINO_H;
 
     float o_l = o.x;
     float o_r = o.x + o.w;
