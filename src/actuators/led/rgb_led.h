@@ -30,17 +30,17 @@ class RgbLed {
 
     // Get current color values
     uint8_t get_current_red() const {
-        return _currentRed;
+        return _current_red;
     }
     uint8_t get_current_green() const {
-        return _currentGreen;
+        return _current_green;
     }
     uint8_t get_current_blue() const {
-        return _currentBlue;
+        return _current_blue;
     }
 
     // Default colors for each LED (REVERSED ORDER)
-    uint8_t defaultColors[8][3] = {
+    uint8_t default_colors[8][3] = {
         {0, 0, 0}, // middle_right      - R,G,B
         {0, 0, 0}, // top_right    - R,G,B
         {0, 0, 0}, // right_headlight       - R,G,B
@@ -50,7 +50,7 @@ class RgbLed {
         {0, 0, 0}, // back_left   - R,G,B
         {0, 0, 0}  // back_right     - R,G,B
     };
-    bool defaultColorsSet[8] = {false, false, false, false, false, false, false, false};
+    bool default_colors_set[8] = {false, false, false, false, false, false, false, false};
 
     void turn_headlights_on();
     void turn_headlights_off();
@@ -65,15 +65,15 @@ class RgbLed {
     void turn_main_board_leds_off();
 
   private:
-    bool process_led_update(int ledIndex, uint8_t red, uint8_t green, uint8_t blue);
+    bool process_led_update(int led_index, uint8_t red, uint8_t green, uint8_t blue);
 
     // Current LED state
-    uint8_t _currentRed = 0;
-    uint8_t _currentGreen = 0;
-    uint8_t _currentBlue = 0;
+    uint8_t _current_red = 0;
+    uint8_t _current_green = 0;
+    uint8_t _current_blue = 0;
 
     // TODO: Bring this back later, along with the captureCurrentState and restoreCapturedState functions (see 7/22/25 PR)
-    LedState _capturedState{};
+    LedState _captured_state{};
 };
 
 extern RgbLed rgbLed;

@@ -12,9 +12,9 @@ class LedAnimations {
     explicit LedAnimations(Adafruit_NeoPixel& strip);
 
     // Set the current animation
-    void start_breathing(int speed = 2000, float startingBrightness = 0.5F);
+    void start_breathing(int speed = 2000, float starting_brightness = 0.5F);
     void start_strobing(int speed = 500);
-    void start_rainbow(int cycleTime = 2000);
+    void start_rainbow(int cycle_time = 2000);
     void turn_off();
 
     // Manage animations
@@ -24,7 +24,7 @@ class LedAnimations {
 
     // Get current animation state
     led_types::AnimationType get_current_animation() const {
-        return _currentAnimation;
+        return _current_animation;
     }
 
     // Update animation colors
@@ -35,28 +35,28 @@ class LedAnimations {
     Adafruit_NeoPixel& _strip;
 
     // Current animation state
-    led_types::AnimationType _currentAnimation = led_types::AnimationType::NONE;
-    bool _isPaused = false;
-    bool _isFadingOut = false;
+    led_types::AnimationType _current_animation = led_types::AnimationType::NONE;
+    bool _is_paused = false;
+    bool _is_fading_out = false;
 
     // Breathing animation parameters
-    uint8_t _breathMin[3] = {0, 0, 0};
-    uint8_t _breathMax[3] = {0, 0, 0};
-    float _breathProgress = 0.0;
-    int _breathSpeed = 2000;
-    unsigned long _lastBreathUpdate = 0;
+    uint8_t _breath_min[3] = {0, 0, 0};
+    uint8_t _breath_max[3] = {0, 0, 0};
+    float _breath_progress = 0.0;
+    int _breath_speed = 2000;
+    unsigned long _last_breath_update = 0;
 
     // Strobing animation parameters
-    uint8_t _strobeColor[3] = {0, 0, 0};
-    int _strobeSpeed = 500;
-    bool _strobeState = false;
-    unsigned long _lastStrobeUpdate = 0;
+    uint8_t _strobe_color[3] = {0, 0, 0};
+    int _strobe_speed = 500;
+    bool _strobe_state = false;
+    unsigned long _last_strobe_update = 0;
 
     // Rainbow animation parameters
-    int _rainbowCycleTime = 2000;
-    unsigned long _rainbowStepTime = 0;
-    uint8_t _rainbowHue = 0;
-    unsigned long _lastRainbowUpdate = 0;
+    int _rainbow_cycle_time = 2000;
+    unsigned long _rainbow_step_time = 0;
+    uint8_t _rainbow_hue = 0;
+    unsigned long _last_rainbow_update = 0;
 
     // Helper methods
     void update_breathing();

@@ -300,7 +300,7 @@ void DisplayScreen::generate_content_to_buffer() {
 
         // Show PipID below circle if WebSocket connected
         if (WebSocketManager::get_instance().is_ws_connected() && !WebSocketManager::get_instance().is_user_connected_to_this_pip()) {
-            String pipId = PreferencesManager::get_instance().getPipId();
+            String pipId = PreferencesManager::get_instance().get_pip_id();
             draw_centered_text(pipId, 30, 3);
         } else if (WebSocketManager::get_instance().is_ws_connected() && WebSocketManager::get_instance().is_user_connected_to_this_pip()) {
             draw_centered_text("Connected!", 30, 2);

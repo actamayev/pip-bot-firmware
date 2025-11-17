@@ -11,17 +11,17 @@
 // Cache structure for frequently accessed preferences
 struct PreferencesCache {
     // PIP ID cache
-    String pipId;
-    bool pipIdLoaded = false;
+    String pip_id;
+    bool pip_id_loaded = false;
 
     // Firmware version cache
-    int firmwareVersion = 0;
-    bool firmwareVersionLoaded = false;
+    int firmware_version = 0;
+    bool firmware_version_loaded = false;
 
     // WiFi networks cache
-    std::vector<WiFiCredentials> wifiNetworks;
-    int wifiCount = 0;
-    bool wifiDataLoaded = false;
+    std::vector<WiFiCredentials> wifi_networks;
+    int wifi_count = 0;
+    bool wifi_data_loaded = false;
 };
 
 class PreferencesManager : public Singleton<PreferencesManager> {
@@ -54,7 +54,7 @@ class PreferencesManager : public Singleton<PreferencesManager> {
         Preferences _preferences;
 
         // Current open namespace
-        String _currentNamespace = "";
+        String _current_namespace = "";
 
         // Cache for frequently accessed data
         PreferencesCache _cache;

@@ -111,7 +111,7 @@ void SerialManager::send_pip_id_message() {
 
     auto doc = makeBaseMessageSerial<256>(ToSerialMessage::PIP_ID);
     JsonObject payload = doc.createNestedObject("payload");
-    payload["pipId"] = PreferencesManager::get_instance().getPipId();
+    payload["pipId"] = PreferencesManager::get_instance().get_pip_id();
 
     String jsonString;
     serializeJson(doc, jsonString);

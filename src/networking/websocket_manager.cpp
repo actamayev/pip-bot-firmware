@@ -8,7 +8,7 @@
 WebSocketManager::WebSocketManager() {
     wsConnected = false;
     lastConnectionAttempt = 0;
-    String pipId = PreferencesManager::get_instance().getPipId();
+    String pipId = PreferencesManager::get_instance().get_pip_id();
     wsClient.addHeader("X-Pip-Id", pipId);
     if (DEFAULT_ENVIRONMENT == "local") return;
     wsClient.setCACert(ROOT_CA_CERTIFICATE);
