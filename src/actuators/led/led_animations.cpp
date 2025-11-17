@@ -4,7 +4,7 @@ LedAnimations::LedAnimations(Adafruit_NeoPixel& strip) : strip(strip) {}
 
 void LedAnimations::startBreathing(int speed, float startingBrightness) {
     // Stop any current animation
-    currentAnimation = LedTypes::NONE;
+    currentAnimation = led_types::NONE;
 
     updateBreathingColor();
 
@@ -22,7 +22,7 @@ void LedAnimations::startBreathing(int speed, float startingBrightness) {
     }
 
     // Set as current animation
-    currentAnimation = LedTypes::BREATHING;
+    currentAnimation = led_types::BREATHING;
     isPaused = false;
     isFadingOut = false;
     lastBreathUpdate = millis();
@@ -51,7 +51,7 @@ void LedAnimations::updateBreathingColor() {
 
 void LedAnimations::startStrobing(int speed) {
     // Stop any current animation
-    currentAnimation = LedTypes::NONE;
+    currentAnimation = led_types::NONE;
 
     updateStrobeColor();
 
@@ -59,7 +59,7 @@ void LedAnimations::startStrobing(int speed) {
     strobeState = false;
 
     // Set as current animation
-    currentAnimation = LedTypes::STROBING;
+    currentAnimation = led_types::STROBING;
     isPaused = false;
     isFadingOut = false;
     lastStrobeUpdate = millis();
@@ -80,7 +80,7 @@ void LedAnimations::updateStrobeColor() {
 
 void LedAnimations::startRainbow(int cycleTime) {
     // Stop any current animation
-    currentAnimation = LedTypes::NONE;
+    currentAnimation = led_types::NONE;
 
     // Set rainbow parameters
     rainbowCycleTime = cycleTime;
@@ -92,14 +92,14 @@ void LedAnimations::startRainbow(int cycleTime) {
     rainbowHue = 0;
 
     // Set as current animation
-    currentAnimation = LedTypes::RAINBOW;
+    currentAnimation = led_types::RAINBOW;
     isPaused = false;
     isFadingOut = false;
     lastRainbowUpdate = millis();
 }
 
 void LedAnimations::stopAnimation() {
-    currentAnimation = LedTypes::NONE;
+    currentAnimation = led_types::NONE;
     isPaused = false;
     isFadingOut = false;
 }
@@ -126,25 +126,25 @@ void LedAnimations::fadeOut() {
     breathSpeed = 500; // Faster fade out
 
     // Set to breathing for fade out
-    currentAnimation = LedTypes::BREATHING;
+    currentAnimation = led_types::BREATHING;
     isFadingOut = true;
     isPaused = false;
     lastBreathUpdate = millis();
 }
 
 void LedAnimations::update() {
-    if (isPaused || currentAnimation == LedTypes::NONE) {
+    if (isPaused || currentAnimation == led_types::NONE) {
         return;
     }
 
     switch (currentAnimation) {
-        case LedTypes::BREATHING:
+        case led_types::BREATHING:
             updateBreathing();
             break;
-        case LedTypes::STROBING:
+        case led_types::STROBING:
             updateStrobing();
             break;
-        case LedTypes::RAINBOW:
+        case led_types::RAINBOW:
             updateRainbow();
             break;
         default:
@@ -180,7 +180,7 @@ void LedAnimations::updateBreathing() {
     // Check if we're fading out and have reached the bottom of the cycle
     if (isFadingOut && breathProgress >= 1.0) {
         // We've faded out completely, stop breathing and ensure LEDs are off
-        currentAnimation = LedTypes::NONE;
+        currentAnimation = led_types::NONE;
         isFadingOut = false;
         setAllLeds(0, 0, 0);
         return;
@@ -300,7 +300,7 @@ uint32_t LedAnimations::colorHSV(uint8_t h, uint8_t s, uint8_t v) {
 }
 
 void LedAnimations::turnOff() {
-    currentAnimation = LedTypes::NONE;
+    currentAnimation = led_types::NONE;
     rgbLed.turn_main_board_leds_off();
 }
 

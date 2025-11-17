@@ -38,6 +38,7 @@ Checks: >
   -readability-avoid-const-params-in-decls,
   -readability-uppercase-literal-suffix,
   -readability-identifier-length,
+  -readability-else-after-return,
 
 CheckOptions:
   # Naming conventions

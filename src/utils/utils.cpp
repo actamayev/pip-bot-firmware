@@ -2,12 +2,12 @@
 
 void quaternionToEuler(float qr, float qi, float qj, float qk, float& yaw, float& pitch, float& roll) {
     // Roll (x-axis rotation)
-    float sinr_cosp = 2 * (qr * qi + qj * qk);
-    float cosr_cosp = 1 - 2 * (qi * qi + qj * qj);
-    roll = atan2(sinr_cosp, cosr_cosp);
+    float const sinrCosp = 2 * (qr * qi + qj * qk);
+    float const cosrCosp = 1 - (2 * (qi * qi + qj * qj));
+    roll = atan2(sinrCosp, cosrCosp);
 
     // Pitch (y-axis rotation)
-    float sinp = 2 * (qr * qj - qk * qi);
+    float const sinp = 2 * (qr * qj - qk * qi);
     if (abs(sinp) >= 1) {
         pitch = copysign(M_PI / 2, sinp); // use 90 degrees if out of range
     } else {
@@ -15,9 +15,9 @@ void quaternionToEuler(float qr, float qi, float qj, float qk, float& yaw, float
     }
 
     // Yaw (z-axis rotation)
-    float siny_cosp = 2 * (qr * qk + qi * qj);
-    float cosy_cosp = 1 - 2 * (qj * qj + qk * qk);
-    yaw = atan2(siny_cosp, cosy_cosp);
+    float const sinyCosp = 2 * (qr * qk + qi * qj);
+    float const cosyCosp = 1 - (2 * (qj * qj + qk * qk));
+    yaw = atan2(sinyCosp, cosyCosp);
 
     // Convert to degrees
     yaw *= RAD_TO_DEG;
@@ -25,8 +25,8 @@ void quaternionToEuler(float qr, float qi, float qj, float qk, float& yaw, float
     roll *= RAD_TO_DEG;
 }
 
-bool check_address_on_i2c_line(uint8_t addr) {
-    byte error;
+bool checkAddressOnI2cLine(uint8_t addr) {
+    byte error = 0;
 
     char logMessage[64];
     snprintf(logMessage, sizeof(logMessage), "Checking for device at address %d...", addr);
@@ -39,20 +39,20 @@ bool check_address_on_i2c_line(uint8_t addr) {
         snprintf(logMessage, sizeof(logMessage), "Device found at address %d!", addr);
         SerialQueueManager::getInstance().queueMessage(logMessage);
         return true;
-    } else {
-        if (error == 4) {
-            snprintf(logMessage, sizeof(logMessage), "Unknown error while checking address %d", addr);
-            SerialQueueManager::getInstance().queueMessage(logMessage);
-        } else {
-            snprintf(logMessage, sizeof(logMessage), "No device found at address %d", addr);
-            SerialQueueManager::getInstance().queueMessage(logMessage);
-        }
-        return false;
     }
+    if (error == 4) {
+        snprintf(logMessage, sizeof(logMessage), "Unknown error while checking address %d", addr);
+        SerialQueueManager::getInstance().queueMessage(logMessage);
+    } else {
+        snprintf(logMessage, sizeof(logMessage), "No device found at address %d", addr);
+        SerialQueueManager::getInstance().queueMessage(logMessage);
+    }
+    return false;
 }
 
 void scanI2C() {
-    byte error, address;
+    byte error;
+    byte address;
     int devicesFound = 0;
     char logMessage[64];
 
@@ -78,20 +78,22 @@ void scanI2C() {
 }
 
 float calculateCircularMean(const float angles[], uint8_t count) {
-    if (count == 0) return 0.0f;
+    if (count == 0) {
+        return 0.0F;
+    }
 
-    float sumSin = 0.0f;
-    float sumCos = 0.0f;
+    float sumSin = 0.0F;
+    float sumCos = 0.0F;
 
     for (uint8_t i = 0; i < count; i++) {
         // Convert angle to radians for trigonometric functions
-        float angleRad = angles[i] * PI / 180.0f;
+        float const angleRad = angles[i] * PI / 180.0F;
         sumSin += sin(angleRad);
         sumCos += cos(angleRad);
     }
 
     // Calculate mean angle in radians and convert back to degrees
-    float meanAngle = atan2(sumSin, sumCos) * 180.0f / PI;
+    float meanAngle = atan2(sumSin, sumCos) * 180.0F / PI;
 
     return meanAngle;
 }

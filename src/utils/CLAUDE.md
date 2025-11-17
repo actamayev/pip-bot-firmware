@@ -95,7 +95,7 @@ struct BatteryState {
 // LED control system
 struct LedState {
     uint8_t colors[8][3];              // RGB for all 8 LEDs
-    LedTypes::AnimationType animation;  // Breathing, strobing, rainbow
+    led_types::AnimationType animation;  // Breathing, strobing, rainbow
     int animationSpeed;                // 1-10 scale
 };
 ```

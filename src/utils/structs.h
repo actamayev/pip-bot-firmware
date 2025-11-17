@@ -20,29 +20,29 @@ struct EnabledReports {
 };
 
 struct QuaternionData {
-    float qX, qY, qZ, qW;
+    float qX{}, qY{}, qZ{}, qW{};
     bool isValid = false;
 };
 
 struct EulerAngles {
-    float yaw;
-    float pitch;
-    float roll;
+    float yaw{};
+    float pitch{};
+    float roll{};
     bool isValid = false;
 };
 
 struct AccelerometerData {
-    float aX, aY, aZ;
+    float aX{}, aY{}, aZ{};
     bool isValid = false;
 };
 
 struct GyroscopeData {
-    float gX, gY, gZ;
+    float gX{}, gY{}, gZ{};
     bool isValid = false;
 };
 
 struct MagnetometerData {
-    float mX, mY, mZ;
+    float mX{}, mY{}, mZ{};
     bool isValid = false;
 };
 
@@ -69,26 +69,17 @@ struct SideTofCounts {
     uint16_t rightCounts;
 };
 
-namespace LedTypes {
-    enum AnimationType {
-        NONE,
-        BREATHING,
-        STROBING,
-        RAINBOW
-    };
+namespace led_types {
+enum AnimationType { NONE, BREATHING, STROBING, RAINBOW };
 }
 
-namespace Demo {
-    enum DemoType {
-        NONE,
-        BALANCE_CONTROLLER,
-        OBSTACLE_AVOIDER
-    };
+namespace demo {
+enum DemoType { NONE, BALANCE_CONTROLLER, OBSTACLE_AVOIDER };
 }
 
 struct LedState {
     uint8_t colors[8][3];  // Colors for all 8 LEDs
-    LedTypes::AnimationType animation;
+    led_types::AnimationType animation;
     int animationSpeed;
     bool wasAnimationActive;
 };

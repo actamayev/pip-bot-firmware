@@ -1,65 +1,69 @@
 #pragma once
 
-#include <math.h>
 #include <Adafruit_NeoPixel.h>
+#include <math.h>
+
 #include "rgb_led.h"
 #include "utils/config.h"
 #include "utils/structs.h"
 
 class LedAnimations {
-    public:
-        LedAnimations(Adafruit_NeoPixel& strip);
+  public:
+    LedAnimations(Adafruit_NeoPixel& strip);
 
-        // Set the current animation
-        void startBreathing(int speed = 2000, float startingBrightness = 0.5f);
-        void startStrobing(int speed = 500);
-        void startRainbow(int cycleTime = 2000);
-        void turnOff();
+    // Set the current animation
+    void startBreathing(int speed = 2000, float startingBrightness = 0.5f);
+    void startStrobing(int speed = 500);
+    void startRainbow(int cycleTime = 2000);
+    void turnOff();
 
-        // Manage animations
-        void stopAnimation();
-        void fadeOut();
-        void update();
-        
-        // Get current animation state
-        LedTypes::AnimationType getCurrentAnimation() const { return currentAnimation; }
-        
-        // Update animation colors
-        void updateBreathingColor();
-        void updateStrobeColor();
-    private:
-        Adafruit_NeoPixel& strip;
-        
-        // Current animation state
-        LedTypes::AnimationType currentAnimation = LedTypes::NONE;
-        bool isPaused = false;
-        bool isFadingOut = false;
-        
-        // Breathing animation parameters
-        uint8_t breathMin[3] = {0, 0, 0};
-        uint8_t breathMax[3] = {0, 0, 0};
-        float breathProgress = 0.0;
-        int breathSpeed = 2000;
-        unsigned long lastBreathUpdate = 0;
-        
-        // Strobing animation parameters
-        uint8_t strobeColor[3] = {0, 0, 0};
-        int strobeSpeed = 500;
-        bool strobeState = false;
-        unsigned long lastStrobeUpdate = 0;
-        
-        // Rainbow animation parameters
-        int rainbowCycleTime = 2000;
-        unsigned long rainbowStepTime = 0;
-        uint8_t rainbowHue = 0;
-        unsigned long lastRainbowUpdate = 0;
+    // Manage animations
+    void stopAnimation();
+    void fadeOut();
+    void update();
 
-        // Helper methods
-        void updateBreathing();
-        void updateStrobing();
-        void updateRainbow();
-        uint32_t colorHSV(uint8_t h, uint8_t s = MAX_LED_BRIGHTNESS, uint8_t v = MAX_LED_BRIGHTNESS);
-        void setAllLeds(uint8_t red, uint8_t green, uint8_t blue);
+    // Get current animation state
+    led_types::AnimationType getCurrentAnimation() const {
+        return currentAnimation;
+    }
+
+    // Update animation colors
+    void updateBreathingColor();
+    void updateStrobeColor();
+
+  private:
+    Adafruit_NeoPixel& strip;
+
+    // Current animation state
+    led_types::AnimationType currentAnimation = led_types::NONE;
+    bool isPaused = false;
+    bool isFadingOut = false;
+
+    // Breathing animation parameters
+    uint8_t breathMin[3] = {0, 0, 0};
+    uint8_t breathMax[3] = {0, 0, 0};
+    float breathProgress = 0.0;
+    int breathSpeed = 2000;
+    unsigned long lastBreathUpdate = 0;
+
+    // Strobing animation parameters
+    uint8_t strobeColor[3] = {0, 0, 0};
+    int strobeSpeed = 500;
+    bool strobeState = false;
+    unsigned long lastStrobeUpdate = 0;
+
+    // Rainbow animation parameters
+    int rainbowCycleTime = 2000;
+    unsigned long rainbowStepTime = 0;
+    uint8_t rainbowHue = 0;
+    unsigned long lastRainbowUpdate = 0;
+
+    // Helper methods
+    void updateBreathing();
+    void updateStrobing();
+    void updateRainbow();
+    uint32_t colorHSV(uint8_t h, uint8_t s = MAX_LED_BRIGHTNESS, uint8_t v = MAX_LED_BRIGHTNESS);
+    void setAllLeds(uint8_t red, uint8_t green, uint8_t blue);
 };
 
 extern LedAnimations ledAnimations;

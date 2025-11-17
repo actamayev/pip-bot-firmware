@@ -51,13 +51,13 @@ class PreferencesManager : public Singleton<PreferencesManager> {
         ~PreferencesManager();
 
         // Single preferences instance
-        Preferences preferences;
+        Preferences _preferences;
 
         // Current open namespace
-        String currentNamespace = "";
+        String _currentNamespace = "";
 
         // Cache for frequently accessed data
-        PreferencesCache cache;
+        PreferencesCache _cache;
 
         // Method to ensure correct namespace is open
         bool beginNamespace(const char* ns);

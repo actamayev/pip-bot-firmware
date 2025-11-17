@@ -4,28 +4,28 @@ void MessageProcessor::handleMotorControl(const uint8_t* data) {
     // Extract 16-bit signed integers (little-endian)
     int16_t leftSpeed = static_cast<int16_t>(data[1] | (data[2] << 8));
     int16_t rightSpeed = static_cast<int16_t>(data[3] | (data[4] << 8));
-    
+
     motorDriver.updateMotorPwm(leftSpeed, rightSpeed);
 }
 
 void MessageProcessor::handleBalanceCommand(BalanceStatus status) {
     if (status == BalanceStatus::BALANCED) {
-        DemoManager::getInstance().startDemo(Demo::BALANCE_CONTROLLER);
+        DemoManager::getInstance().startDemo(demo::BALANCE_CONTROLLER);
         return;
     }
     // If balance controller is currently running, stop it
-    if (DemoManager::getInstance().getCurrentDemo() == Demo::BALANCE_CONTROLLER) {
+    if (DemoManager::getInstance().getCurrentDemo() == demo::BALANCE_CONTROLLER) {
         DemoManager::getInstance().stopCurrentDemo();
     }
 }
 
 void MessageProcessor::handleObstacleAvoidanceCommand(ObstacleAvoidanceStatus status) {
     if (status == ObstacleAvoidanceStatus::AVOID) {
-        DemoManager::getInstance().startDemo(Demo::OBSTACLE_AVOIDER);
+        DemoManager::getInstance().startDemo(demo::OBSTACLE_AVOIDER);
         return;
     }
     // If obstacle avoider is currently running, stop it
-    if (DemoManager::getInstance().getCurrentDemo() == Demo::OBSTACLE_AVOIDER) {
+    if (DemoManager::getInstance().getCurrentDemo() == demo::OBSTACLE_AVOIDER) {
         DemoManager::getInstance().stopCurrentDemo();
     }
 }
@@ -51,27 +51,27 @@ void MessageProcessor::handleNewLightColors(NewLightColors newLightColors) {
     uint8_t topLeftR = (uint8_t)newLightColors.topLeftRed;
     uint8_t topLeftG = (uint8_t)newLightColors.topLeftGreen;
     uint8_t topLeftB = (uint8_t)newLightColors.topLeftBlue;
-    
+
     uint8_t topRightR = (uint8_t)newLightColors.topRightRed;
     uint8_t topRightG = (uint8_t)newLightColors.topRightGreen;
     uint8_t topRightB = (uint8_t)newLightColors.topRightBlue;
-    
+
     uint8_t middleLeftR = (uint8_t)newLightColors.middleLeftRed;
     uint8_t middleLeftG = (uint8_t)newLightColors.middleLeftGreen;
     uint8_t middleLeftB = (uint8_t)newLightColors.middleLeftBlue;
-    
+
     uint8_t middleRightR = (uint8_t)newLightColors.middleRightRed;
     uint8_t middleRightG = (uint8_t)newLightColors.middleRightGreen;
     uint8_t middleRightB = (uint8_t)newLightColors.middleRightBlue;
-    
+
     uint8_t backLeftR = (uint8_t)newLightColors.backLeftRed;
     uint8_t backLeftG = (uint8_t)newLightColors.backLeftGreen;
     uint8_t backLeftB = (uint8_t)newLightColors.backLeftBlue;
-    
+
     uint8_t backRightR = (uint8_t)newLightColors.backRightRed;
     uint8_t backRightG = (uint8_t)newLightColors.backRightGreen;
     uint8_t backRightB = (uint8_t)newLightColors.backRightBlue;
-    
+
     // Set each LED to its corresponding color
     rgbLed.set_top_left_led(topLeftR, topLeftG, topLeftB);
     rgbLed.set_top_right_led(topRightR, topRightG, topRightB);
@@ -84,7 +84,7 @@ void MessageProcessor::handleNewLightColors(NewLightColors newLightColors) {
 void MessageProcessor::handleGetSavedWiFiNetworks() {
     // Get saved networks from WiFiManager
     std::vector<WiFiCredentials> savedNetworks = WiFiManager::getInstance().getSavedNetworksForResponse();
-    
+
     // Send response via SerialManager
     SerialManager::getInstance().sendSavedNetworksResponse(savedNetworks);
 }
@@ -100,7 +100,7 @@ void MessageProcessor::handleSoftScanWiFiNetworks() {
     if (now - wifiManager.getLastScanCompleteTime() < 60000) return;
     // Start async scan instead of blocking scan
     bool success = wifiManager.startAsyncScan();
-    
+
     if (success) return; // Note: Results will be sent asynchronously when scan completes
     SerialQueueManager::getInstance().queueMessage("Failed to start WiFi scan");
     // Send empty scan results to indicate failure
@@ -280,29 +280,29 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
                 SerialQueueManager::getInstance().queueMessage("Invalid WiFi credentials message length");
                 break;
             }
-            
+
             uint8_t ssidLength = data[1];
             if (ssidLength == 0 || 2 + ssidLength >= length) {
                 SerialQueueManager::getInstance().queueMessage("Invalid SSID length");
                 break;
             }
-            
+
             String ssid = "";
             for (uint8_t i = 0; i < ssidLength; i++) {
                 ssid += (char)data[2 + i];
             }
-            
+
             uint8_t passwordLength = data[2 + ssidLength];
             if (2 + ssidLength + 1 + passwordLength != length) {
                 SerialQueueManager::getInstance().queueMessage("Invalid password length");
                 break;
             }
-            
+
             String password = "";
             for (uint8_t i = 0; i < passwordLength; i++) {
                 password += (char)data[3 + ssidLength + i];
             }
-            
+
             // Test WiFi credentials before storing permanently
             WiFiManager::getInstance().startWiFiCredentialTest(ssid, password);
 
@@ -367,11 +367,11 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
                 SerialQueueManager::getInstance().queueMessage("Invalid trigger message length");
             } else {
                 CareerType careerType = static_cast<CareerType>(data[1]);
-                
+
                 switch (careerType) {
                     case CareerType::MEET_PIP: {
                         MeetPipTriggerType triggerType = static_cast<MeetPipTriggerType>(data[2]);
-                        
+
                         switch (triggerType) {
                             case MeetPipTriggerType::ENTER_CAREER:
                                 DisplayScreen::getInstance().turnDisplayOff();
@@ -541,7 +541,6 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
                 } else {
                     WebSocketManager::getInstance().setIsUserConnectedToThisPip(true);
                     BatteryMonitor::getInstance().sendBatteryMonitorDataOverWebSocket();
-
                 }
             }
             break;
@@ -552,19 +551,19 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
                 SerialManager::getInstance().sendNetworkDeletedResponse(false);
                 break;
             }
-            
+
             uint8_t ssidLength = data[1];
             if (ssidLength == 0 || 2 + ssidLength != length) {
                 SerialQueueManager::getInstance().queueMessage("Invalid SSID length in forget network message");
                 SerialManager::getInstance().sendNetworkDeletedResponse(false);
                 break;
             }
-            
+
             String ssid = "";
             for (uint8_t i = 0; i < ssidLength; i++) {
                 ssid += (char)data[2 + i];
             }
-            
+
             // Check if we're trying to forget the currently connected network
             if (WiFiManager::getInstance().isConnectedToSSID(ssid)) {
                 if (!SerialManager::getInstance().isSerialConnected()) {
@@ -575,7 +574,7 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
                 // Disconnect from WiFi before forgetting
                 WiFi.disconnect(true);
             }
-            
+
             // Attempt to forget the network
             bool success = PreferencesManager::getInstance().forgetWiFiNetwork(ssid);
             SerialManager::getInstance().sendNetworkDeletedResponse(success);

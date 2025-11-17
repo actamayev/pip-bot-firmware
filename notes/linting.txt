@@ -1,22 +1,8 @@
-# clang-tidy:
+# Check all code for issues
+./scripts/lint.sh check
 
-# Lint specific environment
-pio check -e local
+# Auto-fix a specific file
+./scripts/lint.sh fix src/utils/utils.cpp
 
-# Lint specific files/directories
-pio check -e local --pattern="src/main.cpp"
-
-# Lint with verbose output
-pio check -e local --verbose
-
-===============================================================
-
-# clang-format
-# Format single file
-clang-format -i src/main.cpp
-
-# Format all .cpp and .h files in src/
-find src -name "*.cpp" -o -name "*.h" | xargs clang-format -i
-
-# Check formatting without modifying (for CI)
-clang-format --dry-run --Werror src/main.cpp
+# Format a file or directory
+./scripts/lint.sh format src/utils

@@ -35,7 +35,7 @@ void BalanceController::disable() {
     _balancingEnabled = BalanceStatus::UNBALANCED;
     motorDriver.resetCommandState(false);
     rgbLed.turn_all_leds_off();
-    DemoManager::getInstance()._currentDemo = Demo::DemoType::NONE;
+    DemoManager::getInstance()._currentDemo = demo::DemoType::NONE;
 }
 
 void BalanceController::update() {
@@ -55,13 +55,13 @@ void BalanceController::update() {
     _safetyBuffer[_safetyBufferIndex] = rawAngle;
     _safetyBufferIndex = (_safetyBufferIndex + 1) % ANGLE_BUFFER_SIZE;
     if (_safetyBufferCount < ANGLE_BUFFER_SIZE) _safetyBufferCount++;
-    
+
     // Calculate safety buffer average using circular mean
     float safetyAverage = calculateCircularMean(_safetyBuffer, _safetyBufferCount);
-    
+
     // Calculate control buffer average using circular mean
     float controlAverage = calculateCircularMean(_angleBuffer, _angleBufferCount);
-    
+
     // Validate reading against control average for PID input
     float deviation = abs(rawAngle - controlAverage);
     if (deviation > MAX_SAFE_ANGLE_DEVIATION / 3 && _angleBufferCount > 0) {
@@ -70,7 +70,7 @@ void BalanceController::update() {
     } else {
         // Reading is valid - update last valid angle and control buffer
         _lastValidAngle = rawAngle;
-        
+
         // Add to angle buffer
         _angleBuffer[_angleBufferIndex] = rawAngle;
         _angleBufferIndex = (_angleBufferIndex + 1) % ANGLE_BUFFER_SIZE;
@@ -100,15 +100,11 @@ void BalanceController::update() {
     // Calculate motor power using PID formula
     float proportionalTerm = P_GAIN * error;
     float integralTerm = I_GAIN * _errorSum;
-    float derivativeTerm = D_GAIN * -gyroRate; 
+    float derivativeTerm = D_GAIN * -gyroRate;
     // float yAccel = SensorDataBuffer::getInstance().getLatestYAccel();
     // float feedforwardTerm = FF_GAIN * yAccel;
 
-    int16_t motorPower = constrain(
-        (int16_t)(proportionalTerm + integralTerm + derivativeTerm),
-        -MAX_MOTOR_PWM, 
-        MAX_MOTOR_PWM
-    );
+    int16_t motorPower = constrain((int16_t)(proportionalTerm + integralTerm + derivativeTerm), -MAX_MOTOR_PWM, MAX_MOTOR_PWM);
 
     int adjustedPWM = motorPower;
     if (motorPower > 0) {
@@ -125,14 +121,14 @@ void BalanceController::update() {
 }
 
 void BalanceController::updateBalancePids(NewBalancePids newBalancePids) {
-    P_GAIN = newBalancePids.pValue;                    // 0-255
-    I_GAIN = newBalancePids.iValue;                    // 0-255
-    D_GAIN = newBalancePids.dValue;                    // 0-255
-    FF_GAIN = newBalancePids.ffValue;                  // 0-255
-    TARGET_ANGLE = newBalancePids.targetAngle;         // 0-255
+    P_GAIN = newBalancePids.pValue;                                  // 0-255
+    I_GAIN = newBalancePids.iValue;                                  // 0-255
+    D_GAIN = newBalancePids.dValue;                                  // 0-255
+    FF_GAIN = newBalancePids.ffValue;                                // 0-255
+    TARGET_ANGLE = newBalancePids.targetAngle;                       // 0-255
     MAX_SAFE_ANGLE_DEVIATION = newBalancePids.maxSafeAngleDeviation; // 0-255
-    UPDATE_INTERVAL = newBalancePids.updateInterval;   // 0-255
-    DEADBAND_ANGLE = newBalancePids.deadbandAngle;     // 0-255
-    MAX_STABLE_ROTATION = newBalancePids.maxStableRotation; // 0-255
+    UPDATE_INTERVAL = newBalancePids.updateInterval;                 // 0-255
+    DEADBAND_ANGLE = newBalancePids.deadbandAngle;                   // 0-255
+    MAX_STABLE_ROTATION = newBalancePids.maxStableRotation;          // 0-255
     MIN_EFFECTIVE_PWM = newBalancePids.minEffectivePwm;
 }
