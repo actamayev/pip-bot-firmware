@@ -41,6 +41,8 @@ Checks: >
   -readability-uppercase-literal-suffix,
   -readability-identifier-length,
   -readability-else-after-return,
+  -readability-convert-member-functions-to-static,
+  -readability-make-member-function-const,
 
 CheckOptions:
   # Naming conventions

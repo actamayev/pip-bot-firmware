@@ -25,15 +25,15 @@ void DanceManager::start_dance() {
     _nextStepTime = _stepStartTime + DANCE_SEQUENCE[0].duration;
 
     // Start first dance step
-    DanceStep first_step = DANCE_SEQUENCE[0];
-    motor_driver.update_motor_pwm(firstStep.leftSpeed, firstStep.rightSpeed);
+    const DanceStep FIRST_STEP = DANCE_SEQUENCE[0];
+    motor_driver.update_motor_pwm(FIRST_STEP.leftSpeed, FIRST_STEP.rightSpeed);
 
     // Start LED animation
-    if (first_step.ledAnimation == led_types::AnimationType::RAINBOW) {
+    if (FIRST_STEP.ledAnimation == led_types::AnimationType::RAINBOW) {
         led_animations.start_rainbow(2000);
-    } else if (first_step.ledAnimation == led_types::AnimationType::BREATHING) {
+    } else if (FIRST_STEP.ledAnimation == led_types::AnimationType::BREATHING) {
         led_animations.start_breathing(2000, 0.5f);
-    } else if (first_step.ledAnimation == led_types::AnimationType::STROBING) {
+    } else if (FIRST_STEP.ledAnimation == led_types::AnimationType::STROBING) {
         led_animations.start_strobing(500);
     }
 }
@@ -50,11 +50,12 @@ void DanceManager::stop_dance(bool should_turn_leds_off) {
     // Stop motors immediately for safety
     motor_driver.stop_both_motors();
 
-    if (should_turn_leds_off) {
-        // Turn off LEDs
-        led_animations.turn_off();
-        rgb_led.turn_all_leds_off();
+    if (!should_turn_leds_off) {
+        return;
     }
+    // Turn off LEDs
+    led_animations.turn_off();
+    rgb_led.turn_all_leds_off();
 }
 
 void DanceManager::update() {
@@ -69,10 +70,10 @@ void DanceManager::update() {
     //     return;
     // }
 
-    uint32_t current_time = millis();
+    const uint32_t CURRENT_TIME = millis();
 
     // Check if it's time for the next step
-    if (current_time < _nextStepTime) {
+    if (CURRENT_TIME < _nextStepTime) {
         return;
     }
     _currentStep++;
@@ -84,21 +85,21 @@ void DanceManager::update() {
     }
 
     // Execute next dance step
-    DanceStep step = DANCE_SEQUENCE[_currentStep];
-    _stepStartTime = current_time;
-    _nextStepTime = current_time + step.duration;
+    const DanceStep STEP = DANCE_SEQUENCE[_currentStep];
+    _stepStartTime = CURRENT_TIME;
+    _nextStepTime = CURRENT_TIME + STEP.duration;
 
     // Update motors with gentle speeds
-    motor_driver.update_motor_pwm(step.leftSpeed, step.rightSpeed);
+    motor_driver.update_motor_pwm(STEP.leftSpeed, STEP.rightSpeed);
 
     // Update LED animation
-    if (step.ledAnimation == led_types::AnimationType::RAINBOW) {
+    if (STEP.ledAnimation == led_types::AnimationType::RAINBOW) {
         led_animations.start_rainbow(2000);
-    } else if (step.ledAnimation == led_types::AnimationType::BREATHING) {
+    } else if (STEP.ledAnimation == led_types::AnimationType::BREATHING) {
         led_animations.start_breathing(2000, 0.5f);
-    } else if (step.ledAnimation == led_types::AnimationType::STROBING) {
+    } else if (STEP.ledAnimation == led_types::AnimationType::STROBING) {
         led_animations.start_strobing(500);
-    } else if (step.ledAnimation == led_types::AnimationType::NONE) {
+    } else if (STEP.ledAnimation == led_types::AnimationType::NONE) {
         led_animations.turn_off();
         rgb_led.turn_all_leds_off();
     }

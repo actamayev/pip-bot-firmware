@@ -20,15 +20,15 @@ class SerialManager : public Singleton<SerialManager> {
         return _isConnected;
     }
     uint32_t lastActivityTime = 0;
-    static void send_json_message(ToSerialMessage route, const String& status);
-    static void send_pip_id_message();
+    void send_json_message(ToSerialMessage route, const String& status);
+    void send_pip_id_message();
     void send_saved_networks_response(const std::vector<WiFiCredentials>& networks);
     void send_scan_results_response(const std::vector<WiFiNetworkInfo>& networks);
-    static void send_scan_started_message();
-    static void send_battery_monitor_data();
-    static void send_dino_score(int score);
-    static void send_network_deleted_response(bool success);
-    static void send_pip_turning_off();
+    void send_scan_started_message();
+    void send_battery_monitor_data();
+    void send_dino_score(int score);
+    void send_network_deleted_response(bool success);
+    void send_pip_turning_off();
 
   private:
     SerialManager() = default; // Make constructor private and implement it

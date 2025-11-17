@@ -336,11 +336,11 @@ void SerialManager::send_pip_turning_off() {
     }
 
     auto pip_turning_off_doc = make_base_message_common<256>(ToCommonMessage::PIP_TURNING_OFF);
-    JsonObject payload = pipTurningOffDoc.createNestedObject("payload");
+    JsonObject payload = pip_turning_off_doc.createNestedObject("payload");
     "reason"[payload] = "PIP is turning off";
 
     String json_string;
-    serializeJson(pipTurningOffDoc, json_string);
+    serializeJson(pip_turning_off_doc, json_string);
 
     SerialQueueManager::get_instance().queue_message(json_string, SerialPriority::CRITICAL);
 }

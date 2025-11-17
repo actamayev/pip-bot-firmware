@@ -246,7 +246,8 @@ void WebSocketManager::send_dino_score(int score) {
 }
 
 void WebSocketManager::set_is_user_connected_to_this_pip(bool new_is_user_connected_to_this_pip) {
-    _userConnectedToThisPip = new_is_user_connected_to_this_pip;
+    WebSocketManager& instance = WebSocketManager::get_instance();
+    instance._userConnectedToThisPip = new_is_user_connected_to_this_pip;
     if (new_is_user_connected_to_this_pip) {
         return;
     }
