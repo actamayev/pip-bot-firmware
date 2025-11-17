@@ -2,22 +2,22 @@
 
 void quaternion_to_euler(float qr, float qi, float qj, float qk, float& yaw, float& pitch, float& roll) {
     // Roll (x-axis rotation)
-    float const sinr_cosp = 2 * (qr * qi + qj * qk);
-    float const cosr_cosp = 1 - (2 * (qi * qi + qj * qj));
-    roll = atan2(sinr_cosp, cosr_cosp);
+    float const SINR_COSP = 2 * (qr * qi + qj * qk);
+    float const COSR_COSP = 1 - (2 * (qi * qi + qj * qj));
+    roll = atan2(SINR_COSP, COSR_COSP);
 
     // Pitch (y-axis rotation)
-    float const sinp = 2 * (qr * qj - qk * qi);
-    if (abs(sinp) >= 1) {
-        pitch = copysign(M_PI / 2, sinp); // use 90 degrees if out of range
+    float const SINP = 2 * (qr * qj - qk * qi);
+    if (abs(SINP) >= 1) {
+        pitch = copysign(M_PI / 2, SINP); // use 90 degrees if out of range
     } else {
-        pitch = asin(sinp);
+        pitch = asin(SINP);
     }
 
     // Yaw (z-axis rotation)
-    float const siny_cosp = 2 * (qr * qk + qi * qj);
-    float const cosy_cosp = 1 - (2 * (qj * qj + qk * qk));
-    yaw = atan2(siny_cosp, cosy_cosp);
+    float const SINY_COSP = 2 * (qr * qk + qi * qj);
+    float const COSY_COSP = 1 - (2 * (qj * qj + qk * qk));
+    yaw = atan2(SINY_COSP, COSY_COSP);
 
     // Convert to degrees
     yaw *= RAD_TO_DEG;
@@ -51,8 +51,8 @@ bool check_address_on_i2c_line(uint8_t addr) {
 }
 
 void scan_i2_c() {
-    byte error;
-    byte address;
+    byte error = 0;
+    byte address = 0;
     int devices_found = 0;
     char log_message[64];
 
@@ -87,9 +87,9 @@ float calculate_circular_mean(const float angles[], uint8_t count) {
 
     for (uint8_t i = 0; i < count; i++) {
         // Convert angle to radians for trigonometric functions
-        float const angle_rad = angles[i] * PI / 180.0F;
-        sum_sin += sin(angle_rad);
-        sum_cos += cos(angle_rad);
+        float const ANGLE_RAD = angles[i] * PI / 180.0F;
+        sum_sin += sin(ANGLE_RAD);
+        sum_cos += cos(ANGLE_RAD);
     }
 
     // Calculate mean angle in radians and convert back to degrees

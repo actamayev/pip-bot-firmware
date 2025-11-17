@@ -66,12 +66,12 @@ constexpr const char* ROOT_CA_CERTIFICATE = "-----BEGIN CERTIFICATE-----\n"
                                             "rqXRfboQnoZsG4q5WTP468SQvvG5\n"
                                             "-----END CERTIFICATE-----\n";
 
-inline const char* getEnvironment() {
+inline const char* get_environment() {
     return DEFAULT_ENVIRONMENT;
 }
 
-inline const char* getServerFirmwareEndpoint() {
-    std::string env = getEnvironment();
+inline const char* get_server_firmware_endpoint() {
+    std::string env = get_environment();
     if (env == "local") {
         return "http://10.158.4.40:8080/pip/firmware-update";
     } else if (env == "staging") {
@@ -80,8 +80,8 @@ inline const char* getServerFirmwareEndpoint() {
     return "https://production-api.leverlabs.com/pip/firmware-update";
 }
 
-inline const char* getWsServerUrl() {
-    std::string env = getEnvironment();
+inline const char* get_ws_server_url() {
+    std::string env = get_environment();
     if (env == "local") {
         return "ws://10.158.4.40:8080/esp32";
     } else if (env == "staging") {

@@ -30,7 +30,7 @@ LEFT_BUTTON_PIN = 11, RIGHT_BUTTON_PIN = 12;
 ### Environment Management
 ```cpp
 // Dynamic endpoint selection
-const char* getWsServerUrl() {
+const char* get_ws_server_url() {
     // Returns local/staging/production URLs based on build
     if (env == "local") return "ws://10.76.59.40:8080/esp32"; // Changes with my local IP
     if (env == "staging") return "wss://staging-api.leverlab.com/esp32";

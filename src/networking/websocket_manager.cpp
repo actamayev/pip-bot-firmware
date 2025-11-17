@@ -163,7 +163,7 @@ void WebSocketManager::poll_websocket() {
 
         SerialQueueManager::get_instance().queue_message("Attempting to connect to WebSocket...");
 
-        if (!wsClient.connect(getWsServerUrl())) {
+        if (!wsClient.connect(get_ws_server_url())) {
             SerialQueueManager::get_instance().queue_message("WebSocket connection failed. Will try again in 3 seconds");
         } else {
             SerialQueueManager::get_instance().queue_message("WebSocket connected successfully");
