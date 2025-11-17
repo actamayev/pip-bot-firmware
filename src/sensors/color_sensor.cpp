@@ -65,15 +65,15 @@ void ColorSensor::update_sensor_data() {
     lastUpdateTime = currentTime;
 
     // Create ColorData structure and write to buffer
-    ColorData colorData;
-    colorData.redValue = colorSensorData.redValue;
-    colorData.greenValue = colorSensorData.greenValue;
-    colorData.blueValue = colorSensorData.blueValue;
-    colorData.isValid = sensorConnected;
-    colorData.timestamp = currentTime;
+    ColorData color_data;
+    color_data.red_value = colorSensorData.redValue;
+    color_data.green_value = colorSensorData.greenValue;
+    color_data.blue_value = colorSensorData.blueValue;
+    color_data.is_valid = sensorConnected;
+    color_data.timestamp = currentTime;
 
     // Write to buffer
-    SensorDataBuffer::get_instance().update_color_data(colorData);
+    SensorDataBuffer::get_instance().update_color_data(color_data);
 }
 
 void ColorSensor::enable_color_sensor() {

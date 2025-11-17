@@ -264,7 +264,7 @@ void Speaker::start_entertainer_melody() {
         currentLedStep = 0;
         ledStepStartTime = millis();
         const MelodyNote& firstNote = entertainerLedSequence[0];
-        rgbLed.setMainBoardLedsToColor(firstNote.ledR, firstNote.ledG, firstNote.ledB);
+        rgbLed.set_main_board_leds_to_color(firstNote.ledR, firstNote.ledG, firstNote.ledB);
         SerialQueueManager::get_instance().queue_message("✓ Entertainer melody and LED sync started");
     } else {
         SerialQueueManager::get_instance().queue_message("✗ Failed to start Entertainer playback");

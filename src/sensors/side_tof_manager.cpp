@@ -67,19 +67,19 @@ void SideTofManager::update_sensor_data() {
     rightSideTofSensor.update_sensor_data();
 
     // Get current readings from both sensors
-    uint16_t leftCounts = leftSideTofSensor.get_current_counts();
-    uint16_t rightCounts = rightSideTofSensor.get_current_counts();
+    uint16_t left_counts = leftSideTofSensor.get_current_counts();
+    uint16_t right_counts = rightSideTofSensor.get_current_counts();
 
     // Create SideTofData structure and write to buffer
-    SideTofData sideTofData;
-    sideTofData.leftCounts = leftCounts;
-    sideTofData.rightCounts = rightCounts;
-    sideTofData.leftValid = (leftCounts != 0xFFFF && leftCounts != 0);    // Basic validity check
-    sideTofData.rightValid = (rightCounts != 0xFFFF && rightCounts != 0); // Basic validity check
-    sideTofData.timestamp = millis();
+    SideTofData side_tof_data;
+    side_tof_data.left_counts = left_counts;
+    side_tof_data.right_counts = right_counts;
+    side_tof_data.left_valid = (left_counts != 0xFFFF && left_counts != 0);    // Basic validity check
+    side_tof_data.right_valid = (right_counts != 0xFFFF && right_counts != 0); // Basic validity check
+    side_tof_data.timestamp = millis();
 
     // Write to buffer
-    SensorDataBuffer::get_instance().update_side_tof_data(sideTofData);
+    SensorDataBuffer::get_instance().update_side_tof_data(side_tof_data);
 }
 
 void SideTofManager::enable_side_tof_sensors() {

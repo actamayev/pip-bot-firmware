@@ -75,8 +75,8 @@ void MultizoneTofSensor::update_sensor_data() {
     }
 
     // Get the ranging data
-    VL53L7CX_ResultsData rawData;
-    if (sensor.vl53l7cx_get_ranging_data(&rawData) != 0) {
+    VL53L7CX_ResultsData raw_data;
+    if (sensor.vl53l7cx_get_ranging_data(&raw_data) != 0) {
         return; // Failed to get data
     }
 
@@ -84,21 +84,21 @@ void MultizoneTofSensor::update_sensor_data() {
     lastValidDataTime = millis();
 
     // Process obstacle detection with the raw data
-    bool obstacleDetected = process_obstacle_detection(rawData);
+    bool obstacle_detected = process_obstacle_detection(raw_data);
 
     // Calculate front distance from ROI zones
-    float frontDistance = calculate_front_distance(rawData);
+    float front_distance = calculate_front_distance(raw_data);
 
     // Create TofData structure and write to buffer
-    TofData tofData;
-    tofData.rawData = rawData;
-    tofData.isObjectDetected = obstacleDetected;
-    tofData.frontDistance = frontDistance;
-    tofData.isValid = true;
-    tofData.timestamp = millis();
+    TofData tof_data;
+    tof_data.raw_data = raw_data;
+    tof_data.is_object_detected = obstacle_detected;
+    tof_data.front_distance = front_distance;
+    tof_data.is_valid = true;
+    tof_data.timestamp = millis();
 
     // Write to buffer
-    SensorDataBuffer::get_instance().update_tof_data(tofData);
+    SensorDataBuffer::get_instance().update_tof_data(tof_data);
 }
 
 void MultizoneTofSensor::enable_tof_sensor() {

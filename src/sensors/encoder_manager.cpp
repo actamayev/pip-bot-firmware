@@ -107,15 +107,15 @@ void EncoderManager::update_sensor_data() {
     distanceTraveled = wheelRevolutionsAfterGearing * WHEEL_CIRCUMFERENCE_IN;
 
     // Create encoder data struct with both calculated and raw values
-    EncoderData encoderData;
-    encoderData.leftWheelRPM = _leftWheelRPM;
-    encoderData.rightWheelRPM = _rightWheelRPM;
-    encoderData.distanceTraveledIn = distanceTraveled;
-    encoderData.leftEncoderCount = leftCount;   // Raw counts for motor driver
-    encoderData.rightEncoderCount = rightCount; // Raw counts for motor driver
-    encoderData.isValid = true;
-    encoderData.timestamp = millis();
+    EncoderData encoder_data;
+    encoder_data.left_wheel_rpm = _leftWheelRPM;
+    encoder_data.right_wheel_rpm = _rightWheelRPM;
+    encoder_data.distance_traveled_in = distanceTraveled;
+    encoder_data.left_encoder_count = leftCount;   // Raw counts for motor driver
+    encoder_data.right_encoder_count = rightCount; // Raw counts for motor driver
+    encoder_data.is_valid = true;
+    encoder_data.timestamp = millis();
 
     // Write to sensor data buffer
-    SensorDataBuffer::get_instance().update_encoder_data(encoderData);
+    SensorDataBuffer::get_instance().update_encoder_data(encoder_data);
 }

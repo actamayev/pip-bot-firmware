@@ -28,7 +28,7 @@ void side_tofs_logger() {
     // DisplayScreen::get_instance().showDistanceSensors(tofCounts);
 
     char buffer[128];
-    snprintf(buffer, sizeof(buffer), "Left TOF: %u counts              || Right TOF: %u counts", tofCounts.leftCounts, tofCounts.rightCounts);
+    snprintf(buffer, sizeof(buffer), "Left TOF: %u counts              || Right TOF: %u counts", tofCounts.left_counts, tofCounts.right_counts);
     SerialQueueManager::get_instance().queue_message(buffer);
     lastPrintTime = millis();
 }
@@ -59,7 +59,7 @@ void multizone_tof_logger() {
 
     char buffer[128];
     snprintf(buffer, sizeof(buffer), "Multizone ToF Frequency: %.1f Hz, Data Valid: %s, Object Detected: %s", frequency,
-             tofData.isValid ? "YES" : "NO", tofData.isObjectDetected ? "Object Detected" : "Object not detected");
+             tofData.is_valid ? "YES" : "NO", tofData.is_object_detected ? "Object Detected" : "Object not detected");
     SerialQueueManager::get_instance().queue_message(buffer);
 
     lastPrintTime = millis();
@@ -75,7 +75,7 @@ void side_tof_logger() {
     SideTofData tofData = SensorDataBuffer::get_instance().get_latest_side_tof_data();
 
     char buffer[128];
-    snprintf(buffer, sizeof(buffer), "Side ToF Frequency: %.1f Hz, Left: %u, Right: %u", frequency, tofData.leftCounts, tofData.rightCounts);
+    snprintf(buffer, sizeof(buffer), "Side ToF Frequency: %.1f Hz, Left: %u, Right: %u", frequency, tofData.left_counts, tofData.right_counts);
     SerialQueueManager::get_instance().queue_message(buffer);
 
     lastPrintTime = millis();
@@ -91,8 +91,8 @@ void color_sensor_logger() {
     ColorData colorData = SensorDataBuffer::get_instance().get_latest_color_data();
 
     char buffer[128];
-    snprintf(buffer, sizeof(buffer), "Color Sensor Frequency: %.1f Hz, RGB: (%u,%u,%u)", frequency, colorData.redValue, colorData.greenValue,
-             colorData.blueValue);
+    snprintf(buffer, sizeof(buffer), "Color Sensor Frequency: %.1f Hz, RGB: (%u,%u,%u)", frequency, colorData.red_value, colorData.green_value,
+             colorData.blue_value);
     SerialQueueManager::get_instance().queue_message(buffer);
 
     lastPrintTime = millis();
@@ -104,7 +104,7 @@ void log_motor_rpm() {
 
     if (millis() - lastPrintTime < PRINT_INTERVAL) return;
 
-    auto rpms = SensorDataBuffer::get_instance().getLatestWheelRPMs();
+    auto rpms = SensorDataBuffer::get_instance().get_latest_wheel_rpms();
 
     char buffer[128];
     snprintf(buffer, sizeof(buffer), "Motor RPM - Left: %.2f || Right: %.2f", rpms.leftWheelRPM, rpms.rightWheelRPM);
