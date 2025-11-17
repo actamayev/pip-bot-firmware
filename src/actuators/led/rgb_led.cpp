@@ -6,7 +6,7 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_LEDS, ESP_LED_PIN, NEO_GRB + NEO
 
 LedAnimations ledAnimations(strip);
 
-void RgbLed::turn_all_leds_off() {
+void RgbLed::turnAllLedsOff() {
     // Stop any running animations
     ledAnimations.stopAnimation();
     // Set all LEDs to off
@@ -21,32 +21,16 @@ void RgbLed::turn_all_leds_off() {
     currentBlue = 0;
 }
 
-void RgbLed::set_led_red() {
-    set_main_board_leds_to_color(MAX_LED_BRIGHTNESS, 0, 0);
+void RgbLed::setLedGreen() {
+    setMainBoardLedsToColor(0, MAX_LED_BRIGHTNESS, 0);
 }
 
-void RgbLed::set_led_green() {
-    set_main_board_leds_to_color(0, MAX_LED_BRIGHTNESS, 0);
+void RgbLed::setLedYellow() {
+    setMainBoardLedsToColor(MAX_LED_BRIGHTNESS, MAX_LED_BRIGHTNESS, 0);
 }
 
-void RgbLed::set_led_blue() {
-    set_main_board_leds_to_color(0, 0, MAX_LED_BRIGHTNESS);
-}
-
-void RgbLed::set_led_white() {
-    set_main_board_leds_to_color(MAX_LED_BRIGHTNESS, MAX_LED_BRIGHTNESS, MAX_LED_BRIGHTNESS);
-}
-
-void RgbLed::set_led_purple() {
-    set_main_board_leds_to_color(MAX_LED_BRIGHTNESS, 0, MAX_LED_BRIGHTNESS);
-}
-
-void RgbLed::set_led_yellow() {
-    set_main_board_leds_to_color(MAX_LED_BRIGHTNESS, MAX_LED_BRIGHTNESS, 0);
-}
-
-void RgbLed::turn_main_board_leds_off() {
-    set_main_board_leds_to_color(0, 0, 0);
+void RgbLed::turnMainBoardLedsOff() {
+    setMainBoardLedsToColor(0, 0, 0);
 }
 
 void RgbLed::setDefaultColors(uint8_t red, uint8_t green, uint8_t blue) {
@@ -66,7 +50,7 @@ void RgbLed::setDefaultColors(uint8_t red, uint8_t green, uint8_t blue) {
     currentBlue = blue;
 }
 
-void RgbLed::set_main_board_leds_to_color(uint8_t red, uint8_t green, uint8_t blue) {
+void RgbLed::setMainBoardLedsToColor(uint8_t red, uint8_t green, uint8_t blue) {
     currentRed = red;
     currentGreen = green;
     currentBlue = blue;
@@ -94,7 +78,7 @@ void RgbLed::set_main_board_leds_to_color(uint8_t red, uint8_t green, uint8_t bl
 
 bool RgbLed::processLedUpdate(int ledIndex, uint8_t red, uint8_t green, uint8_t blue) {
     // Skip updates during rainbow animation
-    if (ledAnimations.getCurrentAnimation() == led_types::RAINBOW) {
+    if (ledAnimations.getCurrentAnimation() == led_types::AnimationType::RAINBOW) {
         return false;
     }
 
@@ -108,10 +92,10 @@ bool RgbLed::processLedUpdate(int ledIndex, uint8_t red, uint8_t green, uint8_t 
     defaultColorsSet[ledIndex] = true;
 
     // If we're in breathing or strobing mode, update the animation colors
-    if (currentAnim == led_types::BREATHING) {
+    if (currentAnim == led_types::AnimationType::BREATHING) {
         ledAnimations.updateBreathingColor();
         return (ledIndex == 0); // Only return true for back_left LED (now index 0), which controls breathing color
-    } else if (currentAnim == led_types::STROBING) {
+    } else if (currentAnim == led_types::AnimationType::STROBING) {
         ledAnimations.updateStrobeColor();
         return (ledIndex == 0); // Only return true for back_left LED (now index 0), which controls strobe color
     } else {
@@ -177,20 +161,20 @@ void RgbLed::set_back_right_led(uint8_t red, uint8_t green, uint8_t blue) {
     strip.show();
 }
 
-void RgbLed::turn_headlights_on() {
+void RgbLed::turnHeadlightsOn() {
     // Set headlights to white (swapped indices due to reversal)
     strip.setPixelColor(3, strip.Color(255, 255, 255)); // left_headlight
     strip.setPixelColor(2, strip.Color(255, 255, 255)); // right_headlight
     strip.show();
 }
 
-void RgbLed::turn_headlights_off() {
+void RgbLed::turnHeadlightsOff() {
     strip.setPixelColor(3, strip.Color(0, 0, 0)); // left_headlight
     strip.setPixelColor(2, strip.Color(0, 0, 0)); // right_headlight
     strip.show();
 }
 
-void RgbLed::turn_headlights_faint_blue() {
+void RgbLed::turnHeadlightsFaintBlue() {
     constexpr uint8_t faintBlue = 20;                     // Very faint blue
     strip.setPixelColor(3, strip.Color(0, 0, faintBlue)); // left_headlight
     strip.setPixelColor(2, strip.Color(0, 0, faintBlue)); // right_headlight
@@ -214,14 +198,14 @@ void RgbLed::turn_front_middle_leds_off() {
     strip.show();
 }
 
-void RgbLed::turn_back_leds_faint_blue() {
+void RgbLed::turnHeadlightsFaintBlue() {
     constexpr uint8_t faintBlue = 20;                     // Very faint blue
     strip.setPixelColor(6, strip.Color(0, 0, faintBlue)); // back_left
     strip.setPixelColor(7, strip.Color(0, 0, faintBlue)); // back_right
     strip.show();
 }
 
-void RgbLed::turn_back_leds_off() {
+void RgbLed::turnBackLedsOff() {
     strip.setPixelColor(6, strip.Color(0, 0, 0)); // back_left
     strip.setPixelColor(7, strip.Color(0, 0, 0)); // back_right
     strip.show();

@@ -7,8 +7,7 @@ const std::map<BytecodeOpCode, std::vector<BytecodeVM::SensorType>> BytecodeVM::
     {OP_MOTOR_GO, {SENSOR_QUATERNION}},
     {OP_MOTOR_GO_TIME, {SENSOR_QUATERNION}},
     {OP_MOTOR_GO_DISTANCE, {SENSOR_QUATERNION}},
-    {OP_MOTOR_TURN, {SENSOR_QUATERNION}}
-};
+    {OP_MOTOR_TURN, {SENSOR_QUATERNION}}};
 
 BytecodeVM::BytecodeVM() {
     programMutex = xSemaphoreCreateMutex();
@@ -42,9 +41,9 @@ bool BytecodeVM::loadProgram(const uint8_t* byteCode, uint16_t size) {
         xSemaphoreGive(programMutex);
         return false;
     }
-    
+
     programSize = size / INSTRUCTION_SIZE;
-    program = new(std::nothrow) BytecodeInstruction[programSize];
+    program = new (std::nothrow) BytecodeInstruction[programSize];
     if (!program) {
         xSemaphoreGive(programMutex);
         return false;
@@ -53,19 +52,19 @@ bool BytecodeVM::loadProgram(const uint8_t* byteCode, uint16_t size) {
     // Iterate through program indices (0 to programSize-1)
     for (uint16_t i = 0; i < programSize; i++) {
         uint16_t offset = i * INSTRUCTION_SIZE;
-        
+
         // Read opcode (as float but cast to enum)
         float opcodeFloat;
         memcpy(&opcodeFloat, &byteCode[offset], sizeof(float));
         program[i].opcode = static_cast<BytecodeOpCode>(static_cast<uint32_t>(opcodeFloat));
-        
+
         // Read float operands - direct memory copy to preserve exact bit pattern
         memcpy(&program[i].operand1, &byteCode[offset + 4], sizeof(float));
         memcpy(&program[i].operand2, &byteCode[offset + 8], sizeof(float));
         memcpy(&program[i].operand3, &byteCode[offset + 12], sizeof(float));
         memcpy(&program[i].operand4, &byteCode[offset + 16], sizeof(float));
     }
-    
+
     // Check if the first instruction is OP_WAIT_FOR_BUTTON
     if (programSize > 0 && program[0].opcode == OP_WAIT_FOR_BUTTON) {
         // Program has a start button - set to waiting state
@@ -78,7 +77,7 @@ bool BytecodeVM::loadProgram(const uint8_t* byteCode, uint16_t size) {
     }
 
     scanProgramForMotors();
-    activateSensorsForProgram(); // Activate sensors needed by the program
+    activateSensorsForProgram();   // Activate sensors needed by the program
     stoppedDueToUsbSafety = false; // Reset safety flag on new program load
 
     xSemaphoreGive(programMutex);
@@ -117,7 +116,7 @@ void BytecodeVM::update() {
         }
         waitingForDelay = false;
     }
-    
+
     if (timedMotorMovementInProgress) {
         updateTimedMotorMovement();
         xSemaphoreGive(programMutex);
@@ -149,14 +148,14 @@ void BytecodeVM::update() {
 bool BytecodeVM::compareValues(ComparisonOp op, float leftOperand, float rightOperand) {
     float leftValue;
     float rightValue;
-    
+
     // Process left operand - check if high bit is set, indicating a register
     if (leftOperand < 32768.0f) {
         // Direct value
         leftValue = leftOperand;
     } else {
         uint16_t regId = static_cast<uint16_t>(leftOperand) & 0x7FFF;
-        
+
         if (regId < MAX_REGISTERS && registerInitialized[regId]) {
             // Get value from register
             if (registerTypes[regId] == VAR_FLOAT) {
@@ -167,17 +166,17 @@ bool BytecodeVM::compareValues(ComparisonOp op, float leftOperand, float rightOp
                 leftValue = registers[regId].asBool ? 1.0f : 0.0f;
             }
         } else {
-            return false;  // Invalid register
+            return false; // Invalid register
         }
     }
-    
+
     // Process right operand - check if high bit is set, indicating a register
     if (rightOperand < 32768.0f) {
         // Direct value
         rightValue = rightOperand;
     } else {
         uint16_t regId = static_cast<uint16_t>(rightOperand) & 0x7FFF;
-        
+
         if (regId < MAX_REGISTERS && registerInitialized[regId]) {
             // Get value from register
             if (registerTypes[regId] == VAR_FLOAT) {
@@ -188,19 +187,26 @@ bool BytecodeVM::compareValues(ComparisonOp op, float leftOperand, float rightOp
                 rightValue = registers[regId].asBool ? 1.0f : 0.0f;
             }
         } else {
-            return false;  // Invalid register
+            return false; // Invalid register
         }
     }
 
     // Perform comparison with retrieved values
     switch (op) {
-        case OP_EQUAL: return abs(leftValue - rightValue) < 0.0001f;
-        case OP_NOT_EQUAL: return leftValue != rightValue;
-        case OP_GREATER_THAN: return leftValue > rightValue;
-        case OP_LESS_THAN: return leftValue < rightValue;
-        case OP_GREATER_EQUAL: return leftValue >= rightValue;
-        case OP_LESS_EQUAL: return leftValue <= rightValue;
-        default: return false;
+        case OP_EQUAL:
+            return abs(leftValue - rightValue) < 0.0001f;
+        case OP_NOT_EQUAL:
+            return leftValue != rightValue;
+        case OP_GREATER_THAN:
+            return leftValue > rightValue;
+        case OP_LESS_THAN:
+            return leftValue < rightValue;
+        case OP_GREATER_EQUAL:
+            return leftValue >= rightValue;
+        case OP_LESS_EQUAL:
+            return leftValue <= rightValue;
+        default:
+            return false;
     }
 }
 
@@ -219,7 +225,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
         case OP_WAIT: {
             // Delay execution for specified milliseconds
             // This converts from seconds (ie. 1.5s into milliseconds).
-            // delayMs can be uint32_t since it will always be 
+            // delayMs can be uint32_t since it will always be
             uint32_t delayMs = static_cast<uint32_t>(instr.operand1 * 1000.0f);
             delayUntil = millis() + delayMs;
             waitingForDelay = true;
@@ -227,13 +233,13 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
         }
 
         case OP_READ_SENSOR: {
-            BytecodeSensorType sensorType = static_cast<BytecodeSensorType>(instr.operand1);  // Which sensor to read
-            uint16_t regId = instr.operand2;       // Register to store result
-            
+            BytecodeSensorType sensorType = static_cast<BytecodeSensorType>(instr.operand1); // Which sensor to read
+            uint16_t regId = instr.operand2;                                                 // Register to store result
+
             if (regId < MAX_REGISTERS) {
                 float value = 0.0f;
-                bool skipDefaultAssignment = false;  // Add this flag
-                
+                bool skipDefaultAssignment = false; // Add this flag
+
                 // Read the appropriate sensor
                 switch (sensorType) {
                     case SENSOR_PITCH:
@@ -280,7 +286,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
                         registers[regId].asBool = (counts > LEFT_PROXIMITY_THRESHOLD);
                         registerTypes[regId] = VAR_BOOL;
                         registerInitialized[regId] = true;
-                        skipDefaultAssignment = true;  // Set flag to skip default assignment
+                        skipDefaultAssignment = true; // Set flag to skip default assignment
                         break;
                     }
                     case SENSOR_SIDE_RIGHT_PROXIMITY: {
@@ -288,7 +294,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
                         registers[regId].asBool = (counts > RIGHT_PROXIMITY_THRESHOLD);
                         registerTypes[regId] = VAR_BOOL;
                         registerInitialized[regId] = true;
-                        skipDefaultAssignment = true;  // Set flag to skip default assignment
+                        skipDefaultAssignment = true; // Set flag to skip default assignment
                         break;
                     }
                     case SENSOR_FRONT_PROXIMITY: {
@@ -296,7 +302,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
                         registers[regId].asBool = isObjectDetected;
                         registerTypes[regId] = VAR_BOOL;
                         registerInitialized[regId] = true;
-                        skipDefaultAssignment = true;  // Set flag
+                        skipDefaultAssignment = true; // Set flag
                         break;
                     }
                     case SENSOR_COLOR_RED: {
@@ -370,21 +376,21 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
         }
 
         case OP_SET_ALL_LEDS: {
-            uint8_t r = static_cast<uint8_t>(instr.operand1);     // Cast to uint8_t for
-            uint8_t g = static_cast<uint8_t>(instr.operand2);     // RGB values (0-255)
-            uint8_t b = static_cast<uint8_t>(instr.operand3);        
+            uint8_t r = static_cast<uint8_t>(instr.operand1); // Cast to uint8_t for
+            uint8_t g = static_cast<uint8_t>(instr.operand2); // RGB values (0-255)
+            uint8_t b = static_cast<uint8_t>(instr.operand3);
 
             // operand4 is unused for this operation
-            rgbLed.set_main_board_leds_to_color(r, g, b);
+            rgbLed.setMainBoardLedsToColor(r, g, b);
             break;
         }
 
         case OP_COMPARE: {
             // Compare two values and store the result
-            ComparisonOp op = (ComparisonOp)static_cast<uint8_t>(instr.operand1);
+            ComparisonOp op = (ComparisonOp) static_cast<uint8_t>(instr.operand1);
             float leftValue = instr.operand2;
             float rightValue = instr.operand3;
-            
+
             lastComparisonResult = compareValues(op, leftValue, rightValue);
 
             break;
@@ -394,9 +400,9 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             // Unconditional jump
             uint8_t low = static_cast<uint8_t>(instr.operand1);
             uint8_t high = static_cast<uint8_t>(instr.operand2);
-            uint16_t jumpOffset = (high << 8) | low; // Combine high and low bytes into 16-bit offset
+            uint16_t jumpOffset = (high << 8) | low;                           // Combine high and low bytes into 16-bit offset
             uint16_t targetInstruction = pc + (jumpOffset / INSTRUCTION_SIZE); // 20 bytes per instruction
-            pc = targetInstruction - 1; // Subtract 1 because pc increments after this
+            pc = targetInstruction - 1;                                        // Subtract 1 because pc increments after this
             break;
         }
 
@@ -404,9 +410,9 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             // Backward jump (used in for loops)
             uint8_t low = static_cast<uint8_t>(instr.operand1);
             uint8_t high = static_cast<uint8_t>(instr.operand2);
-            uint16_t jumpOffset = (high << 8) | low; // Combine high and low bytes into 16-bit offset
+            uint16_t jumpOffset = (high << 8) | low;                           // Combine high and low bytes into 16-bit offset
             uint16_t targetInstruction = pc - (jumpOffset / INSTRUCTION_SIZE); // Subtract for backward jump
-            pc = targetInstruction - 1; // Subtract 1 because pc increments after
+            pc = targetInstruction - 1;                                        // Subtract 1 because pc increments after
             break;
         }
 
@@ -415,9 +421,9 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             if (lastComparisonResult) {
                 uint8_t low = static_cast<uint8_t>(instr.operand1);
                 uint8_t high = static_cast<uint8_t>(instr.operand2);
-                uint16_t jumpOffset = (high << 8) | low; // Combine high and low bytes into 16-bit offset
+                uint16_t jumpOffset = (high << 8) | low;                           // Combine high and low bytes into 16-bit offset
                 uint16_t targetInstruction = pc + (jumpOffset / INSTRUCTION_SIZE); // 20 bytes per instruction
-                pc = targetInstruction - 1; // Subtract 1 because pc increments after
+                pc = targetInstruction - 1;                                        // Subtract 1 because pc increments after
             }
             break;
         }
@@ -427,9 +433,9 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             if (!lastComparisonResult) {
                 uint8_t low = static_cast<uint8_t>(instr.operand1);
                 uint8_t high = static_cast<uint8_t>(instr.operand2);
-                uint16_t jumpOffset = (high << 8) | low; // Combine high and low bytes into 16-bit offset
+                uint16_t jumpOffset = (high << 8) | low;                           // Combine high and low bytes into 16-bit offset
                 uint16_t targetInstruction = pc + (jumpOffset / INSTRUCTION_SIZE); // 20 bytes per instruction
-                pc = targetInstruction - 1; // Subtract 1 because pc increments after
+                pc = targetInstruction - 1;                                        // Subtract 1 because pc increments after
             }
             break;
         }
@@ -437,7 +443,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
         case OP_DECLARE_VAR: {
             uint16_t regId = instr.operand1;
             BytecodeVarType type = (BytecodeVarType)instr.operand2;
-            
+
             if (regId < MAX_REGISTERS) {
                 registerTypes[regId] = type;
                 // Initialize with default values
@@ -459,7 +465,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
 
         case OP_SET_VAR: {
             uint16_t regId = static_cast<uint16_t>(instr.operand1);
-            
+
             if (regId < MAX_REGISTERS) {
                 switch (registerTypes[regId]) {
                     case VAR_FLOAT: {
@@ -503,25 +509,25 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
         case OP_FOR_INIT: {
             // Initialize loop counter
             uint16_t regId = static_cast<uint16_t>(instr.operand1);
-            
+
             if (regId < MAX_REGISTERS) {
                 registerTypes[regId] = VAR_INT;
-                
+
                 // Cast the float value to int
                 registers[regId].asInt = static_cast<int32_t>(instr.operand2);
                 registerInitialized[regId] = true;
             }
             break;
         }
-        
+
         case OP_FOR_CONDITION: {
             // Check if counter < end value
             uint16_t regId = static_cast<uint16_t>(instr.operand1);
-            
+
             if (regId < MAX_REGISTERS && registerInitialized[regId]) {
                 // Cast the float value to int
                 int32_t endValue = static_cast<int32_t>(instr.operand2);
-                
+
                 // Compare counter with end value
                 lastComparisonResult = (registers[regId].asInt < endValue);
             } else {
@@ -544,7 +550,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
         case OP_MOTOR_GO: {
             // operand1: direction (0=backward, 1=forward)
             // operand2: throttle percentage (0-100)
-            bool isForward = (instr.operand1 > 0.5f);  // > 0.5 to handle float precision
+            bool isForward = (instr.operand1 > 0.5f); // > 0.5 to handle float precision
             uint8_t throttlePercent = constrain(static_cast<uint8_t>(instr.operand2), 0, 100);
             uint16_t motorSpeed = map(throttlePercent, 0, 100, 0, MAX_MOTOR_PWM);
 
@@ -556,7 +562,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             }
             break;
         }
-        
+
         case OP_MOTOR_STOP: {
             motorDriver.resetCommandState(true);
             break;
@@ -565,12 +571,12 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
         case MOTOR_SPIN: {
             // operand1: direction (0=counterclockwise, 1=clockwise)
             // operand2: speed percentage (0-100)
-            bool clockwise = (instr.operand1 > 0.5f);  // > 0.5 to handle float precision
+            bool clockwise = (instr.operand1 > 0.5f); // > 0.5 to handle float precision
             uint8_t speedPercent = constrain(static_cast<uint8_t>(instr.operand2), 0, 100);
 
             uint16_t motorSpeed;
             if (speedPercent == 0) {
-                motorSpeed = 0;  // Stop motors completely at 0%
+                motorSpeed = 0; // Stop motors completely at 0%
             } else {
                 // Custom formula for speeds 1-100: ((MAX_SPIN_PWM - MIN_SPIN_PWM) / 100) * speed + MIN_SPIN_PWM
                 motorSpeed = ((MAX_SPIN_PWM - MIN_SPIN_PWM) * speedPercent / 100) + MIN_SPIN_PWM;
@@ -586,17 +592,17 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             }
             break;
         }
-        
+
         case OP_MOTOR_TURN: {
             bool clockwise = (instr.operand1 > 0);
             float degrees = instr.operand2;
-            
+
             // Use TurningManager for precise turning
             float signedDegrees = clockwise ? degrees : -degrees;
             if (!TurningManager::getInstance().startTurn(signedDegrees)) {
                 SerialQueueManager::getInstance().queueMessage("Failed to start turn - turn already in progress");
             }
-            
+
             // The actual turn progress will be monitored in update()
             break;
         }
@@ -605,7 +611,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             // operand1: direction (0=backward, 1=forward)
             // operand2: time in seconds
             // operand3: throttle percentage (0-100)
-            bool isForward = (instr.operand1 > 0.5f);  // > 0.5 to handle float precision
+            bool isForward = (instr.operand1 > 0.5f); // > 0.5 to handle float precision
             float seconds = instr.operand2;
             uint8_t throttlePercent = constrain(static_cast<uint8_t>(instr.operand3), 0, 100);
 
@@ -616,7 +622,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             }
 
             if (throttlePercent > 100) {
-                throttlePercent = 100;  // Clamp to valid range
+                throttlePercent = 100; // Clamp to valid range
             }
 
             // Convert percentage to motor speed
@@ -640,7 +646,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             // operand1: direction (0=backward, 1=forward)
             // operand2: distance in inches
             // operand3: throttle percentage (0-100)
-            bool isForward = (instr.operand1 > 0.5f);  // > 0.5 to handle float precision
+            bool isForward = (instr.operand1 > 0.5f); // > 0.5 to handle float precision
             float distanceIn = instr.operand2;
             uint8_t throttlePercent = constrain(static_cast<uint8_t>(instr.operand3), 0, 100);
 
@@ -651,7 +657,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             }
 
             if (throttlePercent > 100) {
-                throttlePercent = 100;  // Clamp to valid range
+                throttlePercent = 100; // Clamp to valid range
             }
 
             // Convert percentage to motor speed
@@ -669,7 +675,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
                 initialDistancePwm = motorSpeed;
                 motorDriver.updateMotorPwm(motorSpeed, motorSpeed);
             } else {
-                initialDistancePwm = -motorSpeed;  // Store as negative for backward
+                initialDistancePwm = -motorSpeed; // Store as negative for backward
                 motorDriver.updateMotorPwm(-motorSpeed, -motorSpeed);
             }
 
@@ -684,7 +690,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
         }
 
         case CHECK_RIGHT_BUTTON_PRESS: {
-            uint16_t regId = instr.operand1;       // Register to store result
+            uint16_t regId = instr.operand1; // Register to store result
 
             if (regId < MAX_REGISTERS) {
                 bool isPressed = Buttons::getInstance().isRightButtonPressed();
@@ -698,10 +704,10 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
 
         case PLAY_TONE: {
             uint8_t toneValue = static_cast<uint8_t>(instr.operand1);
-            
+
             // ADD THESE DEBUG LINES:
             SerialQueueManager::getInstance().queueMessage("PLAY_TONE opcode hit with value: " + String(toneValue));
-            
+
             // toneValue = 0 means stop, 1-7 are valid tones
             if (toneValue <= 7) {
                 ToneType toneType = static_cast<ToneType>(toneValue);
@@ -736,12 +742,12 @@ void BytecodeVM::updateDistanceMovement() {
     float totalDistance = SensorDataBuffer::getInstance().getLatestDistanceTraveledIn();
     float currentDistance = abs(totalDistance - startingDistanceIn);
     float remainingDistance = targetDistanceIn - currentDistance;
-    
+
     // Check if we've reached the target distance
     if (remainingDistance <= 0.0f) {
         // Distance reached - brake motors and clear any pending commands
         motorDriver.resetCommandState(true);
-        
+
         // Reset distance movement state
         distanceMovementInProgress = false;
         targetDistanceIn = 0.0f;
@@ -750,31 +756,31 @@ void BytecodeVM::updateDistanceMovement() {
         vTaskDelay(pdMS_TO_TICKS(250));
         return;
     }
-    
+
     // Calculate braking distance using physics equation
     int16_t absPwm = abs(initialDistancePwm);
     float brakingDistance = (absPwm * absPwm - MIN_DECELERATION_PWM * MIN_DECELERATION_PWM) / (2.0f * DECELERATION_RATE);
     SerialQueueManager::getInstance().queueMessage("brakingDistance" + String(brakingDistance));
-    
+
     // Ensure braking distance doesn't exceed total distance (edge case for short distances)
     if (brakingDistance > targetDistanceIn) {
         brakingDistance = targetDistanceIn;
     }
-    
+
     // Determine target PWM based on remaining distance
     int16_t targetPwm;
-    
+
     if (remainingDistance <= brakingDistance) {
         // We're in the deceleration zone - apply inverse sigmoid
-        float normalizedPosition = remainingDistance / brakingDistance;  // 1.0 at start of braking, 0.0 at end
-        
+        float normalizedPosition = remainingDistance / brakingDistance; // 1.0 at start of braking, 0.0 at end
+
         // Inverse sigmoid: gentle at start, aggressive near end
-        float k = 10.0f / brakingDistance;  // Steepness factor
-        float sigmoidValue = 1.0f / (1.0f + exp(k * (brakingDistance/2.0f - remainingDistance)));
-        
+        float k = 10.0f / brakingDistance; // Steepness factor
+        float sigmoidValue = 1.0f / (1.0f + exp(k * (brakingDistance / 2.0f - remainingDistance)));
+
         // Calculate PWM using sigmoid curve
         targetPwm = MIN_DECELERATION_PWM + (absPwm - MIN_DECELERATION_PWM) * sigmoidValue;
-        
+
         // Maintain direction (forward/backward)
         if (initialDistancePwm < 0) {
             targetPwm = -targetPwm;
@@ -782,7 +788,7 @@ void BytecodeVM::updateDistanceMovement() {
 
         SerialQueueManager::getInstance().queueMessage("sigmoidValue" + String(sigmoidValue));
         SerialQueueManager::getInstance().queueMessage("targetPwm" + String(targetPwm));
-        
+
         // Set motor speeds directly without ramping
         motorDriver.set_motor_speeds(targetPwm, targetPwm, false);
     }
@@ -808,7 +814,7 @@ void BytecodeVM::resetStateVariables(bool isFullReset) {
     delayUntil = 0;
     waitingForDelay = false;
     lastComparisonResult = false;
-    
+
     // Reset TurningManager state
     TurningManager::getInstance().completeNavigation();
     timedMotorMovementInProgress = false;
@@ -844,12 +850,12 @@ void BytecodeVM::resetStateVariables(bool isFullReset) {
         program = nullptr;
         isPaused = PROGRAM_NOT_STARTED;
         programSize = 0;
-        
+
         // ADD THESE for full reset:
         programContainsMotors = false;
         lastUsbState = false;
     }
-    rgbLed.turn_all_leds_off();
+    rgbLed.turnAllLedsOff();
     Speaker::getInstance().stopAllSounds();
     SensorDataBuffer::getInstance().stopPollingAllSensors();
 }
@@ -901,11 +907,11 @@ void BytecodeVM::resumeProgram() {
     // Check if the first instruction is a WAIT_FOR_BUTTON (start block)
     if (programSize > 0 && program[0].opcode == OP_WAIT_FOR_BUTTON) {
         SerialQueueManager::getInstance().queueMessage("Resuming program - skipping initial wait for button");
-        pc = 1; // Start after the wait for button instruction
+        pc = 1;                               // Start after the wait for button instruction
         waitingForButtonPressToStart = false; // ← FIX: Clear the flag!
     } else {
         SerialQueueManager::getInstance().queueMessage("Resuming program from beginning");
-        pc = 0; // Start from the beginning for scripts without a start block
+        pc = 0;                               // Start from the beginning for scripts without a start block
         waitingForButtonPressToStart = false; // ← FIX: Clear here too for consistency
     }
 
@@ -914,20 +920,20 @@ void BytecodeVM::resumeProgram() {
 
 void BytecodeVM::activateSensorsForProgram() {
     if (!program || programSize == 0) return;
-    
+
     // Track which sensors are needed
     bool needQuaternion = false;
-    bool needAccelerometer = false;  
+    bool needAccelerometer = false;
     bool needGyroscope = false;
     bool needMagnetometer = false;
     bool needTof = false;
     bool needSideTof = false;
     bool needColorSensor = false;
-    
+
     // Scan through the entire program
     for (uint16_t i = 0; i < programSize; i++) {
         const BytecodeInstruction& instr = program[i];
-        
+
         // Handle OP_READ_SENSOR dynamically based on sensor type
         if (instr.opcode != OP_READ_SENSOR) {
             // Handle other opcodes using the static mapping
@@ -935,21 +941,33 @@ void BytecodeVM::activateSensorsForProgram() {
             if (it != opcodeToSensors.end()) {
                 for (SensorType sensorType : it->second) {
                     switch (sensorType) {
-                        case SENSOR_QUATERNION: needQuaternion = true; break;
-                        case SENSOR_ACCELEROMETER: needAccelerometer = true; break;
-                        case SENSOR_GYROSCOPE: needGyroscope = true; break;
-                        case SENSOR_MAGNETOMETER: needMagnetometer = true; break;
-                        case SENSOR_TOF: needTof = true; break;
-                        case SENSOR_SIDE_TOF: needSideTof = true; break;
+                        case SENSOR_QUATERNION:
+                            needQuaternion = true;
+                            break;
+                        case SENSOR_ACCELEROMETER:
+                            needAccelerometer = true;
+                            break;
+                        case SENSOR_GYROSCOPE:
+                            needGyroscope = true;
+                            break;
+                        case SENSOR_MAGNETOMETER:
+                            needMagnetometer = true;
+                            break;
+                        case SENSOR_TOF:
+                            needTof = true;
+                            break;
+                        case SENSOR_SIDE_TOF:
+                            needSideTof = true;
+                            break;
                     }
                 }
             }
         } else {
             BytecodeSensorType sensorType = static_cast<BytecodeSensorType>(instr.operand1);
-            
+
             switch (sensorType) {
                 case SENSOR_PITCH:
-                case SENSOR_ROLL: 
+                case SENSOR_ROLL:
                 case SENSOR_YAW:
                     needQuaternion = true;
                     break;
@@ -987,12 +1005,12 @@ void BytecodeVM::activateSensorsForProgram() {
             }
         }
     }
-    
+
     // Activate required sensors by setting their last_request timestamps
     SensorDataBuffer& buffer = SensorDataBuffer::getInstance();
     ReportTimeouts& timeouts = buffer.getReportTimeouts();
     uint32_t currentTime = millis();
-    
+
     if (needQuaternion) {
         timeouts.quaternion_last_request.store(currentTime);
         SerialQueueManager::getInstance().queueMessage("Activated quaternion sensor for program");
@@ -1025,19 +1043,12 @@ void BytecodeVM::activateSensorsForProgram() {
 
 void BytecodeVM::scanProgramForMotors() {
     programContainsMotors = false;
-    
+
     if (!program || programSize == 0) return;
-    
+
     // Define all motor opcodes that should block USB execution
-    const BytecodeOpCode motorOpcodes[] = {
-        OP_MOTOR_GO,
-        OP_MOTOR_STOP,
-        OP_MOTOR_TURN,
-        OP_MOTOR_GO_TIME,
-        OP_MOTOR_GO_DISTANCE,
-        MOTOR_SPIN
-    };
-    
+    const BytecodeOpCode motorOpcodes[] = {OP_MOTOR_GO, OP_MOTOR_STOP, OP_MOTOR_TURN, OP_MOTOR_GO_TIME, OP_MOTOR_GO_DISTANCE, MOTOR_SPIN};
+
     // Scan entire program for any motor commands
     for (uint16_t i = 0; i < programSize; i++) {
         for (const auto& motorOpcode : motorOpcodes) {
@@ -1051,12 +1062,12 @@ void BytecodeVM::scanProgramForMotors() {
 
 void BytecodeVM::checkUsbSafetyConditions() {
     bool currentUsbState = SerialManager::getInstance().isSerialConnected();
-    
+
     // Detect USB connection change (disconnected -> connected)
     if (!lastUsbState && currentUsbState) {
         handleUsbConnect();
     }
-    
+
     lastUsbState = currentUsbState;
 }
 
@@ -1072,6 +1083,7 @@ bool BytecodeVM::canStartProgram() {
     // Block start if program contains motors and USB is connected
     if (!programContainsMotors || !SerialManager::getInstance().isSerialConnected()) return true;
 
-    SerialManager::getInstance().sendJsonMessage(ToSerialMessage::MOTORS_DISABLED_USB, "Cannot start motor program while USB connected - disconnect USB first");
+    SerialManager::getInstance().sendJsonMessage(ToSerialMessage::MOTORS_DISABLED_USB,
+                                                 "Cannot start motor program while USB connected - disconnect USB first");
     return false;
 }

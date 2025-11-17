@@ -7,10 +7,7 @@
 #include "networking/serial_queue_manager.h"
 
 // LEDC channel assignments (ESP32-S3 has 8 channels: 0-7)
-#define LEFT_MOTOR_CH_1   0
-#define LEFT_MOTOR_CH_2   1
-#define RIGHT_MOTOR_CH_1  2
-#define RIGHT_MOTOR_CH_2  3
+enum { LEFT_MOTOR_CH_1 = 0, LEFT_MOTOR_CH_2 = 1, RIGHT_MOTOR_CH_1 = 2, RIGHT_MOTOR_CH_2 = 3 };
 
 class MotorDriver {
     friend class TurningManager;
@@ -20,12 +17,12 @@ class MotorDriver {
 
     public:
         MotorDriver();  // Constructor to initialize pins
-        void stop_both_motors();
+        void stopBothMotors();
 
         void update();
 
-        void brake_both_motors();
-        void brake_if_moving();
+        void brakeBothMotors();
+        void brakeIfMoving();
 
         // Motor command processing functions
         void updateMotorPwm(int16_t leftPwm, int16_t rightPwm);
@@ -39,40 +36,40 @@ class MotorDriver {
         bool _shouldRampUp = true;
         static constexpr int16_t SPEED_RAMP_STEP = 600;
 
-        void left_motor_forward(uint16_t speed = MAX_MOTOR_PWM);
-        void left_motor_backward(uint16_t speed = MAX_MOTOR_PWM);
-        void right_motor_forward(uint16_t speed = MAX_MOTOR_PWM);
-        void right_motor_backward(uint16_t speed = MAX_MOTOR_PWM);
+        void leftMotorForward(uint16_t speed = MAX_MOTOR_PWM);
+        void leftMotorBackward(uint16_t speed = MAX_MOTOR_PWM);
+        void rightMotorForward(uint16_t speed = MAX_MOTOR_PWM);
+        void rightMotorBackward(uint16_t speed = MAX_MOTOR_PWM);
 
-        void left_motor_stop();
-        void right_motor_stop();
+        void leftMotorStop();
+        void rightMotorStop();
 
-        void brake_right_motor();
-        void brake_left_motor();
+        void brakeRightMotor();
+        void brakeLeftMotor();
         void executeCommand(int16_t leftPwm, int16_t rightPwm);
         
         // Private method for immediate motor control (used by friend classes)
-        void set_motor_speeds(int16_t leftTarget, int16_t rightTarget, bool shouldRampUp);
-        void set_motor_speeds_immediate(int16_t leftTarget, int16_t rightTarget);
+        void setMotorSpeeds(int16_t leftTarget, int16_t rightTarget, bool shouldRampUp);
+        void setMotorSpeedsImmediate(int16_t leftTarget, int16_t rightTarget);
 
         void processPendingCommands();
 
         static constexpr float MOTOR_STOPPED_THRESHOLD = 0.5; // RPM threshold for considering motor stopped
 
         // Command execution state variables
-        bool isExecutingCommand = false;
+        bool _isExecutingCommand = false;
         int16_t _commandLeftPwm = 0;
         int16_t _commandRightPwm = 0;
-        int64_t startLeftCount = 0;
-        int64_t startRightCount = 0;
+        int64_t _startLeftCount = 0;
+        int64_t _startRightCount = 0;
 
-        unsigned long commandStartTime = 0;
+        unsigned long _commandStartTime = 0;
         static constexpr unsigned long COMMAND_TIMEOUT_MS = 1000; // 1 second timeout
     
         // Next command (if any)
-        bool hasNextCommand = false;
-        int16_t nextLeftPwm = 0;
-        int16_t nextRightPwm = 0;
+        bool _hasNextCommand = false;
+        int16_t _nextLeftPwm = 0;
+        int16_t _nextRightPwm = 0;
 
         // Brake timer state variables
         bool _leftBrakeActive = false;

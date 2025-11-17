@@ -103,14 +103,14 @@ struct BytecodeInstruction {
     float operand4;       // 4 bytes
 };
 
-namespace ColorTypes {
-    enum ColorType {
-        COLOR_RED,
-        COLOR_GREEN,
-        COLOR_BLUE,
-        COLOR_WHITE,
-        COLOR_BLACK,
-        COLOR_YELLOW,
-        COLOR_NONE  // No clear color detected
-    };
-}
+namespace color_types {
+enum ColorType {
+    COLOR_RED,
+    COLOR_GREEN,
+    COLOR_BLUE,
+    COLOR_WHITE,
+    COLOR_BLACK,
+    COLOR_YELLOW,
+    COLOR_NONE // No clear color detected
+};
+} // namespace color_types

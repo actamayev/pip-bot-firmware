@@ -77,7 +77,7 @@ void setup() {
     TaskManager::createWebSocketPollingTask();
 
     // 9. LEDs (moved later in sequence)
-    rgbLed.turn_all_leds_off(); // Still turn off LEDs early for safety
+    rgbLed.turnAllLedsOff(); // Still turn off LEDs early for safety
     TaskManager::createLedTask();
 
     // 10. Initialize all sensors centrally to avoid I2C conflicts

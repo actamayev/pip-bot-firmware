@@ -70,11 +70,11 @@ struct SideTofCounts {
 };
 
 namespace led_types {
-enum AnimationType { NONE, BREATHING, STROBING, RAINBOW };
+enum class AnimationType : uint8_t { NONE, BREATHING, STROBING, RAINBOW };
 }
 
 namespace demo {
-enum DemoType { NONE, BALANCE_CONTROLLER, OBSTACLE_AVOIDER };
+enum class DemoType : uint8_t { NONE, BALANCE_CONTROLLER, OBSTACLE_AVOIDER };
 }
 
 struct LedState {
@@ -103,19 +103,19 @@ struct BatteryState {
 };
 
 // Can go to both Serial and Server
-enum class ToCommonMessage {
+enum class ToCommonMessage : uint8_t {
     SENSOR_DATA,
     SENSOR_DATA_MZ,
     DINO_SCORE,
     PIP_TURNING_OFF
 };
 
-enum class ToServerMessage {
+enum class ToServerMessage : uint8_t {
     DEVICE_INITIAL_DATA,
     BATTERY_MONITOR_DATA_FULL,
 };
 
-enum class ToSerialMessage {
+enum class ToSerialMessage : uint8_t {
     BYTECODE_STATUS,
     WIFI_CONNECTION_RESULT,
     PIP_ID,

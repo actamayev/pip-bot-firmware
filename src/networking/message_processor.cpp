@@ -10,22 +10,22 @@ void MessageProcessor::handleMotorControl(const uint8_t* data) {
 
 void MessageProcessor::handleBalanceCommand(BalanceStatus status) {
     if (status == BalanceStatus::BALANCED) {
-        DemoManager::getInstance().startDemo(demo::BALANCE_CONTROLLER);
+        DemoManager::getInstance().startDemo(demo::DemoType::BALANCE_CONTROLLER);
         return;
     }
     // If balance controller is currently running, stop it
-    if (DemoManager::getInstance().getCurrentDemo() == demo::BALANCE_CONTROLLER) {
+    if (DemoManager::getInstance().getCurrentDemo() == demo::DemoType::BALANCE_CONTROLLER) {
         DemoManager::getInstance().stopCurrentDemo();
     }
 }
 
 void MessageProcessor::handleObstacleAvoidanceCommand(ObstacleAvoidanceStatus status) {
     if (status == ObstacleAvoidanceStatus::AVOID) {
-        DemoManager::getInstance().startDemo(demo::OBSTACLE_AVOIDER);
+        DemoManager::getInstance().startDemo(demo::DemoType::OBSTACLE_AVOIDER);
         return;
     }
     // If obstacle avoider is currently running, stop it
-    if (DemoManager::getInstance().getCurrentDemo() == demo::OBSTACLE_AVOIDER) {
+    if (DemoManager::getInstance().getCurrentDemo() == demo::DemoType::OBSTACLE_AVOIDER) {
         DemoManager::getInstance().stopCurrentDemo();
     }
 }
@@ -256,7 +256,7 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             break;
         }
         case DataMessageType::SERIAL_END: {
-            rgbLed.turn_all_leds_off();
+            rgbLed.turnAllLedsOff();
             SerialManager::getInstance().isConnected = false;
             SensorDataBuffer::getInstance().stopPollingAllSensors();
             Speaker::getInstance().stopAllSounds();
@@ -268,9 +268,9 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
             } else {
                 HeadlightStatus status = static_cast<HeadlightStatus>(data[1]);
                 if (status == HeadlightStatus::ON) {
-                    rgbLed.turn_headlights_on();
+                    rgbLed.turnHeadlightsOn();
                 } else {
-                    rgbLed.turn_headlights_off();
+                    rgbLed.turnHeadlightsOff();
                 }
             }
             break;
@@ -377,7 +377,7 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
                                 DisplayScreen::getInstance().turnDisplayOff();
                                 Speaker::getInstance().stopAllSounds();
                                 ledAnimations.fadeOut();
-                                rgbLed.turn_headlights_off();
+                                rgbLed.turnHeadlightsOff();
                                 break;
                             case MeetPipTriggerType::S2_P1_ENTER:
                                 careerQuestTriggers.startS2P1Sequence();
@@ -428,11 +428,11 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
                                 break;
                             case MeetPipTriggerType::S6_P4_ENTER:
                                 SendSensorData::getInstance().setSendMultizoneData(true);
-                                rgbLed.turn_headlights_faint_blue();
+                                rgbLed.turnHeadlightsFaintBlue();
                                 break;
                             case MeetPipTriggerType::S6_P4_EXIT:
                                 SendSensorData::getInstance().setSendMultizoneData(false);
-                                rgbLed.turn_headlights_off();
+                                rgbLed.turnHeadlightsOff();
                                 break;
                             case MeetPipTriggerType::S6_P6_ENTER:
                                 SendSensorData::getInstance().setSendSensorData(true);
@@ -475,12 +475,12 @@ void MessageProcessor::processBinaryMessage(const uint8_t* data, uint16_t length
                                 motorDriver.stop_both_motors(); // We need this to prevent students from turning against the motors.
                                 SendSensorData::getInstance().setSendSensorData(true);
                                 SendSensorData::getInstance().setEncoderDataEnabled(true);
-                                rgbLed.turn_back_leds_faint_blue();
+                                rgbLed.turnHeadlightsFaintBlue();
                                 break;
                             case MeetPipTriggerType::S9_P6_EXIT:
                                 SendSensorData::getInstance().setEncoderDataEnabled(false);
                                 SendSensorData::getInstance().setSendSensorData(false);
-                                rgbLed.turn_back_leds_off();
+                                rgbLed.turnBackLedsOff();
                                 break;
                             default:
                                 SerialQueueManager::getInstance().queueMessage("Unknown introduction trigger type");

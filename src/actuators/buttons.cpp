@@ -1,9 +1,8 @@
 #include "buttons.h"
+
 #include "games/game_manager.h"
 
-Buttons::Buttons() 
-    : leftButton(LEFT_BUTTON_PIN), 
-      rightButton(RIGHT_BUTTON_PIN) {
+Buttons::Buttons() : leftButton(LEFT_BUTTON_PIN), rightButton(RIGHT_BUTTON_PIN) {
     begin();
 }
 
@@ -11,10 +10,10 @@ void Buttons::begin() {
     // Configure buttons for pull-down, active HIGH configuration
     leftButton.begin(LEFT_BUTTON_PIN, INPUT_PULLDOWN, false);
     rightButton.begin(RIGHT_BUTTON_PIN, INPUT_PULLDOWN, false);
-    
+
     leftButton.setDebounceTime(0);
     rightButton.setDebounceTime(0);
-    
+
     // Setup deep sleep functionality
     setupDeepSleep();
 }
@@ -28,14 +27,14 @@ void Buttons::update() {
         if (millis() - sleepConfirmationStartTime > SLEEP_CONFIRMATION_TIMEOUT) {
             waitingForSleepConfirmation = false;
             sleepConfirmationStartTime = 0;
-            rgbLed.turn_all_leds_off();
+            rgbLed.turnAllLedsOff();
         }
     }
 }
 
 void Buttons::setLeftButtonClickHandler(std::function<void(Button2&)> callback) {
     auto originalCallback = callback;
-    
+
     leftButton.setPressedHandler([this, originalCallback](Button2& btn) {
         // Reset timeout on any button activity
         TimeoutManager::getInstance().resetActivity();
@@ -53,7 +52,7 @@ void Buttons::setLeftButtonClickHandler(std::function<void(Button2&)> callback) 
     leftButton.setReleasedHandler([this, originalCallback](Button2& btn) {
         // Reset timeout on any button activity
         TimeoutManager::getInstance().resetActivity();
-        
+
         // Handle deep sleep logic first (existing functionality)
         if (this->longPressFlagForSleep) {
             this->longPressFlagForSleep = false;
@@ -92,7 +91,7 @@ void Buttons::setLeftButtonClickHandler(std::function<void(Button2&)> callback) 
             vm.resumeProgram();
             return;
         }
-        
+
         // Handle restart for finished programs
         if (vm.isPaused == BytecodeVM::PROGRAM_FINISHED) {
             vm.resumeProgram(); // This will restart from beginning
@@ -111,7 +110,7 @@ void Buttons::setLeftButtonClickHandler(std::function<void(Button2&)> callback) 
     leftButton.setClickHandler([this, originalCallback](Button2& btn) {
         // Reset timeout on any button activity
         TimeoutManager::getInstance().resetActivity();
-        
+
         if (!(this->waitingForSleepConfirmation)) return;
         this->waitingForSleepConfirmation = false;
         this->sleepConfirmationStartTime = 0;
@@ -122,31 +121,31 @@ void Buttons::setLeftButtonClickHandler(std::function<void(Button2&)> callback) 
 
 void Buttons::setRightButtonClickHandler(std::function<void(Button2&)> callback) {
     auto originalCallback = callback;
-    
+
     rightButton.setPressedHandler([this, originalCallback](Button2& btn) {
         // Reset timeout on any button activity
         TimeoutManager::getInstance().resetActivity();
-        
+
         // Check if timeout manager is in confirmation state
         if (TimeoutManager::getInstance().isInConfirmationState()) return; // Don't process other button logic
 
         // If we're waiting for confirmation, this click cancels deep sleep
         if (this->waitingForSleepConfirmation) {
-            rgbLed.turn_all_leds_off();
+            rgbLed.turnAllLedsOff();
             this->waitingForSleepConfirmation = false;
             this->sleepConfirmationStartTime = 0;
             return; // Don't call the original callback in this case
         }
-        
+
         // TODO 10/3: Figure out the right way to handle this. We did this to be able to check if (is_right_button_pressed) in bytecode_interpreter
         // BytecodeVM& vm = BytecodeVM::getInstance();
-        
+
         // // Handle pause for running programs
         // if (vm.isPaused == BytecodeVM::RUNNING || vm.isPaused == BytecodeVM::PROGRAM_FINISHED) {
         //     vm.pauseProgram();
         //     return;
         // }
-        
+
         // Otherwise, proceed with normal click handling - check games first
         if (GameManager::getInstance().isAnyGameActive()) {
             GameManager::getInstance().handleButtonPress(true); // Right button pressed
@@ -179,15 +178,15 @@ void Buttons::setupDeepSleep() {
     leftButton.setLongClickTime(DEEP_SLEEP_TIMEOUT);
     leftButton.setLongClickDetectedHandler([this](Button2& btn) {
         if (this->inHoldToWakeMode) return;
-        
+
         // Ignore long clicks that happen within 500ms of hold-to-wake completion
         if (this->holdToWakeCompletedTime > 0 && (millis() - this->holdToWakeCompletedTime) < 500) {
             return;
         }
-        
+
         // Reset timeout on any button activity
         TimeoutManager::getInstance().resetActivity();
-        
+
         BytecodeVM::getInstance().pauseProgram();
         rgbLed.set_led_yellow();
         this->longPressFlagForSleep = true;
@@ -209,12 +208,12 @@ void Buttons::enterDeepSleep() {
     // Create bitmask for both button pins
     // Bit positions correspond to GPIO numbers
     uint64_t wakeup_pin_mask = (1ULL << LEFT_BUTTON_PIN) | (1ULL << RIGHT_BUTTON_PIN);
-    
+
     // Wake up when ANY of the pins goes HIGH (button pressed with pull-down)
     esp_sleep_enable_ext1_wakeup(wakeup_pin_mask, ESP_EXT1_WAKEUP_ANY_HIGH);
 
     Serial.flush();
-    
+
     esp_deep_sleep_start();
 }
 

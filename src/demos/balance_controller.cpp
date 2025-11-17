@@ -34,7 +34,7 @@ void BalanceController::disable() {
     if (_balancingEnabled == BalanceStatus::UNBALANCED) return;
     _balancingEnabled = BalanceStatus::UNBALANCED;
     motorDriver.resetCommandState(false);
-    rgbLed.turn_all_leds_off();
+    rgbLed.turnAllLedsOff();
     DemoManager::getInstance()._currentDemo = demo::DemoType::NONE;
 }
 

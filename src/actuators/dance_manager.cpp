@@ -12,14 +12,14 @@ void DanceManager::startDance() {
     //     return;
     // }
 
-    if (isCurrentlyDancing) {
+    if (_isCurrentlyDancing) {
         SerialQueueManager::getInstance().queueMessage("Dance already in progress");
         return;
     }
 
     SerialQueueManager::getInstance().queueMessage("Starting dance sequence");
-    isCurrentlyDancing = true;
-    currentStep = 0;
+    _isCurrentlyDancing = true;
+    _currentStep = 0;
     stepStartTime = millis();
 
     nextStepTime = stepStartTime + danceSequence[0].duration;
@@ -29,11 +29,11 @@ void DanceManager::startDance() {
     motorDriver.updateMotorPwm(firstStep.leftSpeed, firstStep.rightSpeed);
 
     // Start LED animation
-    if (firstStep.ledAnimation == led_types::RAINBOW) {
+    if (firstStep.ledAnimation == led_types::AnimationType::RAINBOW) {
         ledAnimations.startRainbow(2000);
-    } else if (firstStep.ledAnimation == led_types::BREATHING) {
+    } else if (firstStep.ledAnimation == led_types::AnimationType::BREATHING) {
         ledAnimations.startBreathing(2000, 0.5f);
-    } else if (firstStep.ledAnimation == led_types::STROBING) {
+    } else if (firstStep.ledAnimation == led_types::AnimationType::STROBING) {
         ledAnimations.startStrobing(500);
     }
 }
@@ -43,7 +43,7 @@ void DanceManager::stopDance(bool shouldTurnLedsOff) {
 
     SerialQueueManager::getInstance().queueMessage("Stopping dance sequence");
     isCurrentlyDancing = false;
-    currentStep = 0;
+    _currentStep = 0;
 
     // Stop motors immediately for safety
     motorDriver.stop_both_motors();
@@ -51,7 +51,7 @@ void DanceManager::stopDance(bool shouldTurnLedsOff) {
     if (shouldTurnLedsOff) {
         // Turn off LEDs
         ledAnimations.turnOff();
-        rgbLed.turn_all_leds_off();
+        rgbLed.turnAllLedsOff();
     }
 }
 
@@ -86,14 +86,14 @@ void DanceManager::update() {
     motorDriver.updateMotorPwm(step.leftSpeed, step.rightSpeed);
 
     // Update LED animation
-    if (step.ledAnimation == led_types::RAINBOW) {
+    if (step.ledAnimation == led_types::AnimationType::RAINBOW) {
         ledAnimations.startRainbow(2000);
-    } else if (step.ledAnimation == led_types::BREATHING) {
+    } else if (step.ledAnimation == led_types::AnimationType::BREATHING) {
         ledAnimations.startBreathing(2000, 0.5f);
-    } else if (step.ledAnimation == led_types::STROBING) {
+    } else if (step.ledAnimation == led_types::AnimationType::STROBING) {
         ledAnimations.startStrobing(500);
-    } else if (step.ledAnimation == led_types::NONE) {
+    } else if (step.ledAnimation == led_types::AnimationType::NONE) {
         ledAnimations.turnOff();
-        rgbLed.turn_all_leds_off();
+        rgbLed.turnAllLedsOff();
     }
 }

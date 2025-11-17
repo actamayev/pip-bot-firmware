@@ -23,5 +23,5 @@ class ObstacleAvoider : public Singleton<ObstacleAvoider> {
         ObstacleAvoidanceStatus _avoidanceEnabled = ObstacleAvoidanceStatus::STOP_AVOIDANCE;
 
         unsigned long _lastUpdateTime = 0;
-        unsigned long UPDATE_INTERVAL = 3; // 3ms (333Hz)
+        unsigned long _UPDATE_INTERVAL = 3; // 3ms (333Hz)
 };
