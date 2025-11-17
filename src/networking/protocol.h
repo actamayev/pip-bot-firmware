@@ -128,38 +128,38 @@ struct NewBalancePids {
     float minEffectivePwm;    // 4 bytes
 };
 
-struct NewLightColors { 
-    uint8_t topLeftRed;
-    uint8_t topLeftGreen;
-    uint8_t topLeftBlue;
-    
-    uint8_t topRightRed;
-    uint8_t topRightGreen;
-    uint8_t topRightBlue;
-    
-    uint8_t middleLeftRed;
-    uint8_t middleLeftGreen;
-    uint8_t middleLeftBlue;
-    
-    uint8_t middleRightRed;
-    uint8_t middleRightGreen;
-    uint8_t middleRightBlue;
-    
-    uint8_t backLeftRed;
-    uint8_t backLeftGreen;
-    uint8_t backLeftBlue;
-    
-    uint8_t backRightRed;
-    uint8_t backRightGreen;
-    uint8_t backRightBlue;
+struct NewLightColors {
+    uint8_t topLeftRed{};
+    uint8_t topLeftGreen{};
+    uint8_t topLeftBlue{};
 
-    uint8_t rightHeadlightRed;
-    uint8_t rightHeadlightGreen;
-    uint8_t rightHeadlightBlue;
+    uint8_t topRightRed{};
+    uint8_t topRightGreen{};
+    uint8_t topRightBlue{};
 
-    uint8_t leftHeadlightRed;
-    uint8_t leftHeadlightGreen;
-    uint8_t leftHeadlightBlue;
+    uint8_t middleLeftRed{};
+    uint8_t middleLeftGreen{};
+    uint8_t middleLeftBlue{};
+
+    uint8_t middleRightRed{};
+    uint8_t middleRightGreen{};
+    uint8_t middleRightBlue{};
+
+    uint8_t backLeftRed{};
+    uint8_t backLeftGreen{};
+    uint8_t backLeftBlue{};
+
+    uint8_t backRightRed{};
+    uint8_t backRightGreen{};
+    uint8_t backRightBlue{};
+
+    uint8_t rightHeadlightRed{};
+    uint8_t rightHeadlightGreen{};
+    uint8_t rightHeadlightBlue{};
+
+    uint8_t leftHeadlightRed{};
+    uint8_t leftHeadlightGreen{};
+    uint8_t leftHeadlightBlue{};
 };
 
 // Markers for serial communication

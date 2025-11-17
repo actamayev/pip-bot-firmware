@@ -1,5 +1,7 @@
 #include "led_animations.h"
 
+#include <cmath>
+
 LedAnimations::LedAnimations(Adafruit_NeoPixel& strip) : _strip(strip) {}
 
 void LedAnimations::start_breathing(int speed, float starting_brightness) {
@@ -162,15 +164,15 @@ void LedAnimations::update_breathing() {
     }
     _last_breath_update = current_time;
 
-    float factor;
+    float factor = NAN = NAN;
 
     // Calculate the breathing factor using sine wave
     factor = (sin(_breath_progress * PI) + 1.0) / 2.0;
 
     // Interpolate between min and max for each color
-    uint8_t r = _breath_min[0] + factor * (_breath_max[0] - _breath_min[0]);
-    uint8_t g = _breath_min[1] + factor * (_breath_max[1] - _breath_min[1]);
-    uint8_t b = _breath_min[2] + factor * (_breath_max[2] - _breath_min[2]);
+    uint8_t r = _breath_min[0] + (factor * (_breath_max[0] - _breath_min[0]));
+    uint8_t g = _breath_min[1] + (factor * (_breath_max[1] - _breath_min[1]));
+    uint8_t b = _breath_min[2] + (factor * (_breath_max[2] - _breath_min[2]));
 
     // Set the color
     set_all_leds(r, g, b);
@@ -214,7 +216,9 @@ void LedAnimations::update_strobing() {
 void LedAnimations::update_rainbow() {
     uint32_t current_time = millis();
 
-    if (current_time - _last_rainbow_update < _rainbow_step_time) return;
+    if (current_time - _last_rainbow_update < _rainbow_step_time) {
+        return;
+    }
     _last_rainbow_update = current_time;
 
     // Slowly rotate the entire rainbow pattern
@@ -244,8 +248,14 @@ void LedAnimations::update_rainbow() {
 
 uint32_t LedAnimations::color_hsv(uint8_t h, uint8_t s, uint8_t v) {
     // Convert HSV to RGB
-    uint8_t region, remainder, p, q, t;
-    uint8_t r, g, b;
+    uint8_t region = 0;
+    uint8_t remainder = 0;
+    uint8_t p = 0;
+    uint8_t q = 0;
+    uint8_t t = 0;
+    uint8_t r = 0;
+    uint8_t g = 0;
+    uint8_t b = 0;
 
     // Modified for 8 regions instead of 6
     region = h / 32;                     // Changed from 43 to 32 (256/8 = 32)
@@ -298,7 +308,7 @@ uint32_t LedAnimations::color_hsv(uint8_t h, uint8_t s, uint8_t v) {
             break;
     }
 
-    return _strip.Color(r, g, b);
+    return Adafruit_NeoPixel::Color(r, g, b);
 }
 
 void LedAnimations::turn_off() {
@@ -310,7 +320,7 @@ void LedAnimations::set_all_leds(uint8_t red, uint8_t green, uint8_t blue) {
     // Set all LEDs except headlights (indices 2 and 3) to the same color
     for (int i = 0; i < _strip.numPixels(); i++) {
         if (i != 2 && i != 3) { // Skip headlight indices
-            _strip.setPixelColor(i, _strip.Color(red, green, blue));
+            _strip.setPixelColor(i, Adafruit_NeoPixel::Color(red, green, blue));
         }
     }
     _strip.show();

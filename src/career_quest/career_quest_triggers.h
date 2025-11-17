@@ -13,44 +13,44 @@
 
 class CareerQuestTriggers {
   public:
-    CareerQuestTriggers(Adafruit_NeoPixel& strip);
+    explicit CareerQuestTriggers(Adafruit_NeoPixel& strip);
 
     void start_s2_p1_sequence();
-    void stop_s2_p1_sequence();
+    static void stop_s2_p1_sequence();
     void start_s2_p4_light_show();
-    void stop_s2_p4_light_show();
+    static void stop_s2_p4_light_show();
     void start_s3_p3_display_demo();
     void stop_s3_p3_display_demo();
     void start_s7_p4_button_demo();
-    void stop_s7_p4_button_demo();
+    static void stop_s7_p4_button_demo();
     void start_s5_p4_led_visualization();
-    void stop_s5_p4_led_visualization();
-    void stop_all_career_quest_triggers(bool shouldTurnLedsOff);
+    static void stop_s5_p4_led_visualization();
+    void stop_all_career_quest_triggers(bool should_turn_leds_off);
     void update();
 
-    bool isS2P1Active() const {
-        return s2p1Active;
+    bool is_s2_p1_active() const {
+        return _s2p1Active;
     }
-    bool isS2P4Active() const {
-        return s2p4Active;
+    bool is_s2_p4_active() const {
+        return _s2p4Active;
     }
-    bool isS3P3Active() const {
-        return s3p3Active;
+    bool is_s3_p3_active() const {
+        return _s3p3Active;
     }
-    bool isS7P4Active() const {
-        return s7p4Active;
+    bool is_s7_p4_active() const {
+        return _s7p4Active;
     }
-    bool isS5P4Active() const {
-        return s5p4Active;
+    bool is_s5_p4_active() const {
+        return _s5p4Active;
     }
 
-    void render_s3_p3_animation();
+    static void render_s3_p3_animation();
 
     // LED sequence order (back_right → middle_right → etc.) including headlights
-    static constexpr uint8_t s2p1LedSequence[8] = {7, 0, 1, 2, 3, 4, 5, 6}; // Include headlights (2,3)
+    static constexpr uint8_t S2P1_LED_SEQUENCE[8] = {7, 0, 1, 2, 3, 4, 5, 6}; // Include headlights (2,3)
 
     // Color progression (Red → Orange → Yellow → Green → Blue → Purple → Cyan → Magenta)
-    static constexpr uint8_t s2p1ColorSequence[8][3] = {
+    static constexpr uint8_t S2P1_COLOR_SEQUENCE[8][3] = {
         {255, 0, 0},   // Red
         {255, 127, 0}, // Orange
         {255, 255, 0}, // Yellow
@@ -73,57 +73,57 @@ class CareerQuestTriggers {
     static constexpr uint32_t S3P3_UPDATE_INTERVAL = 50;      // 50ms updates for smooth scrolling
 
   private:
-    Adafruit_NeoPixel& strip;
+    Adafruit_NeoPixel& _strip;
 
     // S2_P1 sequence state
-    bool s2p1Active = false;
-    uint8_t currentLedIndex = 0;
-    uint8_t currentColorIndex = 0;
-    uint32_t lastS2P1Update = 0;
+    bool _s2p1Active = false;
+    uint8_t _currentLedIndex = 0;
+    uint8_t _currentColorIndex = 0;
+    uint32_t _lastS2P1Update = 0;
 
     // Fade state
-    bool isFadingOut = false;
-    bool isExitFading = false;
-    uint8_t currentBrightness = 0;
-    uint8_t targetBrightness = 255;
+    bool _isFadingOut = false;
+    bool _isExitFading = false;
+    uint8_t _currentBrightness = 0;
+    uint8_t _targetBrightness = 255;
 
     // S2_P4 light show state
-    bool s2p4Active = false;
-    uint32_t s2p4StartTime = 0;
-    uint32_t lastS2P4Update = 0;
-    uint8_t s2p4Step = 0;
-    bool s2p4ExitFading = false;
-    uint8_t s2p4CurrentBrightness = 255;
+    bool _s2p4Active = false;
+    uint32_t _s2p4StartTime = 0;
+    uint32_t _lastS2P4Update = 0;
+    uint8_t _s2p4Step = 0;
+    bool _s2p4ExitFading = false;
+    uint8_t _s2p4CurrentBrightness = 255;
 
     // S2P4 3-phase light show
-    uint8_t s2p4Phase = 0; // 0=snake, 1=flash, 2=breathing
-    uint8_t s2p4SnakePosition = 0;
-    uint8_t s2p4FlashColorIndex = 0;
-    bool s2p4SnakeDirection = true; // true=forward, false=reverse
-    uint32_t s2p4PhaseStartTime = 0;
+    uint8_t _s2p4Phase = 0; // 0=snake, 1=flash, 2=breathing
+    uint8_t _s2p4SnakePosition = 0;
+    uint8_t _s2p4FlashColorIndex = 0;
+    bool _s2p4SnakeDirection = true; // true=forward, false=reverse
+    uint32_t _s2p4PhaseStartTime = 0;
 
     // S3_P3 display demo state
-    bool s3p3Active = false;
-    uint32_t lastS3P3Update = 0;
-    uint32_t s3p3StartTime = 0;
-    uint8_t s3p3AnimationStep = 0;
+    bool _s3p3Active = false;
+    uint32_t _lastS3P3Update = 0;
+    uint32_t _s3p3StartTime = 0;
+    uint8_t _s3p3AnimationStep = 0;
 
     // S7_P4 button demo state
-    bool s7p4Active = false;
-    bool s7p4ExitFading = false;
-    uint8_t s7p4CurrentBrightness = 255;
-    uint32_t lastS7P4Update = 0;
+    bool _s7p4Active = false;
+    bool _s7p4ExitFading = false;
+    uint8_t _s7p4CurrentBrightness = 255;
+    uint32_t _lastS7P4Update = 0;
 
     // S5_P4 IMU LED visualization state
-    bool s5p4Active = false;
-    bool s5p4ExitFading = false;
-    uint32_t lastS5P4Update = 0;
+    bool _s5p4Active = false;
+    bool _s5p4ExitFading = false;
+    uint32_t _lastS5P4Update = 0;
     static constexpr uint32_t S5P4_UPDATE_INTERVAL = 20; // 20ms for responsive visualization
 
-    void update_s2_p1_sequence();
-    void update_s2_p4_light_show();
-    void update_s7_p4_button_demo();
-    void update_s5_p4_led_visualization();
+    static void update_s2_p1_sequence();
+    static void update_s2_p4_light_show();
+    static void update_s7_p4_button_demo();
+    static void update_s5_p4_led_visualization();
 };
 
-extern CareerQuestTriggers careerQuestTriggers;
+extern CareerQuestTriggers career_quest_triggers;

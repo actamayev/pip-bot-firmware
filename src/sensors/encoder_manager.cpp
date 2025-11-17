@@ -2,16 +2,15 @@
 
 #include "utils/config.h"
 
-EncoderManager::EncoderManager() {
-    _leftWheelRPM = 0;
-    _rightWheelRPM = 0;
-    _lastUpdateTime = 0;
-    isInitialized = false; // Will be set to true in initialize()
+EncoderManager::EncoderManager() : _leftWheelRPM(0), _rightWheelRPM(0), _lastUpdateTime(0), isInitialized(false) {
+    // Will be set to true in initialize()
     SerialQueueManager::get_instance().queue_message("Creating encoder manager");
 }
 
 bool EncoderManager::initialize() {
-    if (isInitialized) return true;
+    if (isInitialized) {
+        return true;
+    }
 
     SerialQueueManager::get_instance().queue_message("Initializing Encoder Manager...");
 
@@ -39,29 +38,31 @@ bool EncoderManager::initialize() {
 
 void EncoderManager::update() {
     uint32_t current_time = millis();
-    uint32_t elapsedTime = current_time - _lastUpdateTime;
+    uint32_t elapsed_time = current_time - _lastUpdateTime;
 
     // Only update if enough time has passed
-    if (elapsedTime < RPM_CALC_INTERVAL) return;
+    if (elapsed_time < RPM_CALC_INTERVAL) {
+        return;
+    }
 
-    int64_t leftCurrentCount = _leftEncoder.getCount();
-    int64_t rightCurrentCount = _rightEncoder.getCount();
+    int64_t left_current_count = _leftEncoder.getCount();
+    int64_t right_current_count = _rightEncoder.getCount();
 
     // Calculate delta pulses since last update
-    int64_t leftPulses = leftCurrentCount - _leftLastCount;
-    int64_t rightPulses = rightCurrentCount - _rightLastCount;
+    int64_t left_pulses = left_current_count - _leftLastCount;
+    int64_t right_pulses = right_current_count - _rightLastCount;
 
     // Calculate motor shaft RPM - NOTE: Using elapsedTime in seconds
-    float leftMotorShaftRPM = (float)(leftPulses * 60) / (PULSES_PER_REVOLUTION * (elapsedTime / 1000.0));
-    float rightMotorShaftRPM = (float)(rightPulses * 60) / (PULSES_PER_REVOLUTION * (elapsedTime / 1000.0));
+    float left_motor_shaft_rpm = static_cast<float>(left_pulses * 60) / (PULSES_PER_REVOLUTION * (elapsed_time / 1000.0));
+    float right_motor_shaft_rpm = static_cast<float>(right_pulses * 60) / (PULSES_PER_REVOLUTION * (elapsed_time / 1000.0));
 
     // Calculate wheel RPM
-    _leftWheelRPM = leftMotorShaftRPM / GEAR_RATIO;
-    _rightWheelRPM = rightMotorShaftRPM / GEAR_RATIO;
+    _leftWheelRPM = left_motor_shaft_rpm / GEAR_RATIO;
+    _rightWheelRPM = right_motor_shaft_rpm / GEAR_RATIO;
 
     // Store current counts for next delta calculation
-    _leftLastCount = leftCurrentCount;
-    _rightLastCount = rightCurrentCount;
+    _leftLastCount = left_current_count;
+    _rightLastCount = right_current_count;
 
     _lastUpdateTime = current_time;
 }
@@ -72,47 +73,49 @@ bool EncoderManager::should_be_polling() const {
 }
 
 void EncoderManager::update_sensor_data() {
-    if (!isInitialized) return;
+    if (!isInitialized) {
+        return;
+    }
 
     // Call internal update method to calculate RPMs
     update();
 
     // Calculate distance traveled inline and capture raw counts
-    float distanceTraveled = 0.0f;
-    int64_t leftCount = 0;
-    int64_t rightCount = 0;
+    float distance_traveled = 0.0f;
+    int64_t left_count = 0;
+    int64_t right_count = 0;
 
     // Get current encoder counts (both for distance calculation and raw storage)
-    int64_t leftEncoderCurrentCount = _leftEncoder.getCount();
-    int64_t rightEncoderCurrentCount = _rightEncoder.getCount();
+    int64_t left_encoder_current_count = _leftEncoder.getCount();
+    int64_t right_encoder_current_count = _rightEncoder.getCount();
 
     // Store raw counts for motor driver
-    leftCount = leftEncoderCurrentCount;
-    rightCount = rightEncoderCurrentCount;
+    left_count = left_encoder_current_count;
+    right_count = right_encoder_current_count;
 
     // Calculate change in encoder counts for distance (maintain sign for direction)
-    int64_t leftEncoderDelta = leftEncoderCurrentCount - _leftEncoderStartCount;
-    int64_t rightEncoderDelta = rightEncoderCurrentCount - _rightEncoderStartCount;
+    int64_t left_encoder_delta = left_encoder_current_count - _leftEncoderStartCount;
+    int64_t right_encoder_delta = right_encoder_current_count - _rightEncoderStartCount;
 
     // Average the two encoders to account for slight differences in wheel speeds
-    float avgEncoderDelta = (leftEncoderDelta + rightEncoderDelta) / 2.0f;
+    float avg_encoder_delta = (left_encoder_delta + right_encoder_delta) / 2.0f;
 
     // Convert encoder counts to revolutions
-    float wheelRevolutions = avgEncoderDelta / static_cast<float>(PULSES_PER_REVOLUTION);
+    float wheel_revolutions = avg_encoder_delta / static_cast<float>(PULSES_PER_REVOLUTION);
 
     // Compensate for gear ratio
-    float wheelRevolutionsAfterGearing = wheelRevolutions / GEAR_RATIO;
+    float wheel_revolutions_after_gearing = wheel_revolutions / GEAR_RATIO;
 
     // Convert wheel revolutions to distance traveled
-    distanceTraveled = wheelRevolutionsAfterGearing * WHEEL_CIRCUMFERENCE_IN;
+    distance_traveled = wheel_revolutions_after_gearing * WHEEL_CIRCUMFERENCE_IN;
 
     // Create encoder data struct with both calculated and raw values
     EncoderData encoder_data;
     encoder_data.left_wheel_rpm = _leftWheelRPM;
     encoder_data.right_wheel_rpm = _rightWheelRPM;
-    encoder_data.distance_traveled_in = distanceTraveled;
-    encoder_data.left_encoder_count = leftCount;   // Raw counts for motor driver
-    encoder_data.right_encoder_count = rightCount; // Raw counts for motor driver
+    encoder_data.distance_traveled_in = distance_traveled;
+    encoder_data.left_encoder_count = left_count;   // Raw counts for motor driver
+    encoder_data.right_encoder_count = right_count; // Raw counts for motor driver
     encoder_data.is_valid = true;
     encoder_data.timestamp = millis();
 

@@ -1,11 +1,15 @@
 #include "message_processor.h"
 
+#include <math.h>
+
+#include <cmath>
+
 void MessageProcessor::handle_motor_control(const uint8_t* data) {
     // Extract 16-bit signed integers (little-endian)
-    int16_t leftSpeed = static_cast<int16_t>(data[1] | (data[2] << 8));
-    int16_t rightSpeed = static_cast<int16_t>(data[3] | (data[4] << 8));
+    auto left_speed = static_cast<int16_t>(data[1] | (data[2] << 8));
+    auto right_speed = static_cast<int16_t>(data[3] | (data[4] << 8));
 
-    motorDriver.update_motor_pwm(leftSpeed, rightSpeed);
+    motorDriver.update_motor_pwm(left_speed, right_speed);
 }
 
 void MessageProcessor::handle_balance_command(BalanceStatus status) {
@@ -30,55 +34,55 @@ void MessageProcessor::handle_obstacle_avoidance_command(ObstacleAvoidanceStatus
     }
 }
 
-void MessageProcessor::handle_light_command(LightAnimationStatus lightAnimationStatus) {
-    if (lightAnimationStatus == LightAnimationStatus::NO_ANIMATION) {
+void MessageProcessor::handle_light_command(LightAnimationStatus light_animation_status) {
+    if (light_animation_status == LightAnimationStatus::NO_ANIMATION) {
         ledAnimations.stop_animation();
-    } else if (lightAnimationStatus == LightAnimationStatus::BREATHING) {
+    } else if (light_animation_status == LightAnimationStatus::BREATHING) {
         ledAnimations.start_breathing();
-    } else if (lightAnimationStatus == LightAnimationStatus::RAINBOW) {
+    } else if (light_animation_status == LightAnimationStatus::RAINBOW) {
         ledAnimations.start_rainbow();
-    } else if (lightAnimationStatus == LightAnimationStatus::STROBE) {
+    } else if (light_animation_status == LightAnimationStatus::STROBE) {
         ledAnimations.start_strobing();
-    } else if (lightAnimationStatus == LightAnimationStatus::TURN_OFF) {
+    } else if (light_animation_status == LightAnimationStatus::TURN_OFF) {
         ledAnimations.turn_off();
-    } else if (lightAnimationStatus == LightAnimationStatus::FADE_OUT) {
+    } else if (light_animation_status == LightAnimationStatus::FADE_OUT) {
         ledAnimations.fade_out();
     }
 }
 
-void MessageProcessor::handle_new_light_colors(NewLightColors newLightColors) {
+void MessageProcessor::handle_new_light_colors(NewLightColors new_light_colors) {
     // Cast from float to uint8_t, assuming values are already in 0-255 range
-    uint8_t topLeftR = (uint8_t)newLightColors.topLeftRed;
-    uint8_t topLeftG = (uint8_t)newLightColors.topLeftGreen;
-    uint8_t topLeftB = (uint8_t)newLightColors.topLeftBlue;
+    auto top_left_r = (uint8_t)new_light_colors.topLeftRed;
+    auto top_left_g = (uint8_t)new_light_colors.topLeftGreen;
+    auto top_left_b = (uint8_t)new_light_colors.topLeftBlue;
 
-    uint8_t topRightR = (uint8_t)newLightColors.topRightRed;
-    uint8_t topRightG = (uint8_t)newLightColors.topRightGreen;
-    uint8_t topRightB = (uint8_t)newLightColors.topRightBlue;
+    auto top_right_r = (uint8_t)new_light_colors.topRightRed;
+    auto top_right_g = (uint8_t)new_light_colors.topRightGreen;
+    auto top_right_b = (uint8_t)new_light_colors.topRightBlue;
 
-    uint8_t middleLeftR = (uint8_t)newLightColors.middleLeftRed;
-    uint8_t middleLeftG = (uint8_t)newLightColors.middleLeftGreen;
-    uint8_t middleLeftB = (uint8_t)newLightColors.middleLeftBlue;
+    auto middle_left_r = (uint8_t)new_light_colors.middleLeftRed;
+    auto middle_left_g = (uint8_t)new_light_colors.middleLeftGreen;
+    auto middle_left_b = (uint8_t)new_light_colors.middleLeftBlue;
 
-    uint8_t middleRightR = (uint8_t)newLightColors.middleRightRed;
-    uint8_t middleRightG = (uint8_t)newLightColors.middleRightGreen;
-    uint8_t middleRightB = (uint8_t)newLightColors.middleRightBlue;
+    auto middle_right_r = (uint8_t)new_light_colors.middleRightRed;
+    auto middle_right_g = (uint8_t)new_light_colors.middleRightGreen;
+    auto middle_right_b = (uint8_t)new_light_colors.middleRightBlue;
 
-    uint8_t backLeftR = (uint8_t)newLightColors.backLeftRed;
-    uint8_t backLeftG = (uint8_t)newLightColors.backLeftGreen;
-    uint8_t backLeftB = (uint8_t)newLightColors.backLeftBlue;
+    auto back_left_r = (uint8_t)new_light_colors.backLeftRed;
+    auto back_left_g = (uint8_t)new_light_colors.backLeftGreen;
+    auto back_left_b = (uint8_t)new_light_colors.backLeftBlue;
 
-    uint8_t backRightR = (uint8_t)newLightColors.backRightRed;
-    uint8_t backRightG = (uint8_t)newLightColors.backRightGreen;
-    uint8_t backRightB = (uint8_t)newLightColors.backRightBlue;
+    auto back_right_r = (uint8_t)new_light_colors.backRightRed;
+    auto back_right_g = (uint8_t)new_light_colors.backRightGreen;
+    auto back_right_b = (uint8_t)new_light_colors.backRightBlue;
 
     // Set each LED to its corresponding color
-    rgbLed.set_top_left_led(topLeftR, topLeftG, topLeftB);
-    rgbLed.set_top_right_led(topRightR, topRightG, topRightB);
-    rgbLed.set_middle_left_led(middleLeftR, middleLeftG, middleLeftB);
-    rgbLed.set_middle_right_led(middleRightR, middleRightG, middleRightB);
-    rgbLed.set_back_left_led(backLeftR, backLeftG, backLeftB);
-    rgbLed.set_back_right_led(backRightR, backRightG, backRightB);
+    rgbLed.set_top_left_led(top_left_r, top_left_g, top_left_b);
+    rgbLed.set_top_right_led(top_right_r, top_right_g, top_right_b);
+    rgbLed.set_middle_left_led(middle_left_r, middle_left_g, middle_left_b);
+    rgbLed.set_middle_right_led(middle_right_r, middle_right_g, middle_right_b);
+    rgbLed.set_back_left_led(back_left_r, back_left_g, back_left_b);
+    rgbLed.set_back_right_led(back_right_r, back_right_g, back_right_b);
 }
 
 void MessageProcessor::handle_get_saved_wifi_networks() {
@@ -91,17 +95,21 @@ void MessageProcessor::handle_get_saved_wifi_networks() {
 
 void MessageProcessor::handle_soft_scan_wifi_networks() {
     // Check if we have recent scan results (within 1 minute)
-    WiFiManager& wifiManager = WiFiManager::get_instance();
-    if (wifiManager.has_available_networks()) {
+    WiFiManager& wifi_manager = WiFiManager::get_instance();
+    if (wifi_manager.has_available_networks()) {
         SerialManager::get_instance().send_scan_results_response(wifiManager.get_available_networks());
         return;
     }
     uint32_t now = millis();
-    if (now - wifiManager.get_last_scan_complete_time() < 60000) return;
+    if (now - wifi_manager.get_last_scan_complete_time() < 60000) {
+        return;
+    }
     // Start async scan instead of blocking scan
-    bool success = wifiManager.start_async_scan();
+    bool success = wifi_manager.start_async_scan();
 
-    if (success) return; // Note: Results will be sent asynchronously when scan completes
+    if (success) {
+        return; // Note: Results will be sent asynchronously when scan completes
+    }
     SerialQueueManager::get_instance().queue_message("Failed to start WiFi scan");
     // Send empty scan results to indicate failure
     std::vector<WiFiNetworkInfo> emptyNetworks;
@@ -109,8 +117,10 @@ void MessageProcessor::handle_soft_scan_wifi_networks() {
 }
 
 void MessageProcessor::handle_hard_scan_wifi_networks() {
-    bool success = WiFiManager::get_instance().start_async_scan();
-    if (success) return;
+    bool success = WiFiManager::get_instance().start_async_scan() = false = false = false;
+    if (success) {
+        return;
+    }
     SerialQueueManager::get_instance().queue_message("Failed to start hard WiFi scan");
     std::vector<WiFiNetworkInfo> emptyNetworks;
     SerialManager::get_instance().send_scan_results_response(emptyNetworks);
@@ -123,9 +133,9 @@ void MessageProcessor::process_binary_message(const uint8_t* data, uint16_t leng
         return;
     }
     // Extract the message type from the first byte
-    DataMessageType messageType = static_cast<DataMessageType>(data[0]);
+    auto message_type = static_cast<DataMessageType>(data[0]);
 
-    switch (messageType) {
+    switch (message_type) {
         case DataMessageType::UPDATE_AVAILABLE: {
             if (length != 3) {
                 SerialQueueManager::get_instance().queue_message("Invalid update available message length");
@@ -150,7 +160,7 @@ void MessageProcessor::process_binary_message(const uint8_t* data, uint16_t leng
             if (length != 2) {
                 SerialQueueManager::get_instance().queue_message("Invalid sound command message length");
             } else {
-                ToneType toneType = static_cast<ToneType>(data[1]);
+                auto tone_type = static_cast<ToneType>(data[1]);
                 Speaker::get_instance().play_tone(toneType);
             }
             break;
@@ -159,7 +169,7 @@ void MessageProcessor::process_binary_message(const uint8_t* data, uint16_t leng
             if (length != 2) {
                 SerialQueueManager::get_instance().queue_message("Invalid speaker mute message length");
             } else {
-                SpeakerStatus status = static_cast<SpeakerStatus>(data[1]);
+                auto status = static_cast<SpeakerStatus>(data[1]);
                 Speaker::get_instance().set_muted(status == SpeakerStatus::MUTED);
             }
             break;
@@ -168,7 +178,7 @@ void MessageProcessor::process_binary_message(const uint8_t* data, uint16_t leng
             if (length != 2) {
                 SerialQueueManager::get_instance().queue_message("Invalid balance control message length");
             } else {
-                BalanceStatus status = static_cast<BalanceStatus>(data[1]);
+                auto status = static_cast<BalanceStatus>(data[1]);
                 handle_balance_command(status);
             }
             break;
@@ -177,8 +187,8 @@ void MessageProcessor::process_binary_message(const uint8_t* data, uint16_t leng
             if (length != 2) {
                 SerialQueueManager::get_instance().queue_message("Invalid light animation message length");
             } else {
-                LightAnimationStatus lightAnimationStatus = static_cast<LightAnimationStatus>(data[1]);
-                handle_light_command(lightAnimationStatus);
+                auto light_animation_status = static_cast<LightAnimationStatus>(data[1]);
+                handle_light_command(light_animation_status);
             }
             break;
         }
@@ -186,9 +196,9 @@ void MessageProcessor::process_binary_message(const uint8_t* data, uint16_t leng
             if (length != 19) {
                 // SerialQueueManager::get_instance().queue_message("Invalid update led colors message length%d", length);
             } else {
-                NewLightColors newLightColors;
-                memcpy(&newLightColors, &data[1], sizeof(NewLightColors));
-                handle_new_light_colors(newLightColors);
+                NewLightColors new_light_colors;
+                memcpy(&new_light_colors, &data[1], sizeof(NewLightColors));
+                handle_new_light_colors(new_light_colors);
             }
             break;
         }
@@ -196,16 +206,16 @@ void MessageProcessor::process_binary_message(const uint8_t* data, uint16_t leng
             if (length != 41) { // 1 byte for type + 40 bytes for the struct (10 floats × 4 bytes)
                 SerialQueueManager::get_instance().queue_message("Invalid update balance pids message length");
             } else {
-                NewBalancePids newBalancePids;
-                memcpy(&newBalancePids, &data[1], sizeof(NewBalancePids));
+                NewBalancePids new_balance_pids{};
+                memcpy(&new_balance_pids, &data[1], sizeof(NewBalancePids));
                 BalanceController::get_instance().update_balance_pids(newBalancePids);
             }
             break;
         }
         case DataMessageType::BYTECODE_PROGRAM: {
             // First byte is the message type, the rest is bytecode
-            const uint8_t* bytecodeData = data + 1;
-            uint16_t bytecodeLength = length - 1;
+            const uint8_t* bytecode_data = data + 1;
+            uint16_t bytecode_length = length - 1;
 
             // Execute the bytecode
             BytecodeVM::get_instance().load_program(bytecodeData, bytecodeLength);
@@ -233,7 +243,7 @@ void MessageProcessor::process_binary_message(const uint8_t* data, uint16_t leng
             if (length != 2) {
                 SerialQueueManager::get_instance().queue_message("Invalid obstacle avoidance command");
             } else {
-                ObstacleAvoidanceStatus status = static_cast<ObstacleAvoidanceStatus>(data[1]);
+                auto status = static_cast<ObstacleAvoidanceStatus>(data[1]);
                 handle_obstacle_avoidance_command(status);
             }
             break;
@@ -244,8 +254,8 @@ void MessageProcessor::process_binary_message(const uint8_t* data, uint16_t leng
             SerialManager::get_instance().send_pip_id_message();
 
             // Send initial battery data on handshake
-            const BatteryState& batteryState = BatteryMonitor::get_instance().get_battery_state();
-            if (batteryState.isInitialized) {
+            const BatteryState& battery_state = BatteryMonitor::get_instance().get_battery_state();
+            if (battery_state.isInitialized) {
                 SerialManager::get_instance().send_battery_monitor_data();
                 BatteryMonitor::get_instance().lastBatteryLogTime = millis();
             }
@@ -266,7 +276,7 @@ void MessageProcessor::process_binary_message(const uint8_t* data, uint16_t leng
             if (length != 2) {
                 SerialQueueManager::get_instance().queue_message("Invalid update headlights message length");
             } else {
-                HeadlightStatus status = static_cast<HeadlightStatus>(data[1]);
+                auto status = static_cast<HeadlightStatus>(data[1]);
                 if (status == HeadlightStatus::ON) {
                     rgbLed.turn_headlights_on();
                 } else {
@@ -281,26 +291,26 @@ void MessageProcessor::process_binary_message(const uint8_t* data, uint16_t leng
                 break;
             }
 
-            uint8_t ssidLength = data[1];
-            if (ssidLength == 0 || 2 + ssidLength >= length) {
+            uint8_t ssid_length = data[1];
+            if (ssid_length == 0 || 2 + ssid_length >= length) {
                 SerialQueueManager::get_instance().queue_message("Invalid SSID length");
                 break;
             }
 
             String ssid = "";
-            for (uint8_t i = 0; i < ssidLength; i++) {
-                ssid += (char)data[2 + i];
+            for (uint8_t i = 0; i < ssid_length; i++) {
+                ssid += static_cast<char>(data[2 + i]);
             }
 
-            uint8_t passwordLength = data[2 + ssidLength];
-            if (2 + ssidLength + 1 + passwordLength != length) {
+            uint8_t password_length = data[2 + ssid_length];
+            if (2 + ssid_length + 1 + password_length != length) {
                 SerialQueueManager::get_instance().queue_message("Invalid password length");
                 break;
             }
 
             String password = "";
-            for (uint8_t i = 0; i < passwordLength; i++) {
-                password += (char)data[3 + ssidLength + i];
+            for (uint8_t i = 0; i < password_length; i++) {
+                password += static_cast<char>(data[3 + ssid_length + i]);
             }
 
             // Test WiFi credentials before storing permanently
@@ -344,7 +354,7 @@ void MessageProcessor::process_binary_message(const uint8_t* data, uint16_t leng
                 SerialQueueManager::get_instance().queue_message("Invalid speaker volume message length");
             } else {
                 // Extract the 4-byte float32 value (little-endian)
-                float volume;
+                float volume = NAN = NAN = NAN;
                 memcpy(&volume, &data[1], sizeof(float));
                 Speaker::get_instance().set_volume(volume);
             }
@@ -366,13 +376,13 @@ void MessageProcessor::process_binary_message(const uint8_t* data, uint16_t leng
             if (length < 3) { // 1 byte for type + 1 byte for career + 1 byte for trigger
                 SerialQueueManager::get_instance().queue_message("Invalid trigger message length");
             } else {
-                CareerType careerType = static_cast<CareerType>(data[1]);
+                auto career_type = static_cast<CareerType>(data[1]);
 
-                switch (careerType) {
+                switch (career_type) {
                     case CareerType::MEET_PIP: {
-                        MeetPipTriggerType triggerType = static_cast<MeetPipTriggerType>(data[2]);
+                        auto trigger_type = static_cast<MeetPipTriggerType>(data[2]);
 
-                        switch (triggerType) {
+                        switch (trigger_type) {
                             case MeetPipTriggerType::ENTER_CAREER:
                                 DisplayScreen::get_instance().turn_display_off();
                                 Speaker::get_instance().stop_all_sounds();
@@ -489,9 +499,9 @@ void MessageProcessor::process_binary_message(const uint8_t* data, uint16_t leng
                         break;
                     }
                     case CareerType::TURRET_ARCADE: {
-                        TurretArcadeTriggerType triggerType = static_cast<TurretArcadeTriggerType>(data[2]);
+                        auto trigger_type = static_cast<TurretArcadeTriggerType>(data[2]);
 
-                        switch (triggerType) {
+                        switch (trigger_type) {
                             case TurretArcadeTriggerType::ENTER_TURRET_ARCADE:
                                 SendSensorData::get_instance().set_send_sensor_data(true);
                                 SendSensorData::get_instance().set_euler_data_enabled(true);
@@ -535,7 +545,7 @@ void MessageProcessor::process_binary_message(const uint8_t* data, uint16_t leng
             if (length != 2) {
                 SerialQueueManager::get_instance().queue_message("Invalid Is user connected to pip length");
             } else {
-                UserConnectedStatus status = static_cast<UserConnectedStatus>(data[1]);
+                auto status = static_cast<UserConnectedStatus>(data[1]);
                 if (status == UserConnectedStatus::NOT_CONNECTED) {
                     WebSocketManager::get_instance().set_is_user_connected_to_this_pip(false);
                 } else {
@@ -552,16 +562,16 @@ void MessageProcessor::process_binary_message(const uint8_t* data, uint16_t leng
                 break;
             }
 
-            uint8_t ssidLength = data[1];
-            if (ssidLength == 0 || 2 + ssidLength != length) {
+            uint8_t ssid_length = data[1];
+            if (ssid_length == 0 || 2 + ssid_length != length) {
                 SerialQueueManager::get_instance().queue_message("Invalid SSID length in forget network message");
                 SerialManager::get_instance().send_network_deleted_response(false);
                 break;
             }
 
             String ssid = "";
-            for (uint8_t i = 0; i < ssidLength; i++) {
-                ssid += (char)data[2 + i];
+            for (uint8_t i = 0; i < ssid_length; i++) {
+                ssid += static_cast<char>(data[2 + i]);
             }
 
             // Check if we're trying to forget the currently connected network
@@ -576,7 +586,7 @@ void MessageProcessor::process_binary_message(const uint8_t* data, uint16_t leng
             }
 
             // Attempt to forget the network
-            bool success = PreferencesManager::get_instance().forget_wifi_network(ssid);
+            bool success = PreferencesManager::get_instance().forget_wifi_network(ssid) = false = false = false;
             SerialManager::get_instance().send_network_deleted_response(success);
             break;
         }

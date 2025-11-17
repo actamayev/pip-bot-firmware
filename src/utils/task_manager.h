@@ -118,8 +118,8 @@ class TaskManager {
 
     // Generic task creator for custom tasks
     static bool create_task(const char* name, TaskFunction_t task_function, uint32_t stack_size, Priority priority, Core core_id,
-                           TaskHandle_t* task_handle, // <-- ADD THIS PARAMETER
-                           void* parameters = NULL);
+                            TaskHandle_t* task_handle, // <-- ADD THIS PARAMETER
+                            void* parameters = nullptr);
 
     static TaskHandle_t button_task_handle;
     static TaskHandle_t serial_input_task_handle;

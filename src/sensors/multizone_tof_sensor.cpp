@@ -8,7 +8,7 @@ bool MultizoneTofSensor::initialize() {
     for (int attempt = 0; attempt < 3; attempt++) {
         if (sensor.begin() == 0) {
             // If begin successful, continue with initialization
-            if (!sensor.init_sensor()) {
+            if (sensor.init_sensor() == 0) {
                 // Configure the sensor
                 if (configure_sensor()) {
                     // Initialize point histories
@@ -28,38 +28,46 @@ bool MultizoneTofSensor::initialize() {
     return false;
 }
 
-bool MultizoneTofSensor::should_be_polling() const {
-    if (!isInitialized) return false;
+bool MultizoneTofSensor::should_be_polling() {
+    if (!isInitialized) {
+        return false;
+    }
 
     ReportTimeouts& timeouts = SensorDataBuffer::get_instance().get_report_timeouts();
     // Continue polling if we should be enabled OR if sensor is currently enabled
     // (to allow proper cleanup when timeout expires)
-    return timeouts.should_enable_tof() || sensorEnabled;
+    return ReportTimeouts::should_enable_tof() || sensorEnabled;
 }
 
 void MultizoneTofSensor::update_sensor_data() {
-    if (!isInitialized) return;
+    if (!isInitialized) {
+        return;
+    }
 
     // Throttle VL53L7CX checks to 50Hz max (every 20ms) to reduce I2C load
-    static uint32_t lastCheckTime = 0;
+    static uint32_t last_check_time = 0;
     uint32_t current_time = millis();
 
-    if (current_time - lastCheckTime < CHECK_SENSOR_TIME) return;
+    if (current_time - last_check_time < CHECK_SENSOR_TIME) {
+        return;
+    }
 
-    lastCheckTime = current_time;
+    last_check_time = current_time;
 
     // Check if we should enable/disable the sensor based on timeouts
     ReportTimeouts& timeouts = SensorDataBuffer::get_instance().get_report_timeouts();
-    bool shouldEnable = timeouts.should_enable_tof();
+    bool should_enable = ReportTimeouts::should_enable_tof();
 
-    if (shouldEnable && !sensorEnabled) {
+    if (should_enable && !sensorEnabled) {
         enable_tof_sensor();
-    } else if (!shouldEnable && sensorEnabled) {
+    } else if (!should_enable && sensorEnabled) {
         disable_tof_sensor();
         return; // Don't try to read data if sensor is disabled
     }
 
-    if (!sensorEnabled) return; // Skip if sensor not enabled
+    if (!sensorEnabled) {
+        return; // Skip if sensor not enabled
+    }
 
     // Check watchdog first
     if (!check_watchdog() && sensorActive) {
@@ -67,10 +75,10 @@ void MultizoneTofSensor::update_sensor_data() {
         return;
     }
 
-    uint8_t isDataReady = 0;
+    uint8_t is_data_ready = 0;
 
     // Check if new data is ready
-    if (sensor.vl53l7cx_check_data_ready(&isDataReady) != 0 || isDataReady == 0) {
+    if (sensor.vl53l7cx_check_data_ready(&is_data_ready) != 0 || is_data_ready == 0) {
         return;
     }
 
@@ -102,7 +110,9 @@ void MultizoneTofSensor::update_sensor_data() {
 }
 
 void MultizoneTofSensor::enable_tof_sensor() {
-    if (!isInitialized || sensorEnabled) return;
+    if (!isInitialized || sensorEnabled) {
+        return;
+    }
 
     start_ranging();
     sensorActive = true;
@@ -113,7 +123,9 @@ void MultizoneTofSensor::enable_tof_sensor() {
 }
 
 void MultizoneTofSensor::disable_tof_sensor() {
-    if (!sensorEnabled) return;
+    if (!sensorEnabled) {
+        return;
+    }
 
     stop_ranging();
     sensorActive = false;
@@ -122,7 +134,7 @@ void MultizoneTofSensor::disable_tof_sensor() {
     SerialQueueManager::get_instance().queue_message("MZ TOF sensor disabled due to timeout");
 }
 
-bool MultizoneTofSensor::process_obstacle_detection(const VL53L7CX_ResultsData& raw_data) {
+bool MultizoneTofSensor::process_obstacle_detection(const VL53L7CX_ResultsData& raw_data) const {
     // First update all point histories with current readings
     for (int row_index = 0; row_index < ROI_ROWS; row_index++) {
         int row = row_index + 3; // Convert to physical row (3-4)
@@ -131,7 +143,7 @@ bool MultizoneTofSensor::process_obstacle_detection(const VL53L7CX_ResultsData& 
             int col = col_index + 1; // Convert to physical column (1-6)
 
             // Calculate the actual index in the sensor data array
-            int index = row * 8 + col;
+            int index = (row * 8) + col;
 
             // Check if we have valid data for this point
             if (raw_data.nb_target_detected[index] > 0) {
@@ -141,7 +153,7 @@ bool MultizoneTofSensor::process_obstacle_detection(const VL53L7CX_ResultsData& 
                 // Apply filtering parameters
                 if (distance <= MAX_DISTANCE && distance >= MIN_DISTANCE && status >= SIGNAL_THRESHOLD) {
                     // Update the history for this valid point
-                    update_point_history(row_index, col_index, (float)distance);
+                    update_point_history(row_index, col_index, static_cast<float>(distance));
                 } else {
                     // For invalid readings, update with -1 (not usable)
                     update_point_history(row_index, col_index, -1.0f);
@@ -167,14 +179,14 @@ bool MultizoneTofSensor::process_obstacle_detection(const VL53L7CX_ResultsData& 
 
 // Initialize the point histories
 void MultizoneTofSensor::initialize_point_histories() {
-    for (int r = 0; r < ROI_ROWS; r++) {
+    for (auto& pointHistorie : pointHistories) {
         for (int c = 0; c < ROI_COLS; c++) {
-            pointHistories[r][c].index = 0;
-            pointHistories[r][c].validReadings = 0;
+            pointHistorie[c].index = 0;
+            pointHistorie[c].validReadings = 0;
 
             // Initialize all distance values to 0
             for (int i = 0; i < HISTORY_SIZE; i++) {
-                pointHistories[r][c].distances[i] = 0;
+                pointHistorie[c].distances[i] = 0;
             }
         }
     }
@@ -200,9 +212,8 @@ bool MultizoneTofSensor::is_point_obstacle_consistent(int row_index, int col_ind
     }
 
     // Check if all readings in the history are below the threshold
-    for (int i = 0; i < HISTORY_SIZE; i++) {
-        if (pointHistories[row_index][col_index].distances[i] >= OBSTACLE_DISTANCE_THRESHOLD ||
-            pointHistories[row_index][col_index].distances[i] <= 0) { // Skip invalid readings
+    for (float distance : pointHistories[row_index][col_index].distances) {
+        if (distance >= OBSTACLE_DISTANCE_THRESHOLD || distance <= 0) { // Skip invalid readings
             return false;
         }
     }
@@ -241,7 +252,7 @@ bool MultizoneTofSensor::reset_sensor() {
     // Reset just the sensor without touching I2C bus initialization
     sensor.begin();
 
-    if (sensor.init_sensor()) {
+    if (sensor.init_sensor() != 0) {
         SerialQueueManager::get_instance().queue_message("Failed to reinitialize sensor!");
         return false;
     }
@@ -291,8 +302,8 @@ void MultizoneTofSensor::turn_off_sensor() {
 }
 
 float MultizoneTofSensor::calculate_front_distance(const VL53L7CX_ResultsData& raw_data) {
-    float minDistance = 9999.0f; // Start with very large value
-    bool foundValidReading = false;
+    float min_distance = 9999.0f; // Start with very large value
+    bool found_valid_reading = false;
 
     // Scan through the front-center zones (row 5, columns 3-4)
     int row = 5; // Only use row 5 (close to the top)
@@ -301,7 +312,7 @@ float MultizoneTofSensor::calculate_front_distance(const VL53L7CX_ResultsData& r
         int col = col_index + 3;                          // Convert to physical column (3-4)
 
         // Calculate the actual index in the sensor data array
-        int index = row * 8 + col;
+        int index = (row * 8) + col;
 
         // Check if we have valid data for this point
         if (raw_data.nb_target_detected[index] > 0) {
@@ -310,13 +321,13 @@ float MultizoneTofSensor::calculate_front_distance(const VL53L7CX_ResultsData& r
 
             // Apply same filtering as obstacle detection
             if (distance <= MAX_DISTANCE && distance >= MIN_DISTANCE && status >= SIGNAL_THRESHOLD) {
-                if (distance < minDistance) {
-                    minDistance = distance;
-                    foundValidReading = true;
+                if (distance < min_distance) {
+                    min_distance = distance;
+                    found_valid_reading = true;
                 }
             }
         }
     }
 
-    return foundValidReading ? (minDistance / 25.4f) : -1.0f; // Convert mm to inches, return -1 if no valid readings
+    return found_valid_reading ? (min_distance / 25.4f) : -1.0f; // Convert mm to inches, return -1 if no valid readings
 }

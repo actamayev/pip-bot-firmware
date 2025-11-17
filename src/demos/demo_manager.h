@@ -14,7 +14,7 @@ class DemoManager : public Singleton<DemoManager> {
 
   public:
     // Start a specific demo (automatically stops current demo if running)
-    bool start_demo(demo::DemoType demoType);
+    bool start_demo(demo::DemoType demo_type);
 
     // Stop the currently running demo
     void stop_current_demo();
@@ -33,7 +33,7 @@ class DemoManager : public Singleton<DemoManager> {
     DemoManager() = default;
 
     void disable_current_demo();
-    bool enable_demo(demo::DemoType demoType);
-    const char* get_demo_name(demo::DemoType demoType) const;
+    static bool enable_demo(demo::DemoType demo_type);
+    static const char* get_demo_name(demo::DemoType demo_type);
     demo::DemoType _currentDemo = demo::DemoType::NONE;
 };

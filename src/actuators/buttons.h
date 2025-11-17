@@ -27,7 +27,7 @@ class Buttons : public Singleton<Buttons> {
     // Add more event handlers as needed:
     void set_left_button_long_press_handler(std::function<void(Button2&)> callback);
     void set_right_button_long_press_handler(std::function<void(Button2&)> callback);
-    void enter_deep_sleep();
+    static void enter_deep_sleep();
 
     // Hold-to-wake mode control
     void set_hold_to_wake_mode(bool enabled);

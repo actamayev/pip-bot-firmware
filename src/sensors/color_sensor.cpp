@@ -38,7 +38,7 @@ bool ColorSensor::should_be_polling() const {
     ReportTimeouts& timeouts = SensorDataBuffer::get_instance().get_report_timeouts();
     // Continue polling if we should be enabled OR if sensor is currently enabled
     // (to allow proper cleanup when timeout expires)
-    return timeouts.should_enable_color() || _sensor_enabled;
+    return ReportTimeouts::should_enable_color() || _sensor_enabled;
 }
 
 void ColorSensor::update_sensor_data() {
@@ -48,7 +48,7 @@ void ColorSensor::update_sensor_data() {
 
     // Check if we should enable/disable the sensor based on timeouts (ALWAYS check this first)
     ReportTimeouts& timeouts = SensorDataBuffer::get_instance().get_report_timeouts();
-    bool should_enable = timeouts.should_enable_color();
+    bool should_enable = ReportTimeouts::should_enable_color();
 
     if (should_enable && !_sensor_enabled) {
         enable_color_sensor();

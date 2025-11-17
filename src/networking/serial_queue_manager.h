@@ -46,5 +46,5 @@ class SerialQueueManager : public Singleton<SerialQueueManager> {
 
     // Helper functions
     bool add_message_to_queue(const SerialMessage& msg);
-    void process_message(const SerialMessage& msg);
+    static void process_message(const SerialMessage& msg);
 };

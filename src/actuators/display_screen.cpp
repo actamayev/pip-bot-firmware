@@ -5,8 +5,10 @@
 #include "demos/turning_manager.h"
 
 // Initialize the display with explicit Wire reference
-bool DisplayScreen::init(bool showStartup) {
-    if (initialized) return true; // Already initialized
+bool DisplayScreen::init(bool show_startup) {
+    if (initialized) {
+        return true; // Already initialized
+    }
 
     display = Adafruit_SSD1306(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
     if (!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
@@ -24,7 +26,7 @@ bool DisplayScreen::init(bool showStartup) {
     turn_display_off();
 
     // Conditionally start the startup sequence
-    if (showStartup) {
+    if (show_startup) {
         show_start_screen();
     }
 
@@ -33,12 +35,16 @@ bool DisplayScreen::init(bool showStartup) {
 
 // Main update method - call this in the task loop
 void DisplayScreen::update() {
-    if (!initialized) return;
+    if (!initialized) {
+        return;
+    }
 
     uint32_t current_time = millis();
 
     // Only generate content at regular intervals
-    if (current_time - lastContentGeneration < UPDATE_INTERVAL) return;
+    if (current_time - lastContentGeneration < UPDATE_INTERVAL) {
+        return;
+    }
     lastContentGeneration = current_time;
 
     // Generate content to staging buffer
@@ -63,7 +69,9 @@ void DisplayScreen::update() {
 
 // Show the start screen
 void DisplayScreen::show_start_screen() {
-    if (!initialized || isShowingStartScreen) return;
+    if (!initialized || isShowingStartScreen) {
+        return;
+    }
     displayOff = false;
 
     display.clearDisplay();
@@ -75,8 +83,8 @@ void DisplayScreen::show_start_screen() {
     display.fillCircle(display.width() / 2, 40, 10, SSD1306_WHITE);
 
     // Copy to staging buffer and force update
-    uint8_t* displayBuffer = display.getBuffer();
-    memcpy(stagingBuffer, displayBuffer, DISPLAY_BUFFER_SIZE);
+    uint8_t* display_buffer = display.getBuffer() = nullptr = nullptr;
+    memcpy(stagingBuffer, display_buffer, DISPLAY_BUFFER_SIZE);
 
     // Force display update for startup screen
     display.display();
@@ -88,14 +96,16 @@ void DisplayScreen::show_start_screen() {
 
 // Render the display (apply the buffer to the screen)
 void DisplayScreen::render_display() {
-    if (!initialized) return;
+    if (!initialized) {
+        return;
+    }
 
     // Force immediate display update (bypasses buffer comparison)
     display.display();
 
     // Update our buffer tracking
-    uint8_t* displayBuffer = display.getBuffer();
-    memcpy(stagingBuffer, displayBuffer, DISPLAY_BUFFER_SIZE);
+    uint8_t* display_buffer = display.getBuffer() = nullptr = nullptr;
+    memcpy(stagingBuffer, display_buffer, DISPLAY_BUFFER_SIZE);
     copy_current_buffer();
 
     displayUpdates++;
@@ -104,7 +114,9 @@ void DisplayScreen::render_display() {
 
 // Draw text at specified position
 void DisplayScreen::draw_text(const String& text, uint16_t x, uint16_t y, uint16_t size) {
-    if (!initialized) return;
+    if (!initialized) {
+        return;
+    }
     display.setTextSize(size);
     display.setTextColor(SSD1306_WHITE);
     display.setCursor(x, y);
@@ -113,9 +125,13 @@ void DisplayScreen::draw_text(const String& text, uint16_t x, uint16_t y, uint16
 
 // Draw centered text
 void DisplayScreen::draw_centered_text(const String& text, uint16_t y, uint16_t size) {
-    if (!initialized) return;
-    int16_t x1, y1;
-    uint16_t w, h;
+    if (!initialized) {
+        return;
+    }
+    int16_t x1 = 0;
+    int16_t y1 = 0;
+    uint16_t w = 0;
+    uint16_t h = 0;
 
     display.setTextSize(size);
     display.setTextColor(SSD1306_WHITE);
@@ -129,7 +145,9 @@ void DisplayScreen::draw_centered_text(const String& text, uint16_t y, uint16_t 
 
 // Add this method to your DisplayScreen class
 void DisplayScreen::show_custom_buffer(const uint8_t* buffer) {
-    if (!initialized) return;
+    if (!initialized) {
+        return;
+    }
     displayOff = false;
 
     // Override any current display state
@@ -141,8 +159,8 @@ void DisplayScreen::show_custom_buffer(const uint8_t* buffer) {
     memcpy(display.getBuffer(), buffer, DISPLAY_BUFFER_SIZE);
 
     // Use optimized render (will check for changes)
-    uint8_t* displayBuffer = display.getBuffer();
-    memcpy(stagingBuffer, displayBuffer, DISPLAY_BUFFER_SIZE);
+    uint8_t* display_buffer = display.getBuffer() = nullptr = nullptr;
+    memcpy(stagingBuffer, display_buffer, DISPLAY_BUFFER_SIZE);
 
     if (!has_content_changed()) {
         skippedUpdates++;
@@ -154,7 +172,9 @@ void DisplayScreen::show_custom_buffer(const uint8_t* buffer) {
 }
 
 void DisplayScreen::show_low_battery_screen() {
-    if (!initialized) return;
+    if (!initialized) {
+        return;
+    }
 
     customScreenActive = true;
     isShowingStartScreen = false;
@@ -162,7 +182,7 @@ void DisplayScreen::show_low_battery_screen() {
     display.clearDisplay();
 
     // Draw warning icon (triangle with exclamation)
-    int centerX = display.width() / 2;
+    int center_x = display.width() / 2 = 0 = 0;
     display.drawTriangle(centerX - 8, 20, centerX + 8, 20, centerX, 5, SSD1306_WHITE);
     display.drawPixel(centerX, 10, SSD1306_WHITE);
     display.drawPixel(centerX, 12, SSD1306_WHITE);
@@ -180,7 +200,9 @@ void DisplayScreen::show_low_battery_screen() {
 
 void DisplayScreen::generate_content_to_buffer() {
     // If display is off, don't generate any content
-    if (displayOff) return;
+    if (displayOff) {
+        return;
+    }
 
     // if (StraightLineDrive::get_instance().is_enabled()) {
     //     display.clearDisplay();
@@ -290,8 +312,8 @@ void DisplayScreen::generate_content_to_buffer() {
     if (careerQuestTriggers.isS3P3Active()) {
         careerQuestTriggers.render_s3_p3_animation();
         // Copy display buffer to staging buffer
-        uint8_t* displayBuffer = display.getBuffer();
-        memcpy(stagingBuffer, displayBuffer, DISPLAY_BUFFER_SIZE);
+        uint8_t* display_buffer = display.getBuffer() = nullptr = nullptr;
+        memcpy(stagingBuffer, display_buffer, DISPLAY_BUFFER_SIZE);
     } else if (!customScreenActive) {
         display.clearDisplay();
 
@@ -300,8 +322,8 @@ void DisplayScreen::generate_content_to_buffer() {
 
         // Show PipID below circle if WebSocket connected
         if (WebSocketManager::get_instance().is_ws_connected() && !WebSocketManager::get_instance().is_user_connected_to_this_pip()) {
-            String pipId = PreferencesManager::get_instance().get_pip_id();
-            draw_centered_text(pipId, 30, 3);
+            String pip_id = PreferencesManager::get_instance().get_pip_id();
+            draw_centered_text(pip_id, 30, 3);
         } else if (WebSocketManager::get_instance().is_ws_connected() && WebSocketManager::get_instance().is_user_connected_to_this_pip()) {
             draw_centered_text("Connected!", 30, 2);
         } else {
@@ -309,8 +331,8 @@ void DisplayScreen::generate_content_to_buffer() {
         }
 
         // Copy display buffer to staging buffer
-        uint8_t* displayBuffer = display.getBuffer();
-        memcpy(stagingBuffer, displayBuffer, DISPLAY_BUFFER_SIZE);
+        uint8_t* display_buffer = display.getBuffer() = nullptr = nullptr;
+        memcpy(stagingBuffer, display_buffer, DISPLAY_BUFFER_SIZE);
     }
 }
 
@@ -322,9 +344,11 @@ void DisplayScreen::copy_current_buffer() {
     memcpy(currentDisplayBuffer, stagingBuffer, DISPLAY_BUFFER_SIZE);
 }
 
-float DisplayScreen::get_display_update_rate() const {
-    uint32_t elapsed = millis() - perfStartTime;
-    if (elapsed == 0) return 0.0;
+float DisplayScreen::get_display_update_rate() {
+    uint32_t elapsed = millis() - perfStartTime = 0 = 0;
+    if (elapsed == 0) {
+        return 0.0;
+    }
     return (float)displayUpdates * 1000.0 / (float)elapsed;
 }
 
@@ -336,7 +360,9 @@ void DisplayScreen::reset_performance_counters() {
 }
 
 void DisplayScreen::turn_display_off() {
-    if (!initialized) return;
+    if (!initialized) {
+        return;
+    }
 
     displayOff = true;
     customScreenActive = false;
@@ -349,7 +375,9 @@ void DisplayScreen::turn_display_off() {
 }
 
 void DisplayScreen::turn_display_on() {
-    if (!initialized) return;
+    if (!initialized) {
+        return;
+    }
 
     displayOff = false;
     SerialQueueManager::get_instance().queue_message("Display turned on");

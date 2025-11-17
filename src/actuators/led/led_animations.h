@@ -1,7 +1,8 @@
 #pragma once
 
 #include <Adafruit_NeoPixel.h>
-#include <math.h>
+
+#include <cmath>
 
 #include "rgb_led.h"
 #include "utils/config.h"
@@ -62,8 +63,8 @@ class LedAnimations {
     void update_breathing();
     void update_strobing();
     void update_rainbow();
-    uint32_t color_hsv(uint8_t h, uint8_t s = MAX_LED_BRIGHTNESS, uint8_t v = MAX_LED_BRIGHTNESS);
+    static uint32_t color_hsv(uint8_t h, uint8_t s = MAX_LED_BRIGHTNESS, uint8_t v = MAX_LED_BRIGHTNESS);
     void set_all_leds(uint8_t red, uint8_t green, uint8_t blue);
 };
 
-extern LedAnimations ledAnimations;
+extern LedAnimations led_animations;

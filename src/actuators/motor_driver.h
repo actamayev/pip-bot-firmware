@@ -18,7 +18,7 @@ class MotorDriver {
 
   public:
     MotorDriver(); // Constructor to initialize pins
-    void stop_both_motors();
+    static void stop_both_motors();
 
     void update();
 
@@ -42,8 +42,8 @@ class MotorDriver {
     void right_motor_forward(uint16_t speed = MAX_MOTOR_PWM);
     void right_motor_backward(uint16_t speed = MAX_MOTOR_PWM);
 
-    void left_motor_stop();
-    void right_motor_stop();
+    static void left_motor_stop();
+    static void right_motor_stop();
 
     void brake_right_motor();
     void brake_left_motor();
@@ -85,4 +85,4 @@ class MotorDriver {
     static constexpr uint8_t MOTOR_PWM_RES = 12; // 12-bit (0-4095)
 };
 
-extern MotorDriver motorDriver;
+extern MotorDriver motor_driver;

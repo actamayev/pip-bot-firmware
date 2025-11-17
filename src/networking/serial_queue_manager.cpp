@@ -26,14 +26,14 @@ bool SerialQueueManager::queue_message(const char* msg, SerialPriority priority)
     message.timestamp = millis();
 
     // Copy message, ensuring null termination and not exceeding buffer
-    size_t msgLen = strlen(msg);
-    if (msgLen >= sizeof(message.message)) {
-        msgLen = sizeof(message.message) - 1;
+    size_t msg_len = strlen(msg);
+    if (msg_len >= sizeof(message.message)) {
+        msg_len = sizeof(message.message) - 1;
     }
 
-    strncpy(message.message, msg, msgLen);
-    message.message[msgLen] = '\0';
-    message.length = msgLen;
+    strncpy(message.message, msg, msg_len);
+    message.message[msg_len] = '\0';
+    message.length = msg_len;
 
     return add_message_to_queue(message);
 }
@@ -47,8 +47,8 @@ bool SerialQueueManager::add_message_to_queue(const SerialMessage& msg) {
     }
 
     // Queue is full - remove oldest message to make room
-    SerialMessage oldMessage;
-    if (xQueueReceive(_messageQueue, &oldMessage, 0) == pdPASS) {
+    SerialMessage old_message;
+    if (xQueueReceive(_messageQueue, &old_message, 0) == pdPASS) {
         // Now try to add the new message
         result = xQueueSend(_messageQueue, &msg, 0);
         if (result == pdPASS) {
@@ -63,58 +63,58 @@ void SerialQueueManager::serial_output_task() {
     SerialMessage message;
 
     // Array to hold messages for priority sorting
-    SerialMessage priorityBuffer[10]; // Process up to 10 messages at once for priority
-    int bufferCount = 0;
+    SerialMessage priority_buffer[10]; // Process up to 10 messages at once for priority
+    int buffer_count = 0;
 
     while (true) {
         // Wait for at least one message (blocking)
         if (xQueueReceive(_messageQueue, &message, portMAX_DELAY) == pdPASS) {
-            priorityBuffer[0] = message;
-            bufferCount = 1;
+            priority_buffer[0] = message;
+            buffer_count = 1;
 
             // Check if there are more messages available for batch processing
-            while (bufferCount < 10 && xQueueReceive(_messageQueue, &message, 0) == pdPASS) {
-                priorityBuffer[bufferCount] = message;
-                bufferCount++;
+            while (buffer_count < 10 && xQueueReceive(_messageQueue, &message, 0) == pdPASS) {
+                priority_buffer[buffer_count] = message;
+                buffer_count++;
             }
 
             // Sort by priority (simple bubble sort - good enough for small arrays)
-            for (int i = 0; i < bufferCount - 1; i++) {
-                for (int j = 0; j < bufferCount - i - 1; j++) {
-                    if (static_cast<int>(priorityBuffer[j].priority) > static_cast<int>(priorityBuffer[j + 1].priority)) {
-                        SerialMessage temp = priorityBuffer[j];
-                        priorityBuffer[j] = priorityBuffer[j + 1];
-                        priorityBuffer[j + 1] = temp;
+            for (int i = 0; i < buffer_count - 1; i++) {
+                for (int j = 0; j < buffer_count - i - 1; j++) {
+                    if (static_cast<int>(priority_buffer[j].priority) > static_cast<int>(priority_buffer[j + 1].priority)) {
+                        SerialMessage temp = priority_buffer[j];
+                        priority_buffer[j] = priority_buffer[j + 1];
+                        priority_buffer[j + 1] = temp;
                     }
                 }
             }
 
             // Process all messages in priority order
-            for (int i = 0; i < bufferCount; i++) {
-                process_message(priorityBuffer[i]);
+            for (int i = 0; i < buffer_count; i++) {
+                process_message(priority_buffer[i]);
             }
         }
     }
 }
 
 void SerialQueueManager::process_message(const SerialMessage& msg) {
-    const char* priorityStr = "";
+    const char* priority_str = "";
     switch (msg.priority) {
         case SerialPriority::CRITICAL:
-            priorityStr = "[CRIT] ";
+            priority_str = "[CRIT] ";
             break;
         case SerialPriority::HIGH_PRIO:
-            priorityStr = "[HIGH] ";
+            priority_str = "[HIGH] ";
             break;
         case SerialPriority::NORMAL:
-            priorityStr = "";
+            priority_str = "";
             break;
         case SerialPriority::LOW_PRIO:
-            priorityStr = "[LOW] ";
+            priority_str = "[LOW] ";
             break;
     }
 
-    Serial.print(priorityStr);
+    Serial.print(priority_str);
     Serial.println(msg.message);
     Serial.flush();
 }

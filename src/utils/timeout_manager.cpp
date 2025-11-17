@@ -9,7 +9,9 @@ void TimeoutManager::reset_activity() {
     _lastActivityTime = millis();
 
     // If we were in confirmation state, cancel it
-    if (!_inConfirmationState) return;
+    if (!_inConfirmationState) {
+        return;
+    }
     cancel_confirmation();
 }
 
@@ -40,7 +42,9 @@ void TimeoutManager::enter_confirmation_state() {
 }
 
 void TimeoutManager::cancel_confirmation() {
-    if (!_inConfirmationState) return;
+    if (!_inConfirmationState) {
+        return;
+    }
 
     _inConfirmationState = false;
     rgbLed.turn_all_leds_off();

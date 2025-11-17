@@ -32,12 +32,12 @@ class MessageProcessor : public Singleton<MessageProcessor> {
     private:
         MessageProcessor() = default;
         // Method declarations
-        void handle_motor_control(const uint8_t* data);
-        void handle_balance_command(BalanceStatus enableBalancing);
-        void handle_light_command(LightAnimationStatus lightAnimationStatus);
-        void handle_new_light_colors(NewLightColors newLightColors);
-        void handle_obstacle_avoidance_command(ObstacleAvoidanceStatus status);
+        static void handle_motor_control(const uint8_t* data);
+        static void handle_balance_command(BalanceStatus enable_balancing);
+        static void handle_light_command(LightAnimationStatus light_animation_status);
+        static void handle_new_light_colors(NewLightColors new_light_colors);
+        static void handle_obstacle_avoidance_command(ObstacleAvoidanceStatus status);
         void handle_get_saved_wifi_networks();
-        void handle_soft_scan_wifi_networks();
-        void handle_hard_scan_wifi_networks();
+        static void handle_soft_scan_wifi_networks();
+        static void handle_hard_scan_wifi_networks();
 };

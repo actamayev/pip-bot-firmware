@@ -27,7 +27,9 @@ bool BatteryMonitor::initialize() {
 }
 
 void BatteryMonitor::update_battery_state() {
-    if (!batteryState.isInitialized) return;
+    if (!batteryState.isInitialized) {
+        return;
+    }
 
     // Read battery parameters from BQ27441
     batteryState.realStateOfCharge = lipo.soc();
@@ -71,9 +73,9 @@ void BatteryMonitor::calculate_time_estimates() {
         batteryState.estimatedTimeToEmpty = (float)batteryState.remainingCapacity / batteryState.current;
     } else if (batteryState.isCharging && batteryState.current > 0) {
         // Calculate time to full
-        int chargingCurrent = abs(batteryState.current);
-        int remainingToFull = batteryState.fullCapacity - batteryState.remainingCapacity;
-        if (chargingCurrent > 0 && remainingToFull > 0) {
+        int charging_current = abs(batteryState.current);
+        int remaining_to_full = batteryState.fullCapacity - batteryState.remainingCapacity = 0 = 0 = 0;
+        if (charging_current > 0 && remaining_to_full > 0) {
             batteryState.estimatedTimeToFull = (float)remainingToFull / chargingCurrent;
         }
     }
@@ -92,20 +94,28 @@ void BatteryMonitor::update() {
     // Handle periodic battery logging when connected to serial
     handle_battery_logging();
 
-    if (!batteryState.isCriticalBattery) return;
+    if (!batteryState.isCriticalBattery) {
+        return;
+    }
     DisplayScreen::get_instance().show_low_battery_screen();
     vTaskDelay(pdMS_TO_TICKS(3000)); // Show low battery message for 3 seconds
     Buttons::get_instance().enter_deep_sleep();
 }
 
 void BatteryMonitor::handle_battery_logging() {
-    if (!batteryState.isInitialized) return;
+    if (!batteryState.isInitialized) {
+        return;
+    }
 
     // Only log if connected to serial
-    if (!SerialManager::get_instance().is_serial_connected() && !WebSocketManager::get_instance().is_ws_connected()) return;
+    if (!SerialManager::get_instance().is_serial_connected() && !WebSocketManager::get_instance().is_ws_connected()) {
+        return;
+    }
 
     uint32_t current_time = millis();
-    if (current_time - lastBatteryLogTime < BATTERY_LOG_INTERVAL_MS) return;
+    if (current_time - lastBatteryLogTime < BATTERY_LOG_INTERVAL_MS) {
+        return;
+    }
     // Log battery data every 30 seconds
 
     send_battery_monitor_data_over_serial();
@@ -122,13 +132,17 @@ void BatteryMonitor::retry_initialization_if_needed() {
 }
 
 void BatteryMonitor::send_battery_monitor_data_over_serial() {
-    if (!SerialManager::get_instance().is_serial_connected()) return;
+    if (!SerialManager::get_instance().is_serial_connected()) {
+        return;
+    }
     SerialManager::get_instance().send_battery_monitor_data();
     lastBatteryLogTime = millis();
 }
 
 void BatteryMonitor::send_battery_monitor_data_over_websocket() {
-    if (!WebSocketManager::get_instance().is_ws_connected()) return;
+    if (!WebSocketManager::get_instance().is_ws_connected()) {
+        return;
+    }
     WebSocketManager::get_instance().send_battery_monitor_data();
     lastBatteryLogTime = millis();
 }

@@ -29,21 +29,21 @@ class BytecodeVM : public Singleton<BytecodeVM> {
 
   public:
     // Load bytecode program into the VM
-    bool load_program(const uint8_t* byteCode, uint16_t size);
-    void stop_program();
+    static bool load_program(const uint8_t* byte_code, uint16_t size);
+    static void stop_program();
 
     // Debug methods for distance movement
     bool is_distance_movement_active() const {
-        return distanceMovementInProgress;
+        return _distanceMovementInProgress;
     }
     float get_target_distance_in() const {
-        return targetDistanceIn;
+        return _targetDistanceIn;
     }
     float get_starting_distance_in() const {
-        return startingDistanceIn;
+        return _startingDistanceIn;
     }
     bool is_program_loaded() const {
-        return program != nullptr;
+        return _program != nullptr;
     }
 
   private:
@@ -59,12 +59,12 @@ class BytecodeVM : public Singleton<BytecodeVM> {
     static const uint16_t RIGHT_PROXIMITY_THRESHOLD = 50;
     const int TURN_TIMEOUT = 2000; // 1 second timeout for turn operations
 
-    BytecodeInstruction* program = nullptr;
-    uint16_t programSize = 0;
-    uint16_t pc = 0;         // Program counter
-    uint32_t delayUntil = 0; // For handling delays
-    bool waitingForDelay = false;
-    bool lastComparisonResult = false; // Stores result of last comparison
+    BytecodeInstruction* _program = nullptr;
+    uint16_t _programSize = 0;
+    uint16_t _pc = 0;         // Program counter
+    uint32_t _delayUntil = 0; // For handling delays
+    bool _waitingForDelay = false;
+    bool _lastComparisonResult = false; // Stores result of last comparison
 
     // Union to store different variable types in the same memory
     union RegisterValue {
@@ -74,51 +74,51 @@ class BytecodeVM : public Singleton<BytecodeVM> {
         uint8_t asBytes[4];
     };
 
-    RegisterValue registers[MAX_REGISTERS];
-    BytecodeVarType registerTypes[MAX_REGISTERS];
-    bool registerInitialized[MAX_REGISTERS] = {false};
+    RegisterValue _registers[MAX_REGISTERS]{};
+    BytecodeVarType _registerTypes[MAX_REGISTERS]{};
+    bool _registerInitialized[MAX_REGISTERS] = {false};
 
     // Update VM - call this regularly from main loop
     void update();
 
     enum PauseState { PROGRAM_NOT_STARTED, PAUSED, RUNNING, PROGRAM_FINISHED };
 
-    PauseState isPaused = PauseState::PROGRAM_NOT_STARTED;
+    PauseState _isPaused = PauseState::PROGRAM_NOT_STARTED;
 
-    bool waitingForButtonPressToStart = false;
-    bool can_start_program();
+    bool _waitingForButtonPressToStart = false;
+    static bool can_start_program();
 
     // Execute instruction implementation
-    void execute_instruction(const BytecodeInstruction& instr);
+    static void execute_instruction(const BytecodeInstruction& instr);
 
     // Helper method for comparisons
-    bool compare_values(ComparisonOp op, float leftOperand, float rightValue);
+    static bool compare_values(ComparisonOp op, float left_operand, float right_value);
 
-    bool timedMotorMovementInProgress = false;
-    uint32_t motorMovementEndTime = 0;
+    bool _timedMotorMovementInProgress = false;
+    uint32_t _motorMovementEndTime = 0;
 
     // Helper method for timed motor operations
-    void update_timed_motor_movement();
+    static void update_timed_motor_movement();
 
-    bool distanceMovementInProgress = false;
-    float targetDistanceIn = 0.0f;
-    float startingDistanceIn = 0.0f;
+    bool _distanceMovementInProgress = false;
+    float _targetDistanceIn = 0.0f;
+    float _startingDistanceIn = 0.0f;
 
     // Helper method for distance-based motor operations
-    void update_distance_movement();
+    static void update_distance_movement();
 
-    void reset_state_variables(bool isFullReset = false);
+    static void reset_state_variables(bool is_full_reset = false);
 
-    void pause_program();
-    void resume_program();
+    static void pause_program();
+    static void resume_program();
 
     void increment_pc() {
-        pc++;
+        _pc++;
     };
 
-    bool programContainsMotors = false;
-    bool stoppedDueToUsbSafety = false;
-    bool lastUsbState = false;
+    bool _programContainsMotors = false;
+    bool _stoppedDueToUsbSafety = false;
+    bool _lastUsbState = false;
 
     // Sensor Activation System
     enum SensorType {
@@ -131,21 +131,21 @@ class BytecodeVM : public Singleton<BytecodeVM> {
         SENSOR_COLOR_SENSOR
     };
 
-    void activate_sensors_for_program();
+    static void activate_sensors_for_program();
     static const std::map<BytecodeOpCode, std::vector<SensorType>> opcodeToSensors;
 
     // USB Safety Methods
-    void scan_program_for_motors();
+    static void scan_program_for_motors();
     void check_usb_safety_conditions();
     void handle_usb_connect();
 
     // Add these with your other distance movement variables
-    int16_t initialDistancePwm = 0; // Store initial PWM for deceleration calculation
+    int16_t _initialDistancePwm = 0; // Store initial PWM for deceleration calculation
 
     // Deceleration constants (add near your other constants)
     static constexpr float DECELERATION_RATE = 2000.0f;  // PWM²/inch - tune this value
     static constexpr int16_t MIN_DECELERATION_PWM = 600; // Minimum PWM during deceleration
 
     // Thread synchronization
-    SemaphoreHandle_t programMutex = nullptr;
+    SemaphoreHandle_t _programMutex = nullptr;
 };

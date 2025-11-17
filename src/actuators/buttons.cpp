@@ -177,7 +177,9 @@ void Buttons::setup_deep_sleep() {
     // First, detect when long press threshold is reached
     _left_button.setLongClickTime(DEEP_SLEEP_TIMEOUT);
     _left_button.setLongClickDetectedHandler([this](Button2& btn) {
-        if (this->_in_hold_to_wake_mode) return;
+        if (this->_in_hold_to_wake_mode) {
+            return;
+        }
 
         // Ignore long clicks that happen within 500ms of hold-to-wake completion
         if (this->_hold_to_wake_completed_time > 0 && (millis() - this->_hold_to_wake_completed_time) < 500) {
@@ -219,7 +221,9 @@ void Buttons::enter_deep_sleep() {
 
 void Buttons::set_hold_to_wake_mode(bool enabled) {
     this->_in_hold_to_wake_mode = enabled;
-    if (enabled) return;
+    if (enabled) {
+        return;
+    }
     this->_hold_to_wake_completed_time = millis();
 }
 

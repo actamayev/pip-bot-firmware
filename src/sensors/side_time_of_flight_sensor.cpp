@@ -1,5 +1,7 @@
 #include "side_time_of_flight_sensor.h"
 
+#include <algorithm>
+
 bool SideTimeOfFlightSensor::initialize(const uint8_t TOF_ADDRESS) {
     // Save the sensor address to the class member variable
     sensorAddress = TOF_ADDRESS;
@@ -16,10 +18,10 @@ bool SideTimeOfFlightSensor::initialize(const uint8_t TOF_ADDRESS) {
         basic_initialization_auto_mode();
 
         // Try to read data to verify initialization (use raw reading since calibration not loaded yet)
-        uint16_t testValue = VCNL36828P_GET_PS_DATA(sensorAddress);
+        uint16_t test_value = VCNL36828P_GET_PS_DATA(sensorAddress);
 
         // Check if the reading seems valid (this may need to be adjusted based on your sensor)
-        if (testValue != 0xFFFF && testValue != 0) { // Adjust these values based on what indicates failure
+        if (test_value != 0xFFFF && test_value != 0) { // Adjust these values based on what indicates failure
             isInitialized = true;
 
             // Load existing calibration or perform new calibration
@@ -41,12 +43,16 @@ bool SideTimeOfFlightSensor::initialize(const uint8_t TOF_ADDRESS) {
 // NEW: Buffer-based sensor data update method
 void SideTimeOfFlightSensor::update_sensor_data() {
     // Only try to read if sensor is initialized
-    if (!isInitialized) return;
+    if (!isInitialized) {
+        return;
+    }
 
     // Skip rate limiting entirely for maximum performance like performance test
     uint32_t current_time = millis();
-    uint32_t elapsedTime = current_time - _lastUpdateTime;
-    if (elapsedTime < DELAY_BETWEEN_READINGS) return;
+    uint32_t elapsed_time = current_time - _lastUpdateTime;
+    if (elapsed_time < DELAY_BETWEEN_READINGS) {
+        return;
+    }
 
     // Read current sensor data with no throttling
     uint16_t counts = read_proximity_data();
@@ -59,13 +65,15 @@ void SideTimeOfFlightSensor::update_sensor_data() {
 
 uint16_t SideTimeOfFlightSensor::get_current_counts() {
     // Only try to read if sensor is initialized
-    if (!isInitialized) return 0;
+    if (!isInitialized) {
+        return 0;
+    }
 
     uint32_t current_time = millis();
-    uint32_t elapsedTime = current_time - _lastUpdateTime;
+    uint32_t elapsed_time = current_time - _lastUpdateTime;
 
     // Only update if enough time has passed
-    if (elapsedTime >= DELAY_BETWEEN_READINGS) {
+    if (elapsed_time >= DELAY_BETWEEN_READINGS) {
         _lastUpdateTime = current_time;
     }
 
@@ -110,8 +118,8 @@ void SideTimeOfFlightSensor::load_calibration_from_preferences() {
 
     if (!prefs.has_side_tof_calibration(sensorAddress)) {
         isCalibrated = false;
-        char logMessage[128];
-        snprintf(logMessage, sizeof(logMessage), "No stored calibration found for sensor 0x%02X", sensorAddress);
+        char log_message[128];
+        snprintf(log_message, sizeof(log_message), "No stored calibration found for sensor 0x%02X", sensorAddress);
         SerialQueueManager::get_instance().queue_message(logMessage);
         return;
     }
@@ -119,8 +127,8 @@ void SideTimeOfFlightSensor::load_calibration_from_preferences() {
     useHardwareCalibration = prefs.get_side_tof_use_hardware_calibration(sensorAddress);
     isCalibrated = true;
 
-    char logMessage[128];
-    snprintf(logMessage, sizeof(logMessage), "Loaded calibration for sensor 0x%02X: baseline=%u, hw_calib=%s", sensorAddress, baselineValue,
+    char log_message[128];
+    snprintf(log_message, sizeof(log_message), "Loaded calibration for sensor 0x%02X: baseline=%u, hw_calib=%s", sensorAddress, baselineValue,
              useHardwareCalibration ? "true" : "false");
     SerialQueueManager::get_instance().queue_message(logMessage);
 
@@ -130,8 +138,8 @@ void SideTimeOfFlightSensor::load_calibration_from_preferences() {
 }
 
 bool SideTimeOfFlightSensor::perform_calibration() {
-    char logMessage[128];
-    snprintf(logMessage, sizeof(logMessage), "Calibrating sensor 0x%02X...", sensorAddress);
+    char log_message[128];
+    snprintf(log_message, sizeof(log_message), "Calibrating sensor 0x%02X...", sensorAddress);
     SerialQueueManager::get_instance().queue_message(logMessage);
 
     SerialQueueManager::get_instance().queue_message("Make sure no obstacles are in front of the sensors!");
@@ -139,7 +147,7 @@ bool SideTimeOfFlightSensor::perform_calibration() {
 
     uint16_t baseline = capture_baseline_reading();
 
-    snprintf(logMessage, sizeof(logMessage), "Baseline reading: %u", baseline);
+    snprintf(log_message, sizeof(log_message), "Baseline reading: %u", baseline);
     SerialQueueManager::get_instance().queue_message(logMessage);
 
     baselineValue = baseline;
@@ -160,43 +168,43 @@ bool SideTimeOfFlightSensor::perform_calibration() {
 
     isCalibrated = true;
 
-    snprintf(logMessage, sizeof(logMessage), "Sensor 0x%02X calibrated successfully - baseline: %u", sensorAddress, baselineValue);
+    snprintf(log_message, sizeof(log_message), "Sensor 0x%02X calibrated successfully - baseline: %u", sensorAddress, baselineValue);
     SerialQueueManager::get_instance().queue_message(logMessage);
 
     return true;
 }
 
 uint16_t SideTimeOfFlightSensor::capture_baseline_reading() {
-    const int numSamples = 10;
+    const int NUM_SAMPLES = 10;
     uint32_t sum = 0;
 
     // Take multiple readings and average them for better accuracy
-    for (int i = 0; i < numSamples; i++) {
+    for (int i = 0; i < NUM_SAMPLES; i++) {
         uint16_t reading = VCNL36828P_GET_PS_DATA(sensorAddress);
         sum += reading;
         vTaskDelay(pdMS_TO_TICKS(100)); // Small delay between readings
     }
 
-    return (uint16_t)(sum / numSamples);
+    return static_cast<uint16_t>(sum / NUM_SAMPLES);
 }
 
 void SideTimeOfFlightSensor::apply_hardware_calibration(uint16_t baseline) {
     VCNL36828P_SET_PS_CANC(sensorAddress, baseline);
 }
 
-uint16_t SideTimeOfFlightSensor::apply_calibration(uint16_t rawReading) {
-    if (!isCalibrated) return rawReading; // Return raw reading if not calibrated
+uint16_t SideTimeOfFlightSensor::apply_calibration(uint16_t raw_reading) {
+    if (!isCalibrated) {
+        return raw_reading; // Return raw reading if not calibrated
+    }
 
     // If using hardware calibration, the reading is already calibrated
     if (useHardwareCalibration) {
-        return rawReading;
+        return raw_reading;
     }
 
     // Apply software calibration (subtract baseline)
-    int32_t calibratedReading = (int32_t)rawReading - (int32_t)baselineValue;
-    if (calibratedReading < 0) {
-        calibratedReading = 0;
-    }
+    int32_t calibrated_reading = static_cast<int32_t>(raw_reading) - static_cast<int32_t>(baselineValue) = 0 = 0;
+    calibratedReading = std::max(calibratedReading, 0);
 
-    return (uint16_t)calibratedReading;
+    return static_cast<uint16_t>(calibrated_reading);
 }

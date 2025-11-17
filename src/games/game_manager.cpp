@@ -18,7 +18,9 @@ bool GameManager::start_game(games::GameType game_type) {
 }
 
 void GameManager::stop_current_game() {
-    if (_current_game == games::GameType::NONE) return;
+    if (_current_game == games::GameType::NONE) {
+        return;
+    }
 
     SerialQueueManager::get_instance().queue_message("Stopping game: " + String(get_game_name(_current_game)));
     disable_current_game();
@@ -26,7 +28,9 @@ void GameManager::stop_current_game() {
 }
 
 void GameManager::update() {
-    if (_current_game == games::GameType::NONE) return;
+    if (_current_game == games::GameType::NONE) {
+        return;
+    }
 
     switch (_current_game) {
         case games::GameType::DINO_RUNNER:
@@ -38,7 +42,9 @@ void GameManager::update() {
 }
 
 void GameManager::handle_button_press(bool right_pressed) {
-    if (_current_game == games::GameType::NONE) return;
+    if (_current_game == games::GameType::NONE) {
+        return;
+    }
 
     switch (_current_game) {
         case games::GameType::DINO_RUNNER:
@@ -83,7 +89,7 @@ bool GameManager::enable_game(games::GameType game_type) {
     return success;
 }
 
-const char* GameManager::get_game_name(games::GameType game_type) const {
+const char* GameManager::get_game_name(games::GameType game_type) {
     switch (game_type) {
         case games::GameType::NONE:
             return "None";

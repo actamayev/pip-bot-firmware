@@ -52,15 +52,15 @@ class RgbLed {
     };
     bool default_colors_set[8] = {false, false, false, false, false, false, false, false};
 
-    void turn_headlights_on();
-    void turn_headlights_off();
-    void turn_headlights_faint_blue();
+    static void turn_headlights_on();
+    static void turn_headlights_off();
+    static void turn_headlights_faint_blue();
 
-    void turn_front_middle_leds_faint_blue();
-    void turn_front_middle_leds_off();
+    static void turn_front_middle_leds_faint_blue();
+    static void turn_front_middle_leds_off();
 
-    void turn_back_leds_faint_blue();
-    void turn_back_leds_off();
+    static void turn_back_leds_faint_blue();
+    static void turn_back_leds_off();
 
     void turn_main_board_leds_off();
 
@@ -76,4 +76,4 @@ class RgbLed {
     LedState _captured_state{};
 };
 
-extern RgbLed rgbLed;
+extern RgbLed rgb_led;

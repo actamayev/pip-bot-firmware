@@ -8,50 +8,52 @@
 WebSocketManager::WebSocketManager() {
     wsConnected = false;
     lastConnectionAttempt = 0;
-    String pipId = PreferencesManager::get_instance().get_pip_id();
+    String pip_id = PreferencesManager::get_instance().get_pip_id();
     wsClient.addHeader("X-Pip-Id", pipId);
-    if (DEFAULT_ENVIRONMENT == "local") return;
+    if (DEFAULT_ENVIRONMENT == "local") {
+        return;
+    }
     wsClient.setCACert(ROOT_CA_CERTIFICATE);
 }
 
 void WebSocketManager::handle_binary_message(WebsocketsMessage message) {
-    const uint8_t* data = (const uint8_t*)message.c_str();
+    const auto* data = reinterpret_cast<const uint8_t*>(message.c_str());
     uint16_t length = message.length();
 
     // Check if this is a framed message (starts with START_MARKER)
     if (length >= 4 && data[0] == START_MARKER) {
         // This is a framed message. Parse it.
-        uint8_t messageType = data[1];
-        bool useLongFormat = (data[2] != 0);
+        uint8_t message_type = data[1];
+        bool use_long_format = (data[2] != 0);
 
-        uint16_t payloadLength;
-        uint16_t headerSize;
+        uint16_t payload_length = 0;
+        uint16_t header_size = 0;
 
-        if (useLongFormat) {
+        if (use_long_format) {
             // 16-bit length
-            payloadLength = data[3] | (data[4] << 8); // Little-endian
-            headerSize = 5;                           // START + TYPE + FORMAT + LENGTH(2)
+            payload_length = data[3] | (data[4] << 8); // Little-endian
+            header_size = 5;                           // START + TYPE + FORMAT + LENGTH(2)
         } else {
             // 8-bit length
-            payloadLength = data[3];
-            headerSize = 4; // START + TYPE + FORMAT + LENGTH(1)
+            payload_length = data[3];
+            header_size = 4; // START + TYPE + FORMAT + LENGTH(1)
         }
 
         // Verify end marker and total length
-        if (length == headerSize + payloadLength + 1 && data[headerSize + payloadLength] == END_MARKER) {
+        if (length == header_size + payload_length + 1 && data[header_size + payload_length] == END_MARKER) {
             // Extract just the message type and payload
-            uint8_t* processedData = new uint8_t[payloadLength + 1];
-            processedData[0] = messageType; // Message type
+            auto* processed_data = new uint8_t[payload_length + 1];
+            processed_data[0] = message_type; // Message type
 
             // Copy the actual payload (if any)
-            if (payloadLength > 0) {
-                memcpy(processedData + 1, data + headerSize, payloadLength);
+            if (payload_length > 0) {
+                memcpy(processed_data + 1, data + header_size, payload_length);
             }
 
             // Process the extracted message
             MessageProcessor::get_instance().process_binary_message(processedData, payloadLength + 1);
 
-            delete[] processedData;
+            delete[] processed_data;
         } else {
             SerialQueueManager::get_instance().queue_message("Invalid framed message (bad end marker or length)");
         }
@@ -90,59 +92,65 @@ void WebSocketManager::connect_to_websocket() {
 }
 
 void WebSocketManager::add_battery_data_to_payload(JsonObject& payload) {
-    const BatteryState& batteryState = BatteryMonitor::get_instance().get_battery_state();
-    if (!batteryState.isInitialized) return;
+    const BatteryState& battery_state = BatteryMonitor::get_instance().get_battery_state();
+    if (!battery_state.isInitialized) {
+        return;
+    }
 
-    JsonObject batteryData = payload.createNestedObject("batteryData");
-    batteryData["stateOfCharge"] = static_cast<int>(round(batteryState.displayedStateOfCharge));
-    batteryData["voltage"] = batteryState.voltage;
-    batteryData["current"] = batteryState.current;
-    batteryData["power"] = batteryState.power;
-    batteryData["remainingCapacity"] = batteryState.remainingCapacity;
-    batteryData["fullCapacity"] = batteryState.fullCapacity;
-    batteryData["health"] = batteryState.health;
-    batteryData["isCharging"] = batteryState.isCharging;
-    batteryData["isDischarging"] = batteryState.isDischarging;
-    batteryData["isLowBattery"] = batteryState.isLowBattery;
-    batteryData["isCriticalBattery"] = batteryState.isCriticalBattery;
-    batteryData["estimatedTimeToEmpty"] = batteryState.estimatedTimeToEmpty;
-    batteryData["estimatedTimeToFull"] = batteryState.estimatedTimeToFull;
+    JsonObject battery_data = payload.createNestedObject("batteryData");
+    "stateOfCharge"[battery_data] = static_cast<int>(round(battery_state.displayedStateOfCharge));
+    "voltage"[battery_data] = battery_state.voltage;
+    "current"[battery_data] = battery_state.current;
+    "power"[battery_data] = battery_state.power;
+    "remainingCapacity"[battery_data] = battery_state.remainingCapacity;
+    "fullCapacity"[battery_data] = battery_state.fullCapacity;
+    "health"[battery_data] = battery_state.health;
+    "isCharging"[battery_data] = battery_state.isCharging;
+    "isDischarging"[battery_data] = battery_state.isDischarging;
+    "isLowBattery"[battery_data] = battery_state.isLowBattery;
+    "isCriticalBattery"[battery_data] = battery_state.isCriticalBattery;
+    "estimatedTimeToEmpty"[battery_data] = battery_state.estimatedTimeToEmpty;
+    "estimatedTimeToFull"[battery_data] = battery_state.estimatedTimeToFull;
 }
 
 void WebSocketManager::send_initial_data() {
     SerialQueueManager::get_instance().queue_message("WebSocket connected. Sending initial data...");
-    auto initDoc = make_base_message_server<256>(ToServerMessage::DEVICE_INITIAL_DATA);
+    auto init_doc = make_base_message_server<256>(ToServerMessage::DEVICE_INITIAL_DATA);
     JsonObject payload = initDoc.createNestedObject("payload");
     payload["firmwareVersion"] = FirmwareVersionTracker::get_instance().get_firmware_version();
 
     // Add battery data to the same request
     add_battery_data_to_payload(payload);
 
-    String jsonString;
-    serializeJson(initDoc, jsonString);
-    WiFi.mode(WIFI_STA);
+    String json_string;
+    serializeJson(initDoc, json_string);
+    WiFiClass::mode(WIFI_STA);
     wsClient.send(jsonString);
 }
 
 void WebSocketManager::send_battery_monitor_data() {
-    if (!wsConnected) return;
+    if (!wsConnected) {
+        return;
+    }
 
-    auto batteryDoc = make_base_message_server<256>(ToServerMessage::BATTERY_MONITOR_DATA_FULL);
+    auto battery_doc = make_base_message_server<256>(ToServerMessage::BATTERY_MONITOR_DATA_FULL);
     JsonObject payload = batteryDoc.createNestedObject("payload");
     add_battery_data_to_payload(payload);
 
-    String jsonString;
-    serializeJson(batteryDoc, jsonString);
+    String json_string;
+    serializeJson(batteryDoc, json_string);
     wsClient.send(jsonString);
 }
 
 void WebSocketManager::poll_websocket() {
     uint32_t current_time = millis();
-    if (current_time - lastPollTime < POLL_INTERVAL) return;
+    if (current_time - lastPollTime < POLL_INTERVAL) {
+        return;
+    }
 
     lastPollTime = current_time;
 
-    if (WiFi.status() != WL_CONNECTED) {
+    if (WiFiClass::status() != WL_CONNECTED) {
         if (wsConnected) {
             SerialQueueManager::get_instance().queue_message("WiFi lost during WebSocket session", SerialPriority::HIGH_PRIO);
             wsConnected = false;
@@ -173,7 +181,9 @@ void WebSocketManager::poll_websocket() {
     }
 
     // Only poll if connected
-    if (!wsConnected) return;
+    if (!wsConnected) {
+        return;
+    }
     try {
         wsClient.poll();
     } catch (const std::exception& e) {
@@ -185,7 +195,9 @@ void WebSocketManager::poll_websocket() {
 void WebSocketManager::kill_wifi_processes() {
     // This method activates when the ESP has been disconnected from WS.
     // Should only run once.
-    if (hasKilledWiFiProcesses) return;
+    if (hasKilledWiFiProcesses) {
+        return;
+    }
     careerQuestTriggers.stop_all_career_quest_triggers(false);
     motorDriver.reset_command_state(false);
 
@@ -203,30 +215,36 @@ void WebSocketManager::kill_wifi_processes() {
 }
 
 void WebSocketManager::send_pip_turning_off() {
-    if (!wsConnected) return;
-    auto pipTurningOffDoc = make_base_message_common<256>(ToCommonMessage::PIP_TURNING_OFF);
+    if (!wsConnected) {
+        return;
+    }
+    auto pip_turning_off_doc = make_base_message_common<256>(ToCommonMessage::PIP_TURNING_OFF);
     JsonObject payload = pipTurningOffDoc.createNestedObject("payload");
-    payload["reason"] = "Pip is turning off";
-    String jsonString;
-    serializeJson(pipTurningOffDoc, jsonString);
+    "reason"[payload] = "Pip is turning off";
+    String json_string;
+    serializeJson(pipTurningOffDoc, json_string);
     wsClient.send(jsonString);
 }
 
 void WebSocketManager::send_dino_score(int score) {
-    if (!wsConnected) return;
+    if (!wsConnected) {
+        return;
+    }
 
     auto doc = make_base_message_common<256>(ToCommonMessage::DINO_SCORE);
     JsonObject payload = doc.createNestedObject("payload");
-    payload["score"] = score;
+    "score"[payload] = score;
 
-    String jsonString;
-    serializeJson(doc, jsonString);
+    String json_string;
+    serializeJson(doc, json_string);
     wsClient.send(jsonString);
 }
 
-void WebSocketManager::set_is_user_connected_to_this_pip(bool newIsUserConnectedToThisPip) {
+void WebSocketManager::set_is_user_connected_to_this_pip(bool new_is_user_connected_to_this_pip) {
     userConnectedToThisPip = newIsUserConnectedToThisPip;
-    if (newIsUserConnectedToThisPip) return;
+    if (new_is_user_connected_to_this_pip) {
+        return;
+    }
     motorDriver.reset_command_state(true);
     careerQuestTriggers.stop_all_career_quest_triggers(false);
 }

@@ -25,21 +25,23 @@ void DanceManager::start_dance() {
     _nextStepTime = _stepStartTime + DANCE_SEQUENCE[0].duration;
 
     // Start first dance step
-    DanceStep firstStep = DANCE_SEQUENCE[0];
+    DanceStep first_step = DANCE_SEQUENCE[0];
     motorDriver.update_motor_pwm(firstStep.leftSpeed, firstStep.rightSpeed);
 
     // Start LED animation
-    if (firstStep.ledAnimation == led_types::AnimationType::RAINBOW) {
+    if (first_step.ledAnimation == led_types::AnimationType::RAINBOW) {
         ledAnimations.start_rainbow(2000);
-    } else if (firstStep.ledAnimation == led_types::AnimationType::BREATHING) {
+    } else if (first_step.ledAnimation == led_types::AnimationType::BREATHING) {
         ledAnimations.start_breathing(2000, 0.5f);
-    } else if (firstStep.ledAnimation == led_types::AnimationType::STROBING) {
+    } else if (first_step.ledAnimation == led_types::AnimationType::STROBING) {
         ledAnimations.start_strobing(500);
     }
 }
 
-void DanceManager::stop_dance(bool shouldTurnLedsOff) {
-    if (!_isCurrentlyDancing) return;
+void DanceManager::stop_dance(bool should_turn_leds_off) {
+    if (!_isCurrentlyDancing) {
+        return;
+    }
 
     SerialQueueManager::get_instance().queue_message("Stopping dance sequence");
     _isCurrentlyDancing = false;
@@ -48,7 +50,7 @@ void DanceManager::stop_dance(bool shouldTurnLedsOff) {
     // Stop motors immediately for safety
     motorDriver.stop_both_motors();
 
-    if (shouldTurnLedsOff) {
+    if (should_turn_leds_off) {
         // Turn off LEDs
         ledAnimations.turn_off();
         rgbLed.turn_all_leds_off();
@@ -56,7 +58,9 @@ void DanceManager::stop_dance(bool shouldTurnLedsOff) {
 }
 
 void DanceManager::update() {
-    if (!_isCurrentlyDancing) return;
+    if (!_isCurrentlyDancing) {
+        return;
+    }
 
     // Safety check during dance - stop if USB gets connected
     // if (SerialManager::get_instance().isSerialConnected()) {
@@ -68,7 +72,9 @@ void DanceManager::update() {
     uint32_t current_time = millis();
 
     // Check if it's time for the next step
-    if (current_time < _nextStepTime) return;
+    if (current_time < _nextStepTime) {
+        return;
+    }
     _currentStep++;
 
     // Check if dance is complete

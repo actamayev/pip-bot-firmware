@@ -18,39 +18,39 @@ class SideTimeOfFlightSensor {
   private:
     SideTimeOfFlightSensor() = default;
     bool initialize(const uint8_t TOF_ADDRESS);
-    bool needsInitialization() const {
-        return !isInitialized;
+    bool needs_initialization() const {
+        return !_isInitialized;
     }
-    uint8_t sensorAddress = 0; // Store the specific sensor address
+    uint8_t _sensorAddress = 0; // Store the specific sensor address
 
     // Initialization retry variables
-    bool isInitialized = false;
+    bool _isInitialized = false;
 
     // Calibration data structures
-    uint16_t baselineValue = 0;
-    bool useHardwareCalibration = false;
-    bool isCalibrated = false;
+    uint16_t _baselineValue = 0;
+    bool _useHardwareCalibration = false;
+    bool _isCalibrated = false;
 
     // Reset a specific sensor by address
-    void reset_specific_sensor() {
-        Reset_Sensor(sensorAddress);
+    void reset_specific_sensor() const {
+        Reset_Sensor(_sensorAddress);
         vTaskDelay(pdMS_TO_TICKS(100));
     }
 
     // Read proximity data from the sensor (with calibration applied)
-    uint16_t read_proximity_data() {
-        uint16_t rawReading = VCNL36828P_GET_PS_DATA(sensorAddress);
-        return apply_calibration(rawReading);
+    uint16_t read_proximity_data() const {
+        uint16_t raw_reading = VCNL36828P_GET_PS_DATA(_sensorAddress);
+        return apply_calibration(raw_reading);
     }
 
-    void basic_initialization_auto_mode();
+    static void basic_initialization_auto_mode();
 
     // Calibration methods
-    void load_calibration_from_preferences();
-    bool perform_calibration();
-    uint16_t capture_baseline_reading();
-    void apply_hardware_calibration(uint16_t baseline);
-    uint16_t apply_calibration(uint16_t rawReading);
+    static void load_calibration_from_preferences();
+    static bool perform_calibration();
+    static uint16_t capture_baseline_reading();
+    static void apply_hardware_calibration(uint16_t baseline);
+    static uint16_t apply_calibration(uint16_t raw_reading);
 
     // For rate limiting reads
     uint32_t _lastUpdateTime = 0;

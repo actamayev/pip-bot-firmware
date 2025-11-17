@@ -31,7 +31,7 @@ class EncoderManager : public Singleton<EncoderManager> {
 
     float _leftWheelRPM;
     float _rightWheelRPM;
-    bool isInitialized = false;
+    bool _isInitialized = false;
 
     // Timing
     uint32_t _lastUpdateTime;
@@ -54,12 +54,12 @@ class EncoderManager : public Singleton<EncoderManager> {
     // Internal update method (now private - called by updateSensorData)
     void update();
 
-    int64_t _leftEncoderStartCount;
-    int64_t _rightEncoderStartCount;
+    int64_t _leftEncoderStartCount{};
+    int64_t _rightEncoderStartCount{};
 
     // For RPM calculation without clearing encoder counts
-    int64_t _leftLastCount;
-    int64_t _rightLastCount;
+    int64_t _leftLastCount{};
+    int64_t _rightLastCount{};
 
     // Wheel physical properties
     static constexpr float WHEEL_DIAMETER_CM = 3.9; // Replace with actual wheel diameter

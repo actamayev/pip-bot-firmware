@@ -78,17 +78,17 @@ void FirmwareVersionTracker::update_progress_leds(int progress, int total) {
     int percentage = (progress * 100) / total;
 
     // Define segment boundaries (each LED represents 1/6 of the total)
-    const int segment_size = 100 / 6; // ~16.67%
+    const int SEGMENT_SIZE = 100 / 6; // ~16.67%
 
     // Calculate which segment we're in (0-5)
-    int segment = min(5, percentage / segment_size);
+    int segment = min(5, percentage / SEGMENT_SIZE);
 
     // Calculate progress within the current segment (0-100%)
-    int segment_start = segment * segment_size;
+    int segment_start = segment * SEGMENT_SIZE;
     int segment_progress = percentage - segment_start;
 
     // Convert segment progress to brightness (0-255)
-    uint8_t brightness = (segment_progress * 255) / segment_size;
+    uint8_t brightness = (segment_progress * 255) / SEGMENT_SIZE;
 
     // Set all LEDs based on the current progress
     for (int i = 0; i < 6; i++) {

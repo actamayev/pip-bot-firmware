@@ -20,26 +20,26 @@ bool hold_to_wake() {
     pinMode(RIGHT_BUTTON_PIN, INPUT_PULLDOWN);
 
     // Check if any button is still pressed (HIGH due to INPUT_PULLDOWN)
-    bool leftButtonPressed = digitalRead(LEFT_BUTTON_PIN) == HIGH;
-    bool rightButtonPressed = digitalRead(RIGHT_BUTTON_PIN) == HIGH;
+    bool left_button_pressed = digitalRead(LEFT_BUTTON_PIN) == HIGH;
+    bool right_button_pressed = digitalRead(RIGHT_BUTTON_PIN) == HIGH;
 
-    if (!leftButtonPressed && !rightButtonPressed) {
+    if (!left_button_pressed && !right_button_pressed) {
         Buttons::get_instance().enter_deep_sleep();
         return false;
     }
 
     // Start timing - at least one button must be held for 1000ms
     const uint32_t HOLD_DURATION_MS = 1000;
-    uint32_t startTime = millis();
+    uint32_t start_time = millis();
 
-    while ((millis() - startTime) < HOLD_DURATION_MS) {
+    while ((millis() - start_time) < HOLD_DURATION_MS) {
         // Re-check button states
-        leftButtonPressed = digitalRead(LEFT_BUTTON_PIN) == HIGH;
-        rightButtonPressed = digitalRead(RIGHT_BUTTON_PIN) == HIGH;
+        left_button_pressed = digitalRead(LEFT_BUTTON_PIN) == HIGH;
+        right_button_pressed = digitalRead(RIGHT_BUTTON_PIN) == HIGH;
 
         // If both buttons are released, go back to sleep
-        if (!leftButtonPressed && !rightButtonPressed) {
-            uint32_t heldTime = millis() - startTime;
+        if (!left_button_pressed && !right_button_pressed) {
+            uint32_t held_time = millis() - start_time;
             Buttons::get_instance().enter_deep_sleep();
             return false;
         }

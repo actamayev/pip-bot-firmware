@@ -63,7 +63,7 @@ class Speaker : public Singleton<Speaker> {
         uint8_t led_r, led_g, led_b; // LED color for this note
     };
 
-    static constexpr MelodyNote entertainer_led_sequence[] = {
+    static constexpr MelodyNote ENTERTAINER_LED_SEQUENCE[] = {
         {214, 255, 0, 0},     // 8d - red
         {214, 255, 127, 0},   // 8d# - orange
         {214, 255, 255, 0},   // 8e - yellow
@@ -86,7 +86,7 @@ class Speaker : public Singleton<Speaker> {
         {857, 255, 0, 0}      // 2d - red (half note)
     };
 
-    static constexpr size_t ENTERTAINER_LED_SEQUENCE_LENGTH = sizeof(entertainer_led_sequence) / sizeof(entertainer_led_sequence[0]);
+    static constexpr size_t ENTERTAINER_LED_SEQUENCE_LENGTH = sizeof(ENTERTAINER_LED_SEQUENCE) / sizeof(ENTERTAINER_LED_SEQUENCE[0]);
 
     // LED sync state
     bool _is_led_sequence_playing = false;
@@ -105,7 +105,7 @@ class Speaker : public Singleton<Speaker> {
     AudioFileSourcePROGMEM* _tone_source = nullptr;
 
     void update_continuous_tone();
-    const char* get_tone_rtttl(ToneType tone);
+    static const char* get_tone_rtttl(ToneType tone);
 
     uint32_t _last_tone_refresh_time = 0;
     static const uint32_t TONE_AUTO_STOP_MS = 200; // Stop if not refreshed within 200ms

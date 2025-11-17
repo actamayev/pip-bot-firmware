@@ -22,7 +22,7 @@ SensorInitializer::SensorInitializer() {
     SerialQueueManager::get_instance().queue_message("Centralized sensor initialization complete");
 }
 
-bool SensorInitializer::is_sensor_initialized(SensorType sensor) const {
+bool SensorInitializer::is_sensor_initialized(SensorType sensor) {
     if (sensor >= 0 && sensor < SENSOR_COUNT) {
         return sensorInitialized[sensor];
     }

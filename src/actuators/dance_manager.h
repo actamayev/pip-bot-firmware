@@ -12,7 +12,7 @@ class DanceManager : public Singleton<DanceManager> {
 
   public:
     void start_dance();
-    void stop_dance(bool shouldTurnLedsOff);
+    void stop_dance(bool should_turn_leds_off);
     void update();
     bool is_dancing() const {
         return _isCurrentlyDancing;

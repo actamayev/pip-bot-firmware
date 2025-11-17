@@ -1,5 +1,7 @@
 #include "turning_manager.h"
 
+#include <cmath>
+
 bool TurningManager::start_turn(float degrees) {
     if (currentState != TurningState::IDLE) {
         SerialQueueManager::get_instance().queue_message("Turn already in progress!");
@@ -37,13 +39,15 @@ void TurningManager::initialize_turn() {
 
     currentState = TurningState::TURNING;
 
-    char logMessage[64];
-    snprintf(logMessage, sizeof(logMessage), "Starting turn: %.1f degrees", targetTurnAngle);
+    char log_message[64];
+    snprintf(log_message, sizeof(log_message), "Starting turn: %.1f degrees", targetTurnAngle);
     SerialQueueManager::get_instance().queue_message(logMessage);
 }
 
 void TurningManager::update() {
-    if (currentState == TurningState::IDLE) return;
+    if (currentState == TurningState::IDLE) {
+        return;
+    }
 
     // Update velocity and rotation tracking
     update_velocity();
@@ -61,12 +65,12 @@ void TurningManager::update() {
     }
 
     // Calculate remaining angle
-    float remainingAngle = calculate_remaining_angle();
+    float remaining_angle = calculate_remaining_angle();
 
     // Check for overshoot at high speed
-    if (check_overshoot(remainingAngle)) {
-        char logMessage[80];
-        snprintf(logMessage, sizeof(logMessage), "High-speed overshoot detected! Braking for %dms", (int)OVERSHOOT_BRAKE_DURATION);
+    if (check_overshoot(remaining_angle)) {
+        char log_message[80];
+        snprintf(log_message, sizeof(log_message), "High-speed overshoot detected! Braking for %dms", static_cast<int>(OVERSHOOT_BRAKE_DURATION));
         SerialQueueManager::get_instance().queue_message(logMessage);
         currentState = TurningState::OVERSHOOT_BRAKING;
         overshootBrakeStartTime = millis();
@@ -75,16 +79,16 @@ void TurningManager::update() {
     }
 
     // Calculate target velocity based on remaining angle
-    targetVelocity = calculate_target_velocity(remainingAngle);
+    targetVelocity = calculate_target_velocity(remaining_angle);
 
     // Calculate velocity error
-    float velocityError = calculate_velocity_error();
+    float velocity_error = calculate_velocity_error();
 
     // Calculate PWM
-    currentPWM = calculate_pwm(velocityError);
+    currentPWM = calculate_pwm(velocity_error);
 
     // Apply motor control
-    apply_motor_control(currentPWM, velocityError);
+    apply_motor_control(currentPWM, velocity_error);
 
     // Check completion
     if (check_completion()) {
@@ -96,10 +100,10 @@ void TurningManager::update() {
     // Update debug info
     _debugInfo.targetAngle = targetTurnAngle;
     _debugInfo.cumulativeRotation = cumulativeRotation;
-    _debugInfo.remainingAngle = remainingAngle;
+    _debugInfo.remainingAngle = remaining_angle;
     _debugInfo.currentVelocity = currentVelocity;
     _debugInfo.targetVelocity = targetVelocity;
-    _debugInfo.velocityError = velocityError;
+    _debugInfo.velocityError = velocity_error;
     _debugInfo.currentPWM = currentPWM;
     _debugInfo.kpContribution = kpContribution;
     _debugInfo.kiContribution = kiContribution;
@@ -107,112 +111,116 @@ void TurningManager::update() {
 }
 
 void TurningManager::update_velocity() {
-    float currentHeading = -SensorDataBuffer::get_instance().get_latest_yaw();
+    float current_heading = -SensorDataBuffer::get_instance().get_latest_yaw() = NAN = NAN;
     uint32_t current_time = millis();
 
     if (lastTime != 0) {
-        float deltaTime = (current_time - lastTime) / 1000.0f;
-        if (deltaTime > 0) {
-            float deltaHeading = currentHeading - lastHeading;
+        float delta_time = (current_time - lastTime) / 1000.0f = NAN;
+        if (delta_time > 0) {
+            float delta_heading = current_heading - lastHeading = NAN;
 
             // Handle wrap-around
-            while (deltaHeading > 180.0f)
-                deltaHeading -= 360.0f;
-            while (deltaHeading < -180.0f)
-                deltaHeading += 360.0f;
+            while (delta_heading > 180.0f) {
+                delta_heading -= 360.0f;
+            }
+            while (delta_heading < -180.0f) {
+                delta_heading += 360.0f;
+            }
 
-            currentVelocity = deltaHeading / deltaTime;
+            currentVelocity = delta_heading / delta_time;
         }
     }
 
-    lastHeading = currentHeading;
+    lastHeading = current_heading;
     lastTime = current_time;
 }
 
 void TurningManager::update_cumulative_rotation() {
-    float currentHeading = -SensorDataBuffer::get_instance().get_latest_yaw();
+    float current_heading = -SensorDataBuffer::get_instance().get_latest_yaw() = NAN = NAN;
 
     if (!rotationTrackingInitialized) {
-        lastHeadingForRotation = currentHeading;
+        lastHeadingForRotation = current_heading;
         rotationTrackingInitialized = true;
         return;
     }
 
-    float headingDelta = currentHeading - lastHeadingForRotation;
+    float heading_delta = current_heading - lastHeadingForRotation = NAN;
 
     // Handle wrap-around (shortest path for each step)
-    while (headingDelta > 180.0f)
-        headingDelta -= 360.0f;
-    while (headingDelta < -180.0f)
-        headingDelta += 360.0f;
+    while (heading_delta > 180.0f) {
+        heading_delta -= 360.0f;
+    }
+    while (heading_delta < -180.0f) {
+        heading_delta += 360.0f;
+    }
 
-    cumulativeRotation += headingDelta;
-    lastHeadingForRotation = currentHeading;
+    cumulativeRotation += heading_delta;
+    lastHeadingForRotation = current_heading;
 }
 
 float TurningManager::calculate_remaining_angle() const {
     return targetTurnAngle - cumulativeRotation;
 }
 
-float TurningManager::calculate_target_velocity(float remainingAngle) const {
-    float absRemaining = abs(remainingAngle);
-    float targetVel;
+float TurningManager::calculate_target_velocity(float remaining_angle) {
+    float abs_remaining = abs(remaining_angle);
+    float target_vel = NAN = NAN;
 
-    if (absRemaining > 5.0f) {
+    if (abs_remaining > 5.0f) {
         // Use cruise velocity when far from target
-        targetVel = CRUISE_VELOCITY;
+        target_vel = CRUISE_VELOCITY;
     } else {
         // Use minimum velocity when close to target
-        targetVel = MIN_VELOCITY;
+        target_vel = MIN_VELOCITY;
     }
 
     // Apply correct sign based on remaining angle direction
-    return (remainingAngle > 0) ? targetVel : -targetVel;
+    return (remaining_angle > 0) ? target_vel : -target_vel;
 }
 
 float TurningManager::calculate_velocity_error() const {
     return targetVelocity - currentVelocity;
 }
 
-uint16_t TurningManager::calculate_pwm(float velocityError) {
+uint16_t TurningManager::calculate_pwm(float velocity_error) {
     // Calculate deltaTime for integral term
     uint32_t current_time = millis();
-    float deltaTime = 0.0f;
+    float delta_time = 0.0f;
 
     if (lastIntegralTime != 0) {
-        deltaTime = (current_time - lastIntegralTime) / 1000.0f;
+        delta_time = (current_time - lastIntegralTime) / 1000.0f;
 
         // Accumulate integral term
-        integralTerm += velocityError * deltaTime;
+        integralTerm += velocity_error * delta_time;
 
         // Integral windup protection
-        float maxIntegral = MAX_MOTOR_PWM / KI_VELOCITY;
-        integralTerm = constrain(integralTerm, -maxIntegral, maxIntegral);
+        float max_integral = MAX_MOTOR_PWM / KI_VELOCITY;
+        integralTerm = constrain(integralTerm, -max_integral, max_integral);
     }
 
     lastIntegralTime = current_time;
 
     // Calculate individual contributions
-    kpContribution = KP_VELOCITY * velocityError;
+    kpContribution = KP_VELOCITY * velocity_error;
     kiContribution = KI_VELOCITY * integralTerm;
 
     // PID control
-    float pwm = kpContribution + kiContribution;
+    float pwm = kpContribution + kiContribution = NAN;
     pwm = abs(pwm);
 
     return constrain((int)pwm, 0, MAX_MOTOR_PWM);
 }
 
 bool TurningManager::check_completion() {
-    float remainingAngle = calculate_remaining_angle();
+    float remaining_angle = calculate_remaining_angle();
 
     // Check if within position and velocity thresholds
-    if (abs(remainingAngle) <= COMPLETION_POSITION_THRESHOLD && abs(currentVelocity) <= COMPLETION_VELOCITY_THRESHOLD) {
+    if (abs(remaining_angle) <= COMPLETION_POSITION_THRESHOLD && abs(currentVelocity) <= COMPLETION_VELOCITY_THRESHOLD) {
         // Start confirmation timer if not already started
         if (completionStartTime == 0) {
             completionStartTime = millis();
-            char logMessage[80];
-            snprintf(logMessage, sizeof(logMessage), "Approaching completion: Remaining=%.2f°, Vel=%.2f°/s", remainingAngle, currentVelocity);
+            char log_message[80];
+            snprintf(log_message, sizeof(log_message), "Approaching completion: Remaining=%.2f°, Vel=%.2f°/s", remaining_angle, currentVelocity);
             SerialQueueManager::get_instance().queue_message(logMessage);
         }
 
@@ -221,8 +229,8 @@ bool TurningManager::check_completion() {
             if (!completionConfirmed) {
                 completionConfirmed = true;
                 motorDriver.brake_both_motors();
-                char logMessage[80];
-                snprintf(logMessage, sizeof(logMessage), "Turn complete! Final error: %.2f°", remainingAngle);
+                char log_message[80];
+                snprintf(log_message, sizeof(log_message), "Turn complete! Final error: %.2f°", remaining_angle);
                 SerialQueueManager::get_instance().queue_message(logMessage);
                 return true;
             }
@@ -239,9 +247,9 @@ bool TurningManager::check_completion() {
     return false;
 }
 
-void TurningManager::apply_motor_control(uint16_t pwm, float velocityError) {
+void TurningManager::apply_motor_control(uint16_t pwm, float velocity_error) {
     // Determine required direction from TARGET velocity sign (not error sign!)
-    TurningDirection requiredDirection = (targetVelocity > 0) ? TurningDirection::CLOCKWISE : TurningDirection::COUNTER_CLOCKWISE;
+    TurningDirection required_direction = (targetVelocity > 0) ? TurningDirection::CLOCKWISE : TurningDirection::COUNTER_CLOCKWISE;
 
     // If target velocity is essentially zero, stop
     if (abs(targetVelocity) < 1.0f) {
@@ -250,7 +258,7 @@ void TurningManager::apply_motor_control(uint16_t pwm, float velocityError) {
     }
 
     // Allow direction changes when needed (overshoot correction)
-    if (requiredDirection != currentDirection && currentDirection != TurningDirection::NONE) {
+    if (required_direction != currentDirection && currentDirection != TurningDirection::NONE) {
         SerialQueueManager::get_instance().queue_message("Direction change (overshoot correction)");
 
         // Stop briefly before changing direction
@@ -259,31 +267,31 @@ void TurningManager::apply_motor_control(uint16_t pwm, float velocityError) {
     }
 
     // Apply motor commands
-    currentDirection = requiredDirection;
+    currentDirection = required_direction;
 
-    if (requiredDirection == TurningDirection::CLOCKWISE) {
+    if (required_direction == TurningDirection::CLOCKWISE) {
         motorDriver.set_motor_speeds_immediate(pwm, -pwm);
     } else {
         motorDriver.set_motor_speeds_immediate(-pwm, pwm);
     }
 }
 
-bool TurningManager::check_overshoot(float remainingAngle) {
+bool TurningManager::check_overshoot(float remaining_angle) {
     // Backup: reactive check for actual overshoot
-    bool movingAwayFromTarget = (remainingAngle > 0 && currentVelocity < 0) || (remainingAngle < 0 && currentVelocity > 0);
-    if (movingAwayFromTarget) {
+    bool moving_away_from_target = (remaining_angle > 0 && currentVelocity < 0) || (remaining_angle < 0 && currentVelocity > 0) = false;
+    if (moving_away_from_target) {
         SerialQueueManager::get_instance().queue_message("REACTIVE: Already overshot!");
         return true;
     }
 
     // Predictive: time-to-target approach
     if (abs(currentVelocity) > MIN_VELOCITY) {
-        float timeToTarget = abs(remainingAngle) / abs(currentVelocity) * 1000.0f; // ms
+        float time_to_target = abs(remaining_angle) / abs(currentVelocity) * 1000.0f; // ms
 
-        if (timeToTarget < 10.0f && abs(remainingAngle) > COMPLETION_POSITION_THRESHOLD + 1.0f) {
-            char logMessage[120];
-            snprintf(logMessage, sizeof(logMessage), "PREDICTIVE: Too fast! Time to target: %.1fms, Remaining: %.1f°, Vel: %.1f°/s", timeToTarget,
-                     remainingAngle, currentVelocity);
+        if (time_to_target < 10.0f && abs(remaining_angle) > COMPLETION_POSITION_THRESHOLD + 1.0f) {
+            char log_message[120];
+            snprintf(log_message, sizeof(log_message), "PREDICTIVE: Too fast! Time to target: %.1fms, Remaining: %.1f°, Vel: %.1f°/s", time_to_target,
+                     remaining_angle, currentVelocity);
             SerialQueueManager::get_instance().queue_message(logMessage);
             return true;
         }

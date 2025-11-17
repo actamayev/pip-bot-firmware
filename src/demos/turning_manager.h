@@ -17,8 +17,8 @@ class TurningManager : public Singleton<TurningManager> {
     bool start_turn(float degrees);
     void update();
     void complete_navigation();
-    const bool is_active() {
-        return currentState != TurningState::IDLE;
+    bool is_active() {
+        return _currentState != TurningState::IDLE;
     };
 
     // Debug info structure
@@ -43,47 +43,47 @@ class TurningManager : public Singleton<TurningManager> {
     ~TurningManager() = default;
 
     // Core turning logic
-    void initialize_turn();
-    void update_cumulative_rotation();
-    void update_velocity();
+    static void initialize_turn();
+    static void update_cumulative_rotation();
+    static void update_velocity();
     float calculate_remaining_angle() const;
-    float calculate_target_velocity(float remainingAngle) const;
+    static float calculate_target_velocity(float remaining_angle);
     float calculate_velocity_error() const;
-    uint16_t calculate_pwm(float velocityError);
+    static uint16_t calculate_pwm(float velocity_error);
     bool check_completion();
-    bool check_overshoot(float remainingAngle);
-    void apply_motor_control(uint16_t pwm, float velocityError);
+    static bool check_overshoot(float remaining_angle);
+    static void apply_motor_control(uint16_t pwm, float velocity_error);
     void reset_turn_state();
 
     // State variables
-    TurningState currentState = TurningState::IDLE;
-    TurningDirection currentDirection = TurningDirection::NONE;
+    TurningState _currentState = TurningState::IDLE;
+    TurningDirection _currentDirection = TurningDirection::NONE;
 
-    float targetTurnAngle = 0;
+    float _targetTurnAngle = 0;
     // Turn parameters
-    float cumulativeRotation = 0.0f;
-    float lastHeadingForRotation = 0.0f;
-    bool rotationTrackingInitialized = false;
+    float _cumulativeRotation = 0.0f;
+    float _lastHeadingForRotation = 0.0f;
+    bool _rotationTrackingInitialized = false;
 
     // Velocity tracking
-    float currentVelocity = 0.0f;
-    float targetVelocity = 0.0f;
-    float lastHeading = 0.0f;
-    uint32_t lastTime = 0;
-    uint32_t lastIntegralTime = 0;
+    float _currentVelocity = 0.0f;
+    float _targetVelocity = 0.0f;
+    float _lastHeading = 0.0f;
+    uint32_t _lastTime = 0;
+    uint32_t _lastIntegralTime = 0;
 
     // Control
-    uint16_t currentPWM = 0;
-    float integralTerm = 0.0f;
-    float kpContribution = 0.0f;
-    float kiContribution = 0.0f;
+    uint16_t _currentPWM = 0;
+    float _integralTerm = 0.0f;
+    float _kpContribution = 0.0f;
+    float _kiContribution = 0.0f;
 
     // Completion detection
-    uint32_t completionStartTime = 0;
-    bool completionConfirmed = false;
+    uint32_t _completionStartTime = 0;
+    bool _completionConfirmed = false;
 
     // Overshoot braking
-    uint32_t overshootBrakeStartTime = 0;
+    uint32_t _overshootBrakeStartTime = 0;
 
     // Constants - imported from new_turning
     static constexpr float CRUISE_VELOCITY = 45.0f;               // degrees/second

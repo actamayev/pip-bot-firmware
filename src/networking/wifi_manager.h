@@ -35,7 +35,7 @@ class WiFiManager : public Singleton<WiFiManager> {
     void clear_available_networks() {
         _availableNetworks.clear();
     }
-    void clear_networks_if_stale();
+    static void clear_networks_if_stale();
 
     void store_wifi_credentials(const String& ssid, const String& password, int index);
     void check_and_reconnect_wifi();
@@ -53,31 +53,31 @@ class WiFiManager : public Singleton<WiFiManager> {
     bool is_async_scan_in_progress() const {
         return _asyncScanInProgress;
     }
-    bool is_connected_to_ssid(const String& ssid) const;
+    static bool is_connected_to_ssid(const String& ssid);
 
   private:
     WiFiManager();
 
     void connect_to_stored_wifi();
-    bool attempt_new_wifi_connection(WiFiCredentials wifiCredentials);
+    bool attempt_new_wifi_connection(const WiFiCredentials& wifi_credentials);
 
     // std::vector<WiFiNetworkInfo> scanWiFiNetworkInfos();
     void sort_networks_by_signal_strength(std::vector<WiFiNetworkInfo>& networks);
 
-    std::vector<WiFiNetworkInfo> _availableNetworks;
+    std::vector<WiFiNetworkInfo> _availableNetworks{};
     int _selectedNetworkIndex = 0;
 
-    bool attempt_direct_connection_to_saved_networks();
+    static bool attempt_direct_connection_to_saved_networks();
     uint32_t _lastReconnectAttempt = 0;
     bool _isConnecting = false;
     static constexpr uint32_t WIFI_RECONNECT_TIMEOUT = 3000; // 3 second timeout
 
     const uint32_t CONNECT_TO_SINGLE_NETWORK_TIMEOUT = 5000; // 5-second timeout
 
-    const uint32_t printInterval = 100; // Print dots every 100ms
-    const uint32_t checkInterval = 500; // Check serial every 500ms
+    const uint32_t PRINT_INTERVAL = 100; // Print dots every 100ms
+    const uint32_t CHECK_INTERVAL = 500; // Check serial every 500ms
 
-    bool test_connection_only(const String& ssid, const String& password);
+    bool test_connection_only(const String& ssid, const String& password) const;
 
     bool _isTestingCredentials = false;
     String _testSSID = "";

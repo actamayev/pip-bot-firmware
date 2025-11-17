@@ -16,20 +16,20 @@ class FirmwareVersionTracker : public Singleton<FirmwareVersionTracker> {
     friend class Singleton<FirmwareVersionTracker>;
 
   public:
-    int get_firmware_version() {
-        return firmware_version;
+    int get_firmware_version() const {
+        return _firmware_version;
     }
-    void retrieve_latest_firmware_from_server(uint16_t new_version);
+    static void retrieve_latest_firmware_from_server(uint16_t new_version);
 
   private:
     FirmwareVersionTracker();
-    int firmware_version = 0;
-    int pending_version = 0;
-    bool is_retrieving_firmware_from_server = false;
-    WiFiClient* http_client = nullptr;
-    WiFiClientSecure secure_client;
-    WiFiClient insecure_client;
+    int _firmware_version = 0;
+    int _pending_version = 0;
+    bool _is_retrieving_firmware_from_server = false;
+    WiFiClient* _http_client = nullptr;
+    WiFiClientSecure _secure_client;
+    WiFiClient _insecure_client;
 
-    HTTPUpdate http_update;
-    void update_progress_leds(int progress, int total);
+    HTTPUpdate _http_update;
+    static void update_progress_leds(int progress, int total);
 };

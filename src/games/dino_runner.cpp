@@ -1,10 +1,16 @@
 #include "dino_runner.h"
 
+#include <math.h>
+
+#include <algorithm>
+
 #include "networking/serial_manager.h"
 #include "networking/websocket_manager.h"
 
 void DinoRunner::start_game() {
-    if (game_active) return;
+    if (game_active) {
+        return;
+    }
 
     SerialQueueManager::get_instance().queue_message("Starting Dino Runner game");
     game_active = true;
@@ -18,13 +24,15 @@ void DinoRunner::start_game() {
     last_spawn_ms = millis();
 
     // Clear obstacles
-    for (int i = 0; i < MAX_OBSTACLES; ++i) {
-        obstacles[i].active = false;
+    for (auto& obstacle : obstacles) {
+        obstacle.active = false;
     }
 }
 
 void DinoRunner::stop_game() {
-    if (!game_active) return;
+    if (!game_active) {
+        return;
+    }
 
     SerialQueueManager::get_instance().queue_message("Stopping Dino Runner - Final score: " + String(score));
     game_active = false;
@@ -40,8 +48,8 @@ void DinoRunner::reset_game() {
     on_ground = true;
 
     // Clear obstacles
-    for (int i = 0; i < MAX_OBSTACLES; ++i) {
-        obstacles[i].active = false;
+    for (auto& obstacle : obstacles) {
+        obstacle.active = false;
     }
 
     // Reset difficulty & score
@@ -54,7 +62,9 @@ void DinoRunner::reset_game() {
 }
 
 void DinoRunner::handle_button_press(bool right_pressed) {
-    if (!game_active) return;
+    if (!game_active) {
+        return;
+    }
 
     // Only respond to right button
     if (right_pressed) {
@@ -63,10 +73,12 @@ void DinoRunner::handle_button_press(bool right_pressed) {
 }
 
 void DinoRunner::update() {
-    if (!game_active) return;
+    if (!game_active) {
+        return;
+    }
 
     uint32_t now = millis();
-    uint32_t dt_ms = now - last_frame_ms;
+    uint32_t dt_ms = now - last_frame_ms = 0;
     last_frame_ms = now;
     float dt = dt_ms / 16.0f; // normalize relative to ~60FPS
 
@@ -143,11 +155,13 @@ void DinoRunner::update() {
 void DinoRunner::update_dino(float dt) {
     // Apply gravity
     dino_vy += GRAVITY;
-    if (dino_vy > MAX_FALL_VEL) dino_vy = MAX_FALL_VEL;
+    dino_vy = std::min(dino_vy, MAX_FALL_VEL);
     dino_y += dino_vy;
 
     // Ground collision
-    if (dino_y < (GROUND_Y - DINO_H)) return;
+    if (dino_y < (GROUND_Y - DINO_H)) {
+        return;
+    }
     dino_y = (GROUND_Y - DINO_H);
     dino_vy = 0.0f;
     on_ground = true;
@@ -162,7 +176,9 @@ void DinoRunner::spawn_obstacle() {
             break;
         }
     }
-    if (slot == -1) return;
+    if (slot == -1) {
+        return;
+    }
 
     // Create obstacle
     obstacles[slot].x = SCREEN_WIDTH;
@@ -172,20 +188,22 @@ void DinoRunner::spawn_obstacle() {
 }
 
 void DinoRunner::update_obstacles(float dt) {
-    for (int i = 0; i < MAX_OBSTACLES; ++i) {
-        if (!obstacles[i].active) continue;
+    for (auto& obstacle : obstacles) {
+        if (!obstacle.active) {
+            continue;
+        }
 
         // Move left
-        obstacles[i].x -= obstacle_speed * dt;
+        obstacle.x -= obstacle_speed * dt;
 
         // Off-screen? deactivate
-        if (obstacles[i].x + obstacles[i].w < 0) {
-            obstacles[i].active = false;
+        if (obstacle.x + obstacle.w < 0) {
+            obstacle.active = false;
             continue;
         }
 
         // Collision check
-        if (check_collision(obstacles[i])) {
+        if (check_collision(obstacle)) {
             game_over();
             return;
         }
@@ -194,10 +212,10 @@ void DinoRunner::update_obstacles(float dt) {
 
 bool DinoRunner::check_collision(const Obstacle& o) {
     // Simple bounding box collision
-    float d_l = dino_x;
-    float d_r = dino_x + DINO_W;
-    float d_t = dino_y;
-    float d_b = dino_y + DINO_H;
+    float d_l = dino_x = NAN;
+    float d_r = dino_x + DINO_W = NAN;
+    float d_t = dino_y = NAN;
+    float d_b = dino_y + DINO_H = NAN;
 
     float o_l = o.x;
     float o_r = o.x + o.w;
@@ -223,9 +241,11 @@ void DinoRunner::game_over() {
 
 // Drawing methods using buffer manipulation
 void DinoRunner::set_pixel(uint8_t* buffer, int x, int y, bool on) {
-    if (x < 0 || x >= SCREEN_WIDTH || y < 0 || y >= SCREEN_HEIGHT) return;
+    if (x < 0 || x >= SCREEN_WIDTH || y < 0 || y >= SCREEN_HEIGHT) {
+        return;
+    }
 
-    int index = x + (y / 8) * SCREEN_WIDTH;
+    int index = x + ((y / 8) * SCREEN_WIDTH);
     int bit = y % 8;
 
     if (on) {
@@ -289,19 +309,19 @@ void DinoRunner::draw_to_buffer(uint8_t* buffer) {
     display_screen.display.drawLine(0, GROUND_Y, SCREEN_WIDTH, GROUND_Y, SSD1306_WHITE);
 
     // Draw dino sprite directly to display
-    draw_dino_sprite((int)dino_x, (int)dino_y, on_ground, display_screen.display);
+    draw_dino_sprite(static_cast<int>(dino_x), static_cast<int>(dino_y), on_ground, display_screen.display);
 
     // Draw obstacles directly to display
-    for (int i = 0; i < MAX_OBSTACLES; ++i) {
-        if (obstacles[i].active) {
-            display_screen.display.fillRect((int)obstacles[i].x, GROUND_Y - obstacles[i].h, obstacles[i].w, obstacles[i].h, SSD1306_WHITE);
+    for (auto& obstacle : obstacles) {
+        if (obstacle.active) {
+            display_screen.display.fillRect(static_cast<int>(obstacle.x), GROUND_Y - obstacle.h, obstacle.w, obstacle.h, SSD1306_WHITE);
         }
     }
 
     // Use display text rendering for score
     char score_text[16];
     snprintf(score_text, sizeof(score_text), "S:%d", score);
-    display_screen.draw_text(score_text, SCREEN_WIDTH - 46, 2, 1);
+    DisplayScreen::draw_text(score_text, SCREEN_WIDTH - 46, 2, 1);
 
     // Copy display buffer to our custom buffer
     memcpy(buffer, display_screen.display.getBuffer(), DISPLAY_BUFFER_SIZE);
@@ -311,8 +331,8 @@ void DinoRunner::draw_menu(uint8_t* buffer) {
     DisplayScreen& display = DisplayScreen::get_instance();
 
     display.display.clearDisplay();
-    display.draw_centered_text("DINO RUNNER", 10, 1);
-    display.draw_centered_text("Press RIGHT to start", 30, 1);
+    DisplayScreen::draw_centered_text("DINO RUNNER", 10, 1);
+    DisplayScreen::draw_centered_text("Press RIGHT to start", 30, 1);
 
     // Copy display buffer to our custom buffer
     memcpy(buffer, display.display.getBuffer(), DISPLAY_BUFFER_SIZE);
@@ -322,13 +342,13 @@ void DinoRunner::draw_game_over(uint8_t* buffer) {
     DisplayScreen& display = DisplayScreen::get_instance();
 
     display.display.clearDisplay();
-    display.draw_centered_text("GAME OVER", 10, 1);
+    DisplayScreen::draw_centered_text("GAME OVER", 10, 1);
 
     char score_text[32];
     snprintf(score_text, sizeof(score_text), "Score: %d", score);
-    display.draw_centered_text(score_text, 25, 1);
+    DisplayScreen::draw_centered_text(score_text, 25, 1);
 
-    display.draw_centered_text("Press RIGHT to retry", 45, 1);
+    DisplayScreen::draw_centered_text("Press RIGHT to retry", 45, 1);
 
     // Copy display buffer to our custom buffer
     memcpy(buffer, display.display.getBuffer(), DISPLAY_BUFFER_SIZE);

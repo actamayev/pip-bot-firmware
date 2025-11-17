@@ -1,8 +1,8 @@
 #include "demo_manager.h"
 
-bool DemoManager::start_demo(demo::DemoType demoType) {
+bool DemoManager::start_demo(demo::DemoType demo_type) {
     // Don't start the same demo that's already running
-    if (_currentDemo == demoType && demoType != demo::DemoType::NONE) {
+    if (_currentDemo == demo_type && demo_type != demo::DemoType::NONE) {
         return true;
     }
 
@@ -10,14 +10,14 @@ bool DemoManager::start_demo(demo::DemoType demoType) {
     if (_currentDemo != demo::DemoType::NONE) {
         disable_current_demo();
     }
-    if (demoType == demo::DemoType::NONE) {
+    if (demo_type == demo::DemoType::NONE) {
         _currentDemo = demo::DemoType::NONE;
         return true;
     }
 
-    bool success = enable_demo(demoType);
+    bool success = enable_demo(demo_type);
     if (success) {
-        _currentDemo = demoType;
+        _currentDemo = demo_type;
     } else {
         _currentDemo = demo::DemoType::NONE;
     }
@@ -26,14 +26,18 @@ bool DemoManager::start_demo(demo::DemoType demoType) {
 }
 
 void DemoManager::stop_current_demo() {
-    if (_currentDemo == demo::DemoType::NONE) return;
+    if (_currentDemo == demo::DemoType::NONE) {
+        return;
+    }
     disable_current_demo();
     _currentDemo = demo::DemoType::NONE;
 }
 
 void DemoManager::update() {
     // Only update if we have an active demo
-    if (_currentDemo == demo::DemoType::NONE) return;
+    if (_currentDemo == demo::DemoType::NONE) {
+        return;
+    }
 
     // Call the appropriate demo's update method
     switch (_currentDemo) {
@@ -74,8 +78,8 @@ void DemoManager::disable_current_demo() {
     }
 }
 
-bool DemoManager::enable_demo(demo::DemoType demoType) {
-    switch (demoType) {
+bool DemoManager::enable_demo(demo::DemoType demo_type) {
+    switch (demo_type) {
         case demo::DemoType::BALANCE_CONTROLLER:
             BalanceController::get_instance().enable();
             return BalanceController::get_instance().is_enabled();
@@ -92,8 +96,8 @@ bool DemoManager::enable_demo(demo::DemoType demoType) {
     }
 }
 
-const char* DemoManager::get_demo_name(demo::DemoType demoType) const {
-    switch (demoType) {
+const char* DemoManager::get_demo_name(demo::DemoType demo_type) {
+    switch (demo_type) {
         case demo::DemoType::NONE:
             return "None";
         case demo::DemoType::BALANCE_CONTROLLER:

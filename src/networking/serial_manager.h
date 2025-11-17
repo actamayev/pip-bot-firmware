@@ -17,18 +17,18 @@ class SerialManager : public Singleton<SerialManager> {
   public:
     void poll_serial();
     bool is_serial_connected() const {
-        return isConnected;
+        return _isConnected;
     }
     uint32_t lastActivityTime = 0;
-    void send_json_message(ToSerialMessage route, const String& status);
-    void send_pip_id_message();
+    static void send_json_message(ToSerialMessage route, const String& status);
+    static void send_pip_id_message();
     void send_saved_networks_response(const std::vector<WiFiCredentials>& networks);
     void send_scan_results_response(const std::vector<WiFiNetworkInfo>& networks);
-    void send_scan_started_message();
-    void send_battery_monitor_data();
-    void send_dino_score(int score);
-    void send_network_deleted_response(bool success);
-    void send_pip_turning_off();
+    static void send_scan_started_message();
+    static void send_battery_monitor_data();
+    static void send_dino_score(int score);
+    static void send_network_deleted_response(bool success);
+    static void send_pip_turning_off();
 
   private:
     SerialManager() = default; // Make constructor private and implement it
@@ -41,17 +41,17 @@ class SerialManager : public Singleton<SerialManager> {
         READING_PAYLOAD,
         WAITING_FOR_END
     };
-    ParseState parseState = ParseState::WAITING_FOR_START;
-    uint8_t receiveBuffer[MAX_PROGRAM_SIZE];
-    uint16_t bufferPosition = 0;
-    uint16_t expectedPayloadLength = 0;
-    bool useLongFormat = false;
+    ParseState _parseState = ParseState::WAITING_FOR_START;
+    uint8_t _receiveBuffer[MAX_PROGRAM_SIZE]{};
+    uint16_t _bufferPosition = 0;
+    uint16_t _expectedPayloadLength = 0;
+    bool _useLongFormat = false;
 
     const uint32_t SERIAL_CONNECTION_TIMEOUT = 400;
-    bool isConnected = false;
+    bool _isConnected = false;
 
-    void send_battery_data_item(const String& key, int value);
-    void send_battery_data_item(const String& key, uint32_t value);
-    void send_battery_data_item(const String& key, float value);
-    void send_battery_data_item(const String& key, bool value);
+    static void send_battery_data_item(const String& key, int value);
+    static void send_battery_data_item(const String& key, uint32_t value);
+    static void send_battery_data_item(const String& key, float value);
+    static void send_battery_data_item(const String& key, bool value);
 };

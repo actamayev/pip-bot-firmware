@@ -17,62 +17,62 @@ class SendSensorData : public Singleton<SendSensorData> {
 
   public:
     void set_send_sensor_data(bool enabled) {
-        sendSensorData = enabled;
+        _sendSensorData = enabled;
     }
     void set_send_multizone_data(bool enabled) {
-        sendMzData = enabled;
+        _sendMzData = enabled;
     }
     void set_euler_data_enabled(bool enabled) {
-        sendEulerData = enabled;
+        _sendEulerData = enabled;
     }
     void set_accel_data_enabled(bool enabled) {
-        sendAccelData = enabled;
+        _sendAccelData = enabled;
     }
     void set_gyro_data_enabled(bool enabled) {
-        sendGyroData = enabled;
+        _sendGyroData = enabled;
     }
     void set_magnetometer_data_enabled(bool enabled) {
-        sendMagnetometerData = enabled;
+        _sendMagnetometerData = enabled;
     }
     void set_multizone_tof_data_enabled(bool enabled) {
-        sendMultizoneTofData = enabled;
+        _sendMultizoneTofData = enabled;
     }
     void set_side_tof_data_enabled(bool enabled) {
-        sendSideTofData = enabled;
+        _sendSideTofData = enabled;
     }
     void set_color_sensor_data_enabled(bool enabled) {
-        sendColorSensorData = enabled;
+        _sendColorSensorData = enabled;
     }
     void set_encoder_data_enabled(bool enabled) {
-        sendEncoderData = enabled;
+        _sendEncoderData = enabled;
     }
 
   private:
     SendSensorData() = default;
-    bool sendSensorData = false;
-    bool sendMzData = false;
-    bool sendEulerData = false;
-    bool sendAccelData = false;
-    bool sendGyroData = false;
-    bool sendMagnetometerData = false;
-    bool sendMultizoneTofData = false;
-    bool sendSideTofData = false;
-    bool sendColorSensorData = false;
-    bool sendEncoderData = false;
+    bool _sendSensorData = false;
+    bool _sendMzData = false;
+    bool _sendEulerData = false;
+    bool _sendAccelData = false;
+    bool _sendGyroData = false;
+    bool _sendMagnetometerData = false;
+    bool _sendMultizoneTofData = false;
+    bool _sendSideTofData = false;
+    bool _sendColorSensorData = false;
+    bool _sendEncoderData = false;
 
-    void attach_rpm_data(JsonObject& payload);
-    void attach_color_sensor_data(JsonObject& payload);
-    void attach_euler_data(JsonObject& payload);
-    void attach_accel_data(JsonObject& payload);
-    void attach_gyro_data(JsonObject& payload);
-    void attach_magnetometer_data(JsonObject& payload);
-    void attach_multizone_tof_data(JsonObject& payload);
-    void attach_side_tof_data(JsonObject& payload);
+    static void attach_rpm_data(JsonObject& payload);
+    static void attach_color_sensor_data(JsonObject& payload);
+    static void attach_euler_data(JsonObject& payload);
+    static void attach_accel_data(JsonObject& payload);
+    static void attach_gyro_data(JsonObject& payload);
+    static void attach_magnetometer_data(JsonObject& payload);
+    static void attach_multizone_tof_data(JsonObject& payload);
+    static void attach_side_tof_data(JsonObject& payload);
     void send_sensor_data_to_server();
     void send_multizone_data();
 
-    uint32_t lastSendTime = 0;
-    uint32_t lastMzSendTime = 0;
+    uint32_t _lastSendTime = 0;
+    uint32_t _lastMzSendTime = 0;
     const uint32_t SERIAL_SEND_INTERVAL = 50; // Serial: 50ms intervals (20Hz)
     const uint32_t WS_SEND_INTERVAL = 100;    // WebSocket: 100ms intervals (10Hz)
     const uint32_t SERIAL_MZ_INTERVAL = 200;  // Serial MZ: 200ms intervals

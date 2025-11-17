@@ -17,12 +17,12 @@ void print_flash_info() {
 
     // Partition info
     SerialQueueManager::get_instance().queue_message("\n=== Partition Info ===");
-    esp_partition_iterator_t it;
+    esp_partition_iterator_t it = nullptr;
     const esp_partition_t* running = esp_ota_get_running_partition();
 
-    it = esp_partition_find(ESP_PARTITION_TYPE_APP, ESP_PARTITION_SUBTYPE_ANY, NULL);
+    it = esp_partition_find(ESP_PARTITION_TYPE_APP, ESP_PARTITION_SUBTYPE_ANY, nullptr);
     SerialQueueManager::get_instance().queue_message("App Partitions:");
-    while (it != NULL) {
+    while (it != nullptr) {
         const esp_partition_t* part = esp_partition_get(it);
         // SerialQueueManager::get_instance().queue_message("- %s: address 0x%x, size %d bytes%s\n",
         //     part->label, part->address, part->size,

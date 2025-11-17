@@ -20,12 +20,14 @@ bool ImuSensor::initialize() {
 }
 
 void ImuSensor::update_enabled_reports() {
-    if (!_isInitialized) return;
+    if (!_isInitialized) {
+        return;
+    }
 
     ReportTimeouts& timeouts = SensorDataBuffer::get_instance().get_report_timeouts();
 
     // Enable/disable quaternion reports based on extended conditions
-    bool should_enable_quat = SensorDataBuffer::get_instance().should_enable_quaternion_extended();
+    bool should_enable_quat = SensorDataBuffer::get_instance().should_enable_quaternion_extended() = false = false = false;
     if (should_enable_quat && !_enabledReports.gameRotationVector) {
         enable_game_rotation_vector();
     } else if (!should_enable_quat && _enabledReports.gameRotationVector) {
@@ -33,7 +35,7 @@ void ImuSensor::update_enabled_reports() {
     }
 
     // Enable/disable accelerometer reports (unchanged)
-    bool should_enable_accel = timeouts.should_enable_accelerometer();
+    bool should_enable_accel = ReportTimeouts::should_enable_accelerometer();
     if (should_enable_accel && !_enabledReports.accelerometer) {
         enable_accelerometer();
     } else if (!should_enable_accel && _enabledReports.accelerometer) {
@@ -41,7 +43,7 @@ void ImuSensor::update_enabled_reports() {
     }
 
     // Enable/disable gyroscope reports (unchanged)
-    bool should_enable_gyro = timeouts.should_enable_gyroscope();
+    bool should_enable_gyro = ReportTimeouts::should_enable_gyroscope();
     if (should_enable_gyro && !_enabledReports.gyroscope) {
         enable_gyroscope();
     } else if (!should_enable_gyro && _enabledReports.gyroscope) {
@@ -49,7 +51,7 @@ void ImuSensor::update_enabled_reports() {
     }
 
     // Enable/disable magnetometer reports (unchanged)
-    bool should_enable_mag = timeouts.should_enable_magnetometer();
+    bool should_enable_mag = ReportTimeouts::should_enable_magnetometer();
     if (should_enable_mag && !_enabledReports.magneticField) {
         enable_magnetic_field();
     } else if (!should_enable_mag && _enabledReports.magneticField) {
@@ -58,7 +60,9 @@ void ImuSensor::update_enabled_reports() {
 }
 
 void ImuSensor::enable_game_rotation_vector() {
-    if (!_isInitialized || _enabledReports.gameRotationVector) return;
+    if (!_isInitialized || _enabledReports.gameRotationVector) {
+        return;
+    }
 
     if (!_imu.enableReport(SH2_GAME_ROTATION_VECTOR, IMU_UPDATE_FREQ_MICROSECS)) {
         SerialQueueManager::get_instance().queue_message("Could not enable game rotation vector");
@@ -69,7 +73,9 @@ void ImuSensor::enable_game_rotation_vector() {
 }
 
 void ImuSensor::enable_accelerometer() {
-    if (!_isInitialized || _enabledReports.accelerometer) return;
+    if (!_isInitialized || _enabledReports.accelerometer) {
+        return;
+    }
 
     if (!_imu.enableReport(SH2_ACCELEROMETER, IMU_UPDATE_FREQ_MICROSECS)) {
         SerialQueueManager::get_instance().queue_message("Could not enable accelerometer");
@@ -80,7 +86,9 @@ void ImuSensor::enable_accelerometer() {
 }
 
 void ImuSensor::enable_gyroscope() {
-    if (!_isInitialized || _enabledReports.gyroscope) return;
+    if (!_isInitialized || _enabledReports.gyroscope) {
+        return;
+    }
 
     if (!_imu.enableReport(SH2_GYROSCOPE_CALIBRATED, IMU_UPDATE_FREQ_MICROSECS)) {
         SerialQueueManager::get_instance().queue_message("Could not enable gyroscope");
@@ -91,7 +99,9 @@ void ImuSensor::enable_gyroscope() {
 }
 
 void ImuSensor::enable_magnetic_field() {
-    if (!_isInitialized || _enabledReports.magneticField) return;
+    if (!_isInitialized || _enabledReports.magneticField) {
+        return;
+    }
 
     if (!_imu.enableReport(SH2_MAGNETIC_FIELD_CALIBRATED, IMU_UPDATE_FREQ_MICROSECS)) {
         SerialQueueManager::get_instance().queue_message("Could not enable magnetic field");
@@ -119,7 +129,9 @@ void ImuSensor::disable_magnetic_field() {
 }
 
 bool ImuSensor::should_be_polling() const {
-    if (!_isInitialized) return false;
+    if (!_isInitialized) {
+        return false;
+    }
 
     ReportTimeouts& timeouts = SensorDataBuffer::get_instance().get_report_timeouts();
 
@@ -130,13 +142,17 @@ bool ImuSensor::should_be_polling() const {
 
 // New simplified update method - replaces old updateAllSensorData
 void ImuSensor::update_sensor_data() {
-    if (!_isInitialized) return;
+    if (!_isInitialized) {
+        return;
+    }
 
     // Update enabled reports based on timeouts
     update_enabled_reports();
 
     // Single read attempt - no more 8X loop!
-    if (!_imu.getSensorEvent(&_sensorValue)) return;
+    if (!_imu.getSensorEvent(&_sensorValue)) {
+        return;
+    }
     SensorDataBuffer& buffer = SensorDataBuffer::get_instance();
 
     switch (_sensorValue.sensorId) {

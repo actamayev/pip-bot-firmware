@@ -1,6 +1,6 @@
 #include "motor_driver.h"
 
-MotorDriver motorDriver;
+MotorDriver motor_driver;
 
 MotorDriver::MotorDriver() {
     // Configure LEDC timer and channels
@@ -248,7 +248,9 @@ void MotorDriver::execute_command(int16_t left_pwm, int16_t right_pwm) {
 
 void MotorDriver::process_pending_commands() {
     // If a demo is running, don't process motor commands
-    if (DemoManager::get_instance().is_any_demo_active()) return;
+    if (DemoManager::get_instance().is_any_demo_active()) {
+        return;
+    }
 
     if (!_is_executing_command) {
         // If we have a next command, execute it

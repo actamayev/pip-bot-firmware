@@ -33,7 +33,7 @@ class GameManager : public Singleton<GameManager> {
 
     void disable_current_game();
     bool enable_game(games::GameType game_type);
-    const char* get_game_name(games::GameType game_type) const;
+    static const char* get_game_name(games::GameType game_type);
 
     games::GameType _current_game = games::GameType::NONE;
 };

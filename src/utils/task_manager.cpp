@@ -3,32 +3,32 @@
 #include "career_quest/career_quest_triggers.h"
 #include "sensors/sensor_initializer.h"
 
-TaskHandle_t TaskManager::button_task_handle = NULL;
-TaskHandle_t TaskManager::serial_input_task_handle = NULL;
-TaskHandle_t TaskManager::led_task_handle = NULL;
-TaskHandle_t TaskManager::bytecode_vm_task_handle = NULL;
-TaskHandle_t TaskManager::stack_monitor_task_handle = NULL;
-TaskHandle_t TaskManager::sensor_polling_task_handle = NULL;
+TaskHandle_t TaskManager::button_task_handle = nullptr;
+TaskHandle_t TaskManager::serial_input_task_handle = nullptr;
+TaskHandle_t TaskManager::led_task_handle = nullptr;
+TaskHandle_t TaskManager::bytecode_vm_task_handle = nullptr;
+TaskHandle_t TaskManager::stack_monitor_task_handle = nullptr;
+TaskHandle_t TaskManager::sensor_polling_task_handle = nullptr;
 
 // Individual sensor task handles
-TaskHandle_t TaskManager::imu_sensor_task_handle = NULL;
-TaskHandle_t TaskManager::encoder_sensor_task_handle = NULL;
-TaskHandle_t TaskManager::multizone_tof_sensor_task_handle = NULL;
-TaskHandle_t TaskManager::side_tof_sensor_task_handle = NULL;
-TaskHandle_t TaskManager::color_sensor_task_handle = NULL;
-TaskHandle_t TaskManager::sensor_logger_task_handle = NULL;
-TaskHandle_t TaskManager::display_task_handle = NULL;
-TaskHandle_t TaskManager::network_management_task_handle = NULL;
-TaskHandle_t TaskManager::send_sensor_data_task_handle = NULL;
-TaskHandle_t TaskManager::web_socket_polling_task_handle = NULL;
-TaskHandle_t TaskManager::serial_queue_task_handle = NULL;
-TaskHandle_t TaskManager::battery_monitor_task_handle = NULL;
-TaskHandle_t TaskManager::speaker_task_handle = NULL;
-TaskHandle_t TaskManager::motor_task_handle = NULL;
-TaskHandle_t TaskManager::demo_manager_task_handle = NULL;
-TaskHandle_t TaskManager::game_manager_task_handle = NULL;
-TaskHandle_t TaskManager::career_quest_task_handle = NULL;
-TaskHandle_t TaskManager::display_init_task_handle = NULL;
+TaskHandle_t TaskManager::imu_sensor_task_handle = nullptr;
+TaskHandle_t TaskManager::encoder_sensor_task_handle = nullptr;
+TaskHandle_t TaskManager::multizone_tof_sensor_task_handle = nullptr;
+TaskHandle_t TaskManager::side_tof_sensor_task_handle = nullptr;
+TaskHandle_t TaskManager::color_sensor_task_handle = nullptr;
+TaskHandle_t TaskManager::sensor_logger_task_handle = nullptr;
+TaskHandle_t TaskManager::display_task_handle = nullptr;
+TaskHandle_t TaskManager::network_management_task_handle = nullptr;
+TaskHandle_t TaskManager::send_sensor_data_task_handle = nullptr;
+TaskHandle_t TaskManager::web_socket_polling_task_handle = nullptr;
+TaskHandle_t TaskManager::serial_queue_task_handle = nullptr;
+TaskHandle_t TaskManager::battery_monitor_task_handle = nullptr;
+TaskHandle_t TaskManager::speaker_task_handle = nullptr;
+TaskHandle_t TaskManager::motor_task_handle = nullptr;
+TaskHandle_t TaskManager::demo_manager_task_handle = nullptr;
+TaskHandle_t TaskManager::game_manager_task_handle = nullptr;
+TaskHandle_t TaskManager::career_quest_task_handle = nullptr;
+TaskHandle_t TaskManager::display_init_task_handle = nullptr;
 
 void TaskManager::button_task(void* parameter) {
     setup_button_loggers();
@@ -189,8 +189,8 @@ void TaskManager::network_management_task(void* parameter) {
     FirmwareVersionTracker::get_instance();
 
     // Create the sensor data transmission task now that management is initialized
-    bool commTaskCreated = create_send_sensor_data_task();
-    if (!commTaskCreated) {
+    bool comm_task_created = create_send_sensor_data_task();
+    if (!comm_task_created) {
         SerialQueueManager::get_instance().queue_message("ERROR: Failed to create SendSensorData task!");
     }
 
@@ -201,7 +201,7 @@ void TaskManager::network_management_task(void* parameter) {
         TimeoutManager::get_instance().update();
 
         // Always try to maintain WiFi connection if not connected
-        if (WiFi.status() != WL_CONNECTED) {
+        if (WiFiClass::status() != WL_CONNECTED) {
             WiFiManager::get_instance().check_and_reconnect_wifi();
         }
 
@@ -219,7 +219,7 @@ void TaskManager::web_socket_polling_task(void* parameter) {
     // Main WebSocket polling loop
     for (;;) {
         // Only poll WebSocket if WiFi is connected
-        if (WiFi.status() == WL_CONNECTED) {
+        if (WiFiClass::status() == WL_CONNECTED) {
             WebSocketManager::get_instance().poll_websocket();
         }
 
@@ -244,7 +244,7 @@ void TaskManager::send_sensor_data_task(void* parameter) {
 
 void TaskManager::serial_queue_task(void* parameter) {
     // Cast back to SerialQueueManager and call its task method
-    SerialQueueManager* instance = static_cast<SerialQueueManager*>(parameter);
+    auto* instance = static_cast<SerialQueueManager*>(parameter);
     instance->serial_output_task();
 }
 
@@ -323,8 +323,8 @@ void TaskManager::display_init_task(void* parameter) {
 
     // Self-delete - our job is done
     SerialQueueManager::get_instance().queue_message("DisplayInit task self-deleting");
-    display_init_task_handle = NULL;
-    vTaskDelete(NULL);
+    display_init_task_handle = nullptr;
+    vTaskDelete(nullptr);
 }
 
 bool TaskManager::create_button_task() {
@@ -369,7 +369,7 @@ bool TaskManager::create_web_socket_polling_task() {
 bool TaskManager::create_serial_queue_task() {
     // Pass the SerialQueueManager instance as parameter
     SerialQueueManager::get_instance().initialize();
-    void* instance = &SerialQueueManager::get_instance();
+    void* instance = &SerialQueueManager::get_instance() = nullptr = nullptr = nullptr;
     return create_task("SerialQueue", serial_queue_task, SERIAL_QUEUE_STACK_SIZE, Priority::CRITICAL, Core::CORE_1, &serial_queue_task_handle,
                        instance);
 }
@@ -432,13 +432,13 @@ bool TaskManager::create_sensor_logger_task() {
 
 bool TaskManager::is_display_initialized() {
     // Return true if either init task is running or display task already exists
-    return (display_init_task_handle != NULL) || (display_task_handle != NULL);
+    return (display_init_task_handle != nullptr) || (display_task_handle != nullptr);
 }
 
 bool TaskManager::create_task(const char* name, TaskFunction_t task_function, uint32_t stack_size, Priority priority, Core core_id,
                               TaskHandle_t* task_handle, void* parameters) {
     // Safety check: don't create if task already exists
-    if (task_handle != nullptr && *task_handle != NULL) {
+    if (task_handle != nullptr && *task_handle != nullptr) {
         SerialQueueManager::get_instance().queue_message(String("Task already exists: ") + name + ", skipping creation");
         return true; // Task exists, consider it success
     }
@@ -496,10 +496,10 @@ void TaskManager::print_stack_usage() {
                         {display_init_task_handle, "DisplayInit", DISPLAY_INIT_STACK_SIZE}};
 
     for (const auto& task : tasks) {
-        if (task.handle != NULL && eTaskGetState(task.handle) != eDeleted) {
+        if (task.handle != nullptr && eTaskGetState(task.handle) != eDeleted) {
             UBaseType_t free_stack = uxTaskGetStackHighWaterMark(task.handle);
             uint32_t used_stack = task.allocated_size - (free_stack * sizeof(StackType_t));
-            float percent_used = (float)used_stack / task.allocated_size * 100.0f;
+            float percent_used = static_cast<float>(used_stack) / task.allocated_size * 100.0f;
 
             // Format with fixed width for alignment
             char task_name[16];

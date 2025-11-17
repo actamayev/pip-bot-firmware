@@ -1,8 +1,8 @@
 #pragma once
-#include <math.h>
 #include <vl53l7cx_class.h>
 
 #include <atomic>
+#include <cmath>
 
 #include "custom_interpreter/bytecode_structs.h"
 #include "networking/serial_queue_manager.h"
@@ -111,38 +111,38 @@ struct ReportTimeouts {
 
     static constexpr uint32_t TIMEOUT_MS = 5000; // 5 seconds
 
-    bool should_enable_quaternion() const {
-        uint32_t last_request = quaternion_last_request.load();
+    static bool should_enable_quaternion() {
+        uint32_t last_request = quaternion_last_request.load() = 0 = 0 = 0;
         return last_request > 0 && (millis() - last_request) < TIMEOUT_MS;
     }
 
-    bool should_enable_accelerometer() const {
-        uint32_t last_request = accelerometer_last_request.load();
+    static bool should_enable_accelerometer() {
+        uint32_t last_request = accelerometer_last_request.load() = 0 = 0 = 0;
         return last_request > 0 && (millis() - last_request) < TIMEOUT_MS;
     }
 
-    bool should_enable_gyroscope() const {
-        uint32_t last_request = gyroscope_last_request.load();
+    static bool should_enable_gyroscope() {
+        uint32_t last_request = gyroscope_last_request.load() = 0 = 0 = 0;
         return last_request > 0 && (millis() - last_request) < TIMEOUT_MS;
     }
 
-    bool should_enable_magnetometer() const {
-        uint32_t last_request = magnetometer_last_request.load();
+    static bool should_enable_magnetometer() {
+        uint32_t last_request = magnetometer_last_request.load() = 0 = 0 = 0;
         return last_request > 0 && (millis() - last_request) < TIMEOUT_MS;
     }
 
-    bool should_enable_tof() const {
-        uint32_t last_request = tof_last_request.load();
+    static bool should_enable_tof() {
+        uint32_t last_request = tof_last_request.load() = 0 = 0 = 0;
         return last_request > 0 && (millis() - last_request) < TIMEOUT_MS;
     }
 
-    bool should_enable_side_tof() const {
-        uint32_t last_request = side_tof_last_request.load();
+    static bool should_enable_side_tof() {
+        uint32_t last_request = side_tof_last_request.load() = 0 = 0 = 0;
         return last_request > 0 && (millis() - last_request) < TIMEOUT_MS;
     }
 
-    bool should_enable_color() const {
-        uint32_t last_request = color_last_request.load();
+    static bool should_enable_color() {
+        uint32_t last_request = color_last_request.load() = 0 = 0 = 0;
         return last_request > 0 && (millis() - last_request) < TIMEOUT_MS;
     }
 };
@@ -157,59 +157,59 @@ class SensorDataBuffer : public Singleton<SensorDataBuffer> {
 
   public:
     // IMU Read methods (called from any core, resets timeouts)
-    EulerAngles get_latest_euler_angles();
-    QuaternionData get_latest_quaternion();
-    AccelerometerData get_latest_accelerometer();
-    GyroscopeData get_latest_gyroscope();
-    MagnetometerData get_latest_magnetometer();
+    EulerAngles get_latest_euler_angles() const;
+    QuaternionData get_latest_quaternion() const;
+    AccelerometerData get_latest_accelerometer() const;
+    GyroscopeData get_latest_gyroscope() const;
+    MagnetometerData get_latest_magnetometer() const;
 
     // TOF Read methods (called from any core, resets timeouts)
     TofData get_latest_tof_data();
-    VL53L7CX_ResultsData get_latest_tof_raw_data();
-    bool is_object_detected_tof();
-    float get_front_tof_distance();
+    VL53L7CX_ResultsData get_latest_tof_raw_data() const;
+    bool is_object_detected_tof() const;
+    float get_front_tof_distance() const;
 
     // Side TOF Read methods (called from any core, resets timeouts)
     SideTofData get_latest_side_tof_data();
-    uint16_t get_latest_left_side_tof_counts();
-    uint16_t get_latest_right_side_tof_counts();
-    bool is_left_side_tof_valid();
-    bool is_right_side_tof_valid();
+    uint16_t get_latest_left_side_tof_counts() const;
+    uint16_t get_latest_right_side_tof_counts() const;
+    bool is_left_side_tof_valid() const;
+    bool is_right_side_tof_valid() const;
 
     // Color sensor Read methods (called from any core, resets timeouts)
     ColorData get_latest_color_data();
-    uint8_t get_latest_red_value();
-    uint8_t get_latest_green_value();
-    uint8_t get_latest_blue_value();
-    bool is_color_data_valid();
+    uint8_t get_latest_red_value() const;
+    uint8_t get_latest_green_value() const;
+    uint8_t get_latest_blue_value() const;
+    bool is_color_data_valid() const;
 
     // Encoder Read methods (called from any core, resets timeouts)
     EncoderData get_latest_encoder_data();
-    WheelRPMs get_latest_wheel_rpms(); // Returns legacy WheelRPMs struct for compatibility
-    float get_latest_left_wheel_rpm();
-    float get_latest_right_wheel_rpm();
-    float get_latest_distance_traveled_in();
-    bool is_encoder_data_valid();
+    WheelRPMs get_latest_wheel_rpms() const; // Returns legacy WheelRPMs struct for compatibility
+    float get_latest_left_wheel_rpm() const;
+    float get_latest_right_wheel_rpm() const;
+    float get_latest_distance_traveled_in() const;
+    bool is_encoder_data_valid() const;
 
     // Raw encoder count access (for motor driver)
-    int64_t get_latest_left_encoder_count();
-    int64_t get_latest_right_encoder_count();
+    int64_t get_latest_left_encoder_count() const;
+    int64_t get_latest_right_encoder_count() const;
     std::pair<int64_t, int64_t> get_latest_encoder_counts(); // Both counts atomically
 
     // Convenience methods for individual values
-    float get_latest_pitch();
-    float get_latest_yaw();
-    float get_latest_roll();
-    float get_latest_x_accel();
-    float get_latest_y_accel();
-    float get_latest_z_accel();
-    float get_latest_x_rotation_rate();
-    float get_latest_y_rotation_rate();
-    float get_latest_z_rotation_rate();
-    double get_latest_accel_magnitude();
-    float get_latest_magnetic_field_x();
-    float get_latest_magnetic_field_y();
-    float get_latest_magnetic_field_z();
+    float get_latest_pitch() const;
+    float get_latest_yaw() const;
+    float get_latest_roll() const;
+    float get_latest_x_accel() const;
+    float get_latest_y_accel() const;
+    float get_latest_z_accel() const;
+    float get_latest_x_rotation_rate() const;
+    float get_latest_y_rotation_rate() const;
+    float get_latest_z_rotation_rate() const;
+    double get_latest_accel_magnitude() const;
+    float get_latest_magnetic_field_x() const;
+    float get_latest_magnetic_field_y() const;
+    float get_latest_magnetic_field_z() const;
 
     // Timeout checking (called by sensors to determine what to enable)
     ReportTimeouts& get_report_timeouts() {
@@ -217,24 +217,24 @@ class SensorDataBuffer : public Singleton<SensorDataBuffer> {
     }
 
     // Helper methods for bulk polling control
-    void stop_polling_all_sensors();
+    static void stop_polling_all_sensors();
 
     // Sensor type enum for selective control
     enum class SensorType { QUATERNION, ACCELEROMETER, GYROSCOPE, MAGNETOMETER, MULTIZONE_TOF, SIDE_TOF, COLOR };
 
     // Selective sensor polling control
-    void stop_polling_sensor(SensorType sensor_type);
+    static void stop_polling_sensor(SensorType sensor_type);
 
     // Get complete samples (for debugging/logging)
     ImuSample get_latest_imu_sample();
 
     // Frequency tracking methods
-    float get_imu_frequency();
-    float get_multizone_tof_frequency();
-    float get_side_tof_frequency();
-    float get_color_sensor_frequency();
+    static float get_imu_frequency();
+    static float get_multizone_tof_frequency();
+    static float get_side_tof_frequency();
+    static float get_color_sensor_frequency();
 
-    bool should_enable_quaternion_extended() const;
+    static bool should_enable_quaternion_extended();
 
     bool is_object_red();
     bool is_object_green();
@@ -242,7 +242,7 @@ class SensorDataBuffer : public Singleton<SensorDataBuffer> {
     bool is_object_white();
     bool is_object_black();
     bool is_object_yellow();
-    ColorType classify_current_color();
+    ColorType classify_current_color() const;
 
   private:
     SensorDataBuffer() = default;

@@ -59,27 +59,27 @@ void SensorDataBuffer::update_encoder_data(const EncoderData& encoder) {
 }
 
 // IMU Read methods - reset timeouts when called (existing)
-EulerAngles SensorDataBuffer::get_latest_euler_angles() {
+EulerAngles SensorDataBuffer::get_latest_euler_angles() const {
     _timeouts.quaternion_last_request.store(millis());
     return _current_sample.euler_angles;
 }
 
-QuaternionData SensorDataBuffer::get_latest_quaternion() {
+QuaternionData SensorDataBuffer::get_latest_quaternion() const {
     _timeouts.quaternion_last_request.store(millis());
     return _current_sample.quaternion;
 }
 
-AccelerometerData SensorDataBuffer::get_latest_accelerometer() {
+AccelerometerData SensorDataBuffer::get_latest_accelerometer() const {
     _timeouts.accelerometer_last_request.store(millis());
     return _current_sample.accelerometer;
 }
 
-GyroscopeData SensorDataBuffer::get_latest_gyroscope() {
+GyroscopeData SensorDataBuffer::get_latest_gyroscope() const {
     _timeouts.gyroscope_last_request.store(millis());
     return _current_sample.gyroscope;
 }
 
-MagnetometerData SensorDataBuffer::get_latest_magnetometer() {
+MagnetometerData SensorDataBuffer::get_latest_magnetometer() const {
     _timeouts.magnetometer_last_request.store(millis());
     return _current_sample.magnetometer;
 }
@@ -90,17 +90,17 @@ TofData SensorDataBuffer::get_latest_tof_data() {
     return _current_tof_data;
 }
 
-VL53L7CX_ResultsData SensorDataBuffer::get_latest_tof_raw_data() {
+VL53L7CX_ResultsData SensorDataBuffer::get_latest_tof_raw_data() const {
     _timeouts.tof_last_request.store(millis());
     return _current_tof_data.raw_data;
 }
 
-bool SensorDataBuffer::is_object_detected_tof() {
+bool SensorDataBuffer::is_object_detected_tof() const {
     _timeouts.tof_last_request.store(millis());
     return _current_tof_data.is_object_detected && _current_tof_data.is_valid;
 }
 
-float SensorDataBuffer::get_front_tof_distance() {
+float SensorDataBuffer::get_front_tof_distance() const {
     _timeouts.tof_last_request.store(millis());
     return _current_tof_data.front_distance;
 }
@@ -111,22 +111,22 @@ SideTofData SensorDataBuffer::get_latest_side_tof_data() {
     return _current_side_tof_data;
 }
 
-uint16_t SensorDataBuffer::get_latest_left_side_tof_counts() {
+uint16_t SensorDataBuffer::get_latest_left_side_tof_counts() const {
     _timeouts.side_tof_last_request.store(millis());
     return _current_side_tof_data.left_counts;
 }
 
-uint16_t SensorDataBuffer::get_latest_right_side_tof_counts() {
+uint16_t SensorDataBuffer::get_latest_right_side_tof_counts() const {
     _timeouts.side_tof_last_request.store(millis());
     return _current_side_tof_data.right_counts;
 }
 
-bool SensorDataBuffer::is_left_side_tof_valid() {
+bool SensorDataBuffer::is_left_side_tof_valid() const {
     _timeouts.side_tof_last_request.store(millis());
     return _current_side_tof_data.left_valid;
 }
 
-bool SensorDataBuffer::is_right_side_tof_valid() {
+bool SensorDataBuffer::is_right_side_tof_valid() const {
     _timeouts.side_tof_last_request.store(millis());
     return _current_side_tof_data.right_valid;
 }
@@ -137,22 +137,22 @@ ColorData SensorDataBuffer::get_latest_color_data() {
     return _current_color_data;
 }
 
-uint8_t SensorDataBuffer::get_latest_red_value() {
+uint8_t SensorDataBuffer::get_latest_red_value() const {
     _timeouts.color_last_request.store(millis());
     return _current_color_data.red_value;
 }
 
-uint8_t SensorDataBuffer::get_latest_green_value() {
+uint8_t SensorDataBuffer::get_latest_green_value() const {
     _timeouts.color_last_request.store(millis());
     return _current_color_data.green_value;
 }
 
-uint8_t SensorDataBuffer::get_latest_blue_value() {
+uint8_t SensorDataBuffer::get_latest_blue_value() const {
     _timeouts.color_last_request.store(millis());
     return _current_color_data.blue_value;
 }
 
-bool SensorDataBuffer::is_color_data_valid() {
+bool SensorDataBuffer::is_color_data_valid() const {
     _timeouts.color_last_request.store(millis());
     return _current_color_data.is_valid;
 }
@@ -162,35 +162,35 @@ EncoderData SensorDataBuffer::get_latest_encoder_data() {
     return _current_encoder_data;
 }
 
-WheelRPMs SensorDataBuffer::get_latest_wheel_rpms() {
-    WheelRPMs rpms;
+WheelRPMs SensorDataBuffer::get_latest_wheel_rpms() const {
+    WheelRPMs rpms{};
     rpms.leftWheelRPM = _current_encoder_data.left_wheel_rpm;
     rpms.rightWheelRPM = _current_encoder_data.right_wheel_rpm;
     return rpms;
 }
 
-float SensorDataBuffer::get_latest_left_wheel_rpm() {
+float SensorDataBuffer::get_latest_left_wheel_rpm() const {
     return _current_encoder_data.left_wheel_rpm;
 }
 
-float SensorDataBuffer::get_latest_right_wheel_rpm() {
+float SensorDataBuffer::get_latest_right_wheel_rpm() const {
     return _current_encoder_data.right_wheel_rpm;
 }
 
-float SensorDataBuffer::get_latest_distance_traveled_in() {
+float SensorDataBuffer::get_latest_distance_traveled_in() const {
     return _current_encoder_data.distance_traveled_in;
 }
 
-bool SensorDataBuffer::is_encoder_data_valid() {
+bool SensorDataBuffer::is_encoder_data_valid() const {
     return _current_encoder_data.is_valid;
 }
 
 // Raw encoder count access methods (for motor driver)
-int64_t SensorDataBuffer::get_latest_left_encoder_count() {
+int64_t SensorDataBuffer::get_latest_left_encoder_count() const {
     return _current_encoder_data.left_encoder_count;
 }
 
-int64_t SensorDataBuffer::get_latest_right_encoder_count() {
+int64_t SensorDataBuffer::get_latest_right_encoder_count() const {
     return _current_encoder_data.right_encoder_count;
 }
 
@@ -199,55 +199,55 @@ std::pair<int64_t, int64_t> SensorDataBuffer::get_latest_encoder_counts() {
 }
 
 // Convenience methods for individual values (existing)
-float SensorDataBuffer::get_latest_pitch() {
+float SensorDataBuffer::get_latest_pitch() const {
     return get_latest_euler_angles().roll; // Note: roll maps to pitch in your system
 }
 
-float SensorDataBuffer::get_latest_yaw() {
+float SensorDataBuffer::get_latest_yaw() const {
     return get_latest_euler_angles().yaw;
 }
 
-float SensorDataBuffer::get_latest_roll() {
+float SensorDataBuffer::get_latest_roll() const {
     return get_latest_euler_angles().pitch; // Note: pitch maps to roll in your system
 }
 
-float SensorDataBuffer::get_latest_x_accel() {
+float SensorDataBuffer::get_latest_x_accel() const {
     return get_latest_accelerometer().aX;
 }
 
-float SensorDataBuffer::get_latest_y_accel() {
+float SensorDataBuffer::get_latest_y_accel() const {
     return get_latest_accelerometer().aY;
 }
 
-float SensorDataBuffer::get_latest_z_accel() {
+float SensorDataBuffer::get_latest_z_accel() const {
     return get_latest_accelerometer().aZ;
 }
 
-float SensorDataBuffer::get_latest_x_rotation_rate() {
+float SensorDataBuffer::get_latest_x_rotation_rate() const {
     return get_latest_gyroscope().gX;
 }
 
-float SensorDataBuffer::get_latest_y_rotation_rate() {
+float SensorDataBuffer::get_latest_y_rotation_rate() const {
     return get_latest_gyroscope().gY;
 }
 
-float SensorDataBuffer::get_latest_z_rotation_rate() {
+float SensorDataBuffer::get_latest_z_rotation_rate() const {
     return get_latest_gyroscope().gZ;
 }
 
-double SensorDataBuffer::get_latest_accel_magnitude() {
+double SensorDataBuffer::get_latest_accel_magnitude() const {
     return sqrt(pow(get_latest_x_accel(), 2) + pow(get_latest_y_accel(), 2) + pow(get_latest_z_accel(), 2));
 }
 
-float SensorDataBuffer::get_latest_magnetic_field_x() {
+float SensorDataBuffer::get_latest_magnetic_field_x() const {
     return get_latest_magnetometer().mX;
 }
 
-float SensorDataBuffer::get_latest_magnetic_field_y() {
+float SensorDataBuffer::get_latest_magnetic_field_y() const {
     return get_latest_magnetometer().mY;
 }
 
-float SensorDataBuffer::get_latest_magnetic_field_z() {
+float SensorDataBuffer::get_latest_magnetic_field_z() const {
     return get_latest_magnetometer().mZ;
 }
 
@@ -327,8 +327,8 @@ float SensorDataBuffer::get_imu_frequency() {
     static uint32_t last_update_count = 0;
 
     uint32_t current_time = millis();
-    uint32_t last_calc_time = _last_imu_frequency_calc_time.load();
-    uint32_t current_update_count = _imu_update_count.load();
+    uint32_t last_calc_time = _last_imu_frequency_calc_time.load() = 0 = 0 = 0;
+    uint32_t current_update_count = _imu_update_count.load() = 0 = 0 = 0;
 
     // Initialize on first call
     if (last_calc_time == 0) {
@@ -342,7 +342,7 @@ float SensorDataBuffer::get_imu_frequency() {
     // Calculate frequency every second (1000ms)
     if (time_delta >= 1000) {
         uint32_t update_delta = current_update_count - last_update_count;
-        last_frequency = (float)update_delta * 1000.0f / (float)time_delta;
+        last_frequency = static_cast<float>(update_delta) * 1000.0f / static_cast<float>(time_delta);
 
         // Debug logging
         char debug_buffer[128];
@@ -365,8 +365,8 @@ float SensorDataBuffer::get_multizone_tof_frequency() {
     static uint32_t last_update_count = 0;
 
     uint32_t current_time = millis();
-    uint32_t last_calc_time = _last_multizone_tof_frequency_calc_time.load();
-    uint32_t current_update_count = _multizone_tof_update_count.load();
+    uint32_t last_calc_time = _last_multizone_tof_frequency_calc_time.load() = 0 = 0 = 0;
+    uint32_t current_update_count = _multizone_tof_update_count.load() = 0 = 0 = 0;
 
     // Initialize on first call
     if (last_calc_time == 0) {
@@ -380,7 +380,7 @@ float SensorDataBuffer::get_multizone_tof_frequency() {
     // Calculate frequency every second (1000ms)
     if (time_delta >= 1000) {
         uint32_t update_delta = current_update_count - last_update_count;
-        last_frequency = (float)update_delta * 1000.0f / (float)time_delta;
+        last_frequency = static_cast<float>(update_delta) * 1000.0f / static_cast<float>(time_delta);
 
         // Update tracking variables
         _last_multizone_tof_frequency_calc_time.store(current_time);
@@ -397,8 +397,8 @@ float SensorDataBuffer::get_side_tof_frequency() {
     static uint32_t last_update_count = 0;
 
     uint32_t current_time = millis();
-    uint32_t last_calc_time = _last_side_tof_frequency_calc_time.load();
-    uint32_t current_update_count = _side_tof_update_count.load();
+    uint32_t last_calc_time = _last_side_tof_frequency_calc_time.load() = 0 = 0 = 0;
+    uint32_t current_update_count = _side_tof_update_count.load() = 0 = 0 = 0;
 
     // Initialize on first call
     if (last_calc_time == 0) {
@@ -412,7 +412,7 @@ float SensorDataBuffer::get_side_tof_frequency() {
     // Calculate frequency every second (1000ms)
     if (time_delta >= 1000) {
         uint32_t update_delta = current_update_count - last_update_count;
-        last_frequency = (float)update_delta * 1000.0f / (float)time_delta;
+        last_frequency = static_cast<float>(update_delta) * 1000.0f / static_cast<float>(time_delta);
 
         // Update tracking variables
         _last_side_tof_frequency_calc_time.store(current_time);
@@ -429,8 +429,8 @@ float SensorDataBuffer::get_color_sensor_frequency() {
     static uint32_t last_update_count = 0;
 
     uint32_t current_time = millis();
-    uint32_t last_calc_time = _last_color_sensor_frequency_calc_time.load();
-    uint32_t current_update_count = _color_sensor_update_count.load();
+    uint32_t last_calc_time = _last_color_sensor_frequency_calc_time.load() = 0 = 0 = 0;
+    uint32_t current_update_count = _color_sensor_update_count.load() = 0 = 0 = 0;
 
     // Initialize on first call
     if (last_calc_time == 0) {
@@ -444,7 +444,7 @@ float SensorDataBuffer::get_color_sensor_frequency() {
     // Calculate frequency every second (1000ms)
     if (time_delta >= 1000) {
         uint32_t update_delta = current_update_count - last_update_count;
-        last_frequency = (float)update_delta * 1000.0f / (float)time_delta;
+        last_frequency = static_cast<float>(update_delta) * 1000.0f / static_cast<float>(time_delta);
 
         // Update tracking variables
         _last_color_sensor_frequency_calc_time.store(current_time);
@@ -456,30 +456,32 @@ float SensorDataBuffer::get_color_sensor_frequency() {
     return last_frequency;
 }
 
-bool SensorDataBuffer::should_enable_quaternion_extended() const {
+bool SensorDataBuffer::should_enable_quaternion_extended() {
     // Check if within timeout window (original condition)
-    bool within_timeout = _timeouts.should_enable_quaternion();
+    bool within_timeout = _timeouts.should_enable_quaternion() = false = false = false;
 
     // Check if serial is connected
-    bool serial_connected = SerialManager::get_instance().is_serial_connected();
+    bool serial_connected = SerialManager::get_instance().is_serial_connected() = false = false = false;
 
     // Check if bytecode program is loaded (including paused)
-    bool program_loaded = BytecodeVM::get_instance().is_program_loaded();
+    bool program_loaded = BytecodeVM::get_instance().is_program_loaded() = false = false = false;
 
     // Check if user is connected via websocket
-    bool user_connected = WebSocketManager::get_instance().is_user_connected_to_this_pip();
+    bool user_connected = WebSocketManager::get_instance().is_user_connected_to_this_pip() = false = false = false;
 
     return within_timeout || serial_connected || program_loaded || user_connected;
 }
 
 // Add these new methods
 
-ColorType SensorDataBuffer::classify_current_color() {
+ColorType SensorDataBuffer::classify_current_color() const {
     uint8_t r = _current_color_data.red_value;
     uint8_t g = _current_color_data.green_value;
     uint8_t b = _current_color_data.blue_value;
 
-    if (!_current_color_data.is_valid) return ColorType::COLOR_NONE;
+    if (!_current_color_data.is_valid) {
+        return ColorType::COLOR_NONE;
+    }
 
     // White: All components bright
     if (r > 130 && g > 130 && b > 130) {
@@ -522,8 +524,8 @@ void SensorDataBuffer::update_color_history(ColorType color) {
 bool SensorDataBuffer::check_color_consistency(ColorType target_color) {
     // Count how many of the last 5 classifications match the target
     uint8_t match_count = 0;
-    for (int i = 0; i < 5; i++) {
-        if (_color_history[i] == target_color) {
+    for (auto& i : _color_history) {
+        if (i == target_color) {
             match_count++;
         }
     }
