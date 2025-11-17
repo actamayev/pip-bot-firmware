@@ -9,7 +9,9 @@ PreferencesManager::~PreferencesManager() {
 
 bool PreferencesManager::beginNamespace(const char* ns) {
     // If already in the requested namespace, do nothing
-    if (_currentNamespace.equals(ns)) return true;
+    if (_currentNamespace.equals(ns)) {
+        return true;
+    }
 
     // Close current namespace if open
     if (_currentNamespace.length() > 0) {
@@ -17,7 +19,7 @@ bool PreferencesManager::beginNamespace(const char* ns) {
     }
 
     // Open the requested namespace
-    bool success = _preferences.begin(ns, false);
+    bool const success = _preferences.begin(ns, false);
     if (success) {
         _currentNamespace = ns;
     } else {
@@ -32,7 +34,9 @@ bool PreferencesManager::beginNamespace(const char* ns) {
 
 // Cache loading methods
 void PreferencesManager::loadPipIdCache() {
-    if (_cache.pipIdLoaded) return;
+    if (_cache.pipIdLoaded) {
+        return;
+    }
 
     if (!beginNamespace(NS_PIP_ID)) {
         _cache.pipId = String(getDefaultPipId());
@@ -51,7 +55,9 @@ void PreferencesManager::loadPipIdCache() {
 }
 
 void PreferencesManager::loadFirmwareVersionCache() {
-    if (_cache.firmwareVersionLoaded) return;
+    if (_cache.firmwareVersionLoaded) {
+        return;
+    }
 
     if (!beginNamespace(NS_FIRMWARE)) {
         _cache.firmwareVersion = 0;
@@ -64,7 +70,9 @@ void PreferencesManager::loadFirmwareVersionCache() {
 }
 
 void PreferencesManager::loadWifiDataCache() {
-    if (_cache.wifiDataLoaded) return;
+    if (_cache.wifiDataLoaded) {
+        return;
+    }
 
     _cache.wifiNetworks.clear();
 
@@ -82,7 +90,8 @@ void PreferencesManager::loadWifiDataCache() {
     for (int i = 0; i < _cache.wifiCount; i++) {
         WiFiCredentials creds;
 
-        char ssidKey[128], passwordKey[128];
+        char ssidKey[128];
+        char passwordKey[128];
         sprintf(ssidKey, "ssid_%d", i);
         sprintf(passwordKey, "pwd_%d", i);
 
@@ -110,7 +119,9 @@ int PreferencesManager::getFirmwareVersion() {
 }
 
 void PreferencesManager::setFirmwareVersion(int version) {
-    if (!beginNamespace(NS_FIRMWARE)) return; // Can't access preferences
+    if (!beginNamespace(NS_FIRMWARE)) {
+        return; // Can't access preferences
+    }
 
     _preferences.putInt(KEY_FW_VERSION, version);
 
@@ -121,10 +132,13 @@ void PreferencesManager::setFirmwareVersion(int version) {
 
 // WiFi methods
 void PreferencesManager::storeWiFiCredentials(const String& ssid, const String& password, int index) {
-    if (!beginNamespace(NS_WIFI)) return; // Can't access preferences
+    if (!beginNamespace(NS_WIFI)) {
+        return; // Can't access preferences
+    }
 
     // Generate keys with index
-    char ssidKey[128], passwordKey[128];
+    char ssidKey[128];
+    char passwordKey[128];
     sprintf(ssidKey, "ssid_%d", index);
     sprintf(passwordKey, "pwd_%d", index);
 
@@ -160,7 +174,9 @@ std::vector<WiFiCredentials> PreferencesManager::getAllStoredWiFiNetworks() {
 
 // Side TOF calibration methods
 bool PreferencesManager::hasSideTofCalibration(uint8_t sensorAddress) {
-    if (!beginNamespace(NS_SIDE_TOF)) return false;
+    if (!beginNamespace(NS_SIDE_TOF)) {
+        return false;
+    }
 
     char baselineKey[32];
     sprintf(baselineKey, "baseline_%02X", sensorAddress);
@@ -169,9 +185,12 @@ bool PreferencesManager::hasSideTofCalibration(uint8_t sensorAddress) {
 }
 
 void PreferencesManager::storeSideTofCalibration(uint8_t sensorAddress, uint16_t baseline, bool useHardwareCalibration) {
-    if (!beginNamespace(NS_SIDE_TOF)) return;
+    if (!beginNamespace(NS_SIDE_TOF)) {
+        return;
+    }
 
-    char baselineKey[32], hwCalibKey[32];
+    char baselineKey[32];
+    char hwCalibKey[32];
     sprintf(baselineKey, "baseline_%02X", sensorAddress);
     sprintf(hwCalibKey, "hw_calib_%02X", sensorAddress);
 
@@ -180,7 +199,9 @@ void PreferencesManager::storeSideTofCalibration(uint8_t sensorAddress, uint16_t
 }
 
 uint16_t PreferencesManager::getSideTofBaseline(uint8_t sensorAddress) {
-    if (!beginNamespace(NS_SIDE_TOF)) return 0;
+    if (!beginNamespace(NS_SIDE_TOF)) {
+        return 0;
+    }
 
     char baselineKey[32];
     sprintf(baselineKey, "baseline_%02X", sensorAddress);
@@ -189,7 +210,9 @@ uint16_t PreferencesManager::getSideTofBaseline(uint8_t sensorAddress) {
 }
 
 bool PreferencesManager::getSideTofUseHardwareCalibration(uint8_t sensorAddress) {
-    if (!beginNamespace(NS_SIDE_TOF)) return false;
+    if (!beginNamespace(NS_SIDE_TOF)) {
+        return false;
+    }
 
     char hwCalibKey[32];
     sprintf(hwCalibKey, "hw_calib_%02X", sensorAddress);
@@ -198,7 +221,9 @@ bool PreferencesManager::getSideTofUseHardwareCalibration(uint8_t sensorAddress)
 }
 
 bool PreferencesManager::forgetWiFiNetwork(const String& targetSSID) {
-    if (!beginNamespace(NS_WIFI)) return false;
+    if (!beginNamespace(NS_WIFI)) {
+        return false;
+    }
 
     // Get all current networks
     std::vector<WiFiCredentials> allNetworks = getAllStoredWiFiNetworks();
@@ -217,9 +242,10 @@ bool PreferencesManager::forgetWiFiNetwork(const String& targetSSID) {
     }
 
     // Clear all existing network data
-    int currentCount = _preferences.getInt(WIFI_COUNT, 0);
+    int const currentCount = _preferences.getInt(WIFI_COUNT, 0);
     for (int i = 0; i < currentCount; i++) {
-        char ssidKey[128], passwordKey[128];
+        char ssidKey[128];
+        char passwordKey[128];
         sprintf(ssidKey, "ssid_%d", i);
         sprintf(passwordKey, "pwd_%d", i);
         _preferences.remove(ssidKey);
@@ -228,9 +254,10 @@ bool PreferencesManager::forgetWiFiNetwork(const String& targetSSID) {
 
     // Re-store filtered networks with contiguous indices
     for (size_t i = 0; i < filteredNetworks.size(); i++) {
-        char ssidKey[128], passwordKey[128];
-        sprintf(ssidKey, "ssid_%d", (int)i);
-        sprintf(passwordKey, "pwd_%d", (int)i);
+        char ssidKey[128];
+        char passwordKey[128];
+        sprintf(ssidKey, "ssid_%d", static_cast<int>(i));
+        sprintf(passwordKey, "pwd_%d", static_cast<int>(i));
         _preferences.putString(ssidKey, filteredNetworks[i].ssid);
         _preferences.putString(passwordKey, filteredNetworks[i].password);
     }
