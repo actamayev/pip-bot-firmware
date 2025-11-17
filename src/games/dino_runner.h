@@ -14,10 +14,10 @@ class DinoRunner : public Singleton<DinoRunner> {
     void start_game();
     void stop_game();
     void update();
-    void handle_button_press(bool rightPressed);
+    void handle_button_press(bool right_pressed);
 
-    bool isGameActive() const {
-        return gameActive;
+    bool is_game_active() const {
+        return game_active;
     }
     int get_current_score() const {
         return score;
@@ -28,18 +28,18 @@ class DinoRunner : public Singleton<DinoRunner> {
 
     // Game states
     enum class GameState { MENU, RUNNING, GAME_OVER };
-    GameState gameState = GameState::MENU;
-    bool gameActive = false;
+    GameState game_state = GameState::MENU;
+    bool game_active = false;
 
     // Dino physics
-    float dinoX = 20;
-    float dinoY = 40; // Will be calculated relative to ground
-    float dinoVY = 0.0f;
-    bool onGround = true;
+    float dino_x = 20;
+    float dino_y = 40; // Will be calculated relative to ground
+    float dino_vy = 0.0f;
+    bool on_ground = true;
 
     // Animation
-    uint32_t lastAnimMs = 0;
-    uint8_t animFrame = 0;
+    uint32_t last_anim_ms = 0;
+    uint8_t anim_frame = 0;
     static constexpr uint32_t ANIM_MS = 150;
 
     // Obstacles
@@ -53,13 +53,13 @@ class DinoRunner : public Singleton<DinoRunner> {
     Obstacle obstacles[MAX_OBSTACLES];
 
     // Game timing
-    uint32_t lastSpawnMs = 0;
-    uint32_t lastFrameMs = 0;
-    uint32_t lastScoreMs = 0;
+    uint32_t last_spawn_ms = 0;
+    uint32_t last_frame_ms = 0;
+    uint32_t last_score_ms = 0;
 
     // Difficulty progression
-    uint32_t spawnIntervalMs = 1400;
-    float obstacleSpeed = 1.2f;
+    uint32_t spawn_interval_ms = 1400;
+    float obstacle_speed = 1.2f;
     static constexpr float SPEED_INCREMENT = 0.2f;
     static constexpr uint32_t DIFFICULTY_RAMP_MS = 3000;
 
@@ -75,7 +75,7 @@ class DinoRunner : public Singleton<DinoRunner> {
     static constexpr float MAX_FALL_VEL = 8.0f;
 
     // Button handling
-    bool rightButtonPressed = false;
+    bool right_button_pressed = false;
 
     // Game logic methods
     void reset_game();
@@ -87,7 +87,7 @@ class DinoRunner : public Singleton<DinoRunner> {
 
     // Drawing methods (using display buffer)
     void draw_to_buffer(uint8_t* buffer);
-    void draw_dino_sprite(int x, int y, bool onGround, Adafruit_SSD1306& display);
+    void draw_dino_sprite(int x, int y, bool on_ground, Adafruit_SSD1306& display);
     void draw_menu(uint8_t* buffer);
     void draw_game_over(uint8_t* buffer);
 

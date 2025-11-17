@@ -2,8 +2,8 @@
 
 #include "dino_runner.h"
 
-bool GameManager::start_game(games::GameType gameType) {
-    if (gameType == _current_game) {
+bool GameManager::start_game(games::GameType game_type) {
+    if (game_type == _current_game) {
         SerialQueueManager::get_instance().queue_message("Game already running");
         return true;
     }
@@ -14,7 +14,7 @@ bool GameManager::start_game(games::GameType gameType) {
         stop_current_game();
     }
 
-    return enable_game(gameType);
+    return enable_game(game_type);
 }
 
 void GameManager::stop_current_game() {
@@ -59,11 +59,11 @@ void GameManager::disable_current_game() {
     }
 }
 
-bool GameManager::enable_game(games::GameType gameType) {
-    SerialQueueManager::get_instance().queue_message("Starting game: " + String(get_game_name(gameType)));
+bool GameManager::enable_game(games::GameType game_type) {
+    SerialQueueManager::get_instance().queue_message("Starting game: " + String(get_game_name(game_type)));
 
     bool success = false;
-    switch (gameType) {
+    switch (game_type) {
         case games::GameType::DINO_RUNNER:
             DinoRunner::get_instance().start_game();
             success = DinoRunner::get_instance().is_game_active();
@@ -74,7 +74,7 @@ bool GameManager::enable_game(games::GameType gameType) {
     }
 
     if (success) {
-        _current_game = gameType;
+        _current_game = game_type;
         SerialQueueManager::get_instance().queue_message("Game started successfully");
     } else {
         SerialQueueManager::get_instance().queue_message("Failed to start game");
@@ -83,8 +83,8 @@ bool GameManager::enable_game(games::GameType gameType) {
     return success;
 }
 
-const char* GameManager::get_game_name(games::GameType gameType) const {
-    switch (gameType) {
+const char* GameManager::get_game_name(games::GameType game_type) const {
+    switch (game_type) {
         case games::GameType::NONE:
             return "None";
         case games::GameType::DINO_RUNNER:

@@ -17,19 +17,19 @@ class FirmwareVersionTracker : public Singleton<FirmwareVersionTracker> {
 
   public:
     int get_firmware_version() {
-        return firmwareVersion;
+        return firmware_version;
     }
     void retrieve_latest_firmware_from_server(uint16_t new_version);
 
   private:
     FirmwareVersionTracker();
-    int firmwareVersion = 0;
-    int pendingVersion = 0;
-    bool isRetrievingFirmwareFromServer = false;
-    WiFiClient* httpClient = nullptr;
-    WiFiClientSecure secureClient;
-    WiFiClient insecureClient;
+    int firmware_version = 0;
+    int pending_version = 0;
+    bool is_retrieving_firmware_from_server = false;
+    WiFiClient* http_client = nullptr;
+    WiFiClientSecure secure_client;
+    WiFiClient insecure_client;
 
-    HTTPUpdate httpUpdate;
+    HTTPUpdate http_update;
     void update_progress_leds(int progress, int total);
 };
