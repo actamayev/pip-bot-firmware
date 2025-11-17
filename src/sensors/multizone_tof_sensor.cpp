@@ -15,7 +15,7 @@ bool MultizoneTofSensor::initialize() {
                     initialize_point_histories();
 
                     SerialQueueManager::get_instance().queue_message("MZ TOF sensor initialization complete");
-                    isInitialized = true;
+                    _isInitialized = true;
                     return true;
                 }
             }
@@ -29,7 +29,7 @@ bool MultizoneTofSensor::initialize() {
 }
 
 bool MultizoneTofSensor::should_be_polling() {
-    if (!isInitialized) {
+    if (!_isInitialized) {
         return false;
     }
 
@@ -40,7 +40,7 @@ bool MultizoneTofSensor::should_be_polling() {
 }
 
 void MultizoneTofSensor::update_sensor_data() {
-    if (!isInitialized) {
+    if (!_isInitialized) {
         return;
     }
 
@@ -58,19 +58,19 @@ void MultizoneTofSensor::update_sensor_data() {
     ReportTimeouts& timeouts = SensorDataBuffer::get_instance().get_report_timeouts();
     bool should_enable = ReportTimeouts::should_enable_tof();
 
-    if (should_enable && !sensorEnabled) {
+    if (should_enable && !_sensorEnabled) {
         enable_tof_sensor();
     } else if (!should_enable && sensorEnabled) {
         disable_tof_sensor();
         return; // Don't try to read data if sensor is disabled
     }
 
-    if (!sensorEnabled) {
+    if (!_sensorEnabled) {
         return; // Skip if sensor not enabled
     }
 
     // Check watchdog first
-    if (!check_watchdog() && sensorActive) {
+    if (!check_watchdog() && _sensorActive) {
         reset_sensor();
         return;
     }
@@ -78,18 +78,18 @@ void MultizoneTofSensor::update_sensor_data() {
     uint8_t is_data_ready = 0;
 
     // Check if new data is ready
-    if (sensor.vl53l7cx_check_data_ready(&is_data_ready) != 0 || is_data_ready == 0) {
+    if (_sensor.vl53l7cx_check_data_ready(&is_data_ready) != 0 || is_data_ready == 0) {
         return;
     }
 
     // Get the ranging data
     VL53L7CX_ResultsData raw_data;
-    if (sensor.vl53l7cx_get_ranging_data(&raw_data) != 0) {
+    if (_sensor.vl53l7cx_get_ranging_data(&raw_data) != 0) {
         return; // Failed to get data
     }
 
     // Update watchdog timer on successful data reception
-    lastValidDataTime = millis();
+    _lastValidDataTime = millis();
 
     // Process obstacle detection with the raw data
     bool obstacle_detected = process_obstacle_detection(raw_data);
@@ -277,26 +277,26 @@ bool MultizoneTofSensor::reset_sensor() {
 }
 
 bool MultizoneTofSensor::check_watchdog() {
-    if (millis() - lastValidDataTime > WATCHDOG_TIMEOUT) {
+    if (millis() - _lastValidDataTime > _WATCHDOG_TIMEOUT) {
         return false; // Watchdog timeout
     }
     return true; // Watchdog OK
 }
 
 void MultizoneTofSensor::start_ranging() {
-    sensor.vl53l7cx_start_ranging();
+    _sensor.vl53l7cx_start_ranging();
 }
 
 void MultizoneTofSensor::stop_ranging() {
-    sensor.vl53l7cx_stop_ranging();
+    _sensor.vl53l7cx_stop_ranging();
 }
 
 void MultizoneTofSensor::turn_off_sensor() {
     stop_ranging();
     sensor.vl53l7cx_set_power_mode(VL53L7CX_POWER_MODE_SLEEP);
-    sensorActive = false;
-    sensorEnabled = false;
-    isInitialized = false;
+    _sensorActive = false;
+    _sensorEnabled = false;
+    _isInitialized = false;
 
     initialize_point_histories();
 }

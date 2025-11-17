@@ -69,9 +69,9 @@ class MultizoneTofSensor : public Singleton<MultizoneTofSensor> {
     PointHistory _pointHistories[ROI_ROWS][ROI_COLS]{};
 
     // Watchdog variables
-    uint32_t _WATCHDOG_TIMEOUT = 2000;      // 2 seconds without data before reset
-    uint32_t _lastValidDataTime = millis(); // Track when we last got valid data
-    bool _sensorActive = false;             // Flag to track if sensor is actively ranging
+    const uint32_t _WATCHDOG_TIMEOUT = 2000; // 2 seconds without data before reset
+    uint32_t _lastValidDataTime = millis();  // Track when we last got valid data
+    bool _sensorActive = false;              // Flag to track if sensor is actively ranging
 
     // New buffer-based methods following IMU pattern
     void update_sensor_data(); // Single read, write to buffer

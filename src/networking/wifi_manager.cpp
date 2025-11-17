@@ -37,12 +37,12 @@ bool WiFiManager::attempt_direct_connection_to_saved_networks() {
     }
 
     // Get all saved networks
-    std::vector<WiFiCredentials> savedNetworks = PreferencesManager::get_instance().get_all_stored_wifi_networks();
+    std::vector<WiFiCredentials> saved_networks = PreferencesManager::get_instance().get_all_stored_wifi_networks();
 
     SerialQueueManager::get_instance().queue_message("Attempting direct connection to saved networks...");
 
     // Try to connect to each saved network without scanning first
-    for (const WiFiCredentials& network : savedNetworks) {
+    for (const WiFiCredentials& network : saved_networks) {
         // Attempt connection
         if (attempt_new_wifi_connection(network)) return true;
 
@@ -74,11 +74,11 @@ bool WiFiManager::attempt_new_wifi_connection(const WiFiCredentials& wifi_creden
 
         // Non-blocking print of dots
         uint32_t current_time = millis();
-        if (current_time - lastPrintTime >= printInterval) {
+        if (current_time - last_print_time >= PRINT_INTERVAL) {
             last_print_time = current_time;
             yield(); // Allow the ESP32 to handle background tasks
         }
-        if (current_time - lastCheckTime >= checkInterval) {
+        if (current_time - last_check_time >= CHECK_INTERVAL) {
             last_check_time = current_time;
 
             // Poll serial to update connection status
@@ -312,11 +312,11 @@ static std::vector<WiFiCredentials> WiFiManager::get_saved_networks_for_response
     }
 
     // Get all saved networks from preferences
-    std::vector<WiFiCredentials> savedNetworks = PreferencesManager::get_instance().get_all_stored_wifi_networks();
+    std::vector<WiFiCredentials> saved_networks = PreferencesManager::get_instance().get_all_stored_wifi_networks();
 
-    SerialQueueManager::get_instance().queue_message("Found " + String(savedNetworks.size()) + " saved networks");
+    SerialQueueManager::get_instance().queue_message("Found " + String(saved_networks.size()) + " saved networks");
 
-    return savedNetworks;
+    return saved_networks;
 }
 
 bool WiFiManager::start_async_scan() {
@@ -380,22 +380,22 @@ void WiFiManager::check_async_scan_progress() {
         WiFi.scanDelete();
 
         // Send empty scan complete message to browser to indicate timeout
-        std::vector<WiFiNetworkInfo> emptyNetworks;
-        SerialManager::get_instance().send_scan_results_response(emptyNetworks);
+        std::vector<WiFiNetworkInfo> empty_networks;
+        SerialManager::get_instance().send_scan_results_response(empty_networks);
         return;
     }
 
     // Check scan status
-    int16_t scan_result = WiFi.scanComplete();
+    const int16_t SCAN_RESULT = WiFi.scanComplete();
 
     // For WIFI_SCAN_RUNNING (-1) and WIFI_SCAN_FAILED (-2), just keep waiting until timeout
     // The ESP32 WiFi library seems to return WIFI_SCAN_FAILED sometimes even when scan is progressing
-    if (scan_result < 0) {
+    if (SCAN_RESULT < 0) {
         return;
     }
     // Only handle completion (positive numbers) - ignore WIFI_SCAN_FAILED and WIFI_SCAN_RUNNING
     // Scan completed successfully
-    SerialQueueManager::get_instance().queue_message("Async WiFi scan completed in " + String(scan_duration) + "ms. Found " + String(scanResult) +
+    SerialQueueManager::get_instance().queue_message("Async WiFi scan completed in " + String(scan_duration) + "ms. Found " + String(SCAN_RESULT) +
                                                      " networks");
     _asyncScanInProgress = false;
     rgb_led.turn_main_board_leds_off();
@@ -403,7 +403,7 @@ void WiFiManager::check_async_scan_progress() {
     // Process scan results
     std::vector<WiFiNetworkInfo> networks;
 
-    for (int i = 0; i < scan_result; i++) {
+    for (int i = 0; i < SCAN_RESULT; i++) {
         WiFiNetworkInfo network;
         network.ssid = WiFi.SSID(i);
         network.rssi = WiFi.RSSI(i);

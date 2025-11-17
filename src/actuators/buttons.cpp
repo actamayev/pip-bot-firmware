@@ -70,14 +70,14 @@ void Buttons::set_left_button_click_handler(std::function<void(Button2&)> callba
         BytecodeVM& vm = BytecodeVM::get_instance();
 
         // Handle program start on button release
-        if (vm.waitingForButtonPressToStart) {
+        if (vm._waitingForButtonPressToStart) {
             if (this->_just_paused_on_press) {
                 this->_just_paused_on_press = false;
                 return; // Skip start on same press/release cycle
             }
             if (!vm.can_start_program()) return;
             vm._isPaused = BytecodeVM::RUNNING;
-            vm.waitingForButtonPressToStart = false;
+            vm._waitingForButtonPressToStart = false;
             vm.increment_pc();
             return;
         }

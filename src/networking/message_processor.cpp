@@ -591,7 +591,7 @@ void MessageProcessor::process_binary_message(const uint8_t* data, uint16_t leng
             break;
         }
         default:
-            SerialQueueManager::get_instance().queue_message("Received unknown message type: " + String(static_cast<int>(messageType)));
+            SerialQueueManager::get_instance().queue_message("Received unknown message type: " + String(static_cast<int>(message_type)));
             break;
     }
 }

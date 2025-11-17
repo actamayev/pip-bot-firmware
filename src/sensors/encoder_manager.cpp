@@ -2,13 +2,13 @@
 
 #include "utils/config.h"
 
-EncoderManager::EncoderManager() : _leftWheelRPM(0), _rightWheelRPM(0), _lastUpdateTime(0), isInitialized(false) {
+EncoderManager::EncoderManager() : _leftWheelRPM(0), _rightWheelRPM(0), _lastUpdateTime(0), _isInitialized(false) {
     // Will be set to true in initialize()
     SerialQueueManager::get_instance().queue_message("Creating encoder manager");
 }
 
 bool EncoderManager::initialize() {
-    if (isInitialized) {
+    if (_isInitialized) {
         return true;
     }
 
@@ -31,7 +31,7 @@ bool EncoderManager::initialize() {
     _leftLastCount = 0;
     _rightLastCount = 0;
 
-    isInitialized = true;
+    _isInitialized = true;
     SerialQueueManager::get_instance().queue_message("Encoder Manager initialized successfully");
     return true;
 }
@@ -69,11 +69,11 @@ void EncoderManager::update() {
 
 // Standard sensor interface methods
 bool EncoderManager::should_be_polling() const {
-    return isInitialized;
+    return _isInitialized;
 }
 
 void EncoderManager::update_sensor_data() {
-    if (!isInitialized) {
+    if (!_isInitialized) {
         return;
     }
 

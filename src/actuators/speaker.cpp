@@ -212,13 +212,13 @@ void Speaker::update_melody() {
     // LED sequence update (doesn't touch audio objects, but keep under mutex to keep state consistent)
     if (_is_led_sequence_playing) {
         uint32_t current_time = millis();
-        if (current_time >= _led_step_start_time + entertainer_led_sequence[_current_led_step].duration) {
+        if (current_time >= _led_step_start_time + ENTERTAINER_LED_SEQUENCE[_current_led_step].duration) {
             _current_led_step++;
             if (_current_led_step >= ENTERTAINER_LED_SEQUENCE_LENGTH) {
                 _is_led_sequence_playing = false;
                 rgb_led.turn_all_leds_off();
             } else {
-                const MelodyNote& note = entertainer_led_sequence[_current_led_step];
+                const MelodyNote& note = ENTERTAINER_LED_SEQUENCE[_current_led_step];
                 rgb_led.set_main_board_leds_to_color(note.led_r, note.led_g, note.led_b);
                 _led_step_start_time = current_time;
             }
@@ -271,8 +271,8 @@ void Speaker::start_entertainer_melody() {
         _is_led_sequence_playing = true;
         _current_led_step = 0;
         _led_step_start_time = millis();
-        const MelodyNote& first_note = entertainer_led_sequence[0];
-        rgb_led.set_main_board_leds_to_color(firstNote.led_r, firstNote.led_g, firstNote.led_b);
+        const MelodyNote& first_note = ENTERTAINER_LED_SEQUENCE[0];
+        rgb_led.set_main_board_leds_to_color(first_note.led_r, first_note.led_g, first_note.led_b);
         SerialQueueManager::get_instance().queue_message("✓ Entertainer melody and LED sync started");
     } else {
         SerialQueueManager::get_instance().queue_message("✗ Failed to start Entertainer playback");
@@ -300,7 +300,7 @@ void Speaker::play_tone(ToneType tone) {
 
     // Validate tone range (1-8, where 8 is TONE_OFF)
     if (tone_index < 1 || tone_index > 8) {
-        SerialQueueManager::get_instance().queue_message("Invalid tone: " + String(toneIndex));
+        SerialQueueManager::get_instance().queue_message("Invalid tone: " + String(tone_index));
         return;
     }
 
