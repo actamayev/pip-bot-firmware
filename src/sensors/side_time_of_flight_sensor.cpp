@@ -108,15 +108,15 @@ void SideTimeOfFlightSensor::basic_initialization_auto_mode() {
 void SideTimeOfFlightSensor::load_calibration_from_preferences() {
     PreferencesManager& prefs = PreferencesManager::get_instance();
 
-    if (!prefs.hasSideTofCalibration(sensorAddress)) {
+    if (!prefs.has_side_tof_calibration(sensorAddress)) {
         isCalibrated = false;
         char logMessage[128];
         snprintf(logMessage, sizeof(logMessage), "No stored calibration found for sensor 0x%02X", sensorAddress);
         SerialQueueManager::get_instance().queue_message(logMessage);
         return;
     }
-    baselineValue = prefs.getSideTofBaseline(sensorAddress);
-    useHardwareCalibration = prefs.getSideTofUseHardwareCalibration(sensorAddress);
+    baselineValue = prefs.get_side_tof_baseline(sensorAddress);
+    useHardwareCalibration = prefs.get_side_tof_use_hardware_calibration(sensorAddress);
     isCalibrated = true;
 
     char logMessage[128];
