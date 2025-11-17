@@ -540,7 +540,7 @@ void MessageProcessor::process_binary_message(const uint8_t* data, uint16_t leng
                     WebSocketManager::get_instance().setIsUserConnectedToThisPip(false);
                 } else {
                     WebSocketManager::get_instance().setIsUserConnectedToThisPip(true);
-                    BatteryMonitor::get_instance().sendBatteryMonitorDataOverWebSocket();
+                    BatteryMonitor::get_instance().send_battery_monitor_dataOverWebSocket();
                 }
             }
             break;

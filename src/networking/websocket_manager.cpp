@@ -111,7 +111,7 @@ void WebSocketManager::add_battery_data_to_payload(JsonObject& payload) {
 
 void WebSocketManager::send_initial_data() {
     SerialQueueManager::get_instance().queue_message("WebSocket connected. Sending initial data...");
-    auto initDoc = makeBaseMessageServer<256>(ToServerMessage::DEVICE_INITIAL_DATA);
+    auto initDoc = make_base_message_server<256>(ToServerMessage::DEVICE_INITIAL_DATA);
     JsonObject payload = initDoc.createNestedObject("payload");
     payload["firmwareVersion"] = FirmwareVersionTracker::get_instance().get_firmware_version();
 
@@ -127,7 +127,7 @@ void WebSocketManager::send_initial_data() {
 void WebSocketManager::send_battery_monitor_data() {
     if (!wsConnected) return;
 
-    auto batteryDoc = makeBaseMessageServer<256>(ToServerMessage::BATTERY_MONITOR_DATA_FULL);
+    auto batteryDoc = make_base_message_server<256>(ToServerMessage::BATTERY_MONITOR_DATA_FULL);
     JsonObject payload = batteryDoc.createNestedObject("payload");
     add_battery_data_to_payload(payload);
 

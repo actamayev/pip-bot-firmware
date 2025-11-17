@@ -128,7 +128,7 @@ void PreferencesManager::set_firmware_version(int version) {
 }
 
 // WiFi methods
-void PreferencesManager::store_wi_fi_credentials(const String& ssid, const String& password, int index) {
+void PreferencesManager::store_wifi_credentials(const String& ssid, const String& password, int index) {
     if (!begin_namespace(NS_WIFI)) {
         return; // Can't access preferences
     }
@@ -156,13 +156,13 @@ void PreferencesManager::store_wi_fi_credentials(const String& ssid, const Strin
     _cache.wifi_count = 0;
 }
 
-bool PreferencesManager::has_stored_wi_fi_networks() {
+bool PreferencesManager::has_stored_wifi_networks() {
     load_wifi_data_cache();
     return _cache.wifi_count > 0;
 }
 
-// Updated getAllStoredWiFiNetworks method:
-std::vector<WiFiCredentials> PreferencesManager::get_all_stored_wi_fi_networks() {
+// Updated get_all_stored_wifi_networks method:
+std::vector<WiFiCredentials> PreferencesManager::get_all_stored_wifi_networks() {
     load_wifi_data_cache();
     return _cache.wifi_networks;
 }
@@ -210,13 +210,13 @@ bool PreferencesManager::get_side_tof_use_hardware_calibration(uint8_t sensor_ad
     return _preferences.getBool(hw_calib_key.c_str(), false);
 }
 
-bool PreferencesManager::forget_wi_fi_network(const String& target_ssid) {
+bool PreferencesManager::forget_wifi_network(const String& target_ssid) {
     if (!begin_namespace(NS_WIFI)) {
         return false;
     }
 
     // Get all current networks
-    std::vector<WiFiCredentials> all_networks = get_all_stored_wi_fi_networks();
+    std::vector<WiFiCredentials> all_networks = get_all_stored_wifi_networks();
 
     // Filter out networks matching target_ssid
     std::vector<WiFiCredentials> filtered_networks;

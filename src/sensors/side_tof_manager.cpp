@@ -43,7 +43,7 @@ bool SideTofManager::should_be_polling() const {
     if (!isInitialized) return false;
 
     ReportTimeouts& timeouts = SensorDataBuffer::get_instance().get_report_timeouts();
-    return timeouts.shouldEnableSideTof();
+    return timeouts.should_enable_side_tof();
 }
 
 void SideTofManager::update_sensor_data() {
@@ -51,7 +51,7 @@ void SideTofManager::update_sensor_data() {
 
     // Check if we should enable/disable the sensors based on timeouts
     ReportTimeouts& timeouts = SensorDataBuffer::get_instance().get_report_timeouts();
-    bool shouldEnable = timeouts.shouldEnableSideTof();
+    bool shouldEnable = timeouts.should_enable_side_tof();
 
     if (shouldEnable && !sensorsEnabled) {
         enable_side_tof_sensors();

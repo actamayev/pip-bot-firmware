@@ -21,12 +21,12 @@ class BytecodeVM;
 // TOF sensor data structure
 struct TofData {
     VL53L7CX_ResultsData raw_data{};
-    bool is_object_detected;
-    bool is_valid;
-    float front_distance; // Minimum distance from front-facing zones (inches), -1 if invalid
-    uint32_t timestamp;
+    bool is_object_detected = false;
+    bool is_valid = false;
+    float front_distance = -1.0f; // Minimum distance from front-facing zones (inches), -1 if invalid
+    uint32_t timestamp = 0;
 
-    TofData() : is_object_detected(false), is_valid(false), front_distance(-1.0f), timestamp(0) {
+    TofData() {
         // Initialize raw_data to safe defaults
         memset(&raw_data, 0, sizeof(VL53L7CX_ResultsData));
     }
@@ -34,39 +34,31 @@ struct TofData {
 
 // Side TOF sensor data structure
 struct SideTofData {
-    uint16_t left_counts;
-    uint16_t right_counts;
-    bool left_valid;
-    bool right_valid;
-    uint32_t timestamp;
-
-    SideTofData() : left_counts(0), right_counts(0), left_valid(false), right_valid(false), timestamp(0) {}
+    uint16_t left_counts = 0;
+    uint16_t right_counts = 0;
+    bool left_valid = false;
+    bool right_valid = false;
+    uint32_t timestamp = 0;
 };
 
 // Color sensor data structure (using existing ColorSensorData from structs.h)
 struct ColorData {
-    uint8_t red_value;
-    uint8_t green_value;
-    uint8_t blue_value;
-    bool is_valid;
-    uint32_t timestamp;
-
-    ColorData() : red_value(0), green_value(0), blue_value(0), is_valid(false), timestamp(0) {}
+    uint8_t red_value = 0;
+    uint8_t green_value = 0;
+    uint8_t blue_value = 0;
+    bool is_valid = false;
+    uint32_t timestamp = 0;
 };
 
 // Encoder data structure
 struct EncoderData {
-    float left_wheel_rpm;
-    float right_wheel_rpm;
-    float distance_traveled_in;
-    int64_t left_encoder_count;  // Raw encoder count from _leftEncoder.getCount()
-    int64_t right_encoder_count; // Raw encoder count from _rightEncoder.getCount()
-    bool is_valid;
-    uint32_t timestamp;
-
-    EncoderData()
-        : left_wheel_rpm(0.0f), right_wheel_rpm(0.0f), distance_traveled_in(0.0f), left_encoder_count(0), right_encoder_count(0), is_valid(false),
-          timestamp(0) {}
+    float left_wheel_rpm = 0.0f;
+    float right_wheel_rpm = 0.0f;
+    float distance_traveled_in = 0.0f;
+    int64_t left_encoder_count = 0;  // Raw encoder count from _leftEncoder.getCount()
+    int64_t right_encoder_count = 0; // Raw encoder count from _rightEncoder.getCount()
+    bool is_valid = false;
+    uint32_t timestamp = 0;
 };
 
 // Combined sensor data structure
@@ -115,42 +107,42 @@ struct ReportTimeouts {
     std::atomic<uint32_t> magnetometer_last_request{0};
     std::atomic<uint32_t> tof_last_request{0};
     std::atomic<uint32_t> side_tof_last_request{0};
-    std::atomic<uint32_t> color_last_request{0}; // Add color sensor timeout tracking
+    std::atomic<uint32_t> color_last_request{0};
 
     static constexpr uint32_t TIMEOUT_MS = 5000; // 5 seconds
 
-    static bool shouldEnableQuaternion() {
-        uint32_t last_request = quaternion_last_request.load() = 0;
+    bool should_enable_quaternion() const {
+        uint32_t last_request = quaternion_last_request.load();
         return last_request > 0 && (millis() - last_request) < TIMEOUT_MS;
     }
 
-    static bool shouldEnableAccelerometer() {
-        uint32_t last_request = accelerometer_last_request.load() = 0;
+    bool should_enable_accelerometer() const {
+        uint32_t last_request = accelerometer_last_request.load();
         return last_request > 0 && (millis() - last_request) < TIMEOUT_MS;
     }
 
-    static bool shouldEnableGyroscope() {
-        uint32_t last_request = gyroscope_last_request.load() = 0;
+    bool should_enable_gyroscope() const {
+        uint32_t last_request = gyroscope_last_request.load();
         return last_request > 0 && (millis() - last_request) < TIMEOUT_MS;
     }
 
-    static bool shouldEnableMagnetometer() {
-        uint32_t last_request = magnetometer_last_request.load() = 0;
+    bool should_enable_magnetometer() const {
+        uint32_t last_request = magnetometer_last_request.load();
         return last_request > 0 && (millis() - last_request) < TIMEOUT_MS;
     }
 
-    static bool shouldEnableTof() {
-        uint32_t last_request = tof_last_request.load() = 0;
+    bool should_enable_tof() const {
+        uint32_t last_request = tof_last_request.load();
         return last_request > 0 && (millis() - last_request) < TIMEOUT_MS;
     }
 
-    static bool shouldEnableSideTof() {
-        uint32_t last_request = side_tof_last_request.load() = 0;
+    bool should_enable_side_tof() const {
+        uint32_t last_request = side_tof_last_request.load();
         return last_request > 0 && (millis() - last_request) < TIMEOUT_MS;
     }
 
-    static bool shouldEnableColor() {
-        uint32_t last_request = color_last_request.load() = 0;
+    bool should_enable_color() const {
+        uint32_t last_request = color_last_request.load();
         return last_request > 0 && (millis() - last_request) < TIMEOUT_MS;
     }
 };
@@ -231,7 +223,7 @@ class SensorDataBuffer : public Singleton<SensorDataBuffer> {
     enum class SensorType { QUATERNION, ACCELEROMETER, GYROSCOPE, MAGNETOMETER, MULTIZONE_TOF, SIDE_TOF, COLOR };
 
     // Selective sensor polling control
-    void stop_polling_sensor(SensorType sensorType);
+    void stop_polling_sensor(SensorType sensor_type);
 
     // Get complete samples (for debugging/logging)
     ImuSample get_latest_imu_sample();

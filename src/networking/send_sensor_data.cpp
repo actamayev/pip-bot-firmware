@@ -51,7 +51,7 @@ void SendSensorData::attach_multizone_tof_data(JsonObject& payload) {
     TofData tofData = SensorDataBuffer::get_instance().get_latest_tof_data();
     JsonArray distanceArray = payload.createNestedArray("distanceGrid");
     for (int i = 0; i < 64; i++) {
-        distanceArray.add(tofData.rawData.distance_mm[i]);
+        distanceArray.add(tofData.raw_data.distance_mm[i]);
     }
 }
 

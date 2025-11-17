@@ -5,15 +5,15 @@
 #include "networking/websocket_manager.h"
 
 // Use ColorType from ColorTypes namespace
-using ColorTypes::ColorType;
+using color_types::ColorType;
 
 // IMU update methods (existing)
 void SensorDataBuffer::update_quaternion(const QuaternionData& quaternion) {
     _current_sample.quaternion = quaternion;
     // Update derived Euler angles if quaternion is valid
     if (quaternion.isValid) {
-        quaternion_to_euler(quaternion.qW, quaternion.qX, quaternion.qY, quaternion.qZ, _current_sample.euler_angles.yaw, _current_sample.euler_angles.pitch,
-                          _current_sample.euler_angles.roll);
+        quaternion_to_euler(quaternion.qW, quaternion.qX, quaternion.qY, quaternion.qZ, _current_sample.euler_angles.yaw,
+                            _current_sample.euler_angles.pitch, _current_sample.euler_angles.roll);
         _current_sample.euler_angles.isValid = true;
     }
     mark_imu_data_updated();
@@ -458,7 +458,7 @@ float SensorDataBuffer::get_color_sensor_frequency() {
 
 bool SensorDataBuffer::should_enable_quaternion_extended() const {
     // Check if within timeout window (original condition)
-    bool within_timeout = _timeouts.shouldEnableQuaternion();
+    bool within_timeout = _timeouts.should_enable_quaternion();
 
     // Check if serial is connected
     bool serial_connected = SerialManager::get_instance().is_serial_connected();
@@ -467,7 +467,7 @@ bool SensorDataBuffer::should_enable_quaternion_extended() const {
     bool program_loaded = BytecodeVM::get_instance().is_program_loaded();
 
     // Check if user is connected via websocket
-    bool user_connected = WebSocketManager::get_instance().isUserConnectedToThisPip();
+    bool user_connected = WebSocketManager::get_instance().is_user_connected_to_this_pip();
 
     return within_timeout || serial_connected || program_loaded || user_connected;
 }

@@ -2,10 +2,10 @@
 
 WiFiManager::WiFiManager() {
     // Hard-coding Wifi creds during initialization
-    // storeWiFiCredentials("MSTest", "!haftr2024!", 0);
-    // storeWiFiCredentials("Another Dimension", "Iforgotit123", 1);
-    // storeWiFiCredentials("NETGEAR08", "breezyshoe123", 1);
-    // storeWiFiCredentials("iPhone", "12345678", 1);
+    // store_wifi_credentials("MSTest", "!haftr2024!", 0);
+    // store_wifi_credentials("Another Dimension", "Iforgotit123", 1);
+    // store_wifi_credentials("NETGEAR08", "breezyshoe123", 1);
+    // store_wifi_credentials("iPhone", "12345678", 1);
 
     WiFi.setSleep(false);                // Disable WiFi sleep mode
     esp_wifi_set_ps(WIFI_PS_NONE);       // Disable power saving completely
@@ -31,13 +31,13 @@ void WiFiManager::connect_to_stored_wifi() {
 // 4/9/25 TODO: Connect to the network we've most recently connected to first.
 bool WiFiManager::attempt_direct_connection_to_saved_networks() {
     // Quick check if any networks exist before trying to get them
-    if (!PreferencesManager::get_instance().hasStoredWiFiNetworks()) {
+    if (!PreferencesManager::get_instance().has_stored_wifi_networks()) {
         SerialQueueManager::get_instance().queue_message("No saved networks found");
         return false;
     }
 
     // Get all saved networks
-    std::vector<WiFiCredentials> savedNetworks = PreferencesManager::get_instance().getAllStoredWiFiNetworks();
+    std::vector<WiFiCredentials> savedNetworks = PreferencesManager::get_instance().get_all_stored_wifi_networks();
 
     SerialQueueManager::get_instance().queue_message("Attempting direct connection to saved networks...");
 
@@ -151,7 +151,7 @@ void WiFiManager::set_selected_network_index(int index) {
 
 // For storing WiFi credentials:
 void WiFiManager::store_wifi_credentials(const String& ssid, const String& password, int index) {
-    PreferencesManager::get_instance().storeWiFiCredentials(ssid, password, index);
+    PreferencesManager::get_instance().store_wifi_credentials(ssid, password, index);
 }
 
 void WiFiManager::check_and_reconnect_wifi() {
@@ -159,7 +159,7 @@ void WiFiManager::check_and_reconnect_wifi() {
     if (WiFi.status() == WL_CONNECTED || _isConnecting) return;
 
     // Quick check if any networks exist before trying to get them
-    if (!PreferencesManager::get_instance().hasStoredWiFiNetworks()) return;
+    if (!PreferencesManager::get_instance().has_stored_wifi_networks()) return;
 
     uint32_t current_time = millis();
 
@@ -296,13 +296,13 @@ bool WiFiManager::test_connection_only(const String& ssid, const String& passwor
 
 std::vector<WiFiCredentials> WiFiManager::get_saved_networks_for_response() {
     // Check if any networks exist
-    if (!PreferencesManager::get_instance().hasStoredWiFiNetworks()) {
+    if (!PreferencesManager::get_instance().has_stored_wifi_networks()) {
         SerialQueueManager::get_instance().queue_message("No saved networks found");
         return std::vector<WiFiCredentials>(); // Return empty vector
     }
 
     // Get all saved networks from preferences
-    std::vector<WiFiCredentials> savedNetworks = PreferencesManager::get_instance().getAllStoredWiFiNetworks();
+    std::vector<WiFiCredentials> savedNetworks = PreferencesManager::get_instance().get_all_stored_wifi_networks();
 
     SerialQueueManager::get_instance().queue_message("Found " + String(savedNetworks.size()) + " saved networks");
 

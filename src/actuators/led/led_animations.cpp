@@ -87,7 +87,7 @@ void LedAnimations::start_rainbow(int cycle_time) {
 
     // Calculate step time based on cycle time
     _rainbow_step_time = _rainbow_cycle_time / 256;
-    _rainbow_step_time = max(1UL, _rainbow_step_time); // Ensure minimum 1ms step time
+    _rainbow_step_time = max(1U, _rainbow_step_time); // Ensure minimum 1ms step time
 
     _rainbow_hue = 0;
 
@@ -155,9 +155,11 @@ void LedAnimations::update() {
 void LedAnimations::update_breathing() {
     uint32_t current_time = millis();
     uint32_t time_per_step = _breath_speed / 255;
-    time_per_step = max(1UL, time_per_step);
+    time_per_step = max(1U, time_per_step);
 
-    if (current_time - _last_breath_update < time_per_step) return;
+    if (current_time - _last_breath_update < time_per_step) {
+        return;
+    }
     _last_breath_update = current_time;
 
     float factor;

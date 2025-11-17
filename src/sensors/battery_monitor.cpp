@@ -123,12 +123,12 @@ void BatteryMonitor::retry_initialization_if_needed() {
 
 void BatteryMonitor::send_battery_monitor_data_over_serial() {
     if (!SerialManager::get_instance().is_serial_connected()) return;
-    SerialManager::get_instance().sendBatteryMonitorData();
+    SerialManager::get_instance().send_battery_monitor_data();
     lastBatteryLogTime = millis();
 }
 
 void BatteryMonitor::send_battery_monitor_data_over_websocket() {
     if (!WebSocketManager::get_instance().is_ws_connected()) return;
-    WebSocketManager::get_instance().sendBatteryMonitorData();
+    WebSocketManager::get_instance().send_battery_monitor_data();
     lastBatteryLogTime = millis();
 }

@@ -34,7 +34,7 @@ bool MultizoneTofSensor::should_be_polling() const {
     ReportTimeouts& timeouts = SensorDataBuffer::get_instance().get_report_timeouts();
     // Continue polling if we should be enabled OR if sensor is currently enabled
     // (to allow proper cleanup when timeout expires)
-    return timeouts.shouldEnableTof() || sensorEnabled;
+    return timeouts.should_enable_tof() || sensorEnabled;
 }
 
 void MultizoneTofSensor::update_sensor_data() {
@@ -50,7 +50,7 @@ void MultizoneTofSensor::update_sensor_data() {
 
     // Check if we should enable/disable the sensor based on timeouts
     ReportTimeouts& timeouts = SensorDataBuffer::get_instance().get_report_timeouts();
-    bool shouldEnable = timeouts.shouldEnableTof();
+    bool shouldEnable = timeouts.should_enable_tof();
 
     if (shouldEnable && !sensorEnabled) {
         enable_tof_sensor();

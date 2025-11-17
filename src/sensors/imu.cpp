@@ -33,7 +33,7 @@ void ImuSensor::update_enabled_reports() {
     }
 
     // Enable/disable accelerometer reports (unchanged)
-    bool shouldEnableAccel = timeouts.shouldEnableAccelerometer();
+    bool shouldEnableAccel = timeouts.should_enable_accelerometer();
     if (shouldEnableAccel && !enabledReports.accelerometer) {
         enable_accelerometer();
     } else if (!shouldEnableAccel && enabledReports.accelerometer) {
@@ -41,7 +41,7 @@ void ImuSensor::update_enabled_reports() {
     }
 
     // Enable/disable gyroscope reports (unchanged)
-    bool shouldEnableGyro = timeouts.shouldEnableGyroscope();
+    bool shouldEnableGyro = timeouts.should_enable_gyroscope();
     if (shouldEnableGyro && !enabledReports.gyroscope) {
         enable_gyroscope();
     } else if (!shouldEnableGyro && enabledReports.gyroscope) {
@@ -49,7 +49,7 @@ void ImuSensor::update_enabled_reports() {
     }
 
     // Enable/disable magnetometer reports (unchanged)
-    bool shouldEnableMag = timeouts.shouldEnableMagnetometer();
+    bool shouldEnableMag = timeouts.should_enable_magnetometer();
     if (shouldEnableMag && !enabledReports.magneticField) {
         enable_magnetic_field();
     } else if (!shouldEnableMag && enabledReports.magneticField) {
@@ -127,8 +127,8 @@ bool ImuSensor::should_be_polling() const {
     ReportTimeouts& timeouts = SensorDataBuffer::get_instance().get_report_timeouts();
 
     // Should poll if any report type is within timeout window, using extended logic for quaternion
-    return SensorDataBuffer::get_instance().should_enable_quaternion_extended() || timeouts.shouldEnableAccelerometer() ||
-           timeouts.shouldEnableGyroscope() || timeouts.shouldEnableMagnetometer();
+    return SensorDataBuffer::get_instance().should_enable_quaternion_extended() || timeouts.should_enable_accelerometer() ||
+           timeouts.should_enable_gyroscope() || timeouts.should_enable_magnetometer();
 }
 
 // New simplified update method - replaces old updateAllSensorData
