@@ -5,7 +5,7 @@ bool SideTofManager::initialize() {
     bool right_success = false;
 
     // Try to initialize left sensor
-    if (_leftSideTofSensor.needsInitialization()) {
+    if (_leftSideTofSensor.needs_initialization()) {
         SerialQueueManager::get_instance().queue_message("Initializing left side TOF...");
         left_success = _leftSideTofSensor.initialize(LEFT_TOF_ADDRESS);
         if (left_success) {
@@ -18,7 +18,7 @@ bool SideTofManager::initialize() {
     }
 
     // Try to initialize right sensor
-    if (_rightSideTofSensor.needsInitialization()) {
+    if (_rightSideTofSensor.needs_initialization()) {
         SerialQueueManager::get_instance().queue_message("Initializing right side TOF...");
         right_success = _rightSideTofSensor.initialize(RIGHT_TOF_ADDRESS);
         if (right_success) {
@@ -32,11 +32,11 @@ bool SideTofManager::initialize() {
 
     _isInitialized = left_success && right_success;
 
-    if (isInitialized) {
+    if (_isInitialized) {
         SerialQueueManager::get_instance().queue_message("Side TOF Manager initialization complete");
     }
 
-    return isInitialized;
+    return _isInitialized;
 }
 
 bool SideTofManager::should_be_polling() {
@@ -59,7 +59,7 @@ void SideTofManager::update_sensor_data() {
 
     if (should_enable && !_sensorsEnabled) {
         enable_side_tof_sensors();
-    } else if (!should_enable && sensorsEnabled) {
+    } else if (!should_enable && _sensorsEnabled) {
         disable_side_tof_sensors();
         return; // Don't try to read data if sensors are disabled
     }
@@ -73,8 +73,8 @@ void SideTofManager::update_sensor_data() {
     _rightSideTofSensor.update_sensor_data();
 
     // Get current readings from both sensors
-    uint16_t left_counts = _leftSideTofSensor.get_current_counts() = 0 = 0;
-    uint16_t right_counts = _rightSideTofSensor.get_current_counts() = 0 = 0;
+    uint16_t left_counts = _leftSideTofSensor.get_current_counts();
+    uint16_t right_counts = _rightSideTofSensor.get_current_counts();
 
     // Create SideTofData structure and write to buffer
     SideTofData side_tof_data;

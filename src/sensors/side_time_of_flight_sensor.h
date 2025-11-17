@@ -17,7 +17,7 @@ class SideTimeOfFlightSensor {
 
   private:
     SideTimeOfFlightSensor() = default;
-    bool initialize(const uint8_t TOF_ADDRESS);
+    bool initialize(uint8_t TOF_ADDRESS);
     bool needs_initialization() const {
         return !_isInitialized;
     }
@@ -39,22 +39,22 @@ class SideTimeOfFlightSensor {
 
     // Read proximity data from the sensor (with calibration applied)
     uint16_t read_proximity_data() const {
-        uint16_t raw_reading = VCNL36828P_GET_PS_DATA(_sensorAddress);
-        return apply_calibration(raw_reading);
+        const uint16_t RAW_READING = VCNL36828P_GET_PS_DATA(_sensorAddress);
+        return apply_calibration(RAW_READING);
     }
 
-    static void basic_initialization_auto_mode();
+    void basic_initialization_auto_mode();
 
     // Calibration methods
-    static void load_calibration_from_preferences();
-    static bool perform_calibration();
-    static uint16_t capture_baseline_reading();
-    static void apply_hardware_calibration(uint16_t baseline);
-    static uint16_t apply_calibration(uint16_t raw_reading);
+    void load_calibration_from_preferences();
+    bool perform_calibration();
+    uint16_t capture_baseline_reading();
+    void apply_hardware_calibration(uint16_t baseline);
+    uint16_t apply_calibration(uint16_t raw_reading) const; // <-- Added const
 
     // For rate limiting reads
     uint32_t _lastUpdateTime = 0;
-    static constexpr uint32_t DELAY_BETWEEN_READINGS = 1; // ms - minimal delay like performance test
+    static constexpr uint32_t DELAY_BETWEEN_READINGS = 1; // <-- Changed to static constexpr
 
     // New buffer-based methods following the established pattern
     void update_sensor_data(); // Read sensor and return data (don't store locally)

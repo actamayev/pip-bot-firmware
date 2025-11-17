@@ -8,7 +8,7 @@
 SensorInitializer::SensorInitializer() {
     // Initialize the status array
     for (int i = 0; i < SENSOR_COUNT; i++) {
-        sensorInitialized[i] = false;
+        _sensorInitialized[i] = false;
     }
 
     SerialQueueManager::get_instance().queue_message("Starting centralized sensor initialization...");
@@ -24,7 +24,7 @@ SensorInitializer::SensorInitializer() {
 
 bool SensorInitializer::is_sensor_initialized(SensorType sensor) {
     if (sensor >= 0 && sensor < SENSOR_COUNT) {
-        return sensorInitialized[sensor];
+        return _sensorInitialized[sensor];
     }
     return false;
 }
@@ -37,7 +37,7 @@ void SensorInitializer::initialize_multizone_tof() {
         return;
     }
     SerialQueueManager::get_instance().queue_message("Multizone sensor setup complete");
-    sensorInitialized[MULTIZONE_TOF] = true;
+    _sensorInitialized[MULTIZONE_TOF] = true;
 }
 
 void SensorInitializer::initialize_imu() {
@@ -48,7 +48,7 @@ void SensorInitializer::initialize_imu() {
         return;
     }
     SerialQueueManager::get_instance().queue_message("IMU setup complete");
-    sensorInitialized[IMU] = true;
+    _sensorInitialized[IMU] = true;
 }
 
 void SensorInitializer::initialize_color_sensor() {
@@ -59,5 +59,5 @@ void SensorInitializer::initialize_color_sensor() {
         return;
     }
     SerialQueueManager::get_instance().queue_message("Color Sensor setup complete");
-    sensorInitialized[COLOR_SENSOR] = true;
+    _sensorInitialized[COLOR_SENSOR] = true;
 }

@@ -15,7 +15,7 @@ class SensorInitializer : public Singleton<SensorInitializer> {
   private:
     SensorInitializer();
 
-    enum SensorType {
+    enum SensorType : uint8_t {
         MULTIZONE_TOF,
         IMU,
         COLOR_SENSOR,
@@ -23,10 +23,10 @@ class SensorInitializer : public Singleton<SensorInitializer> {
         SENSOR_COUNT
     };
 
-    static bool is_sensor_initialized(SensorType sensor);
-    static void initialize_multizone_tof();
-    static void initialize_imu();
-    static void initialize_color_sensor();
+    bool is_sensor_initialized(SensorType sensor);
+    void initialize_multizone_tof();
+    void initialize_imu();
+    void initialize_color_sensor();
 
     bool _sensorInitialized[SENSOR_COUNT]{};
 };

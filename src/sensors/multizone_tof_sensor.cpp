@@ -6,9 +6,9 @@ bool MultizoneTofSensor::initialize() {
 
     // Try a few times with short delays in between
     for (int attempt = 0; attempt < 3; attempt++) {
-        if (sensor.begin() == 0) {
+        if (_sensor.begin() == 0) {
             // If begin successful, continue with initialization
-            if (sensor.init_sensor() == 0) {
+            if (_sensor.init_sensor() == 0) {
                 // Configure the sensor
                 if (configure_sensor()) {
                     // Initialize point histories
@@ -29,14 +29,15 @@ bool MultizoneTofSensor::initialize() {
 }
 
 bool MultizoneTofSensor::should_be_polling() {
-    if (!_isInitialized) {
+    MultizoneTofSensor& instance = MultizoneTofSensor::get_instance();
+    if (!instance._isInitialized) {
         return false;
     }
 
     ReportTimeouts& timeouts = SensorDataBuffer::get_instance().get_report_timeouts();
     // Continue polling if we should be enabled OR if sensor is currently enabled
     // (to allow proper cleanup when timeout expires)
-    return ReportTimeouts::should_enable_tof() || sensorEnabled;
+    return timeouts.should_enable_tof() || instance._sensorEnabled;
 }
 
 void MultizoneTofSensor::update_sensor_data() {
@@ -56,11 +57,11 @@ void MultizoneTofSensor::update_sensor_data() {
 
     // Check if we should enable/disable the sensor based on timeouts
     ReportTimeouts& timeouts = SensorDataBuffer::get_instance().get_report_timeouts();
-    bool should_enable = ReportTimeouts::should_enable_tof();
+    bool should_enable = timeouts.should_enable_tof();
 
     if (should_enable && !_sensorEnabled) {
         enable_tof_sensor();
-    } else if (!should_enable && sensorEnabled) {
+    } else if (!should_enable && _sensorEnabled) {
         disable_tof_sensor();
         return; // Don't try to read data if sensor is disabled
     }
@@ -110,31 +111,32 @@ void MultizoneTofSensor::update_sensor_data() {
 }
 
 void MultizoneTofSensor::enable_tof_sensor() {
-    if (!isInitialized || sensorEnabled) {
+    if (!_isInitialized || _sensorEnabled) {
         return;
     }
 
     start_ranging();
-    sensorActive = true;
-    sensorEnabled = true;
-    lastValidDataTime = millis();
+    _sensorActive = true;
+    _sensorEnabled = true;
+    _lastValidDataTime = millis();
 
     SerialQueueManager::get_instance().queue_message("MZ TOF sensor enabled");
 }
 
 void MultizoneTofSensor::disable_tof_sensor() {
-    if (!sensorEnabled) {
+    if (!_sensorEnabled) {
         return;
     }
 
     stop_ranging();
-    sensorActive = false;
-    sensorEnabled = false;
+    _sensorActive = false;
+    _sensorEnabled = false;
 
     SerialQueueManager::get_instance().queue_message("MZ TOF sensor disabled due to timeout");
 }
 
 bool MultizoneTofSensor::process_obstacle_detection(const VL53L7CX_ResultsData& raw_data) const {
+    const MultizoneTofSensor& instance = MultizoneTofSensor::get_instance();
     // First update all point histories with current readings
     for (int row_index = 0; row_index < ROI_ROWS; row_index++) {
         int row = row_index + 3; // Convert to physical row (3-4)
@@ -151,7 +153,7 @@ bool MultizoneTofSensor::process_obstacle_detection(const VL53L7CX_ResultsData& 
                 uint8_t status = raw_data.target_status[index];
 
                 // Apply filtering parameters
-                if (distance <= MAX_DISTANCE && distance >= MIN_DISTANCE && status >= SIGNAL_THRESHOLD) {
+                if (distance <= instance._MAX_DISTANCE && distance >= instance._MIN_DISTANCE && status >= instance._SIGNAL_THRESHOLD) {
                     // Update the history for this valid point
                     update_point_history(row_index, col_index, static_cast<float>(distance));
                 } else {
@@ -179,7 +181,7 @@ bool MultizoneTofSensor::process_obstacle_detection(const VL53L7CX_ResultsData& 
 
 // Initialize the point histories
 void MultizoneTofSensor::initialize_point_histories() {
-    for (auto& pointHistorie : pointHistories) {
+    for (auto& pointHistorie : _pointHistories) {
         for (int c = 0; c < ROI_COLS; c++) {
             pointHistorie[c].index = 0;
             pointHistorie[c].validReadings = 0;
@@ -194,26 +196,28 @@ void MultizoneTofSensor::initialize_point_histories() {
 
 // Update the history for a specific point
 void MultizoneTofSensor::update_point_history(int row_index, int col_index, float distance) {
+    MultizoneTofSensor& instance = MultizoneTofSensor::get_instance();
     // Update the history for this point
-    pointHistories[row_index][col_index].distances[pointHistories[row_index][col_index].index] = distance;
-    pointHistories[row_index][col_index].index = (pointHistories[row_index][col_index].index + 1) % HISTORY_SIZE;
+    instance._pointHistories[row_index][col_index].distances[instance._pointHistories[row_index][col_index].index] = distance;
+    instance._pointHistories[row_index][col_index].index = (instance._pointHistories[row_index][col_index].index + 1) % HISTORY_SIZE;
 
     // Increment valid readings counter (up to HISTORY_SIZE)
-    if (pointHistories[row_index][col_index].validReadings < HISTORY_SIZE) {
-        pointHistories[row_index][col_index].validReadings++;
+    if (instance._pointHistories[row_index][col_index].validReadings < HISTORY_SIZE) {
+        instance._pointHistories[row_index][col_index].validReadings++;
     }
 }
 
 // Check if a point has consistently detected an obstacle
 bool MultizoneTofSensor::is_point_obstacle_consistent(int row_index, int col_index) {
+    MultizoneTofSensor& instance = MultizoneTofSensor::get_instance();
     // If we don't have enough readings yet, return false
-    if (pointHistories[row_index][col_index].validReadings < HISTORY_SIZE) {
+    if (instance._pointHistories[row_index][col_index].validReadings < HISTORY_SIZE) {
         return false;
     }
 
     // Check if all readings in the history are below the threshold
-    for (float distance : pointHistories[row_index][col_index].distances) {
-        if (distance >= OBSTACLE_DISTANCE_THRESHOLD || distance <= 0) { // Skip invalid readings
+    for (float distance : instance._pointHistories[row_index][col_index].distances) {
+        if (distance >= instance._OBSTACLE_DISTANCE_THRESHOLD || distance <= 0) { // Skip invalid readings
             return false;
         }
     }
@@ -223,18 +227,19 @@ bool MultizoneTofSensor::is_point_obstacle_consistent(int row_index, int col_ind
 }
 
 bool MultizoneTofSensor::configure_sensor() {
+    MultizoneTofSensor& instance = MultizoneTofSensor::get_instance();
     // Configure sensor settings from configuration constants
-    sensor.vl53l7cx_set_resolution(TOF_RESOLUTION); // Use 8x8 resolution
+    instance._sensor.vl53l7cx_set_resolution(instance._TOF_RESOLUTION); // Use 8x8 resolution
 
-    sensor.vl53l7cx_set_ranging_frequency_hz(RANGING_FREQUENCY);
+    instance._sensor.vl53l7cx_set_ranging_frequency_hz(instance._RANGING_FREQUENCY);
     // Set target order to closest (better for obstacle avoidance)
-    // sensor.vl53l7cx_set_target_order(VL53L7CX_TARGET_ORDER_CLOSEST);
+    // instance._sensor.vl53l7cx_set_target_order(VL53L7CX_TARGET_ORDER_CLOSEST);
 
     // Apply the optimized filtering parameters
-    sensor.vl53l7cx_set_xtalk_margin(X_TALK_MARGIN);
-    sensor.vl53l7cx_set_sharpener_percent(SHARPENER_PERCENT);
-    sensor.vl53l7cx_set_integration_time_ms(INTEGRATION_TIME_MS);
-    sensor.vl53l7cx_enable_non_blocking_mode();
+    instance._sensor.vl53l7cx_set_xtalk_margin(instance._X_TALK_MARGIN);
+    instance._sensor.vl53l7cx_set_sharpener_percent(instance._SHARPENER_PERCENT);
+    instance._sensor.vl53l7cx_set_integration_time_ms(instance._INTEGRATION_TIME_MS);
+    instance._sensor.vl53l7cx_enable_non_blocking_mode();
 
     return true;
 }
@@ -243,16 +248,16 @@ bool MultizoneTofSensor::reset_sensor() {
     SerialQueueManager::get_instance().queue_message("MZ SENSOR RESET: Data stopped - performing recovery...");
 
     // Set sensor as inactive during reset
-    sensorActive = false;
+    _sensorActive = false;
 
     // Stop ranging
     stop_ranging();
     vTaskDelay(pdMS_TO_TICKS(100));
 
     // Reset just the sensor without touching I2C bus initialization
-    sensor.begin();
+    _sensor.begin();
 
-    if (sensor.init_sensor() != 0) {
+    if (_sensor.init_sensor() != 0) {
         SerialQueueManager::get_instance().queue_message("Failed to reinitialize sensor!");
         return false;
     }
@@ -267,17 +272,18 @@ bool MultizoneTofSensor::reset_sensor() {
     start_ranging();
 
     // Reset watchdog timer
-    lastValidDataTime = millis();
+    _lastValidDataTime = millis();
 
     // Set sensor as active again
-    sensorActive = true;
+    _sensorActive = true;
 
     SerialQueueManager::get_instance().queue_message("Sensor reset complete");
     return true;
 }
 
 bool MultizoneTofSensor::check_watchdog() {
-    if (millis() - _lastValidDataTime > _WATCHDOG_TIMEOUT) {
+    MultizoneTofSensor& instance = MultizoneTofSensor::get_instance();
+    if (millis() - instance._lastValidDataTime > instance._WATCHDOG_TIMEOUT) {
         return false; // Watchdog timeout
     }
     return true; // Watchdog OK
@@ -293,7 +299,7 @@ void MultizoneTofSensor::stop_ranging() {
 
 void MultizoneTofSensor::turn_off_sensor() {
     stop_ranging();
-    sensor.vl53l7cx_set_power_mode(VL53L7CX_POWER_MODE_SLEEP);
+    _sensor.vl53l7cx_set_power_mode(VL53L7CX_POWER_MODE_SLEEP);
     _sensorActive = false;
     _sensorEnabled = false;
     _isInitialized = false;
@@ -302,6 +308,7 @@ void MultizoneTofSensor::turn_off_sensor() {
 }
 
 float MultizoneTofSensor::calculate_front_distance(const VL53L7CX_ResultsData& raw_data) {
+    MultizoneTofSensor& instance = MultizoneTofSensor::get_instance();
     float min_distance = 9999.0f; // Start with very large value
     bool found_valid_reading = false;
 
@@ -320,7 +327,7 @@ float MultizoneTofSensor::calculate_front_distance(const VL53L7CX_ResultsData& r
             uint8_t status = raw_data.target_status[index];
 
             // Apply same filtering as obstacle detection
-            if (distance <= MAX_DISTANCE && distance >= MIN_DISTANCE && status >= SIGNAL_THRESHOLD) {
+            if (distance <= instance._MAX_DISTANCE && distance >= instance._MIN_DISTANCE && status >= instance._SIGNAL_THRESHOLD) {
                 if (distance < min_distance) {
                     min_distance = distance;
                     found_valid_reading = true;

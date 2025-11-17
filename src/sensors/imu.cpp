@@ -35,7 +35,7 @@ void ImuSensor::update_enabled_reports() {
     }
 
     // Enable/disable accelerometer reports (unchanged)
-    bool should_enable_accel = ReportTimeouts::should_enable_accelerometer();
+    bool should_enable_accel = timeouts.should_enable_accelerometer();
     if (should_enable_accel && !_enabledReports.accelerometer) {
         enable_accelerometer();
     } else if (!should_enable_accel && _enabledReports.accelerometer) {
@@ -43,7 +43,7 @@ void ImuSensor::update_enabled_reports() {
     }
 
     // Enable/disable gyroscope reports (unchanged)
-    bool should_enable_gyro = ReportTimeouts::should_enable_gyroscope();
+    bool should_enable_gyro = timeouts.should_enable_gyroscope();
     if (should_enable_gyro && !_enabledReports.gyroscope) {
         enable_gyroscope();
     } else if (!should_enable_gyro && _enabledReports.gyroscope) {
@@ -51,7 +51,7 @@ void ImuSensor::update_enabled_reports() {
     }
 
     // Enable/disable magnetometer reports (unchanged)
-    bool should_enable_mag = ReportTimeouts::should_enable_magnetometer();
+    bool should_enable_mag = timeouts.should_enable_magnetometer();
     if (should_enable_mag && !_enabledReports.magneticField) {
         enable_magnetic_field();
     } else if (!should_enable_mag && _enabledReports.magneticField) {

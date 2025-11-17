@@ -15,7 +15,7 @@ class SideTofManager : public Singleton<SideTofManager> {
     SideTimeOfFlightSensor _rightSideTofSensor;
 
     // Following the established buffer pattern
-    static bool initialize();
+    bool initialize();
 
     void turn_off_side_tofs();
     SideTofManager() = default;
@@ -23,12 +23,12 @@ class SideTofManager : public Singleton<SideTofManager> {
     bool _isInitialized = false;
     bool _sensorsEnabled = false; // Track if sensors are actively enabled
 
-    static void enable_side_tof_sensors();
-    static void disable_side_tof_sensors();
+    void enable_side_tof_sensors();
+    void disable_side_tof_sensors();
 
     // New buffer-based methods following IMU/TOF pattern
-    static void update_sensor_data(); // Single read, write to buffer
-    static bool should_be_polling();
+    void update_sensor_data(); // Single read, write to buffer
+    bool should_be_polling();
 
     // Side TOFs
     const uint8_t LEFT_TOF_ADDRESS = 0x51;

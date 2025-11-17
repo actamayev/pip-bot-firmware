@@ -192,7 +192,7 @@ void SideTimeOfFlightSensor::apply_hardware_calibration(uint16_t baseline) {
     VCNL36828P_SET_PS_CANC(_sensorAddress, baseline);
 }
 
-uint16_t SideTimeOfFlightSensor::apply_calibration(uint16_t raw_reading) {
+uint16_t SideTimeOfFlightSensor::apply_calibration(uint16_t raw_reading) const {
     if (!_isCalibrated) {
         return raw_reading; // Return raw reading if not calibrated
     }
@@ -204,7 +204,7 @@ uint16_t SideTimeOfFlightSensor::apply_calibration(uint16_t raw_reading) {
 
     // Apply software calibration (subtract baseline)
     int32_t calibrated_reading = static_cast<int32_t>(raw_reading) - static_cast<int32_t>(_baselineValue);
-    calibrated_reading = std::max(calibratedReading, 0);
+    calibrated_reading = std::max(calibrated_reading, 0);
 
     return static_cast<uint16_t>(calibrated_reading);
 }
