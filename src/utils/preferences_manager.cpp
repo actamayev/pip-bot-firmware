@@ -24,9 +24,8 @@ bool PreferencesManager::beginNamespace(const char* ns) {
         _currentNamespace = ns;
     } else {
         _currentNamespace = "";
-        char logMessage[128];
-        snprintf(logMessage, sizeof(logMessage), "Failed to open preferences namespace: %s", ns);
-        SerialQueueManager::getInstance().queueMessage(logMessage);
+        const String LOG_MESSAGE = String("Failed to open preferences namespace: ") + ns;
+        SerialQueueManager::getInstance().queueMessage(LOG_MESSAGE);
     }
 
     return SUCCESS;
