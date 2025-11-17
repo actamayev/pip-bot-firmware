@@ -13,7 +13,7 @@ FirmwareVersionTracker::FirmwareVersionTracker() {
     httpUpdate.onProgress([this](int curr, int total) { this->update_progress_leds(curr, total); });
 
     // Set onEnd callback to update firmware version before reboot
-    httpUpdate.onEnd([this]() { PreferencesManager::get_instance().setFirmwareVersion(this->pendingVersion); });
+    httpUpdate.onEnd([this]() { PreferencesManager::get_instance().set_firmware_version(this->pendingVersion); });
 
     // Setup clients based on environment
     if (DEFAULT_ENVIRONMENT == "local") {
@@ -24,7 +24,7 @@ FirmwareVersionTracker::FirmwareVersionTracker() {
     }
 }
 
-void FirmwareVersionTracker::retrieve_latest_firmware_from_server(uint16_t newVersion) {
+void FirmwareVersionTracker::retrieve_latest_firmware_from_server(uint16_t new_version) {
     if (isRetrievingFirmwareFromServer || WiFi.status() != WL_CONNECTED) {
         SerialQueueManager::get_instance().queue_message("Cannot update: Either already updating or WiFi not connected");
         return;
@@ -32,17 +32,17 @@ void FirmwareVersionTracker::retrieve_latest_firmware_from_server(uint16_t newVe
 
     // Format it into a message
     char message[64];
-    snprintf(message, sizeof(message), "New Firmware Version: %d", newVersion);
+    snprintf(message, sizeof(message), "New Firmware Version: %d", new_version);
     SerialQueueManager::get_instance().queue_message(message, SerialPriority::NORMAL);
 
-    if (firmwareVersion >= newVersion) {
+    if (firmwareVersion >= new_version) {
         char buffer[128];
-        snprintf(buffer, sizeof(buffer), "Pip is up to date. Current version is: %d, new version is: %d\n", firmwareVersion, newVersion);
+        snprintf(buffer, sizeof(buffer), "Pip is up to date. Current version is: %d, new version is: %d\n", firmwareVersion, new_version);
         SerialQueueManager::get_instance().queue_message(buffer);
         return;
     }
 
-    pendingVersion = newVersion; // Store for the callback to use
+    pendingVersion = new_version; // Store for the callback to use
     isRetrievingFirmwareFromServer = true;
 
     // Get endpoint

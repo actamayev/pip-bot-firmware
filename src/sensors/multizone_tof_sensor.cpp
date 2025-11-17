@@ -122,41 +122,41 @@ void MultizoneTofSensor::disable_tof_sensor() {
     SerialQueueManager::get_instance().queue_message("MZ TOF sensor disabled due to timeout");
 }
 
-bool MultizoneTofSensor::process_obstacle_detection(const VL53L7CX_ResultsData& rawData) {
+bool MultizoneTofSensor::process_obstacle_detection(const VL53L7CX_ResultsData& raw_data) {
     // First update all point histories with current readings
-    for (int rowIdx = 0; rowIdx < ROI_ROWS; rowIdx++) {
-        int row = rowIdx + 3; // Convert to physical row (3-4)
+    for (int row_index = 0; row_index < ROI_ROWS; row_index++) {
+        int row = row_index + 3; // Convert to physical row (3-4)
 
-        for (int colIdx = 0; colIdx < ROI_COLS; colIdx++) {
-            int col = colIdx + 1; // Convert to physical column (1-6)
+        for (int col_index = 0; col_index < ROI_COLS; col_index++) {
+            int col = col_index + 1; // Convert to physical column (1-6)
 
             // Calculate the actual index in the sensor data array
             int index = row * 8 + col;
 
             // Check if we have valid data for this point
-            if (rawData.nb_target_detected[index] > 0) {
-                uint16_t distance = rawData.distance_mm[index];
-                uint8_t status = rawData.target_status[index];
+            if (raw_data.nb_target_detected[index] > 0) {
+                uint16_t distance = raw_data.distance_mm[index];
+                uint8_t status = raw_data.target_status[index];
 
                 // Apply filtering parameters
                 if (distance <= MAX_DISTANCE && distance >= MIN_DISTANCE && status >= SIGNAL_THRESHOLD) {
                     // Update the history for this valid point
-                    update_point_history(rowIdx, colIdx, (float)distance);
+                    update_point_history(row_index, col_index, (float)distance);
                 } else {
                     // For invalid readings, update with -1 (not usable)
-                    update_point_history(rowIdx, colIdx, -1.0f);
+                    update_point_history(row_index, col_index, -1.0f);
                 }
             } else {
                 // No reading for this point, update with -1 (not usable)
-                update_point_history(rowIdx, colIdx, -1.0f);
+                update_point_history(row_index, col_index, -1.0f);
             }
         }
     }
 
     // Now check each point to see if any has consistently detected an obstacle
-    for (int rowIdx = 0; rowIdx < ROI_ROWS; rowIdx++) {
-        for (int colIdx = 0; colIdx < ROI_COLS; colIdx++) {
-            if (is_point_obstacle_consistent(rowIdx, colIdx)) {
+    for (int row_index = 0; row_index < ROI_ROWS; row_index++) {
+        for (int col_index = 0; col_index < ROI_COLS; col_index++) {
+            if (is_point_obstacle_consistent(row_index, col_index)) {
                 return true; // Found a point with consistent obstacle detection
             }
         }
@@ -181,28 +181,28 @@ void MultizoneTofSensor::initialize_point_histories() {
 }
 
 // Update the history for a specific point
-void MultizoneTofSensor::update_point_history(int rowIdx, int colIdx, float distance) {
+void MultizoneTofSensor::update_point_history(int row_index, int col_index, float distance) {
     // Update the history for this point
-    pointHistories[rowIdx][colIdx].distances[pointHistories[rowIdx][colIdx].index] = distance;
-    pointHistories[rowIdx][colIdx].index = (pointHistories[rowIdx][colIdx].index + 1) % HISTORY_SIZE;
+    pointHistories[row_index][col_index].distances[pointHistories[row_index][col_index].index] = distance;
+    pointHistories[row_index][col_index].index = (pointHistories[row_index][col_index].index + 1) % HISTORY_SIZE;
 
     // Increment valid readings counter (up to HISTORY_SIZE)
-    if (pointHistories[rowIdx][colIdx].validReadings < HISTORY_SIZE) {
-        pointHistories[rowIdx][colIdx].validReadings++;
+    if (pointHistories[row_index][col_index].validReadings < HISTORY_SIZE) {
+        pointHistories[row_index][col_index].validReadings++;
     }
 }
 
 // Check if a point has consistently detected an obstacle
-bool MultizoneTofSensor::is_point_obstacle_consistent(int rowIdx, int colIdx) {
+bool MultizoneTofSensor::is_point_obstacle_consistent(int row_index, int col_index) {
     // If we don't have enough readings yet, return false
-    if (pointHistories[rowIdx][colIdx].validReadings < HISTORY_SIZE) {
+    if (pointHistories[row_index][col_index].validReadings < HISTORY_SIZE) {
         return false;
     }
 
     // Check if all readings in the history are below the threshold
     for (int i = 0; i < HISTORY_SIZE; i++) {
-        if (pointHistories[rowIdx][colIdx].distances[i] >= OBSTACLE_DISTANCE_THRESHOLD ||
-            pointHistories[rowIdx][colIdx].distances[i] <= 0) { // Skip invalid readings
+        if (pointHistories[row_index][col_index].distances[i] >= OBSTACLE_DISTANCE_THRESHOLD ||
+            pointHistories[row_index][col_index].distances[i] <= 0) { // Skip invalid readings
             return false;
         }
     }
@@ -290,23 +290,23 @@ void MultizoneTofSensor::turn_off_sensor() {
     initialize_point_histories();
 }
 
-float MultizoneTofSensor::calculate_front_distance(const VL53L7CX_ResultsData& rawData) {
+float MultizoneTofSensor::calculate_front_distance(const VL53L7CX_ResultsData& raw_data) {
     float minDistance = 9999.0f; // Start with very large value
     bool foundValidReading = false;
 
     // Scan through the front-center zones (row 5, columns 3-4)
     int row = 5; // Only use row 5 (close to the top)
 
-    for (int colIdx = 0; colIdx < 2; colIdx++) { // 2 columns (3-4)
-        int col = colIdx + 3;                    // Convert to physical column (3-4)
+    for (int col_index = 0; col_index < 2; col_index++) { // 2 columns (3-4)
+        int col = col_index + 3;                          // Convert to physical column (3-4)
 
         // Calculate the actual index in the sensor data array
         int index = row * 8 + col;
 
         // Check if we have valid data for this point
-        if (rawData.nb_target_detected[index] > 0) {
-            uint16_t distance = rawData.distance_mm[index];
-            uint8_t status = rawData.target_status[index];
+        if (raw_data.nb_target_detected[index] > 0) {
+            uint16_t distance = raw_data.distance_mm[index];
+            uint8_t status = raw_data.target_status[index];
 
             // Apply same filtering as obstacle detection
             if (distance <= MAX_DISTANCE && distance >= MIN_DISTANCE && status >= SIGNAL_THRESHOLD) {

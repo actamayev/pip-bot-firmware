@@ -39,10 +39,10 @@ class MultizoneTofSensor : public Singleton<MultizoneTofSensor> {
 
     // Point history tracking for obstacle detection
     void initialize_point_histories();
-    void update_point_history(int rowIdx, int colIdx, float distance);
-    bool is_point_obstacle_consistent(int rowIdx, int colIdx);
-    bool process_obstacle_detection(const VL53L7CX_ResultsData& rawData);
-    float calculate_front_distance(const VL53L7CX_ResultsData& rawData);
+    void update_point_history(int row_index, int col_index, float distance);
+    bool is_point_obstacle_consistent(int row_index, int col_index);
+    bool process_obstacle_detection(const VL53L7CX_ResultsData& raw_data);
+    float calculate_front_distance(const VL53L7CX_ResultsData& raw_data);
 
     // Configuration parameters
     uint16_t MAX_DISTANCE = 1000;                     // Maximum valid distance (mm)

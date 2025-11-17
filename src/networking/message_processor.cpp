@@ -131,10 +131,10 @@ void MessageProcessor::process_binary_message(const uint8_t* data, uint16_t leng
                 SerialQueueManager::get_instance().queue_message("Invalid update available message length");
             } else {
                 // Extract the firmware version from bytes 1-2
-                uint16_t newVersion = data[1] | (data[2] << 8); // Little-endian conversion
+                uint16_t new_version = data[1] | (data[2] << 8); // Little-endian conversion
 
-                // SerialQueueManager::get_instance().queue_message("New firmware version available: %d\n", newVersion);
-                FirmwareVersionTracker::get_instance().retrieve_latest_firmware_from_server(newVersion);
+                // SerialQueueManager::get_instance().queue_message("New firmware version available: %d\n", new_version);
+                FirmwareVersionTracker::get_instance().retrieve_latest_firmware_from_server(new_version);
             }
             break;
         }
@@ -548,14 +548,14 @@ void MessageProcessor::process_binary_message(const uint8_t* data, uint16_t leng
         case DataMessageType::FORGET_NETWORK: {
             if (length < 2) {
                 SerialQueueManager::get_instance().queue_message("Invalid forget network message length");
-                SerialManager::get_instance().sendNetworkDeletedResponse(false);
+                SerialManager::get_instance().send_network_deleted_response(false);
                 break;
             }
 
             uint8_t ssidLength = data[1];
             if (ssidLength == 0 || 2 + ssidLength != length) {
                 SerialQueueManager::get_instance().queue_message("Invalid SSID length in forget network message");
-                SerialManager::get_instance().sendNetworkDeletedResponse(false);
+                SerialManager::get_instance().send_network_deleted_response(false);
                 break;
             }
 
@@ -568,7 +568,7 @@ void MessageProcessor::process_binary_message(const uint8_t* data, uint16_t leng
             if (WiFiManager::get_instance().isConnectedToSSID(ssid)) {
                 if (!SerialManager::get_instance().is_serial_connected()) {
                     SerialQueueManager::get_instance().queue_message("Cannot forget currently connected network without serial connection");
-                    SerialManager::get_instance().sendNetworkDeletedResponse(false);
+                    SerialManager::get_instance().send_network_deleted_response(false);
                     break;
                 }
                 // Disconnect from WiFi before forgetting
@@ -576,8 +576,8 @@ void MessageProcessor::process_binary_message(const uint8_t* data, uint16_t leng
             }
 
             // Attempt to forget the network
-            bool success = PreferencesManager::get_instance().forgetWiFiNetwork(ssid);
-            SerialManager::get_instance().sendNetworkDeletedResponse(success);
+            bool success = PreferencesManager::get_instance().forget_wifi_network(ssid);
+            SerialManager::get_instance().send_network_deleted_response(success);
             break;
         }
         default:
