@@ -17,7 +17,7 @@ class ColorSensor : public Singleton<ColorSensor> {
     void read_color_sensor();
     void calibrate_black_point();
     void calibrate_white_point();
-    void print_calibration_values();
+    void print_calibration_values() const;
     void enable_color_sensor();
     void disable_color_sensor();
 
