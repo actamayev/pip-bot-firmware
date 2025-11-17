@@ -4,26 +4,26 @@
 // Operation codes (opcodes)
 enum BytecodeOpCode : uint32_t {
     // System operations
-    OP_NOP = 0x00,      // No operation
-    OP_END = 0x01,      // End sequence
-    OP_WAIT = 0x02,    // Delay (s)
+    OP_NOP = 0x00,  // No operation
+    OP_END = 0x01,  // End sequence
+    OP_WAIT = 0x02, // Delay (s)
     OP_WAIT_FOR_BUTTON = 0x03,
     CHECK_RIGHT_BUTTON_PRESS = 0x04,
 
     OP_SET_ALL_LEDS = 0x11, // Set all LEDs
-    
-    // Reserved for future extensions
-    OP_READ_SENSOR = 0x20,  // Reserved for sensors
-    
-    // Control flow operations
-    OP_COMPARE = 0x30,      // Compare values
-    OP_JUMP = 0x31,         // Unconditional jump
-    OP_JUMP_IF_TRUE = 0x32, // Jump if comparison was true
-    OP_JUMP_IF_FALSE = 0x33, // Jump if comparison was false
-    OP_WHILE_START = 0x34,  // Marks the start of a while loop
-    OP_WHILE_END = 0x35,    // End of while loop, jumps back to start
 
-    OP_FOR_INIT = 0x36,     // Initialize loop counter
+    // Reserved for future extensions
+    OP_READ_SENSOR = 0x20, // Reserved for sensors
+
+    // Control flow operations
+    OP_COMPARE = 0x30,       // Compare values
+    OP_JUMP = 0x31,          // Unconditional jump
+    OP_JUMP_IF_TRUE = 0x32,  // Jump if comparison was true
+    OP_JUMP_IF_FALSE = 0x33, // Jump if comparison was false
+    OP_WHILE_START = 0x34,   // Marks the start of a while loop
+    OP_WHILE_END = 0x35,     // End of while loop, jumps back to start
+
+    OP_FOR_INIT = 0x36,      // Initialize loop counter
     OP_FOR_CONDITION = 0x37, // Check loop condition
     OP_FOR_INCREMENT = 0x38, // Increment loop counter
     OP_JUMP_BACKWARD = 0x39, // Backward jump (for loops)
@@ -33,23 +33,23 @@ enum BytecodeOpCode : uint32_t {
     OP_SET_VAR = 0x41,
 
     OP_MOTOR_GO = 0x50,   // Forward movement at specified throttle
-    OP_MOTOR_STOP = 0x52,      // Stop all motors
-    OP_MOTOR_TURN = 0x53,      // Turn by specified degrees
+    OP_MOTOR_STOP = 0x52, // Stop all motors
+    OP_MOTOR_TURN = 0x53, // Turn by specified degrees
     OP_MOTOR_GO_TIME = 0x54,
     OP_MOTOR_GO_DISTANCE = 0x56,
-    MOTOR_SPIN = 0x57,        // Spin motors in opposite directions
+    MOTOR_SPIN = 0x57, // Spin motors in opposite directions
 
     PLAY_TONE = 0x61,
 };
 
 // Comparison operators
 enum ComparisonOp : uint8_t {
-    OP_EQUAL = 0x01,          // ==
-    OP_NOT_EQUAL = 0x02,      // !=
-    OP_GREATER_THAN = 0x03,   // >
-    OP_LESS_THAN = 0x04,      // 
-    OP_GREATER_EQUAL = 0x05,  // >=
-    OP_LESS_EQUAL = 0x06,     // <=
+    OP_EQUAL = 0x01,         // ==
+    OP_NOT_EQUAL = 0x02,     // !=
+    OP_GREATER_THAN = 0x03,  // >
+    OP_LESS_THAN = 0x04,     //
+    OP_GREATER_EQUAL = 0x05, // >=
+    OP_LESS_EQUAL = 0x06,    // <=
 };
 
 enum BytecodeSensorType : uint8_t {
@@ -78,29 +78,17 @@ enum BytecodeSensorType : uint8_t {
     FRONT_TOF_DISTANCE = 22
 };
 
-enum ToneType : uint8_t {
-    TONE_A = 1,
-    TONE_B = 2,
-    TONE_C = 3,
-    TONE_D = 4,
-    TONE_E = 5,
-    TONE_F = 6,
-    TONE_G = 7
-};
+enum ToneType : uint8_t { TONE_A = 1, TONE_B = 2, TONE_C = 3, TONE_D = 4, TONE_E = 5, TONE_F = 6, TONE_G = 7 };
 
-enum BytecodeVarType : uint8_t {
-    VAR_FLOAT = 0x01,
-    VAR_INT = 0x02,
-    VAR_BOOL = 0x03
-};
+enum BytecodeVarType : uint8_t { VAR_FLOAT = 0x01, VAR_INT = 0x02, VAR_BOOL = 0x03 };
 
 // A single bytecode instruction (10 bytes)
 struct BytecodeInstruction {
-    BytecodeOpCode opcode;  // What operation to perform (4 bytes)
-    float operand1;       // 4 bytes
-    float operand2;       // 4 bytes
-    float operand3;       // 4 bytes
-    float operand4;       // 4 bytes
+    BytecodeOpCode opcode; // What operation to perform (4 bytes)
+    float operand1;        // 4 bytes
+    float operand2;        // 4 bytes
+    float operand3;        // 4 bytes
+    float operand4;        // 4 bytes
 };
 
 namespace color_types {

@@ -1,36 +1,36 @@
 #pragma once
-#include "utils/singleton.h"
-#include "utils/config.h"
-#include "side_time_of_flight_sensor.h"
-#include "sensor_data_buffer.h"
 #include "networking/serial_queue_manager.h"
+#include "sensor_data_buffer.h"
+#include "side_time_of_flight_sensor.h"
+#include "utils/config.h"
+#include "utils/singleton.h"
 
 class SideTofManager : public Singleton<SideTofManager> {
     friend class Singleton<SideTofManager>;
     friend class TaskManager;
     friend class SensorInitializer;
-    
-    private:
-      SideTimeOfFlightSensor _leftSideTofSensor;
-      SideTimeOfFlightSensor _rightSideTofSensor;
 
-      // Following the established buffer pattern
-      static bool initialize();
+  private:
+    SideTimeOfFlightSensor _leftSideTofSensor;
+    SideTimeOfFlightSensor _rightSideTofSensor;
 
-      void turn_off_side_tofs();
-      SideTofManager() = default;
+    // Following the established buffer pattern
+    static bool initialize();
 
-      bool _isInitialized = false;
-      bool _sensorsEnabled = false; // Track if sensors are actively enabled
+    void turn_off_side_tofs();
+    SideTofManager() = default;
 
-      static void enable_side_tof_sensors();
-      static void disable_side_tof_sensors();
+    bool _isInitialized = false;
+    bool _sensorsEnabled = false; // Track if sensors are actively enabled
 
-      // New buffer-based methods following IMU/TOF pattern
-      static void update_sensor_data(); // Single read, write to buffer
-      static bool should_be_polling();
+    static void enable_side_tof_sensors();
+    static void disable_side_tof_sensors();
 
-      // Side TOFs
-      const uint8_t LEFT_TOF_ADDRESS = 0x51;
-      const uint8_t RIGHT_TOF_ADDRESS = 0x60;
+    // New buffer-based methods following IMU/TOF pattern
+    static void update_sensor_data(); // Single read, write to buffer
+    static bool should_be_polling();
+
+    // Side TOFs
+    const uint8_t LEFT_TOF_ADDRESS = 0x51;
+    const uint8_t RIGHT_TOF_ADDRESS = 0x60;
 };
