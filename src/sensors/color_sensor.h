@@ -11,7 +11,7 @@ class ColorSensor : public Singleton<ColorSensor> {
     friend class SensorInitializer;
 
   private:
-    ColorSensor() = default;
+    ColorSensor() : _color_sensor_data{0, 0, 0} {}
     bool initialize();
     void read_color_sensor();
     void calibrate_black_point();
