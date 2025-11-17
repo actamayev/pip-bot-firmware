@@ -23,7 +23,7 @@ void ObstacleAvoider::update() {
     }
 
     uint32_t current_time = millis();
-    if (current_time - _lastUpdateTime < _UPDATE_INTERVAL) {
+    if (current_time - _lastUpdateTime < UPDATE_INTERVAL) {
         return; // Maintain update rate
     }
     _lastUpdateTime = current_time;

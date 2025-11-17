@@ -16,7 +16,7 @@ class BatteryMonitor : public Singleton<BatteryMonitor> {
     friend class TaskManager;
 
   public:
-    static bool initialize();
+    bool initialize();
     const BatteryState& get_battery_state() const {
         return _batteryState;
     }
@@ -36,7 +36,7 @@ class BatteryMonitor : public Singleton<BatteryMonitor> {
     ~BatteryMonitor() = default;
 
     // Update battery readings (call this periodically)
-    static void update_battery_state();
+    void update_battery_state();
 
     // Configuration constants
     static constexpr uint32_t DEFAULT_BATTERY_CAPACITY = 1800; // mAh
