@@ -16,7 +16,9 @@ bool SerialQueueManager::queueMessage(const String& msg, SerialPriority priority
 }
 
 bool SerialQueueManager::queueMessage(const char* msg, SerialPriority priority) {
-    if (_messageQueue == nullptr || msg == nullptr) return false;
+    if (_messageQueue == nullptr || msg == nullptr) {
+        return false;
+    }
 
     // Create message structure
     SerialMessage message;
@@ -40,14 +42,18 @@ bool SerialQueueManager::addMessageToQueue(const SerialMessage& msg) {
     // Try to send to queue without blocking
     BaseType_t result = xQueueSend(_messageQueue, &msg, 0);
 
-    if (result == pdPASS) return true; // Successfully queued
+    if (result == pdPASS) {
+        return true; // Successfully queued
+    }
 
     // Queue is full - remove oldest message to make room
     SerialMessage oldMessage;
     if (xQueueReceive(_messageQueue, &oldMessage, 0) == pdPASS) {
         // Now try to add the new message
         result = xQueueSend(_messageQueue, &msg, 0);
-        if (result == pdPASS) return true;
+        if (result == pdPASS) {
+            return true;
+        }
     }
 
     return false;

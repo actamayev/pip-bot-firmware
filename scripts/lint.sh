@@ -17,6 +17,7 @@ case "$1" in
             --config-file=.clang-tidy \
             --header-filter='^src/.*' \
             --fix \
+            --fix-errors \
             --extra-arg=-Wno-unknown-attributes \
             -p . \
             "$2"
