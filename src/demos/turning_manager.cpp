@@ -2,12 +2,12 @@
 
 bool TurningManager::startTurn(float degrees) {
     if (currentState != TurningState::IDLE) {
-        SerialQueueManager::get_instance().queueMessage("Turn already in progress!");
+        SerialQueueManager::get_instance().queue_message("Turn already in progress!");
         return false; // Turn already in progress
     }
 
     if (abs(degrees) < 0.1f) {
-        SerialQueueManager::get_instance().queueMessage("Invalid turn angle!");
+        SerialQueueManager::get_instance().queue_message("Invalid turn angle!");
         return false; // Invalid turn angle
     }
 
@@ -53,7 +53,7 @@ void TurningManager::update() {
     if (currentState == TurningState::OVERSHOOT_BRAKING) {
         if (millis() - overshootBrakeStartTime >= OVERSHOOT_BRAKE_DURATION) {
             currentState = TurningState::TURNING;
-            SerialQueueManager::get_instance().queueMessage("Overshoot braking complete - resuming");
+            SerialQueueManager::get_instance().queue_message("Overshoot braking complete - resuming");
         } else {
             motorDriver.brake_both_motors();
             return;
@@ -67,7 +67,7 @@ void TurningManager::update() {
     if (checkOvershoot(remainingAngle)) {
         char logMessage[80];
         snprintf(logMessage, sizeof(logMessage), "High-speed overshoot detected! Braking for %dms", (int)OVERSHOOT_BRAKE_DURATION);
-        SerialQueueManager::get_instance().queueMessage(logMessage);
+        SerialQueueManager::get_instance().queue_message(logMessage);
         currentState = TurningState::OVERSHOOT_BRAKING;
         overshootBrakeStartTime = millis();
         motorDriver.brake_both_motors();
@@ -89,7 +89,7 @@ void TurningManager::update() {
     // Check completion
     if (checkCompletion()) {
         resetTurnState();
-        SerialQueueManager::get_instance().queueMessage("Turn completed");
+        SerialQueueManager::get_instance().queue_message("Turn completed");
         return;
     }
 
@@ -213,7 +213,7 @@ bool TurningManager::checkCompletion() {
             completionStartTime = millis();
             char logMessage[80];
             snprintf(logMessage, sizeof(logMessage), "Approaching completion: Remaining=%.2f°, Vel=%.2f°/s", remainingAngle, currentVelocity);
-            SerialQueueManager::get_instance().queueMessage(logMessage);
+            SerialQueueManager::get_instance().queue_message(logMessage);
         }
 
         // Check if we've been in completion zone for required time
@@ -223,7 +223,7 @@ bool TurningManager::checkCompletion() {
                 motorDriver.brake_both_motors();
                 char logMessage[80];
                 snprintf(logMessage, sizeof(logMessage), "Turn complete! Final error: %.2f°", remainingAngle);
-                SerialQueueManager::get_instance().queueMessage(logMessage);
+                SerialQueueManager::get_instance().queue_message(logMessage);
                 return true;
             }
         }
@@ -232,7 +232,7 @@ bool TurningManager::checkCompletion() {
         if (completionStartTime != 0) {
             completionStartTime = 0;
             completionConfirmed = false;
-            SerialQueueManager::get_instance().queueMessage("Moved out of completion zone, resetting timer");
+            SerialQueueManager::get_instance().queue_message("Moved out of completion zone, resetting timer");
         }
     }
 
@@ -251,7 +251,7 @@ void TurningManager::applyMotorControl(uint16_t pwm, float velocityError) {
 
     // Allow direction changes when needed (overshoot correction)
     if (requiredDirection != currentDirection && currentDirection != TurningDirection::NONE) {
-        SerialQueueManager::get_instance().queueMessage("Direction change (overshoot correction)");
+        SerialQueueManager::get_instance().queue_message("Direction change (overshoot correction)");
 
         // Stop briefly before changing direction
         motorDriver.brake_both_motors();
@@ -272,7 +272,7 @@ bool TurningManager::checkOvershoot(float remainingAngle) {
     // Backup: reactive check for actual overshoot
     bool movingAwayFromTarget = (remainingAngle > 0 && currentVelocity < 0) || (remainingAngle < 0 && currentVelocity > 0);
     if (movingAwayFromTarget) {
-        SerialQueueManager::get_instance().queueMessage("REACTIVE: Already overshot!");
+        SerialQueueManager::get_instance().queue_message("REACTIVE: Already overshot!");
         return true;
     }
 
@@ -284,7 +284,7 @@ bool TurningManager::checkOvershoot(float remainingAngle) {
             char logMessage[120];
             snprintf(logMessage, sizeof(logMessage), "PREDICTIVE: Too fast! Time to target: %.1fms, Remaining: %.1f°, Vel: %.1f°/s", timeToTarget,
                      remainingAngle, currentVelocity);
-            SerialQueueManager::get_instance().queueMessage(logMessage);
+            SerialQueueManager::get_instance().queue_message(logMessage);
             return true;
         }
     }

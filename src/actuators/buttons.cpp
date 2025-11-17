@@ -148,7 +148,7 @@ void Buttons::set_right_button_click_handler(std::function<void(Button2&)> callb
 
         // Otherwise, proceed with normal click handling - check games first
         if (GameManager::get_instance().isAnyGameActive()) {
-            GameManager::get_instance().handleButtonPress(true); // Right button pressed
+            GameManager::get_instance().handle_button_press(true); // Right button pressed
         } else if (originalCallback) {
             originalCallback(btn);
         }
@@ -196,10 +196,10 @@ void Buttons::setup_deep_sleep() {
 }
 
 void Buttons::enter_deep_sleep() {
-    if (SerialManager::get_instance().isSerialConnected()) {
-        SerialManager::get_instance().sendPipTurningOff();
-    } else if (WebSocketManager::get_instance().isWsConnected()) {
-        WebSocketManager::get_instance().sendPipTurningOff();
+    if (SerialManager::get_instance().is_serial_connected()) {
+        SerialManager::get_instance().send_pip_turning_off();
+    } else if (WebSocketManager::get_instance().is_ws_connected()) {
+        WebSocketManager::get_instance().send_pip_turning_off();
     }
 
     digitalWrite(PWR_EN, LOW);

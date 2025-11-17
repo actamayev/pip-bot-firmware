@@ -642,7 +642,7 @@ void CareerQuestTriggers::stopAllCareerQuestTriggers(bool shouldTurnLedsOff) {
 
     // Stop motors
     DanceManager::get_instance().stop_dance(false);
-    GameManager::get_instance().stopCurrentGame();
+    GameManager::get_instance().stop_current_game();
     DisplayScreen::get_instance().show_start_screen();
     SensorDataBuffer::get_instance().stopPollingAllSensors();
 }

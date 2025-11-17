@@ -1061,7 +1061,7 @@ void BytecodeVM::scanProgramForMotors() {
 }
 
 void BytecodeVM::checkUsbSafetyConditions() {
-    bool currentUsbState = SerialManager::get_instance().isSerialConnected();
+    bool currentUsbState = SerialManager::get_instance().is_serial_connected();
 
     // Detect USB connection change (disconnected -> connected)
     if (!lastUsbState && currentUsbState) {
@@ -1081,7 +1081,7 @@ void BytecodeVM::handleUsbConnect() {
 
 bool BytecodeVM::canStartProgram() {
     // Block start if program contains motors and USB is connected
-    if (!programContainsMotors || !SerialManager::get_instance().isSerialConnected()) return true;
+    if (!programContainsMotors || !SerialManager::get_instance().is_serial_connected()) return true;
 
     SerialManager::get_instance().sendJsonMessage(ToSerialMessage::MOTORS_DISABLED_USB,
                                                   "Cannot start motor program while USB connected - disconnect USB first");

@@ -11,7 +11,7 @@ void StraightLineDrive::enable() {
     // Initialize debug info
     _debugInfo.initialHeading = _initialHeading;
 
-    SerialQueueManager::get_instance().queueMessage("StraightLineDrive enabled (IMU-based)");
+    SerialQueueManager::get_instance().queue_message("StraightLineDrive enabled (IMU-based)");
 }
 
 void StraightLineDrive::disable() {
@@ -23,7 +23,7 @@ void StraightLineDrive::disable() {
     _initialHeading = 0.0f;
     _debugInfo = DebugInfo{}; // Reset debug info to default values
 
-    SerialQueueManager::get_instance().queueMessage("StraightLineDrive disabled");
+    SerialQueueManager::get_instance().queue_message("StraightLineDrive disabled");
 }
 
 void StraightLineDrive::update(int16_t& leftSpeed, int16_t& rightSpeed) {

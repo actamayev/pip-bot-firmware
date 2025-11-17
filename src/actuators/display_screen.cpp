@@ -299,10 +299,10 @@ void DisplayScreen::generate_content_to_buffer() {
         draw_centered_text("Lever Labs", 2, 2);
 
         // Show PipID below circle if WebSocket connected
-        if (WebSocketManager::get_instance().isWsConnected() && !WebSocketManager::get_instance().isUserConnectedToThisPip()) {
+        if (WebSocketManager::get_instance().is_ws_connected() && !WebSocketManager::get_instance().is_user_connected_to_this_pip()) {
             String pipId = PreferencesManager::get_instance().getPipId();
             draw_centered_text(pipId, 30, 3);
-        } else if (WebSocketManager::get_instance().isWsConnected() && WebSocketManager::get_instance().isUserConnectedToThisPip()) {
+        } else if (WebSocketManager::get_instance().is_ws_connected() && WebSocketManager::get_instance().is_user_connected_to_this_pip()) {
             draw_centered_text("Connected!", 30, 2);
         } else {
             display.fillCircle(display.width() / 2, 40, 10, SSD1306_WHITE);

@@ -10,23 +10,23 @@ void MessageProcessor::handle_motor_control(const uint8_t* data) {
 
 void MessageProcessor::handle_balance_command(BalanceStatus status) {
     if (status == BalanceStatus::BALANCED) {
-        DemoManager::get_instance().startDemo(demo::DemoType::BALANCE_CONTROLLER);
+        DemoManager::get_instance().start_demo(demo::DemoType::BALANCE_CONTROLLER);
         return;
     }
     // If balance controller is currently running, stop it
-    if (DemoManager::get_instance().getCurrentDemo() == demo::DemoType::BALANCE_CONTROLLER) {
-        DemoManager::get_instance().stopCurrentDemo();
+    if (DemoManager::get_instance().get_current_demo() == demo::DemoType::BALANCE_CONTROLLER) {
+        DemoManager::get_instance().stop_current_demo();
     }
 }
 
 void MessageProcessor::handle_obstacle_avoidance_command(ObstacleAvoidanceStatus status) {
     if (status == ObstacleAvoidanceStatus::AVOID) {
-        DemoManager::get_instance().startDemo(demo::DemoType::OBSTACLE_AVOIDER);
+        DemoManager::get_instance().start_demo(demo::DemoType::OBSTACLE_AVOIDER);
         return;
     }
     // If obstacle avoider is currently running, stop it
-    if (DemoManager::get_instance().getCurrentDemo() == demo::DemoType::OBSTACLE_AVOIDER) {
-        DemoManager::get_instance().stopCurrentDemo();
+    if (DemoManager::get_instance().get_current_demo() == demo::DemoType::OBSTACLE_AVOIDER) {
+        DemoManager::get_instance().stop_current_demo();
     }
 }
 
@@ -198,7 +198,7 @@ void MessageProcessor::process_binary_message(const uint8_t* data, uint16_t leng
             } else {
                 NewBalancePids newBalancePids;
                 memcpy(&newBalancePids, &data[1], sizeof(NewBalancePids));
-                BalanceController::get_instance().updateBalancePids(newBalancePids);
+                BalanceController::get_instance().update_balance_pids(newBalancePids);
             }
             break;
         }
@@ -451,10 +451,10 @@ void MessageProcessor::process_binary_message(const uint8_t* data, uint16_t leng
                                 careerQuestTriggers.stopS7P4ButtonDemo();
                                 break;
                             case MeetPipTriggerType::S7_P6_ENTER:
-                                GameManager::get_instance().startGame(Games::GameType::DINO_RUNNER);
+                                GameManager::get_instance().start_game(Games::GameType::DINO_RUNNER);
                                 break;
                             case MeetPipTriggerType::S7_P6_EXIT:
-                                GameManager::get_instance().stopCurrentGame();
+                                GameManager::get_instance().stop_current_game();
                                 break;
                             case MeetPipTriggerType::S8_P3_ENTER:
                                 SendSensorData::get_instance().setSendSensorData(true);
@@ -566,7 +566,7 @@ void MessageProcessor::process_binary_message(const uint8_t* data, uint16_t leng
 
             // Check if we're trying to forget the currently connected network
             if (WiFiManager::get_instance().isConnectedToSSID(ssid)) {
-                if (!SerialManager::get_instance().isSerialConnected()) {
+                if (!SerialManager::get_instance().is_serial_connected()) {
                     SerialQueueManager::get_instance().queue_message("Cannot forget currently connected network without serial connection");
                     SerialManager::get_instance().sendNetworkDeletedResponse(false);
                     break;

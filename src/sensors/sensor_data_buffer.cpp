@@ -461,7 +461,7 @@ bool SensorDataBuffer::should_enable_quaternion_extended() const {
     bool withinTimeout = timeouts.shouldEnableQuaternion();
 
     // Check if serial is connected
-    bool serialConnected = SerialManager::get_instance().isSerialConnected();
+    bool serialConnected = SerialManager::get_instance().is_serial_connected();
 
     // Check if bytecode program is loaded (including paused)
     bool programLoaded = BytecodeVM::get_instance().isProgramLoaded();

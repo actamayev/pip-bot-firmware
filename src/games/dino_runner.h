@@ -10,13 +10,13 @@ class DinoRunner : public Singleton<DinoRunner> {
     friend class GameManager;
     
     public:
-        void startGame();
-        void stopGame();
+        void start_game();
+        void stop_game();
         void update();
-        void handleButtonPress(bool rightPressed);
+        void handle_button_press(bool rightPressed);
         
         bool isGameActive() const { return gameActive; }
-        int getCurrentScore() const { return score; }
+        int get_current_score() const { return score; }
         
     private:
         DinoRunner() = default;
@@ -73,20 +73,20 @@ class DinoRunner : public Singleton<DinoRunner> {
         bool rightButtonPressed = false;
         
         // Game logic methods
-        void resetGame();
-        void spawnObstacle();
-        void updateObstacles(float dt);
-        void updateDino(float dt);
-        bool checkCollision(const Obstacle& o);
-        void gameOver();
+        void reset_game();
+        void spawn_obstacle();
+        void update_obstacles(float dt);
+        void update_dino(float dt);
+        bool check_collision(const Obstacle& o);
+        void game_over();
         
         // Drawing methods (using display buffer)
-        void drawToBuffer(uint8_t* buffer);
-        void drawDinoSprite(int x, int y, bool onGround, Adafruit_SSD1306& display);
-        void drawMenu(uint8_t* buffer);
-        void drawGameOver(uint8_t* buffer);
+        void draw_to_buffer(uint8_t* buffer);
+        void draw_dino_sprite(int x, int y, bool onGround, Adafruit_SSD1306& display);
+        void draw_menu(uint8_t* buffer);
+        void draw_game_over(uint8_t* buffer);
         
         // Buffer drawing utilities
-        void setPixel(uint8_t* buffer, int x, int y, bool on);
-        void fillRect(uint8_t* buffer, int x, int y, int w, int h, bool on);
+        void set_pixel(uint8_t* buffer, int x, int y, bool on);
+        void fill_rect(uint8_t* buffer, int x, int y, int w, int h, bool on);
 };

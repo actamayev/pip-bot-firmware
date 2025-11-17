@@ -3,15 +3,15 @@
 #include "networking/serial_manager.h"
 #include "networking/websocket_manager.h"
 
-void DinoRunner::startGame() {
+void DinoRunner::start_game() {
     if (gameActive) return;
 
-    SerialQueueManager::get_instance().queueMessage("Starting Dino Runner game");
+    SerialQueueManager::get_instance().queue_message("Starting Dino Runner game");
     gameActive = true;
     gameState = GameState::MENU;
 
     // Reset all game state
-    resetGame();
+    reset_game();
 
     lastFrameMs = millis();
     lastScoreMs = millis();
@@ -23,16 +23,16 @@ void DinoRunner::startGame() {
     }
 }
 
-void DinoRunner::stopGame() {
+void DinoRunner::stop_game() {
     if (!gameActive) return;
 
-    SerialQueueManager::get_instance().queueMessage("Stopping Dino Runner - Final score: " + String(score));
+    SerialQueueManager::get_instance().queue_message("Stopping Dino Runner - Final score: " + String(score));
     gameActive = false;
     gameState = GameState::MENU;
     score = 0;
 }
 
-void DinoRunner::resetGame() {
+void DinoRunner::reset_game() {
     // Reset dino
     dinoX = 20;
     dinoY = GROUND_Y - DINO_H;
@@ -53,7 +53,7 @@ void DinoRunner::resetGame() {
     lastFrameMs = millis();
 }
 
-void DinoRunner::handleButtonPress(bool rightPressed) {
+void DinoRunner::handle_button_press(bool rightPressed) {
     if (!gameActive) return;
 
     // Only respond to right button
@@ -72,14 +72,14 @@ void DinoRunner::update() {
 
     if (gameState == GameState::MENU) {
         if (rightButtonPressed) {
-            resetGame();
+            reset_game();
             gameState = GameState::RUNNING;
             rightButtonPressed = false;
         }
         // Draw menu to display buffer
         uint8_t buffer[DISPLAY_BUFFER_SIZE];
         memset(buffer, 0, DISPLAY_BUFFER_SIZE);
-        drawMenu(buffer);
+        draw_menu(buffer);
         DisplayScreen::get_instance().show_custom_buffer(buffer);
         return;
     }
@@ -93,11 +93,11 @@ void DinoRunner::update() {
         }
 
         // Update physics
-        updateDino(dt);
+        update_dino(dt);
 
         // Spawn obstacles
         if ((millis() - lastSpawnMs) >= spawnIntervalMs) {
-            spawnObstacle();
+            spawn_obstacle();
             lastSpawnMs = millis();
         }
 
@@ -112,7 +112,7 @@ void DinoRunner::update() {
         }
 
         // Update obstacles & check collisions
-        updateObstacles(dt);
+        update_obstacles(dt);
 
         // Update score
         if (millis() - lastScoreMs >= 100) {
@@ -123,11 +123,11 @@ void DinoRunner::update() {
         // Draw game to buffer
         uint8_t buffer[DISPLAY_BUFFER_SIZE];
         memset(buffer, 0, DISPLAY_BUFFER_SIZE);
-        drawToBuffer(buffer);
+        draw_to_buffer(buffer);
         DisplayScreen::get_instance().show_custom_buffer(buffer);
     } else if (gameState == GameState::GAME_OVER) {
         if (rightButtonPressed) {
-            resetGame();
+            reset_game();
             gameState = GameState::RUNNING;
             rightButtonPressed = false;
         }
@@ -135,12 +135,12 @@ void DinoRunner::update() {
         // Draw game over screen
         uint8_t buffer[DISPLAY_BUFFER_SIZE];
         memset(buffer, 0, DISPLAY_BUFFER_SIZE);
-        drawGameOver(buffer);
+        draw_game_over(buffer);
         DisplayScreen::get_instance().show_custom_buffer(buffer);
     }
 }
 
-void DinoRunner::updateDino(float dt) {
+void DinoRunner::update_dino(float dt) {
     // Apply gravity
     dinoVY += GRAVITY;
     if (dinoVY > MAX_FALL_VEL) dinoVY = MAX_FALL_VEL;
@@ -153,7 +153,7 @@ void DinoRunner::updateDino(float dt) {
     onGround = true;
 }
 
-void DinoRunner::spawnObstacle() {
+void DinoRunner::spawn_obstacle() {
     // Find free slot
     int slot = -1;
     for (int i = 0; i < MAX_OBSTACLES; ++i) {
@@ -171,7 +171,7 @@ void DinoRunner::spawnObstacle() {
     obstacles[slot].active = true;
 }
 
-void DinoRunner::updateObstacles(float dt) {
+void DinoRunner::update_obstacles(float dt) {
     for (int i = 0; i < MAX_OBSTACLES; ++i) {
         if (!obstacles[i].active) continue;
 
@@ -185,14 +185,14 @@ void DinoRunner::updateObstacles(float dt) {
         }
 
         // Collision check
-        if (checkCollision(obstacles[i])) {
-            gameOver();
+        if (check_collision(obstacles[i])) {
+            game_over();
             return;
         }
     }
 }
 
-bool DinoRunner::checkCollision(const Obstacle& o) {
+bool DinoRunner::check_collision(const Obstacle& o) {
     // Simple bounding box collision
     float dL = dinoX;
     float dR = dinoX + DINO_W;
@@ -209,20 +209,20 @@ bool DinoRunner::checkCollision(const Obstacle& o) {
     return (overlapX && overlapY);
 }
 
-void DinoRunner::gameOver() {
+void DinoRunner::game_over() {
     gameState = GameState::GAME_OVER;
-    SerialQueueManager::get_instance().queueMessage("Dino game over - Score: " + String(score));
+    SerialQueueManager::get_instance().queue_message("Dino game over - Score: " + String(score));
 
     // Send score via available communication channels
-    if (WebSocketManager::get_instance().isWsConnected()) {
-        WebSocketManager::get_instance().sendDinoScore(score);
-    } else if (SerialManager::get_instance().isSerialConnected()) {
-        SerialManager::get_instance().sendDinoScore(score);
+    if (WebSocketManager::get_instance().is_ws_connected()) {
+        WebSocketManager::get_instance().send_dino_score(score);
+    } else if (SerialManager::get_instance().is_serial_connected()) {
+        SerialManager::get_instance().send_dino_score(score);
     }
 }
 
 // Drawing methods using buffer manipulation
-void DinoRunner::setPixel(uint8_t* buffer, int x, int y, bool on) {
+void DinoRunner::set_pixel(uint8_t* buffer, int x, int y, bool on) {
     if (x < 0 || x >= SCREEN_WIDTH || y < 0 || y >= SCREEN_HEIGHT) return;
 
     int index = x + (y / 8) * SCREEN_WIDTH;
@@ -235,15 +235,15 @@ void DinoRunner::setPixel(uint8_t* buffer, int x, int y, bool on) {
     }
 }
 
-void DinoRunner::fillRect(uint8_t* buffer, int x, int y, int w, int h, bool on) {
+void DinoRunner::fill_rect(uint8_t* buffer, int x, int y, int w, int h, bool on) {
     for (int i = 0; i < w; i++) {
         for (int j = 0; j < h; j++) {
-            setPixel(buffer, x + i, y + j, on);
+            set_pixel(buffer, x + i, y + j, on);
         }
     }
 }
 
-void DinoRunner::drawDinoSprite(int x, int y, bool onGround, Adafruit_SSD1306& display) {
+void DinoRunner::draw_dino_sprite(int x, int y, bool onGround, Adafruit_SSD1306& display) {
     // Update animation frame
     if (millis() - lastAnimMs > ANIM_MS) {
         lastAnimMs = millis();
@@ -280,7 +280,7 @@ void DinoRunner::drawDinoSprite(int x, int y, bool onGround, Adafruit_SSD1306& d
     }
 }
 
-void DinoRunner::drawToBuffer(uint8_t* buffer) {
+void DinoRunner::draw_to_buffer(uint8_t* buffer) {
     DisplayScreen& displayScreen = DisplayScreen::get_instance();
 
     displayScreen.display.clearDisplay();
@@ -289,7 +289,7 @@ void DinoRunner::drawToBuffer(uint8_t* buffer) {
     displayScreen.display.drawLine(0, GROUND_Y, SCREEN_WIDTH, GROUND_Y, SSD1306_WHITE);
 
     // Draw dino sprite directly to display
-    drawDinoSprite((int)dinoX, (int)dinoY, onGround, displayScreen.display);
+    draw_dino_sprite((int)dinoX, (int)dinoY, onGround, displayScreen.display);
 
     // Draw obstacles directly to display
     for (int i = 0; i < MAX_OBSTACLES; ++i) {
@@ -307,7 +307,7 @@ void DinoRunner::drawToBuffer(uint8_t* buffer) {
     memcpy(buffer, displayScreen.display.getBuffer(), DISPLAY_BUFFER_SIZE);
 }
 
-void DinoRunner::drawMenu(uint8_t* buffer) {
+void DinoRunner::draw_menu(uint8_t* buffer) {
     DisplayScreen& display = DisplayScreen::get_instance();
 
     display.display.clearDisplay();
@@ -318,7 +318,7 @@ void DinoRunner::drawMenu(uint8_t* buffer) {
     memcpy(buffer, display.display.getBuffer(), DISPLAY_BUFFER_SIZE);
 }
 
-void DinoRunner::drawGameOver(uint8_t* buffer) {
+void DinoRunner::draw_game_over(uint8_t* buffer) {
     DisplayScreen& display = DisplayScreen::get_instance();
 
     display.display.clearDisplay();
