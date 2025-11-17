@@ -304,7 +304,7 @@ void MessageProcessor::process_binary_message(const uint8_t* data, uint16_t leng
             }
 
             // Test WiFi credentials before storing permanently
-            WiFiManager::get_instance().startWiFiCredentialTest(ssid, password);
+            WiFiManager::get_instance().start_wifi_credential_test(ssid, password);
 
             break;
         }
@@ -451,7 +451,7 @@ void MessageProcessor::process_binary_message(const uint8_t* data, uint16_t leng
                                 careerQuestTriggers.stop_s7_p4_button_demo();
                                 break;
                             case MeetPipTriggerType::S7_P6_ENTER:
-                                GameManager::get_instance().start_game(Games::GameType::DINO_RUNNER);
+                                GameManager::get_instance().start_game(games::GameType::DINO_RUNNER);
                                 break;
                             case MeetPipTriggerType::S7_P6_EXIT:
                                 GameManager::get_instance().stop_current_game();
@@ -463,7 +463,7 @@ void MessageProcessor::process_binary_message(const uint8_t* data, uint16_t leng
                             case MeetPipTriggerType::S8_P3_EXIT:
                                 SendSensorData::get_instance().set_color_sensor_data_enabled(false);
                                 SendSensorData::get_instance().set_send_sensor_data(false);
-                                SensorDataBuffer::get_instance().stopPollingSensor(SensorDataBuffer::SensorType::COLOR);
+                                SensorDataBuffer::get_instance().stop_polling_sensor(SensorDataBuffer::SensorType::COLOR);
                                 break;
                             case MeetPipTriggerType::S9_P3_ENTER:
                                 DanceManager::get_instance().start_dance();
@@ -537,10 +537,10 @@ void MessageProcessor::process_binary_message(const uint8_t* data, uint16_t leng
             } else {
                 UserConnectedStatus status = static_cast<UserConnectedStatus>(data[1]);
                 if (status == UserConnectedStatus::NOT_CONNECTED) {
-                    WebSocketManager::get_instance().setIsUserConnectedToThisPip(false);
+                    WebSocketManager::get_instance().set_is_user_connected_to_this_pip(false);
                 } else {
-                    WebSocketManager::get_instance().setIsUserConnectedToThisPip(true);
-                    BatteryMonitor::get_instance().send_battery_monitor_dataOverWebSocket();
+                    WebSocketManager::get_instance().set_is_user_connected_to_this_pip(true);
+                    BatteryMonitor::get_instance().send_battery_monitor_data_over_websocket();
                 }
             }
             break;
@@ -565,7 +565,7 @@ void MessageProcessor::process_binary_message(const uint8_t* data, uint16_t leng
             }
 
             // Check if we're trying to forget the currently connected network
-            if (WiFiManager::get_instance().isConnectedToSSID(ssid)) {
+            if (WiFiManager::get_instance().is_connected_to_ssid(ssid)) {
                 if (!SerialManager::get_instance().is_serial_connected()) {
                     SerialQueueManager::get_instance().queue_message("Cannot forget currently connected network without serial connection");
                     SerialManager::get_instance().send_network_deleted_response(false);

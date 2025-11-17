@@ -2,7 +2,7 @@
 
 #include "dino_runner.h"
 
-bool GameManager::start_game(Games::GameType gameType) {
+bool GameManager::start_game(games::GameType gameType) {
     if (gameType == _current_game) {
         SerialQueueManager::get_instance().queue_message("Game already running");
         return true;
@@ -10,7 +10,7 @@ bool GameManager::start_game(Games::GameType gameType) {
 
     // Stop current game if running
     DisplayScreen::get_instance().turn_display_on();
-    if (_current_game != Games::GameType::NONE) {
+    if (_current_game != games::GameType::NONE) {
         stop_current_game();
     }
 
@@ -18,18 +18,18 @@ bool GameManager::start_game(Games::GameType gameType) {
 }
 
 void GameManager::stop_current_game() {
-    if (_current_game == Games::GameType::NONE) return;
+    if (_current_game == games::GameType::NONE) return;
 
     SerialQueueManager::get_instance().queue_message("Stopping game: " + String(get_game_name(_current_game)));
     disable_current_game();
-    _current_game = Games::GameType::NONE;
+    _current_game = games::GameType::NONE;
 }
 
 void GameManager::update() {
-    if (_current_game == Games::GameType::NONE) return;
+    if (_current_game == games::GameType::NONE) return;
 
     switch (_current_game) {
-        case Games::GameType::DINO_RUNNER:
+        case games::GameType::DINO_RUNNER:
             DinoRunner::get_instance().update();
             break;
         default:
@@ -38,10 +38,10 @@ void GameManager::update() {
 }
 
 void GameManager::handle_button_press(bool right_pressed) {
-    if (_current_game == Games::GameType::NONE) return;
+    if (_current_game == games::GameType::NONE) return;
 
     switch (_current_game) {
-        case Games::GameType::DINO_RUNNER:
+        case games::GameType::DINO_RUNNER:
             DinoRunner::get_instance().handle_button_press(right_pressed);
             break;
         default:
@@ -51,7 +51,7 @@ void GameManager::handle_button_press(bool right_pressed) {
 
 void GameManager::disable_current_game() {
     switch (_current_game) {
-        case Games::GameType::DINO_RUNNER:
+        case games::GameType::DINO_RUNNER:
             DinoRunner::get_instance().stop_game();
             break;
         default:
@@ -59,12 +59,12 @@ void GameManager::disable_current_game() {
     }
 }
 
-bool GameManager::enable_game(Games::GameType gameType) {
+bool GameManager::enable_game(games::GameType gameType) {
     SerialQueueManager::get_instance().queue_message("Starting game: " + String(get_game_name(gameType)));
 
     bool success = false;
     switch (gameType) {
-        case Games::GameType::DINO_RUNNER:
+        case games::GameType::DINO_RUNNER:
             DinoRunner::get_instance().start_game();
             success = DinoRunner::get_instance().is_game_active();
             break;
@@ -83,11 +83,11 @@ bool GameManager::enable_game(Games::GameType gameType) {
     return success;
 }
 
-const char* GameManager::get_game_name(Games::GameType gameType) const {
+const char* GameManager::get_game_name(games::GameType gameType) const {
     switch (gameType) {
-        case Games::GameType::NONE:
+        case games::GameType::NONE:
             return "None";
-        case Games::GameType::DINO_RUNNER:
+        case games::GameType::DINO_RUNNER:
             return "Dino Runner";
         default:
             return "Unknown";
