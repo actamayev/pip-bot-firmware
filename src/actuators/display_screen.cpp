@@ -6,22 +6,23 @@
 
 // Initialize the display with explicit Wire reference
 bool DisplayScreen::init(bool show_startup) {
-    if (_initialized) {
-        return true; // Already  _initialized
+    DisplayScreen& instance = DisplayScreen::get_instance();
+    if (instance._initialized) {
+        return true; // Already initialized
     }
 
-    DisplayScreen::get_instance()._display = Adafruit_SSD1306(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
-    if (!DisplayScreen::get_instance()._display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
+    instance._display = Adafruit_SSD1306(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+    if (!instance._display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
         SerialQueueManager::get_instance().queue_message("SSD1306 allocation failed");
         return false;
     }
 
-    DisplayScreen::get_instance()._initialized = true;
-    DisplayScreen::get_instance()._perfStartTime = millis();
+    instance._initialized = true;
+    instance._perfStartTime = millis();
 
     // Initialize buffers
-    memset(DisplayScreen::get_instance()._stagingBuffer, 0, DISPLAY_BUFFER_SIZE);
-    memset(DisplayScreen::get_instance()._currentDisplayBuffer, 0, DISPLAY_BUFFER_SIZE);
+    memset(instance._stagingBuffer, 0, DISPLAY_BUFFER_SIZE);
+    memset(instance._currentDisplayBuffer, 0, DISPLAY_BUFFER_SIZE);
 
     turn_display_off();
 
@@ -320,10 +321,10 @@ void DisplayScreen::generate_content_to_buffer() {
     if (careerQuestTriggers.isS3P3Active()) {
         careerQuestTriggers.render_s3_p3_animation();
         // Copy display buffer to staging buffer
-        uint8_t* display_buffer = _display.getBuffer();
-        memcpy(_stagingBuffer, display_buffer, DISPLAY_BUFFER_SIZE);
-    } else if (!customScreenActive) {
-        _display.clearDisplay();
+        uint8_t* display_buffer = instance._display.getBuffer();
+        memcpy(instance._stagingBuffer, display_buffer, DISPLAY_BUFFER_SIZE);
+    } else if (!instance._customScreenActive) {
+        instance._display.clearDisplay();
 
         // Draw company name (smaller)
         draw_centered_text("Lever Labs", 2, 2);
@@ -335,63 +336,69 @@ void DisplayScreen::generate_content_to_buffer() {
         } else if (WebSocketManager::get_instance().is_ws_connected() && WebSocketManager::get_instance().is_user_connected_to_this_pip()) {
             draw_centered_text("Connected!", 30, 2);
         } else {
-            _display.fillCircle(_display.width() / 2, 40, 10, SSD1306_WHITE);
+            instance._display.fillCircle(instance._display.width() / 2, 40, 10, SSD1306_WHITE);
         }
 
         // Copy display buffer to staging buffer
-        uint8_t* display_buffer = _display.getBuffer();
-        memcpy(_stagingBuffer, display_buffer, DISPLAY_BUFFER_SIZE);
+        uint8_t* display_buffer = instance._display.getBuffer();
+        memcpy(instance._stagingBuffer, display_buffer, DISPLAY_BUFFER_SIZE);
     }
 }
 
 bool DisplayScreen::has_content_changed() {
-    return memcmp(_stagingBuffer, currentDisplayBuffer, DISPLAY_BUFFER_SIZE) != 0;
+    DisplayScreen& instance = DisplayScreen::get_instance();
+    return memcmp(instance._stagingBuffer, instance._currentDisplayBuffer, DISPLAY_BUFFER_SIZE) != 0;
 }
 
 void DisplayScreen::copy_current_buffer() {
-    memcpy(currentDisplayBuffer, stagingBuffer, DISPLAY_BUFFER_SIZE);
+    DisplayScreen& instance = DisplayScreen::get_instance();
+    memcpy(instance._currentDisplayBuffer, instance._stagingBuffer, DISPLAY_BUFFER_SIZE);
 }
 
 float DisplayScreen::get_display_update_rate() {
-    uint32_t elapsed = millis() - perfStartTime = 0 = 0 = 0;
+    DisplayScreen& instance = DisplayScreen::get_instance();
+    uint32_t elapsed = millis() - instance._perfStartTime;
     if (elapsed == 0) {
         return 0.0;
     }
-    return (float)displayUpdates * 1000.0 / (float)elapsed;
+    return (float)instance._displayUpdates * 1000.0 / (float)elapsed;
 }
 
 void DisplayScreen::reset_performance_counters() {
-    displayUpdates = 0;
-    contentGenerations = 0;
-    skippedUpdates = 0;
-    perfStartTime = millis();
+    DisplayScreen& instance = DisplayScreen::get_instance();
+    instance._displayUpdates = 0;
+    instance._contentGenerations = 0;
+    instance._skippedUpdates = 0;
+    instance._perfStartTime = millis();
 }
 
 void DisplayScreen::turn_display_off() {
-    if (!_initialized) {
+    DisplayScreen& instance = DisplayScreen::get_instance();
+    if (!instance._initialized) {
         return;
     }
 
-    displayOff = true;
-    _customScreenActive = false;
-    _isShowingStartScreen = false;
+    instance._displayOff = true;
+    instance._customScreenActive = false;
+    instance._isShowingStartScreen = false;
 
-    _display.clearDisplay();
-    _display.display();
+    instance._display.clearDisplay();
+    instance._display.display();
 
     SerialQueueManager::get_instance().queue_message("Display turned off");
 }
 
 void DisplayScreen::turn_display_on() {
-    if (!_initialized) {
+    DisplayScreen& instance = DisplayScreen::get_instance();
+    if (!instance._initialized) {
         return;
     }
 
-    displayOff = false;
+    instance._displayOff = false;
     SerialQueueManager::get_instance().queue_message("Display turned on");
 
     // Update buffer tracking
-    memset(_stagingBuffer, 0, DISPLAY_BUFFER_SIZE);
+    memset(instance._stagingBuffer, 0, DISPLAY_BUFFER_SIZE);
     copy_current_buffer();
-    displayUpdates++;
+    instance._displayUpdates++;
 }
