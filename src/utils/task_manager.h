@@ -117,37 +117,37 @@ class TaskManager {
     };
 
     // Generic task creator for custom tasks
-    static bool createTask(const char* name, TaskFunction_t taskFunction, uint32_t stackSize, Priority priority, Core coreId,
-                           TaskHandle_t* taskHandle, // <-- ADD THIS PARAMETER
+    static bool create_task(const char* name, TaskFunction_t task_function, uint32_t stack_size, Priority priority, Core core_id,
+                           TaskHandle_t* task_handle, // <-- ADD THIS PARAMETER
                            void* parameters = NULL);
 
-    static TaskHandle_t buttonTaskHandle;
-    static TaskHandle_t serialInputTaskHandle;
-    static TaskHandle_t ledTaskHandle;
-    static TaskHandle_t bytecodeVMTaskHandle;
-    static TaskHandle_t stackMonitorTaskHandle;
-    static TaskHandle_t sensorPollingTaskHandle;
+    static TaskHandle_t button_task_handle;
+    static TaskHandle_t serial_input_task_handle;
+    static TaskHandle_t led_task_handle;
+    static TaskHandle_t bytecode_vm_task_handle;
+    static TaskHandle_t stack_monitor_task_handle;
+    static TaskHandle_t sensor_polling_task_handle;
 
     // Individual sensor task handles
-    static TaskHandle_t imuSensorTaskHandle;
-    static TaskHandle_t encoderSensorTaskHandle;
-    static TaskHandle_t multizoneTofSensorTaskHandle;
-    static TaskHandle_t sideTofSensorTaskHandle;
-    static TaskHandle_t colorSensorTaskHandle;
-    static TaskHandle_t sensorLoggerTaskHandle;
+    static TaskHandle_t imu_sensor_task_handle;
+    static TaskHandle_t encoder_sensor_task_handle;
+    static TaskHandle_t multizone_tof_sensor_task_handle;
+    static TaskHandle_t side_tof_sensor_task_handle;
+    static TaskHandle_t color_sensor_task_handle;
+    static TaskHandle_t sensor_logger_task_handle;
 
-    static TaskHandle_t displayTaskHandle;
-    static TaskHandle_t displayInitTaskHandle; // NEW: Display init task handle
-    static TaskHandle_t networkManagementTaskHandle;
-    static TaskHandle_t sendSensorDataTaskHandle;
-    static TaskHandle_t webSocketPollingTaskHandle;
-    static TaskHandle_t serialQueueTaskHandle;
-    static TaskHandle_t batteryMonitorTaskHandle;
-    static TaskHandle_t speakerTaskHandle;
-    static TaskHandle_t motorTaskHandle;
-    static TaskHandle_t demoManagerTaskHandle;
-    static TaskHandle_t gameManagerTaskHandle;
-    static TaskHandle_t careerQuestTaskHandle;
+    static TaskHandle_t display_task_handle;
+    static TaskHandle_t display_init_task_handle; // NEW: Display init task handle
+    static TaskHandle_t network_management_task_handle;
+    static TaskHandle_t send_sensor_data_task_handle;
+    static TaskHandle_t web_socket_polling_task_handle;
+    static TaskHandle_t serial_queue_task_handle;
+    static TaskHandle_t battery_monitor_task_handle;
+    static TaskHandle_t speaker_task_handle;
+    static TaskHandle_t motor_task_handle;
+    static TaskHandle_t demo_manager_task_handle;
+    static TaskHandle_t game_manager_task_handle;
+    static TaskHandle_t career_quest_task_handle;
 
     static void print_stack_usage();
 };
