@@ -5,7 +5,9 @@ bool SideTofManager::initialize() {
     bool right_success = false;
 
     // Try to initialize left sensor
-    if (_leftSideTofSensor.needs_initialization()) {
+    if (!_leftSideTofSensor.needs_initialization()) {
+        left_success = true; // Already initialized
+    } else {
         SerialQueueManager::get_instance().queue_message("Initializing left side TOF...");
         left_success = _leftSideTofSensor.initialize(LEFT_TOF_ADDRESS);
         if (left_success) {
@@ -13,12 +15,12 @@ bool SideTofManager::initialize() {
         } else {
             SerialQueueManager::get_instance().queue_message("Left side TOF initialization failed");
         }
-    } else {
-        left_success = true; // Already initialized
     }
 
     // Try to initialize right sensor
-    if (_rightSideTofSensor.needs_initialization()) {
+    if (!_rightSideTofSensor.needs_initialization()) {
+        right_success = true; // Already initialized
+    } else {
         SerialQueueManager::get_instance().queue_message("Initializing right side TOF...");
         right_success = _rightSideTofSensor.initialize(RIGHT_TOF_ADDRESS);
         if (right_success) {
@@ -26,8 +28,6 @@ bool SideTofManager::initialize() {
         } else {
             SerialQueueManager::get_instance().queue_message("Right side TOF initialization failed");
         }
-    } else {
-        right_success = true; // Already initialized
     }
 
     _isInitialized = left_success && right_success;
