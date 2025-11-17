@@ -14,7 +14,7 @@ bool MultizoneTofSensor::initialize() {
                     // Initialize point histories
                     initialize_point_histories();
 
-                    SerialQueueManager::get_instance().queueMessage("MZ TOF sensor initialization complete");
+                    SerialQueueManager::get_instance().queue_message("MZ TOF sensor initialization complete");
                     isInitialized = true;
                     return true;
                 }
@@ -23,7 +23,7 @@ bool MultizoneTofSensor::initialize() {
         vTaskDelay(pdMS_TO_TICKS(50)); // Longer delay between attempts
     }
 
-    SerialQueueManager::get_instance().queueMessage("MZ TOF sensor initialization failed");
+    SerialQueueManager::get_instance().queue_message("MZ TOF sensor initialization failed");
     // scanI2C();  // Scan I2C bus to help debug
     return false;
 }
@@ -109,7 +109,7 @@ void MultizoneTofSensor::enable_tof_sensor() {
     sensorEnabled = true;
     lastValidDataTime = millis();
 
-    SerialQueueManager::get_instance().queueMessage("MZ TOF sensor enabled");
+    SerialQueueManager::get_instance().queue_message("MZ TOF sensor enabled");
 }
 
 void MultizoneTofSensor::disable_tof_sensor() {
@@ -119,7 +119,7 @@ void MultizoneTofSensor::disable_tof_sensor() {
     sensorActive = false;
     sensorEnabled = false;
 
-    SerialQueueManager::get_instance().queueMessage("MZ TOF sensor disabled due to timeout");
+    SerialQueueManager::get_instance().queue_message("MZ TOF sensor disabled due to timeout");
 }
 
 bool MultizoneTofSensor::process_obstacle_detection(const VL53L7CX_ResultsData& rawData) {
@@ -229,7 +229,7 @@ bool MultizoneTofSensor::configure_sensor() {
 }
 
 bool MultizoneTofSensor::reset_sensor() {
-    SerialQueueManager::get_instance().queueMessage("MZ SENSOR RESET: Data stopped - performing recovery...");
+    SerialQueueManager::get_instance().queue_message("MZ SENSOR RESET: Data stopped - performing recovery...");
 
     // Set sensor as inactive during reset
     sensorActive = false;
@@ -242,7 +242,7 @@ bool MultizoneTofSensor::reset_sensor() {
     sensor.begin();
 
     if (sensor.init_sensor()) {
-        SerialQueueManager::get_instance().queueMessage("Failed to reinitialize sensor!");
+        SerialQueueManager::get_instance().queue_message("Failed to reinitialize sensor!");
         return false;
     }
 
@@ -261,7 +261,7 @@ bool MultizoneTofSensor::reset_sensor() {
     // Set sensor as active again
     sensorActive = true;
 
-    SerialQueueManager::get_instance().queueMessage("Sensor reset complete");
+    SerialQueueManager::get_instance().queue_message("Sensor reset complete");
     return true;
 }
 

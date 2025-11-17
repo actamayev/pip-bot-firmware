@@ -77,8 +77,8 @@ bool BytecodeVM::load_program(const uint8_t* byteCode, uint16_t size) {
     }
 
     scan_program_for_motors();
-    activate_sensors_for_program();   // Activate sensors needed by the program
-    stoppedDueToUsbSafety = false; // Reset safety flag on new program load
+    activate_sensors_for_program(); // Activate sensors needed by the program
+    stoppedDueToUsbSafety = false;  // Reset safety flag on new program load
 
     xSemaphoreGive(programMutex);
     return true;
@@ -830,7 +830,7 @@ void BytecodeVM::reset_state_variables(bool isFullReset) {
     // Note: Don't reset programContainsMotors or lastUsbState here as they persist across pause/resume
 
     // Force reset motor driver state completely
-            motorDriver.reset_command_state(false);
+    motorDriver.reset_command_state(false);
 
     // Reset registers
     for (uint16_t i = 0; i < MAX_REGISTERS; i++) {
@@ -1008,7 +1008,7 @@ void BytecodeVM::activate_sensors_for_program() {
 
     // Activate required sensors by setting their last_request timestamps
     SensorDataBuffer& buffer = SensorDataBuffer::get_instance();
-    ReportTimeouts& timeouts = buffer.getReportTimeouts();
+    ReportTimeouts& timeouts = buffer.get_report_timeouts();
     uint32_t currentTime = millis();
 
     if (needQuaternion) {
@@ -1084,6 +1084,6 @@ bool BytecodeVM::can_start_program() {
     if (!programContainsMotors || !SerialManager::get_instance().is_serial_connected()) return true;
 
     SerialManager::get_instance().send_json_message(ToSerialMessage::MOTORS_DISABLED_USB,
-                                                  "Cannot start motor program while USB connected - disconnect USB first");
+                                                    "Cannot start motor program while USB connected - disconnect USB first");
     return false;
 }

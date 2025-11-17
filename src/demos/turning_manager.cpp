@@ -1,6 +1,6 @@
 #include "turning_manager.h"
 
-bool TurningManager::startTurn(float degrees) {
+bool TurningManager::start_turn(float degrees) {
     if (currentState != TurningState::IDLE) {
         SerialQueueManager::get_instance().queue_message("Turn already in progress!");
         return false; // Turn already in progress
@@ -12,11 +12,11 @@ bool TurningManager::startTurn(float degrees) {
     }
 
     targetTurnAngle = degrees;
-    initializeTurn();
+    initialize_turn();
     return true;
 }
 
-void TurningManager::initializeTurn() {
+void TurningManager::initialize_turn() {
     // Initialize turn
     cumulativeRotation = 0.0f;
     rotationTrackingInitialized = false;
@@ -39,15 +39,15 @@ void TurningManager::initializeTurn() {
 
     char logMessage[64];
     snprintf(logMessage, sizeof(logMessage), "Starting turn: %.1f degrees", targetTurnAngle);
-    SerialQueueManager::get_instance().queueMessage(logMessage);
+    SerialQueueManager::get_instance().queue_message(logMessage);
 }
 
 void TurningManager::update() {
     if (currentState == TurningState::IDLE) return;
 
     // Update velocity and rotation tracking
-    updateVelocity();
-    updateCumulativeRotation();
+    update_velocity();
+    update_cumulative_rotation();
 
     // Handle overshoot braking
     if (currentState == TurningState::OVERSHOOT_BRAKING) {
@@ -61,10 +61,10 @@ void TurningManager::update() {
     }
 
     // Calculate remaining angle
-    float remainingAngle = calculateRemainingAngle();
+    float remainingAngle = calculate_remaining_angle();
 
     // Check for overshoot at high speed
-    if (checkOvershoot(remainingAngle)) {
+    if (check_overshoot(remainingAngle)) {
         char logMessage[80];
         snprintf(logMessage, sizeof(logMessage), "High-speed overshoot detected! Braking for %dms", (int)OVERSHOOT_BRAKE_DURATION);
         SerialQueueManager::get_instance().queue_message(logMessage);
@@ -75,20 +75,20 @@ void TurningManager::update() {
     }
 
     // Calculate target velocity based on remaining angle
-    targetVelocity = calculateTargetVelocity(remainingAngle);
+    targetVelocity = calculate_target_velocity(remainingAngle);
 
     // Calculate velocity error
-    float velocityError = calculateVelocityError();
+    float velocityError = calculate_velocity_error();
 
     // Calculate PWM
-    currentPWM = calculatePWM(velocityError);
+    currentPWM = calculate_pwm(velocityError);
 
     // Apply motor control
-    applyMotorControl(currentPWM, velocityError);
+    apply_motor_control(currentPWM, velocityError);
 
     // Check completion
-    if (checkCompletion()) {
-        resetTurnState();
+    if (check_completion()) {
+        reset_turn_state();
         SerialQueueManager::get_instance().queue_message("Turn completed");
         return;
     }
@@ -106,8 +106,8 @@ void TurningManager::update() {
     _debugInfo.inOvershootBraking = (currentState == TurningState::OVERSHOOT_BRAKING);
 }
 
-void TurningManager::updateVelocity() {
-    float currentHeading = -SensorDataBuffer::get_instance().getLatestYaw();
+void TurningManager::update_velocity() {
+    float currentHeading = -SensorDataBuffer::get_instance().get_latest_yaw();
     unsigned long currentTime = millis();
 
     if (lastTime != 0) {
@@ -129,8 +129,8 @@ void TurningManager::updateVelocity() {
     lastTime = currentTime;
 }
 
-void TurningManager::updateCumulativeRotation() {
-    float currentHeading = -SensorDataBuffer::get_instance().getLatestYaw();
+void TurningManager::update_cumulative_rotation() {
+    float currentHeading = -SensorDataBuffer::get_instance().get_latest_yaw();
 
     if (!rotationTrackingInitialized) {
         lastHeadingForRotation = currentHeading;
@@ -150,11 +150,11 @@ void TurningManager::updateCumulativeRotation() {
     lastHeadingForRotation = currentHeading;
 }
 
-float TurningManager::calculateRemainingAngle() const {
+float TurningManager::calculate_remaining_angle() const {
     return targetTurnAngle - cumulativeRotation;
 }
 
-float TurningManager::calculateTargetVelocity(float remainingAngle) const {
+float TurningManager::calculate_target_velocity(float remainingAngle) const {
     float absRemaining = abs(remainingAngle);
     float targetVel;
 
@@ -170,11 +170,11 @@ float TurningManager::calculateTargetVelocity(float remainingAngle) const {
     return (remainingAngle > 0) ? targetVel : -targetVel;
 }
 
-float TurningManager::calculateVelocityError() const {
+float TurningManager::calculate_velocity_error() const {
     return targetVelocity - currentVelocity;
 }
 
-uint16_t TurningManager::calculatePWM(float velocityError) {
+uint16_t TurningManager::calculate_pwm(float velocityError) {
     // Calculate deltaTime for integral term
     unsigned long currentTime = millis();
     float deltaTime = 0.0f;
@@ -203,8 +203,8 @@ uint16_t TurningManager::calculatePWM(float velocityError) {
     return constrain((int)pwm, 0, MAX_MOTOR_PWM);
 }
 
-bool TurningManager::checkCompletion() {
-    float remainingAngle = calculateRemainingAngle();
+bool TurningManager::check_completion() {
+    float remainingAngle = calculate_remaining_angle();
 
     // Check if within position and velocity thresholds
     if (abs(remainingAngle) <= COMPLETION_POSITION_THRESHOLD && abs(currentVelocity) <= COMPLETION_VELOCITY_THRESHOLD) {
@@ -239,7 +239,7 @@ bool TurningManager::checkCompletion() {
     return false;
 }
 
-void TurningManager::applyMotorControl(uint16_t pwm, float velocityError) {
+void TurningManager::apply_motor_control(uint16_t pwm, float velocityError) {
     // Determine required direction from TARGET velocity sign (not error sign!)
     TurningDirection requiredDirection = (targetVelocity > 0) ? TurningDirection::CLOCKWISE : TurningDirection::COUNTER_CLOCKWISE;
 
@@ -268,7 +268,7 @@ void TurningManager::applyMotorControl(uint16_t pwm, float velocityError) {
     }
 }
 
-bool TurningManager::checkOvershoot(float remainingAngle) {
+bool TurningManager::check_overshoot(float remainingAngle) {
     // Backup: reactive check for actual overshoot
     bool movingAwayFromTarget = (remainingAngle > 0 && currentVelocity < 0) || (remainingAngle < 0 && currentVelocity > 0);
     if (movingAwayFromTarget) {
@@ -292,7 +292,7 @@ bool TurningManager::checkOvershoot(float remainingAngle) {
     return false;
 }
 
-void TurningManager::resetTurnState() {
+void TurningManager::reset_turn_state() {
     motorDriver.brake_both_motors();
     currentState = TurningState::IDLE;
     currentDirection = TurningDirection::NONE;
@@ -314,6 +314,6 @@ void TurningManager::resetTurnState() {
     overshootBrakeStartTime = 0;
 }
 
-void TurningManager::completeNavigation() {
-    resetTurnState();
+void TurningManager::complete_navigation() {
+    reset_turn_state();
 }

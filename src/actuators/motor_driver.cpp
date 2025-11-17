@@ -152,7 +152,7 @@ void MotorDriver::update() {
     int16_t leftAdjusted = _actualLeftPwm;
     int16_t rightAdjusted = _actualRightPwm;
 
-    if (StraightLineDrive::get_instance().isEnabled()) {
+    if (StraightLineDrive::get_instance().is_enabled()) {
         StraightLineDrive::get_instance().update(leftAdjusted, rightAdjusted);
     }
 
@@ -208,7 +208,7 @@ void MotorDriver::update_motor_pwm(int16_t leftPwm, int16_t rightPwm) {
     // Check if straight-line driving should be active
     if (leftPwm > 0 && rightPwm > 0 && leftPwm == rightPwm) {
         // Enable straight-line driving if not already active
-        if (!StraightLineDrive::get_instance().isEnabled()) {
+        if (!StraightLineDrive::get_instance().is_enabled()) {
             StraightLineDrive::get_instance().enable();
         }
     } else {
@@ -248,7 +248,7 @@ void MotorDriver::execute_command(int16_t leftPwm, int16_t rightPwm) {
 
 void MotorDriver::process_pending_commands() {
     // If a demo is running, don't process motor commands
-    if (DemoManager::get_instance().isAnyDemoActive()) return;
+    if (DemoManager::get_instance().is_any_demo_active()) return;
 
     if (!isExecutingCommand) {
         // If we have a next command, execute it
@@ -284,9 +284,9 @@ void MotorDriver::process_pending_commands() {
 
     if (encoderThresholdMet || commandTimedOut) {
         if (commandTimedOut) {
-            SerialQueueManager::get_instance().queueMessage("Command timed out after 1 second - possible motor stall");
+            SerialQueueManager::get_instance().queue_message("Command timed out after 1 second - possible motor stall");
         } else {
-            // SerialQueueManager::get_instance().queueMessage("Command completed with pulses - Left: %lld, Right: %lld\n",
+            // SerialQueueManager::get_instance().queue_message("Command completed with pulses - Left: %lld, Right: %lld\n",
             //             leftDelta, rightDelta);
         }
 

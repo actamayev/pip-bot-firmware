@@ -133,7 +133,7 @@ void MessageProcessor::process_binary_message(const uint8_t* data, uint16_t leng
                 // Extract the firmware version from bytes 1-2
                 uint16_t newVersion = data[1] | (data[2] << 8); // Little-endian conversion
 
-                // SerialQueueManager::get_instance().queueMessage("New firmware version available: %d\n", newVersion);
+                // SerialQueueManager::get_instance().queue_message("New firmware version available: %d\n", newVersion);
                 FirmwareVersionTracker::get_instance().retrieve_latest_firmware_from_server(newVersion);
             }
             break;
@@ -184,7 +184,7 @@ void MessageProcessor::process_binary_message(const uint8_t* data, uint16_t leng
         }
         case DataMessageType::UPDATE_LED_COLORS: {
             if (length != 19) {
-                // SerialQueueManager::get_instance().queueMessage("Invalid update led colors message length%d", length);
+                // SerialQueueManager::get_instance().queue_message("Invalid update led colors message length%d", length);
             } else {
                 NewLightColors newLightColors;
                 memcpy(&newLightColors, &data[1], sizeof(NewLightColors));

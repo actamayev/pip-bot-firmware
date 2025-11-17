@@ -14,7 +14,7 @@ class StraightLineDrive : public Singleton<StraightLineDrive> {
         void enable();
         void disable();
         void update(int16_t& leftSpeed, int16_t& rightSpeed);
-        bool isEnabled() const { return _straightDrivingEnabled; }
+        bool is_enabled() const { return _straightDrivingEnabled; }
         
         // Debug info for display
         struct DebugInfo {
@@ -25,7 +25,7 @@ class StraightLineDrive : public Singleton<StraightLineDrive> {
             int16_t rightSpeed = 0;
             int16_t correction = 0;
         };
-        const DebugInfo& getDebugInfo() const { return _debugInfo; }
+        const DebugInfo& get_debug_info() const { return _debugInfo; }
 
     private:
         StraightLineDrive() = default;
@@ -38,7 +38,7 @@ class StraightLineDrive : public Singleton<StraightLineDrive> {
         DebugInfo _debugInfo;
 
         // Helper methods
-        float calculateHeadingError(float currentHeading, float targetHeading);
+        float calculate_heading_error(float currentHeading, float targetHeading);
 
         // Control constants
         static constexpr float KP_HEADING_TO_PWM = 100.0F;  // Proportional gain for heading error (degrees to PWM)

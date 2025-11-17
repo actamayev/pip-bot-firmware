@@ -10,7 +10,7 @@ bool DisplayScreen::init(bool showStartup) {
 
     display = Adafruit_SSD1306(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
     if (!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
-        SerialQueueManager::get_instance().queueMessage("SSD1306 allocation failed");
+        SerialQueueManager::get_instance().queue_message("SSD1306 allocation failed");
         return false;
     }
 
@@ -182,10 +182,10 @@ void DisplayScreen::generate_content_to_buffer() {
     // If display is off, don't generate any content
     if (displayOff) return;
 
-    // if (StraightLineDrive::get_instance().isEnabled()) {
+    // if (StraightLineDrive::get_instance().is_enabled()) {
     //     display.clearDisplay();
 
-    //     const auto& debugInfo = StraightLineDrive::get_instance().getDebugInfo();
+    //     const auto& debugInfo = StraightLineDrive::get_instance().get_debug_info();
 
     //     // Title
     //     drawCenteredText("Straight Line Drive", 0, 1);
@@ -213,10 +213,10 @@ void DisplayScreen::generate_content_to_buffer() {
     //     // Copy display buffer to staging buffer
     //     uint8_t* displayBuffer = display.getBuffer();
     //     memcpy(stagingBuffer, displayBuffer, DISPLAY_BUFFER_SIZE);
-    // } else if (TurningManager::get_instance().isActive()) {
+    // } else if (TurningManager::get_instance().is_active()) {
     //     display.clearDisplay();
 
-    //     const auto& debugInfo = TurningManager::get_instance().getDebugInfo();
+    //     const auto& debugInfo = TurningManager::get_instance().get_debug_info();
 
     //     // Title
     //     drawCenteredText("Turning Manager", 0, 1);
@@ -345,14 +345,14 @@ void DisplayScreen::turn_display_off() {
     display.clearDisplay();
     display.display();
 
-    SerialQueueManager::get_instance().queueMessage("Display turned off");
+    SerialQueueManager::get_instance().queue_message("Display turned off");
 }
 
 void DisplayScreen::turn_display_on() {
     if (!initialized) return;
 
     displayOff = false;
-    SerialQueueManager::get_instance().queueMessage("Display turned on");
+    SerialQueueManager::get_instance().queue_message("Display turned on");
 
     // Update buffer tracking
     memset(stagingBuffer, 0, DISPLAY_BUFFER_SIZE);

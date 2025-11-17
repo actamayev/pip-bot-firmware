@@ -177,7 +177,7 @@ void WebSocketManager::poll_websocket() {
     try {
         wsClient.poll();
     } catch (const std::exception& e) {
-        // SerialQueueManager::get_instance().queueMessage("Error during WebSocket poll: %s\n", e.what());
+        // SerialQueueManager::get_instance().queue_message("Error during WebSocket poll: %s\n", e.what());
         wsConnected = false; // Mark as disconnected to trigger reconnect
     }
 }

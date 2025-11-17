@@ -31,7 +31,7 @@ TaskHandle_t TaskManager::careerQuestTaskHandle = NULL;
 TaskHandle_t TaskManager::displayInitTaskHandle = NULL;
 
 void TaskManager::buttonTask(void* parameter) {
-    setupButtonLoggers();
+    setup_button_loggers();
 
     for (;;) {
         Buttons::get_instance().update();
@@ -41,7 +41,7 @@ void TaskManager::buttonTask(void* parameter) {
 
 void TaskManager::serialInputTask(void* parameter) {
     for (;;) {
-        SerialManager::get_instance().pollSerial();
+        SerialManager::get_instance().poll_serial();
         vTaskDelay(pdMS_TO_TICKS(2));
     }
 }
@@ -62,7 +62,7 @@ void TaskManager::bytecodeVMTask(void* parameter) {
 
 void TaskManager::stackMonitorTask(void* parameter) {
     for (;;) {
-        printStackUsage();
+        print_stack_usage();
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }
@@ -170,13 +170,13 @@ void TaskManager::sensorLoggerTask(void* parameter) {
     // Main logging loop
     for (;;) {
         // Call each frequency logger function
-        // imuLogger();
-        // multizoneTofLogger();
-        // sideTofLogger();
-        // colorSensorLogger();
+        // imu_logger();
+        // multizone_tof_logger();
+        // side_tof_logger();
+        // color_sensor_logger();
         // irSensorLogger();
         // log_motor_rpm();  // Keep this commented for now since it's not frequency-based
-        // displayPerformanceLogger();
+        // display_performance_logger();
 
         // Small delay between logger cycles - loggers have their own internal timing
         vTaskDelay(pdMS_TO_TICKS(10)); // 100Hz - fast polling, loggers handle their own rate limiting
@@ -189,7 +189,7 @@ void TaskManager::networkManagementTask(void* parameter) {
     FirmwareVersionTracker::get_instance();
 
     // Create the sensor data transmission task now that management is initialized
-    bool commTaskCreated = createSendSensorDataTask();
+    bool commTaskCreated = create_send_sensor_data_task();
     if (!commTaskCreated) {
         SerialQueueManager::get_instance().queue_message("ERROR: Failed to create SendSensorData task!");
     }
@@ -197,16 +197,16 @@ void TaskManager::networkManagementTask(void* parameter) {
     // Main management loop - unified approach
     for (;;) {
         // Heavy/infrequent operations that run regardless of connection state
-        WiFiManager::get_instance().checkAsyncScanProgress();
+        WiFiManager::get_instance().check_async_scan_progress();
         TimeoutManager::get_instance().update();
 
         // Always try to maintain WiFi connection if not connected
         if (WiFi.status() != WL_CONNECTED) {
-            WiFiManager::get_instance().checkAndReconnectWiFi();
+            WiFiManager::get_instance().check_and_reconnect_wifi();
         }
 
         // Process any WiFi credential testing operations
-        WiFiManager::get_instance().processWiFiCredentialTest();
+        WiFiManager::get_instance().process_wifi_credential_test();
 
         // Slower update rate for management operations
         vTaskDelay(pdMS_TO_TICKS(50));
@@ -220,7 +220,7 @@ void TaskManager::webSocketPollingTask(void* parameter) {
     for (;;) {
         // Only poll WebSocket if WiFi is connected
         if (WiFi.status() == WL_CONNECTED) {
-            WebSocketManager::get_instance().pollWebSocket();
+            WebSocketManager::get_instance().poll_web_socket();
         }
 
         // Fast update rate for real-time WebSocket communication
@@ -234,8 +234,8 @@ void TaskManager::sendSensorDataTask(void* parameter) {
     // Main sensor data transmission loop
     for (;;) {
         // Always attempt sensor data transmission (SendSensorData will handle routing)
-        SendSensorData::get_instance().sendSensorDataToServer();
-        SendSensorData::get_instance().sendMultizoneData();
+        SendSensorData::get_instance().send_sensor_data_to_server();
+        SendSensorData::get_instance().send_multizone_data();
 
         // Fast update rate for real-time communication
         vTaskDelay(pdMS_TO_TICKS(5));
@@ -245,7 +245,7 @@ void TaskManager::sendSensorDataTask(void* parameter) {
 void TaskManager::serialQueueTask(void* parameter) {
     // Cast back to SerialQueueManager and call its task method
     SerialQueueManager* instance = static_cast<SerialQueueManager*>(parameter);
-    instance->serialOutputTask();
+    instance->serial_output_task();
 }
 
 void TaskManager::batteryMonitorTask(void* parameter) {
@@ -313,7 +313,7 @@ void TaskManager::displayInitTask(void* parameter) {
         vTaskDelay(pdMS_TO_TICKS(5));
 
         // Create the display task now that init is complete
-        bool displayTaskCreated = createDisplayTask();
+        bool displayTaskCreated = create_display_task();
         if (displayTaskCreated) {
             SerialQueueManager::get_instance().queue_message("Display task created successfully");
         } else {
@@ -327,113 +327,113 @@ void TaskManager::displayInitTask(void* parameter) {
     vTaskDelete(NULL);
 }
 
-bool TaskManager::createButtonTask() {
-    return createTask("Buttons", buttonTask, BUTTON_STACK_SIZE, Priority::SYSTEM_CONTROL, Core::CORE_0, &buttonTaskHandle);
+bool TaskManager::create_button_task() {
+    return create_task("Buttons", buttonTask, BUTTON_STACK_SIZE, Priority::SYSTEM_CONTROL, Core::CORE_0, &buttonTaskHandle);
 }
 
-bool TaskManager::createSerialInputTask() {
-    return createTask("SerialInput", serialInputTask, SERIAL_INPUT_STACK_SIZE, Priority::COMMUNICATION, Core::CORE_1, &serialInputTaskHandle);
+bool TaskManager::create_serial_input_task() {
+    return create_task("SerialInput", serialInputTask, SERIAL_INPUT_STACK_SIZE, Priority::COMMUNICATION, Core::CORE_1, &serialInputTaskHandle);
 }
 
-bool TaskManager::createLedTask() {
-    return createTask("LED", ledTask, LED_STACK_SIZE, Priority::BACKGROUND, Core::CORE_1, &ledTaskHandle);
+bool TaskManager::create_led_task() {
+    return create_task("LED", ledTask, LED_STACK_SIZE, Priority::BACKGROUND, Core::CORE_1, &ledTaskHandle);
 }
 
-bool TaskManager::createBytecodeVMTask() {
-    return createTask("BytecodeVM", bytecodeVMTask, BYTECODE_VM_STACK_SIZE, Priority::SYSTEM_CONTROL, Core::CORE_1, &bytecodeVMTaskHandle);
+bool TaskManager::create_bytecode_vm_task() {
+    return create_task("BytecodeVM", bytecodeVMTask, BYTECODE_VM_STACK_SIZE, Priority::SYSTEM_CONTROL, Core::CORE_1, &bytecodeVMTaskHandle);
 }
 
-bool TaskManager::createStackMonitorTask() {
-    return createTask("StackMonitor", stackMonitorTask, STACK_MONITOR_STACK_SIZE, Priority::BACKGROUND, Core::CORE_1, &stackMonitorTaskHandle);
+bool TaskManager::create_stack_monitor_task() {
+    return create_task("StackMonitor", stackMonitorTask, STACK_MONITOR_STACK_SIZE, Priority::BACKGROUND, Core::CORE_1, &stackMonitorTaskHandle);
 }
 
-bool TaskManager::createDisplayTask() {
-    return createTask("Display", displayTask, DISPLAY_STACK_SIZE, Priority::BACKGROUND, Core::CORE_1, &displayTaskHandle);
+bool TaskManager::create_display_task() {
+    return create_task("Display", displayTask, DISPLAY_STACK_SIZE, Priority::BACKGROUND, Core::CORE_1, &displayTaskHandle);
 }
 
-bool TaskManager::createNetworkManagementTask() {
-    return createTask("NetworkMgmt", networkManagementTask, NETWORK_MANAGEMENT_STACK_SIZE, Priority::COMMUNICATION, Core::CORE_1,
+bool TaskManager::create_network_management_task() {
+    return create_task("NetworkMgmt", networkManagementTask, NETWORK_MANAGEMENT_STACK_SIZE, Priority::COMMUNICATION, Core::CORE_1,
                       &networkManagementTaskHandle);
 }
 
-bool TaskManager::createSendSensorDataTask() {
-    return createTask("SendSensorData", sendSensorDataTask, SEND_SENSOR_DATA_STACK_SIZE, Priority::REALTIME_COMM, Core::CORE_1,
+bool TaskManager::create_send_sensor_data_task() {
+    return create_task("SendSensorData", sendSensorDataTask, SEND_SENSOR_DATA_STACK_SIZE, Priority::REALTIME_COMM, Core::CORE_1,
                       &sendSensorDataTaskHandle);
 }
 
-bool TaskManager::createWebSocketPollingTask() {
-    return createTask("WebSocketPoll", webSocketPollingTask, WEBSOCKET_POLLING_STACK_SIZE, Priority::REALTIME_COMM, Core::CORE_1,
+bool TaskManager::create_web_socket_polling_task() {
+    return create_task("WebSocketPoll", webSocketPollingTask, WEBSOCKET_POLLING_STACK_SIZE, Priority::REALTIME_COMM, Core::CORE_1,
                       &webSocketPollingTaskHandle);
 }
 
-bool TaskManager::createSerialQueueTask() {
+bool TaskManager::create_serial_queue_task() {
     // Pass the SerialQueueManager instance as parameter
     SerialQueueManager::get_instance().initialize();
     void* instance = &SerialQueueManager::get_instance();
-    return createTask("SerialQueue", serialQueueTask, SERIAL_QUEUE_STACK_SIZE, Priority::CRITICAL, Core::CORE_1, &serialQueueTaskHandle, instance);
+    return create_task("SerialQueue", serialQueueTask, SERIAL_QUEUE_STACK_SIZE, Priority::CRITICAL, Core::CORE_1, &serialQueueTaskHandle, instance);
 }
 
-bool TaskManager::createBatteryMonitorTask() {
-    return createTask("BatteryMonitor", batteryMonitorTask, BATTERY_MONITOR_STACK_SIZE, Priority::BACKGROUND, Core::CORE_1,
+bool TaskManager::create_battery_monitor_task() {
+    return create_task("BatteryMonitor", batteryMonitorTask, BATTERY_MONITOR_STACK_SIZE, Priority::BACKGROUND, Core::CORE_1,
                       &batteryMonitorTaskHandle);
 }
 
-bool TaskManager::createSpeakerTask() {
-    return createTask("Speaker", speakerTask, SPEAKER_STACK_SIZE, Priority::BACKGROUND, Core::CORE_1, &speakerTaskHandle);
+bool TaskManager::create_speaker_task() {
+    return create_task("Speaker", speakerTask, SPEAKER_STACK_SIZE, Priority::BACKGROUND, Core::CORE_1, &speakerTaskHandle);
 }
 
-bool TaskManager::createMotorTask() {
-    return createTask("Motor", motorTask, MOTOR_STACK_SIZE, Priority::CRITICAL, Core::CORE_0, &motorTaskHandle);
+bool TaskManager::create_motor_task() {
+    return create_task("Motor", motorTask, MOTOR_STACK_SIZE, Priority::CRITICAL, Core::CORE_0, &motorTaskHandle);
 }
 
-bool TaskManager::createDemoManagerTask() {
-    return createTask("DemoManager", demoManagerTask, DEMO_MANAGER_STACK_SIZE, Priority::SYSTEM_CONTROL, Core::CORE_0, &demoManagerTaskHandle);
+bool TaskManager::create_demo_manager_task() {
+    return create_task("DemoManager", demoManagerTask, DEMO_MANAGER_STACK_SIZE, Priority::SYSTEM_CONTROL, Core::CORE_0, &demoManagerTaskHandle);
 }
 
-bool TaskManager::createGameManagerTask() {
-    return createTask("GameManager", gameManagerTask, GAME_MANAGER_STACK_SIZE, Priority::SYSTEM_CONTROL, Core::CORE_1, &gameManagerTaskHandle);
+bool TaskManager::create_game_manager_task() {
+    return create_task("GameManager", gameManagerTask, GAME_MANAGER_STACK_SIZE, Priority::SYSTEM_CONTROL, Core::CORE_1, &gameManagerTaskHandle);
 }
 
-bool TaskManager::createCareerQuestTask() {
-    return createTask("CareerQuest", careerQuestTask, CAREER_QUEST_STACK_SIZE, Priority::SYSTEM_CONTROL, Core::CORE_1, &careerQuestTaskHandle);
+bool TaskManager::create_career_quest_task() {
+    return create_task("CareerQuest", careerQuestTask, CAREER_QUEST_STACK_SIZE, Priority::SYSTEM_CONTROL, Core::CORE_1, &careerQuestTaskHandle);
 }
 
-bool TaskManager::createDisplayInitTask() {
-    return createTask("DisplayInit", displayInitTask, DISPLAY_INIT_STACK_SIZE, Priority::SYSTEM_CONTROL, Core::CORE_0, &displayInitTaskHandle);
+bool TaskManager::create_display_init_task() {
+    return create_task("DisplayInit", displayInitTask, DISPLAY_INIT_STACK_SIZE, Priority::SYSTEM_CONTROL, Core::CORE_0, &displayInitTaskHandle);
 }
 
 // Individual sensor task creation methods
-bool TaskManager::createImuSensorTask() {
-    return createTask("IMUSensor", imuSensorTask, IMU_SENSOR_STACK_SIZE, Priority::CRITICAL, Core::CORE_0, &imuSensorTaskHandle);
+bool TaskManager::create_imu_sensor_task() {
+    return create_task("IMUSensor", imuSensorTask, IMU_SENSOR_STACK_SIZE, Priority::CRITICAL, Core::CORE_0, &imuSensorTaskHandle);
 }
 
-bool TaskManager::createEncoderSensorTask() {
-    return createTask("EncoderSensor", encoderSensorTask, ENCODER_SENSOR_STACK_SIZE, Priority::CRITICAL, Core::CORE_0, &encoderSensorTaskHandle);
+bool TaskManager::create_encoder_sensor_task() {
+    return create_task("EncoderSensor", encoderSensorTask, ENCODER_SENSOR_STACK_SIZE, Priority::CRITICAL, Core::CORE_0, &encoderSensorTaskHandle);
 }
 
-bool TaskManager::createMultizoneTofSensorTask() {
-    return createTask("MultizoneTOF", multizoneTofSensorTask, MULTIZONE_TOF_STACK_SIZE, Priority::COMMUNICATION, Core::CORE_0,
+bool TaskManager::create_multizone_tof_sensor_task() {
+    return create_task("MultizoneTOF", multizoneTofSensorTask, MULTIZONE_TOF_STACK_SIZE, Priority::COMMUNICATION, Core::CORE_0,
                       &multizoneTofSensorTaskHandle);
 }
 
-bool TaskManager::createSideTofSensorTask() {
-    return createTask("SideTOF", sideTofSensorTask, SIDE_TOF_STACK_SIZE, Priority::SYSTEM_CONTROL, Core::CORE_0, &sideTofSensorTaskHandle);
+bool TaskManager::create_side_tof_sensor_task() {
+    return create_task("SideTOF", sideTofSensorTask, SIDE_TOF_STACK_SIZE, Priority::SYSTEM_CONTROL, Core::CORE_0, &sideTofSensorTaskHandle);
 }
 
-bool TaskManager::createColorSensorTask() {
-    return createTask("ColorSensor", colorSensorTask, COLOR_SENSOR_STACK_SIZE, Priority::SYSTEM_CONTROL, Core::CORE_0, &colorSensorTaskHandle);
+bool TaskManager::create_color_sensor_task() {
+    return create_task("ColorSensor", colorSensorTask, COLOR_SENSOR_STACK_SIZE, Priority::SYSTEM_CONTROL, Core::CORE_0, &colorSensorTaskHandle);
 }
 
-bool TaskManager::createSensorLoggerTask() {
-    return createTask("SensorLogger", sensorLoggerTask, SENSOR_LOGGER_STACK_SIZE, Priority::BACKGROUND, Core::CORE_1, &sensorLoggerTaskHandle);
+bool TaskManager::create_sensor_logger_task() {
+    return create_task("SensorLogger", sensorLoggerTask, SENSOR_LOGGER_STACK_SIZE, Priority::BACKGROUND, Core::CORE_1, &sensorLoggerTaskHandle);
 }
 
-bool TaskManager::isDisplayInitialized() {
+bool TaskManager::is_display_initialized() {
     // Return true if either init task is running or display task already exists
     return (displayInitTaskHandle != NULL) || (displayTaskHandle != NULL);
 }
 
-bool TaskManager::createTask(const char* name, TaskFunction_t taskFunction, uint32_t stackSize, Priority priority, Core coreId,
+bool TaskManager::create_task(const char* name, TaskFunction_t taskFunction, uint32_t stackSize, Priority priority, Core coreId,
                              TaskHandle_t* taskHandle, void* parameters) {
     // Safety check: don't create if task already exists
     if (taskHandle != nullptr && *taskHandle != NULL) {
@@ -444,10 +444,10 @@ bool TaskManager::createTask(const char* name, TaskFunction_t taskFunction, uint
     BaseType_t result = xTaskCreatePinnedToCore(taskFunction, name, stackSize, parameters, static_cast<uint8_t>(priority), taskHandle,
                                                 static_cast<BaseType_t>(coreId));
 
-    return logTaskCreation(name, result == pdPASS);
+    return log_task_creation(name, result == pdPASS);
 }
 
-bool TaskManager::logTaskCreation(const char* name, bool success) {
+bool TaskManager::log_task_creation(const char* name, bool success) {
     if (success) {
         SerialQueueManager::get_instance().queue_message(String("✓ Created task: ") + name);
     } else {
@@ -456,7 +456,7 @@ bool TaskManager::logTaskCreation(const char* name, bool success) {
     return success;
 }
 
-void TaskManager::printStackUsage() {
+void TaskManager::print_stack_usage() {
     SerialQueueManager::get_instance().queue_message("", SerialPriority::CRITICAL);
     SerialQueueManager::get_instance().queue_message("╔══════════════════════════════════════╗", SerialPriority::CRITICAL);
     SerialQueueManager::get_instance().queue_message("║           TASK STACK USAGE           ║", SerialPriority::CRITICAL);

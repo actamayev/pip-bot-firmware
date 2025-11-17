@@ -1,6 +1,6 @@
 #include "show_chip_info.h"
 
-void printFlashInfo() {
+void print_flash_info() {
     vTaskDelay(pdMS_TO_TICKS(100)); // Give some time for initialization
 
     // Flash chip info

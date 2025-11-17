@@ -16,36 +16,36 @@
 
 class TaskManager {
     public:
-        static bool createButtonTask();
-        static bool createSerialInputTask(); 
-        static bool createLedTask();
-        static bool createBytecodeVMTask();
-        static bool createStackMonitorTask();
-        static bool createDisplayTask();
-        static bool createDisplayInitTask();    // NEW: Separate display initialization
-        static bool isDisplayInitialized();    // NEW: Check if display init is done or in progress
-        static bool createNetworkManagementTask();
-        static bool createSendSensorDataTask();
-        static bool createWebSocketPollingTask();
-        static bool createSerialQueueTask();
-        static bool createBatteryMonitorTask();
-        static bool createSpeakerTask();
-        static bool createMotorTask();
-        static bool createDemoManagerTask();
-        static bool createGameManagerTask();
-        static bool createCareerQuestTask();
+        static bool create_button_task();
+        static bool create_serial_input_task(); 
+        static bool create_led_task();
+        static bool create_bytecode_vm_task();
+        static bool create_stack_monitor_task();
+        static bool create_display_task();
+        static bool create_display_init_task();    // NEW: Separate display initialization
+        static bool is_display_initialized();    // NEW: Check if display init is done or in progress
+        static bool create_network_management_task();
+        static bool create_send_sensor_data_task();
+        static bool create_web_socket_polling_task();
+        static bool create_serial_queue_task();
+        static bool create_battery_monitor_task();
+        static bool create_speaker_task();
+        static bool create_motor_task();
+        static bool create_demo_manager_task();
+        static bool create_game_manager_task();
+        static bool create_career_quest_task();
         
         // Individual sensor task creation methods
-        static bool createImuSensorTask();
-        static bool createEncoderSensorTask();
-        static bool createMultizoneTofSensorTask();
-        static bool createSideTofSensorTask();
-        static bool createColorSensorTask();
-        static bool createIrSensorTask();
-        static bool createSensorLoggerTask();
+        static bool create_imu_sensor_task();
+        static bool create_encoder_sensor_task();
+        static bool create_multizone_tof_sensor_task();
+        static bool create_side_tof_sensor_task();
+        static bool create_color_sensor_task();
+        static bool create_ir_sensor_task();
+        static bool create_sensor_logger_task();
 
     private:
-        static bool logTaskCreation(const char* name, bool success);
+        static bool log_task_creation(const char* name, bool success);
         static void buttonTask(void* parameter);
         static void serialInputTask(void* parameter);
         static void ledTask(void* parameter);
@@ -77,7 +77,7 @@ class TaskManager {
         static constexpr uint32_t SERIAL_INPUT_STACK_SIZE = 10240;
         static constexpr uint32_t LED_STACK_SIZE = 6144;
         static constexpr uint32_t BYTECODE_VM_STACK_SIZE = 16384;
-        static constexpr uint32_t STACK_MONITOR_STACK_SIZE = 4096;  // Increased - printStackUsage needs more space
+        static constexpr uint32_t STACK_MONITOR_STACK_SIZE = 4096;  // Increased - print_stack_usage needs more space
         static constexpr uint32_t SENSOR_POLLING_STACK_SIZE = 10240; // Just polling (deprecated)
         
         // Individual sensor stack sizes
@@ -155,5 +155,5 @@ class TaskManager {
         static TaskHandle_t gameManagerTaskHandle;
         static TaskHandle_t careerQuestTaskHandle;
 
-        static void printStackUsage();
+        static void print_stack_usage();
 };

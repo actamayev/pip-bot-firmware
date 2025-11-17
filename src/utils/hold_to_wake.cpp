@@ -4,7 +4,7 @@
 #include "utils/task_manager.h" // Add this include for TaskManager
 
 // Function to check if we should proceed with full startup after deep sleep wake
-bool holdToWake() {
+bool hold_to_wake() {
     // Set hold-to-wake mode immediately to prevent yellow LED flash
     Buttons::get_instance().set_hold_to_wake_mode(true);
 
@@ -47,8 +47,8 @@ bool holdToWake() {
     }
 
     // HOLD DURATION REACHED - INITIALIZE DISPLAY IMMEDIATELY for deep sleep wake
-    if (!TaskManager::isDisplayInitialized()) {
-        TaskManager::createDisplayInitTask();
+    if (!TaskManager::is_display_initialized()) {
+        TaskManager::create_display_init_task();
     }
 
     // Clear hold-to-wake mode (timestamp will be set to ignore immediate long clicks)

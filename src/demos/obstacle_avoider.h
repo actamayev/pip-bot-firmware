@@ -14,7 +14,7 @@ class ObstacleAvoider : public Singleton<ObstacleAvoider> {
         void enable();
         void disable();
         void update();
-        bool isEnabled() const { return _avoidanceEnabled == ObstacleAvoidanceStatus::AVOID; }
+        bool is_enabled() const { return _avoidanceEnabled == ObstacleAvoidanceStatus::AVOID; }
 
     private:
         ObstacleAvoider() = default;

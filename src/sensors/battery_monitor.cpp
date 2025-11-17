@@ -1,15 +1,15 @@
 #include "battery_monitor.h"
 
 bool BatteryMonitor::initialize() {
-    SerialQueueManager::get_instance().queueMessage("Initializing BQ27441 battery monitor...");
+    SerialQueueManager::get_instance().queue_message("Initializing BQ27441 battery monitor...");
 
     // Initialize the fuel gauge
     if (!lipo.begin(Wire1)) {
-        SerialQueueManager::get_instance().queueMessage("✗ Failed to connect to BQ27441 - check wiring and I2C address");
+        SerialQueueManager::get_instance().queue_message("✗ Failed to connect to BQ27441 - check wiring and I2C address");
         batteryState.isInitialized = false;
         return false;
     }
-    SerialQueueManager::get_instance().queueMessage("✓ BQ27441 connected successfully");
+    SerialQueueManager::get_instance().queue_message("✓ BQ27441 connected successfully");
 
     // Set the battery capacity if it hasn't been set already
     if (lipo.capacity(FULL) != DEFAULT_BATTERY_CAPACITY) {
@@ -21,7 +21,7 @@ bool BatteryMonitor::initialize() {
     // Initial battery state update
     update_battery_state();
 
-    SerialQueueManager::get_instance().queueMessage("✓ Battery monitor initialized - SOC: " + String(batteryState.realStateOfCharge) + "%");
+    SerialQueueManager::get_instance().queue_message("✓ Battery monitor initialized - SOC: " + String(batteryState.realStateOfCharge) + "%");
 
     return true;
 }

@@ -1,6 +1,6 @@
 #include "sensor_loggers.h"
 
-void imuLogger() {
+void imu_logger() {
     static unsigned long lastImuPrintTime = 0;
     const unsigned long IMU_PRINT_INTERVAL = 1000; // Print frequency every 1 second
 
@@ -8,8 +8,8 @@ void imuLogger() {
     if (millis() - lastImuPrintTime < IMU_PRINT_INTERVAL) return;
 
     // Debug: Check if we're getting IMU data at all
-    EulerAngles eulerAngles = SensorDataBuffer::get_instance().getLatestEulerAngles();
-    float frequency = SensorDataBuffer::get_instance().getImuFrequency();
+    EulerAngles eulerAngles = SensorDataBuffer::get_instance().get_latest_euler_angles();
+    float frequency = SensorDataBuffer::get_instance().get_imu_frequency();
 
     char buffer[128];
     snprintf(buffer, sizeof(buffer), "IMU Frequency: %.1f Hz, Data Valid: %s, Yaw: %.1f, Pitch: %.1f, Roll: %.1f", frequency,
@@ -19,12 +19,12 @@ void imuLogger() {
     lastImuPrintTime = millis();
 }
 
-void sideTofsLogger() {
+void side_tofs_logger() {
     static unsigned long lastPrintTime = 0;
     const unsigned long PRINT_INTERVAL = 50; // Print every 500ms
 
     if (millis() - lastPrintTime < PRINT_INTERVAL) return;
-    SideTofData tofCounts = SensorDataBuffer::get_instance().getLatestSideTofData();
+    SideTofData tofCounts = SensorDataBuffer::get_instance().get_latest_side_tof_data();
     // DisplayScreen::get_instance().showDistanceSensors(tofCounts);
 
     char buffer[128];
@@ -33,7 +33,7 @@ void sideTofsLogger() {
     lastPrintTime = millis();
 }
 
-void setupButtonLoggers() {
+void setup_button_loggers() {
     Buttons::get_instance().set_left_button_click_handler([](Button2& btn) { SerialQueueManager::get_instance().queue_message("Left Button clicked!"); });
 
     Buttons::get_instance().set_right_button_click_handler(
@@ -48,14 +48,14 @@ void setupButtonLoggers() {
     });
 }
 
-void multizoneTofLogger() {
+void multizone_tof_logger() {
     static unsigned long lastPrintTime = 0;
     const unsigned long PRINT_INTERVAL = 1000; // Print frequency every 1 second
 
     if (millis() - lastPrintTime < PRINT_INTERVAL) return;
 
-    float frequency = SensorDataBuffer::get_instance().getMultizoneTofFrequency();
-    TofData tofData = SensorDataBuffer::get_instance().getLatestTofData();
+    float frequency = SensorDataBuffer::get_instance().get_multizone_tof_frequency();
+    TofData tofData = SensorDataBuffer::get_instance().get_latest_tof_data();
 
     char buffer[128];
     snprintf(buffer, sizeof(buffer), "Multizone ToF Frequency: %.1f Hz, Data Valid: %s, Object Detected: %s", frequency,
@@ -65,14 +65,14 @@ void multizoneTofLogger() {
     lastPrintTime = millis();
 }
 
-void sideTofLogger() {
+void side_tof_logger() {
     static unsigned long lastPrintTime = 0;
     const unsigned long PRINT_INTERVAL = 1000; // Print frequency every 1 second
 
     if (millis() - lastPrintTime < PRINT_INTERVAL) return;
 
-    float frequency = SensorDataBuffer::get_instance().getSideTofFrequency();
-    SideTofData tofData = SensorDataBuffer::get_instance().getLatestSideTofData();
+    float frequency = SensorDataBuffer::get_instance().get_side_tof_frequency();
+    SideTofData tofData = SensorDataBuffer::get_instance().get_latest_side_tof_data();
 
     char buffer[128];
     snprintf(buffer, sizeof(buffer), "Side ToF Frequency: %.1f Hz, Left: %u, Right: %u", frequency, tofData.leftCounts, tofData.rightCounts);
@@ -81,14 +81,14 @@ void sideTofLogger() {
     lastPrintTime = millis();
 }
 
-void colorSensorLogger() {
+void color_sensor_logger() {
     static unsigned long lastPrintTime = 0;
     const unsigned long PRINT_INTERVAL = 1000; // Print frequency every 1 second
 
     if (millis() - lastPrintTime < PRINT_INTERVAL) return;
 
-    float frequency = SensorDataBuffer::get_instance().getColorSensorFrequency();
-    ColorData colorData = SensorDataBuffer::get_instance().getLatestColorData();
+    float frequency = SensorDataBuffer::get_instance().get_color_sensor_frequency();
+    ColorData colorData = SensorDataBuffer::get_instance().get_latest_color_data();
 
     char buffer[128];
     snprintf(buffer, sizeof(buffer), "Color Sensor Frequency: %.1f Hz, RGB: (%u,%u,%u)", frequency, colorData.redValue, colorData.greenValue,
@@ -113,7 +113,7 @@ void log_motor_rpm() {
     lastPrintTime = millis();
 }
 
-void displayPerformanceLogger() {
+void display_performance_logger() {
     static unsigned long lastPrintTime = 0;
     const unsigned long PRINT_INTERVAL = 1000; // Print frequency every 1 second
 

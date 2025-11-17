@@ -7,13 +7,13 @@ EncoderManager::EncoderManager() {
     _rightWheelRPM = 0;
     _lastUpdateTime = 0;
     isInitialized = false; // Will be set to true in initialize()
-    SerialQueueManager::get_instance().queueMessage("Creating encoder manager");
+    SerialQueueManager::get_instance().queue_message("Creating encoder manager");
 }
 
 bool EncoderManager::initialize() {
     if (isInitialized) return true;
 
-    SerialQueueManager::get_instance().queueMessage("Initializing Encoder Manager...");
+    SerialQueueManager::get_instance().queue_message("Initializing Encoder Manager...");
 
     // Initialize ESP32Encoder library
     ESP32Encoder::useInternalWeakPullResistors = puType::up;
@@ -33,7 +33,7 @@ bool EncoderManager::initialize() {
     _rightLastCount = 0;
 
     isInitialized = true;
-    SerialQueueManager::get_instance().queueMessage("Encoder Manager initialized successfully");
+    SerialQueueManager::get_instance().queue_message("Encoder Manager initialized successfully");
     return true;
 }
 

@@ -78,11 +78,11 @@ bool DemoManager::enable_demo(demo::DemoType demoType) {
     switch (demoType) {
         case demo::DemoType::BALANCE_CONTROLLER:
             BalanceController::get_instance().enable();
-            return BalanceController::get_instance().isEnabled();
+            return BalanceController::get_instance().is_enabled();
 
         case demo::DemoType::OBSTACLE_AVOIDER:
             ObstacleAvoider::get_instance().enable();
-            return ObstacleAvoider::get_instance().isEnabled();
+            return ObstacleAvoider::get_instance().is_enabled();
 
         case demo::DemoType::NONE:
             return true; // "Enabling" none is always successful

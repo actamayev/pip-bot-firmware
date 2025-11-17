@@ -21,10 +21,10 @@ class TurningManager : public Singleton<TurningManager> {
 
     public:
         // Main interface
-        bool startTurn(float degrees);
+        bool start_turn(float degrees);
         void update();
-        void completeNavigation();
-        const bool isActive() { return currentState != TurningState::IDLE; };
+        void complete_navigation();
+        const bool is_active() { return currentState != TurningState::IDLE; };
 
         // Debug info structure
         struct DebugInfo {
@@ -39,24 +39,24 @@ class TurningManager : public Singleton<TurningManager> {
             float kiContribution = 0.0f;
             bool inOvershootBraking = false;
         };
-        const DebugInfo& getDebugInfo() const { return _debugInfo; }
+        const DebugInfo& get_debug_info() const { return _debugInfo; }
 
     private:
         TurningManager() = default;
         ~TurningManager() = default;
 
         // Core turning logic
-        void initializeTurn();
-        void updateCumulativeRotation();
-        void updateVelocity();
-        float calculateRemainingAngle() const;
-        float calculateTargetVelocity(float remainingAngle) const;
-        float calculateVelocityError() const;
-        uint16_t calculatePWM(float velocityError);
-        bool checkCompletion();
-        bool checkOvershoot(float remainingAngle);
-        void applyMotorControl(uint16_t pwm, float velocityError);
-        void resetTurnState();
+        void initialize_turn();
+        void update_cumulative_rotation();
+        void update_velocity();
+        float calculate_remaining_angle() const;
+        float calculate_target_velocity(float remainingAngle) const;
+        float calculate_velocity_error() const;
+        uint16_t calculate_pwm(float velocityError);
+        bool check_completion();
+        bool check_overshoot(float remainingAngle);
+        void apply_motor_control(uint16_t pwm, float velocityError);
+        void reset_turn_state();
         
         // State variables
         TurningState currentState = TurningState::IDLE;

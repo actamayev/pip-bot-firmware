@@ -6,4 +6,4 @@
 #include "networking/serial_queue_manager.h"
 #include "actuators/buttons.h"
 
-bool holdToWake();
+bool hold_to_wake();

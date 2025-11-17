@@ -37,17 +37,17 @@ class Buttons: public Singleton<Buttons> {
         bool is_right_button_pressed();
 
     private:
-        Button2 leftButton;
-        Button2 rightButton;
-		bool longPressFlagForSleep = false;
-        bool justPausedOnPress = false;
-        bool waitingForSleepConfirmation = false; // New flag for confirmation stage
-        bool inHoldToWakeMode = false; // Flag to prevent long click LED during hold-to-wake
-        unsigned long holdToWakeCompletedTime = 0; // Timestamp when hold-to-wake completed
+        Button2 _left_button;
+        Button2 _right_button;
+		bool _long_press_flag_for_sleep = false;
+        bool _just_paused_on_press = false;
+        bool _waiting_for_sleep_confirmation = false; // New flag for confirmation stage
+        bool _in_hold_to_wake_mode = false; // Flag to prevent long click LED during hold-to-wake
+        unsigned long _hold_to_wake_completed_time = 0; // Timestamp when hold-to-wake completed
         static const uint32_t DEEP_SLEEP_TIMEOUT = 1000; // 1 second in milliseconds
         // Add for sleep confirmation timeout
         static const uint32_t SLEEP_CONFIRMATION_TIMEOUT = 5000; // 5 seconds in milliseconds
-        unsigned long sleepConfirmationStartTime = 0;
+        unsigned long _sleep_confirmation_start_time = 0;
 
         void begin();
 

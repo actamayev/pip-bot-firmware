@@ -25,7 +25,7 @@ class DemoManager : public Singleton<DemoManager> {
         return _currentDemo;
     }
 
-    bool isAnyDemoActive() const {
+    bool is_any_demo_active() const {
         return _currentDemo != demo::DemoType::NONE;
     }
 

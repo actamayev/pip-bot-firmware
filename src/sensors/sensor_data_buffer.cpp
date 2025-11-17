@@ -347,7 +347,7 @@ float SensorDataBuffer::get_imu_frequency() {
         // Debug logging
         char debugBuffer[128];
         snprintf(debugBuffer, sizeof(debugBuffer), "DEBUG: updateDelta=%u, timeDelta=%u, freq=%.1f", updateDelta, timeDelta, lastFrequency);
-        SerialQueueManager::get_instance().queueMessage(debugBuffer);
+        SerialQueueManager::get_instance().queue_message(debugBuffer);
 
         // Update tracking variables
         lastImuFrequencyCalcTime.store(currentTime);

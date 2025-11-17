@@ -161,7 +161,7 @@ WiFiManager::get_instance().connectToNetwork("SSID", "password");
 
 ### Message Sending
 ```cpp
-SerialQueueManager::get_instance().queueMessage("Status update");
+SerialQueueManager::get_instance().queue_message("Status update");
 // Thread-safe message queuing with automatic routing
 ```
 

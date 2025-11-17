@@ -22,13 +22,13 @@ bool ColorSensor::initialize() {
 
             sensorConnected = true;
             isInitialized = true;
-            SerialQueueManager::get_instance().queueMessage("Color sensor initialized successfully");
+            SerialQueueManager::get_instance().queue_message("Color sensor initialized successfully");
             return true;
         }
         vTaskDelay(pdMS_TO_TICKS(50));
     }
 
-    SerialQueueManager::get_instance().queueMessage("Warning: VEML3328 sensor not detected");
+    SerialQueueManager::get_instance().queue_message("Warning: VEML3328 sensor not detected");
     return false;
 }
 
@@ -83,7 +83,7 @@ void ColorSensor::enable_color_sensor() {
     analogWrite(COLOR_SENSOR_LED_PIN, COLOR_SENSOR_LED_BRIGHTNESS);
 
     sensorEnabled = true;
-    SerialQueueManager::get_instance().queueMessage("Color sensor enabled");
+    SerialQueueManager::get_instance().queue_message("Color sensor enabled");
 }
 
 void ColorSensor::disable_color_sensor() {
@@ -93,24 +93,24 @@ void ColorSensor::disable_color_sensor() {
     analogWrite(COLOR_SENSOR_LED_PIN, 0);
 
     sensorEnabled = false;
-    SerialQueueManager::get_instance().queueMessage("Color sensor LED turned OFF - disabled due to timeout");
+    SerialQueueManager::get_instance().queue_message("Color sensor LED turned OFF - disabled due to timeout");
 }
 
 void ColorSensor::print_calibration_values() {
-    SerialQueueManager::get_instance().queueMessage("Calibration Values:");
-    SerialQueueManager::get_instance().queueMessage("Black point:");
+    SerialQueueManager::get_instance().queue_message("Calibration Values:");
+    SerialQueueManager::get_instance().queue_message("Black point:");
     String blackMsg = "R: " + String(calibration.blackRed) + ", G: " + String(calibration.blackGreen) + ", B: " + String(calibration.blackBlue);
-    SerialQueueManager::get_instance().queueMessage(blackMsg.c_str());
+    SerialQueueManager::get_instance().queue_message(blackMsg.c_str());
 
-    SerialQueueManager::get_instance().queueMessage("White point:");
+    SerialQueueManager::get_instance().queue_message("White point:");
     String whiteMsg = "R: " + String(calibration.whiteRed) + ", G: " + String(calibration.whiteGreen) + ", B: " + String(calibration.whiteBlue);
-    SerialQueueManager::get_instance().queueMessage(whiteMsg.c_str());
+    SerialQueueManager::get_instance().queue_message(whiteMsg.c_str());
 }
 
 void ColorSensor::calibrateBlackPoint() {
     if (!isInitialized || !sensorConnected) return;
 
-    SerialQueueManager::get_instance().queueMessage("Calibrating black point - ensure dark surface...");
+    SerialQueueManager::get_instance().queue_message("Calibrating black point - ensure dark surface...");
 
     analogWrite(COLOR_SENSOR_LED_PIN, COLOR_SENSOR_LED_BRIGHTNESS);
     vTaskDelay(pdMS_TO_TICKS(500)); // Wait for sensor to stabilize
@@ -130,7 +130,7 @@ void ColorSensor::calibrateBlackPoint() {
     calibration.blackGreen = sumGreen / numReadings;
     calibration.blackBlue = sumBlue / numReadings;
 
-    SerialQueueManager::get_instance().queueMessage("Black point calibrated!");
+    SerialQueueManager::get_instance().queue_message("Black point calibrated!");
     print_calibration_values();
     analogWrite(COLOR_SENSOR_LED_PIN, 0);
 }
@@ -138,7 +138,7 @@ void ColorSensor::calibrateBlackPoint() {
 void ColorSensor::calibrateWhitePoint() {
     if (!isInitialized || !sensorConnected) return;
 
-    SerialQueueManager::get_instance().queueMessage("Calibrating white point - ensure white surface...");
+    SerialQueueManager::get_instance().queue_message("Calibrating white point - ensure white surface...");
 
     analogWrite(COLOR_SENSOR_LED_PIN, COLOR_SENSOR_LED_BRIGHTNESS);
     vTaskDelay(pdMS_TO_TICKS(500)); // Wait for sensor to stabilize
@@ -158,7 +158,7 @@ void ColorSensor::calibrateWhitePoint() {
     calibration.whiteGreen = sumGreen / numReadings;
     calibration.whiteBlue = sumBlue / numReadings;
 
-    SerialQueueManager::get_instance().queueMessage("White point calibrated!");
+    SerialQueueManager::get_instance().queue_message("White point calibrated!");
     print_calibration_values();
     isCalibrated = true;
     analogWrite(COLOR_SENSOR_LED_PIN, 0);

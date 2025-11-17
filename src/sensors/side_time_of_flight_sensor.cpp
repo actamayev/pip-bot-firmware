@@ -25,7 +25,7 @@ bool SideTimeOfFlightSensor::initialize(const uint8_t TOF_ADDRESS) {
             // Load existing calibration or perform new calibration
             load_calibration_from_preferences();
             if (!isCalibrated) {
-                SerialQueueManager::get_instance().queueMessage("No calibration found - performing auto-calibration");
+                SerialQueueManager::get_instance().queue_message("No calibration found - performing auto-calibration");
                 perform_calibration();
             }
 
@@ -112,7 +112,7 @@ void SideTimeOfFlightSensor::load_calibration_from_preferences() {
         isCalibrated = false;
         char logMessage[128];
         snprintf(logMessage, sizeof(logMessage), "No stored calibration found for sensor 0x%02X", sensorAddress);
-        SerialQueueManager::get_instance().queueMessage(logMessage);
+        SerialQueueManager::get_instance().queue_message(logMessage);
         return;
     }
     baselineValue = prefs.getSideTofBaseline(sensorAddress);
@@ -122,7 +122,7 @@ void SideTimeOfFlightSensor::load_calibration_from_preferences() {
     char logMessage[128];
     snprintf(logMessage, sizeof(logMessage), "Loaded calibration for sensor 0x%02X: baseline=%u, hw_calib=%s", sensorAddress, baselineValue,
              useHardwareCalibration ? "true" : "false");
-    SerialQueueManager::get_instance().queueMessage(logMessage);
+    SerialQueueManager::get_instance().queue_message(logMessage);
 
     if (useHardwareCalibration) {
         apply_hardware_calibration(baselineValue);
@@ -132,15 +132,15 @@ void SideTimeOfFlightSensor::load_calibration_from_preferences() {
 bool SideTimeOfFlightSensor::perform_calibration() {
     char logMessage[128];
     snprintf(logMessage, sizeof(logMessage), "Calibrating sensor 0x%02X...", sensorAddress);
-    SerialQueueManager::get_instance().queueMessage(logMessage);
+    SerialQueueManager::get_instance().queue_message(logMessage);
 
-    SerialQueueManager::get_instance().queueMessage("Make sure no obstacles are in front of the sensors!");
+    SerialQueueManager::get_instance().queue_message("Make sure no obstacles are in front of the sensors!");
     vTaskDelay(pdMS_TO_TICKS(3000)); // Give time to clear obstacles
 
     uint16_t baseline = capture_baseline_reading();
 
     snprintf(logMessage, sizeof(logMessage), "Baseline reading: %u", baseline);
-    SerialQueueManager::get_instance().queueMessage(logMessage);
+    SerialQueueManager::get_instance().queue_message(logMessage);
 
     baselineValue = baseline;
 
@@ -148,11 +148,11 @@ bool SideTimeOfFlightSensor::perform_calibration() {
     if (baseline <= 4095) {
         useHardwareCalibration = true;
         apply_hardware_calibration(baseline);
-        SerialQueueManager::get_instance().queueMessage("Using hardware calibration");
+        SerialQueueManager::get_instance().queue_message("Using hardware calibration");
     } else {
         useHardwareCalibration = false;
         VCNL36828P_SET_PS_CANC(sensorAddress, 0); // Clear hardware cancellation
-        SerialQueueManager::get_instance().queueMessage("Using software calibration (baseline too high for hardware)");
+        SerialQueueManager::get_instance().queue_message("Using software calibration (baseline too high for hardware)");
     }
 
     // Store calibration in NVS
@@ -161,7 +161,7 @@ bool SideTimeOfFlightSensor::perform_calibration() {
     isCalibrated = true;
 
     snprintf(logMessage, sizeof(logMessage), "Sensor 0x%02X calibrated successfully - baseline: %u", sensorAddress, baselineValue);
-    SerialQueueManager::get_instance().queueMessage(logMessage);
+    SerialQueueManager::get_instance().queue_message(logMessage);
 
     return true;
 }

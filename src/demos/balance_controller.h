@@ -17,7 +17,7 @@ class BalanceController : public Singleton<BalanceController> {
         void enable();
         void disable();
         void update();
-        bool isEnabled() const { return _balancingEnabled == BalanceStatus::BALANCED; }
+        bool is_enabled() const { return _balancingEnabled == BalanceStatus::BALANCED; }
         void update_balance_pids(NewBalancePids newBalancePids);
 
     private:

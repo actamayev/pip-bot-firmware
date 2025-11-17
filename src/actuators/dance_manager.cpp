@@ -8,16 +8,16 @@ constexpr const DanceManager::DanceStep DanceManager::DANCE_SEQUENCE[];
 void DanceManager::start_dance() {
     // Safety check - only dance if USB is not connected
     // if (SerialManager::get_instance().isSerialConnected()) {
-    //     SerialQueueManager::get_instance().queueMessage("Dance blocked - USB connected for safety");
+    //     SerialQueueManager::get_instance().queue_message("Dance blocked - USB connected for safety");
     //     return;
     // }
 
     if (_isCurrentlyDancing) {
-        SerialQueueManager::get_instance().queueMessage("Dance already in progress");
+        SerialQueueManager::get_instance().queue_message("Dance already in progress");
         return;
     }
 
-    SerialQueueManager::get_instance().queueMessage("Starting dance sequence");
+    SerialQueueManager::get_instance().queue_message("Starting dance sequence");
     _isCurrentlyDancing = true;
     _currentStep = 0;
     _stepStartTime = millis();
@@ -41,7 +41,7 @@ void DanceManager::start_dance() {
 void DanceManager::stop_dance(bool shouldTurnLedsOff) {
     if (!_isCurrentlyDancing) return;
 
-    SerialQueueManager::get_instance().queueMessage("Stopping dance sequence");
+    SerialQueueManager::get_instance().queue_message("Stopping dance sequence");
     _isCurrentlyDancing = false;
     _currentStep = 0;
 
@@ -60,7 +60,7 @@ void DanceManager::update() {
 
     // Safety check during dance - stop if USB gets connected
     // if (SerialManager::get_instance().isSerialConnected()) {
-    //     SerialQueueManager::get_instance().queueMessage("USB connected during dance - stopping for safety");
+    //     SerialQueueManager::get_instance().queue_message("USB connected during dance - stopping for safety");
     //     stopDance();
     //     return;
     // }

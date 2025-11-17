@@ -19,7 +19,7 @@ void setup() {
     // Init the Battery monitor, IMU line I2C line first
     Wire1.begin(I2C_SDA_2, I2C_SCL_2, I2C_2_CLOCK_SPEED);
 
-    TaskManager::createSerialQueueTask();
+    TaskManager::create_serial_queue_task();
 
     // Initialize battery monitor SYNCHRONOUSLY before display to check battery level
     BatteryMonitor::get_instance().initialize();
@@ -29,7 +29,7 @@ void setup() {
 
     // Check hold-to-wake condition first (handles display init for deep sleep wake)
     // Function handles going back to sleep if conditions aren't met
-    if (!holdToWake()) {
+    if (!hold_to_wake()) {
         return;
     }
 
@@ -45,7 +45,7 @@ void setup() {
 
     // Initialize display normally after hold-to-wake check (only if battery is OK)
     if (esp_sleep_get_wakeup_cause() != ESP_SLEEP_WAKEUP_EXT1) {
-        TaskManager::createDisplayInitTask();
+        TaskManager::create_display_init_task();
     } else {
         // For deep sleep wake, display was already initialized in holdToWake()
     }
@@ -56,51 +56,51 @@ void setup() {
     // - For deep sleep wake: Display initialized after 1-second button hold in holdToWake()
 
     // 3. SerialInput: To communicate with the user over Serial (in the BrowserUI)
-    TaskManager::createSerialInputTask();
+    TaskManager::create_serial_input_task();
 
     // 4. Speaker
-    TaskManager::createSpeakerTask();
+    TaskManager::create_speaker_task();
 
     // 5. Buttons: We have this later the procedure because the user doesn't need button access during startup
-    TaskManager::createButtonTask();
+    TaskManager::create_button_task();
 
     // Create battery monitor task for ongoing monitoring
-    TaskManager::createBatteryMonitorTask();
+    TaskManager::create_battery_monitor_task();
 
     // 11. Motor (high priority, fast updates)
-    TaskManager::createMotorTask();
+    TaskManager::create_motor_task();
 
     // 7. Network (Management task creates SendSensorData task)
-    TaskManager::createNetworkManagementTask();
+    TaskManager::create_network_management_task();
 
     // 8. WebSocket polling (separate from communication for non-blocking sensor data)
-    TaskManager::createWebSocketPollingTask();
+    TaskManager::create_web_socket_polling_task();
 
     // 9. LEDs (moved later in sequence)
     rgbLed.turn_all_leds_off(); // Still turn off LEDs early for safety
-    TaskManager::createLedTask();
+    TaskManager::create_led_task();
 
     // 10. Initialize all sensors centrally to avoid I2C conflicts
     SensorInitializer::get_instance(); // This triggers centralized initialization
 
     // 11. Individual Sensor Tasks (wait for centralized init, then poll independently)
-    TaskManager::createImuSensorTask();
-    TaskManager::createEncoderSensorTask();
-    TaskManager::createMultizoneTofSensorTask();
-    TaskManager::createSideTofSensorTask();
-    TaskManager::createColorSensorTask();
+    TaskManager::create_imu_sensor_task();
+    TaskManager::create_encoder_sensor_task();
+    TaskManager::create_multizone_tof_sensor_task();
+    TaskManager::create_side_tof_sensor_task();
+    TaskManager::create_color_sensor_task();
 
     // 12. DemoManager (high priority for demos)
     // TaskManager::createDemoManagerTask();
 
     // 13. GameManager (interactive games)
-    TaskManager::createGameManagerTask();
+    TaskManager::create_game_manager_task();
 
     // 14. CareerQuest (trigger system)
-    TaskManager::createCareerQuestTask();
+    TaskManager::create_career_quest_task();
 
     // 15. BytecodeVM
-    TaskManager::createBytecodeVMTask();
+    TaskManager::create_bytecode_vm_task();
 
     // Note: StackMonitor can be enabled for debugging
     // TaskManager::createStackMonitorTask();

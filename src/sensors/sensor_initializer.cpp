@@ -11,7 +11,7 @@ SensorInitializer::SensorInitializer() {
         sensorInitialized[i] = false;
     }
 
-    SerialQueueManager::get_instance().queueMessage("Starting centralized sensor initialization...");
+    SerialQueueManager::get_instance().queue_message("Starting centralized sensor initialization...");
 
     // Initialize sensors sequentially to avoid I2C conflicts
     // Start with the heaviest I2C user first (multizone requires ~84KB data transfer)
@@ -19,7 +19,7 @@ SensorInitializer::SensorInitializer() {
     initialize_imu();
     initialize_color_sensor();
 
-    SerialQueueManager::get_instance().queueMessage("Centralized sensor initialization complete");
+    SerialQueueManager::get_instance().queue_message("Centralized sensor initialization complete");
 }
 
 bool SensorInitializer::is_sensor_initialized(SensorType sensor) const {
@@ -30,34 +30,34 @@ bool SensorInitializer::is_sensor_initialized(SensorType sensor) const {
 }
 
 void SensorInitializer::initialize_multizone_tof() {
-    SerialQueueManager::get_instance().queueMessage("Initializing Multizone sensor...");
+    SerialQueueManager::get_instance().queue_message("Initializing Multizone sensor...");
 
     if (!MultizoneTofSensor::get_instance().initialize()) {
-        SerialQueueManager::get_instance().queueMessage("Multizone sensor initialization failed");
+        SerialQueueManager::get_instance().queue_message("Multizone sensor initialization failed");
         return;
     }
-    SerialQueueManager::get_instance().queueMessage("Multizone sensor setup complete");
+    SerialQueueManager::get_instance().queue_message("Multizone sensor setup complete");
     sensorInitialized[MULTIZONE_TOF] = true;
 }
 
 void SensorInitializer::initialize_imu() {
-    SerialQueueManager::get_instance().queueMessage("Initializing IMU...");
+    SerialQueueManager::get_instance().queue_message("Initializing IMU...");
 
     if (!ImuSensor::get_instance().initialize()) {
-        SerialQueueManager::get_instance().queueMessage("IMU initialization failed");
+        SerialQueueManager::get_instance().queue_message("IMU initialization failed");
         return;
     }
-    SerialQueueManager::get_instance().queueMessage("IMU setup complete");
+    SerialQueueManager::get_instance().queue_message("IMU setup complete");
     sensorInitialized[IMU] = true;
 }
 
 void SensorInitializer::initialize_color_sensor() {
-    SerialQueueManager::get_instance().queueMessage("Initializing Color Sensor...");
+    SerialQueueManager::get_instance().queue_message("Initializing Color Sensor...");
 
     if (!ColorSensor::get_instance().initialize()) {
-        SerialQueueManager::get_instance().queueMessage("Color Sensor initialization failed");
+        SerialQueueManager::get_instance().queue_message("Color Sensor initialization failed");
         return;
     }
-    SerialQueueManager::get_instance().queueMessage("Color Sensor setup complete");
+    SerialQueueManager::get_instance().queue_message("Color Sensor setup complete");
     sensorInitialized[COLOR_SENSOR] = true;
 }

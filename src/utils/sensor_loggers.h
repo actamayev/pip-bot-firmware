@@ -8,12 +8,12 @@
 #include "sensors/side_tof_manager.h"
 #include "networking/serial_queue_manager.h"
 
-void multizoneTofLogger();
-void imuLogger();
-void sideTofsLogger();
-void sideTofLogger();
-void colorSensorLogger();
-void irSensorLogger();
-void setupButtonLoggers();
+void multizone_tof_logger();
+void imu_logger();
+void side_tofs_logger();
+void side_tof_logger();
+void color_sensor_logger();
+void ir_sensor_logger();
+void setup_button_loggers();
 void log_motor_rpm();
-void displayPerformanceLogger();
+void display_performance_logger();

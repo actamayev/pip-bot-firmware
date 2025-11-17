@@ -6,7 +6,7 @@ void StraightLineDrive::enable() {
     _straightDrivingEnabled = true;
 
     // Get current yaw heading as our baseline
-    _initialHeading = -SensorDataBuffer::get_instance().getLatestYaw(); // Note: negative for consistency with turning manager
+    _initialHeading = -SensorDataBuffer::get_instance().get_latest_yaw(); // Note: negative for consistency with turning manager
 
     // Initialize debug info
     _debugInfo.initialHeading = _initialHeading;
@@ -33,10 +33,10 @@ void StraightLineDrive::update(int16_t& leftSpeed, int16_t& rightSpeed) {
     if (!(leftSpeed > 0 && rightSpeed > 0)) return;
 
     // Get current yaw heading directly (no smoothing)
-    float currentHeading = -SensorDataBuffer::get_instance().getLatestYaw();
+    float currentHeading = -SensorDataBuffer::get_instance().get_latest_yaw();
 
     // Calculate heading error with wrap-around handling
-    float headingError = calculateHeadingError(currentHeading, _initialHeading);
+    float headingError = calculate_heading_error(currentHeading, _initialHeading);
 
     // Update debug info
     _debugInfo.currentHeading = currentHeading;
@@ -77,7 +77,7 @@ void StraightLineDrive::update(int16_t& leftSpeed, int16_t& rightSpeed) {
     _debugInfo.correction = correction;
 }
 
-float StraightLineDrive::calculateHeadingError(float currentHeading, float targetHeading) {
+float StraightLineDrive::calculate_heading_error(float currentHeading, float targetHeading) {
     float error = currentHeading - targetHeading;
 
     // Handle wrap-around using shortest path (same logic as turning manager)

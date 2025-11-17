@@ -5,46 +5,46 @@
 #include "custom_interpreter/bytecode_vm.h"
 #include "networking/serial_queue_manager.h"
 
-void TimeoutManager::resetActivity() {
-    lastActivityTime = millis();
+void TimeoutManager::reset_activity() {
+    _lastActivityTime = millis();
 
     // If we were in confirmation state, cancel it
-    if (!inConfirmationState) return;
-    cancelConfirmation();
+    if (!_inConfirmationState) return;
+    cancel_confirmation();
 }
 
 void TimeoutManager::update() {
     unsigned long current_time = millis();
 
-    if (!inConfirmationState) {
+    if (!_inConfirmationState) {
         // Check for initial inactivity timeout
-        if (current_time - lastActivityTime >= INACTIVITY_TIMEOUT) {
-            enterConfirmationState();
+        if (current_time - _lastActivityTime >= INACTIVITY_TIMEOUT) {
+            enter_confirmation_state();
         }
     } else {
         // Check for confirmation timeout
-        if (current_time - confirmationStartTime >= CONFIRMATION_TIMEOUT) {
+        if (current_time - _confirmationStartTime >= CONFIRMATION_TIMEOUT) {
             Buttons::get_instance().enter_deep_sleep();
         }
     }
 }
 
-void TimeoutManager::enterConfirmationState() {
+void TimeoutManager::enter_confirmation_state() {
     // Stop bytecode and prepare for sleep (same as long press logic)
     BytecodeVM::get_instance().stop_program();
-    SensorDataBuffer::get_instance().stopPollingAllSensors();
+    SensorDataBuffer::get_instance().stop_polling_all_sensors();
     rgbLed.set_led_yellow();
 
-    inConfirmationState = true;
-    confirmationStartTime = millis();
+    _inConfirmationState = true;
+    _confirmationStartTime = millis();
 }
 
-void TimeoutManager::cancelConfirmation() {
-    if (!inConfirmationState) return;
+void TimeoutManager::cancel_confirmation() {
+    if (!_inConfirmationState) return;
 
-    inConfirmationState = false;
+    _inConfirmationState = false;
             rgbLed.turn_all_leds_off();
 
     // Reset activity timer
-    lastActivityTime = millis();
+    _lastActivityTime = millis();
 }

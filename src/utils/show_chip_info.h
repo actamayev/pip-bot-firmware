@@ -7,4 +7,4 @@
 #include <esp_partition.h>
 #include "networking/serial_queue_manager.h"
 
-void printFlashInfo();
+void print_flash_info();
