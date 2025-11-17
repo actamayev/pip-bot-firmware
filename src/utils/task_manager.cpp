@@ -31,6 +31,7 @@ TaskHandle_t TaskManager::career_quest_task_handle = nullptr;
 TaskHandle_t TaskManager::display_init_task_handle = nullptr;
 
 void TaskManager::button_task(void* parameter) {
+    (void)parameter; // Mark as intentionally unused
     setup_button_loggers();
 
     for (;;) {
@@ -40,6 +41,7 @@ void TaskManager::button_task(void* parameter) {
 }
 
 void TaskManager::serial_input_task(void* parameter) {
+    (void)parameter; // Mark as intentionally unused
     for (;;) {
         SerialManager::get_instance().poll_serial();
         vTaskDelay(pdMS_TO_TICKS(2));
@@ -47,6 +49,7 @@ void TaskManager::serial_input_task(void* parameter) {
 }
 
 void TaskManager::led_task(void* parameter) {
+    (void)parameter; // Mark as intentionally unused
     for (;;) {
         led_animations.update();
         vTaskDelay(pdMS_TO_TICKS(5));
@@ -54,6 +57,7 @@ void TaskManager::led_task(void* parameter) {
 }
 
 void TaskManager::bytecode_vm_task(void* parameter) {
+    (void)parameter; // Mark as intentionally unused
     for (;;) {
         BytecodeVM::get_instance().update();
         vTaskDelay(pdMS_TO_TICKS(5));
@@ -61,6 +65,7 @@ void TaskManager::bytecode_vm_task(void* parameter) {
 }
 
 void TaskManager::stack_monitor_task(void* parameter) {
+    (void)parameter; // Mark as intentionally unused
     for (;;) {
         print_stack_usage();
         vTaskDelay(pdMS_TO_TICKS(1000));
@@ -68,6 +73,7 @@ void TaskManager::stack_monitor_task(void* parameter) {
 }
 
 void TaskManager::display_task(void* parameter) {
+    (void)parameter; // Mark as intentionally unused
     SerialQueueManager::get_instance().queue_message("Display task started");
 
     for (;;) {
@@ -78,6 +84,7 @@ void TaskManager::display_task(void* parameter) {
 
 // Individual Sensor Polling Tasks
 void TaskManager::imu_sensor_task(void* parameter) {
+    (void)parameter; // Mark as intentionally unused
     SerialQueueManager::get_instance().queue_message("IMU sensor task started");
 
     // Wait for centralized initialization to complete
@@ -96,6 +103,7 @@ void TaskManager::imu_sensor_task(void* parameter) {
 }
 
 void TaskManager::encoder_sensor_task(void* parameter) {
+    (void)parameter; // Mark as intentionally unused
     SerialQueueManager::get_instance().queue_message("Encoder sensor task started");
     EncoderManager::get_instance().initialize();
     SerialQueueManager::get_instance().queue_message("Encoders initialized successfully");
@@ -110,6 +118,7 @@ void TaskManager::encoder_sensor_task(void* parameter) {
 }
 
 void TaskManager::multizone_tof_sensor_task(void* parameter) {
+    (void)parameter; // Mark as intentionally unused
     SerialQueueManager::get_instance().queue_message("Multizone TOF sensor task started");
 
     // Wait for centralized initialization to complete
@@ -128,6 +137,7 @@ void TaskManager::multizone_tof_sensor_task(void* parameter) {
 }
 
 void TaskManager::side_tof_sensor_task(void* parameter) {
+    (void)parameter; // Mark as intentionally unused
     SerialQueueManager::get_instance().queue_message("Side TOF sensor task started");
 
     // Initialize Side TOF sensors directly
@@ -147,6 +157,7 @@ void TaskManager::side_tof_sensor_task(void* parameter) {
 }
 
 void TaskManager::color_sensor_task(void* parameter) {
+    (void)parameter; // Mark as intentionally unused
     SerialQueueManager::get_instance().queue_message("Color sensor task started");
 
     // Wait for centralized initialization to complete
@@ -165,6 +176,7 @@ void TaskManager::color_sensor_task(void* parameter) {
 }
 
 void TaskManager::sensor_logger_task(void* parameter) {
+    (void)parameter; // Mark as intentionally unused
     SerialQueueManager::get_instance().queue_message("Sensor logger task started");
 
     // Main logging loop
@@ -184,6 +196,7 @@ void TaskManager::sensor_logger_task(void* parameter) {
 }
 
 void TaskManager::network_management_task(void* parameter) {
+    (void)parameter; // Mark as intentionally unused
     // Initialize WiFi and networking components (heavy setup)
     WiFiManager::get_instance();
     FirmwareVersionTracker::get_instance();
@@ -214,6 +227,7 @@ void TaskManager::network_management_task(void* parameter) {
 }
 
 void TaskManager::web_socket_polling_task(void* parameter) {
+    (void)parameter; // Mark as intentionally unused
     SerialQueueManager::get_instance().queue_message("WebSocket polling task started");
 
     // Main WebSocket polling loop
@@ -229,6 +243,7 @@ void TaskManager::web_socket_polling_task(void* parameter) {
 }
 
 void TaskManager::send_sensor_data_task(void* parameter) {
+    (void)parameter; // Mark as intentionally unused
     SerialQueueManager::get_instance().queue_message("Send sensor data task started");
 
     // Main sensor data transmission loop
@@ -249,6 +264,7 @@ void TaskManager::serial_queue_task(void* parameter) {
 }
 
 void TaskManager::battery_monitor_task(void* parameter) {
+    (void)parameter; // Mark as intentionally unused
     for (;;) {
         BatteryMonitor::get_instance().update();
         vTaskDelay(pdMS_TO_TICKS(1000));
@@ -256,6 +272,7 @@ void TaskManager::battery_monitor_task(void* parameter) {
 }
 
 void TaskManager::speaker_task(void* parameter) {
+    (void)parameter; // Mark as intentionally unused
     Speaker::get_instance().initialize();
     SerialQueueManager::get_instance().queue_message("Speaker task started");
 
@@ -267,6 +284,7 @@ void TaskManager::speaker_task(void* parameter) {
 }
 
 void TaskManager::motor_task(void* parameter) {
+    (void)parameter; // Mark as intentionally unused
     SerialQueueManager::get_instance().queue_message("Motor task started");
 
     for (;;) {
@@ -277,6 +295,7 @@ void TaskManager::motor_task(void* parameter) {
 }
 
 void TaskManager::demo_manager_task(void* parameter) {
+    (void)parameter; // Mark as intentionally unused
     SerialQueueManager::get_instance().queue_message("DemoManager task started");
 
     for (;;) {
@@ -286,6 +305,7 @@ void TaskManager::demo_manager_task(void* parameter) {
 }
 
 void TaskManager::game_manager_task(void* parameter) {
+    (void)parameter; // Mark as intentionally unused
     SerialQueueManager::get_instance().queue_message("GameManager task started");
 
     for (;;) {
@@ -295,6 +315,7 @@ void TaskManager::game_manager_task(void* parameter) {
 }
 
 void TaskManager::career_quest_task(void* parameter) {
+    (void)parameter; // Mark as intentionally unused
     SerialQueueManager::get_instance().queue_message("CareerQuest task started");
 
     for (;;) {
@@ -304,6 +325,7 @@ void TaskManager::career_quest_task(void* parameter) {
 }
 
 void TaskManager::display_init_task(void* parameter) {
+    (void)parameter; // Mark as intentionally unused
     SerialQueueManager::get_instance().queue_message("Starting display initialization...");
 
     if (!DisplayScreen::get_instance().init(true)) {

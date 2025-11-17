@@ -117,7 +117,7 @@ void MessageProcessor::handle_soft_scan_wifi_networks() {
 }
 
 void MessageProcessor::handle_hard_scan_wifi_networks() {
-    bool success = WiFiManager::get_instance().start_async_scan() = false;
+    bool success = WiFiManager::get_instance().start_async_scan();
     if (success) {
         return;
     }
@@ -586,7 +586,7 @@ void MessageProcessor::process_binary_message(const uint8_t* data, uint16_t leng
             }
 
             // Attempt to forget the network
-            bool success = PreferencesManager::get_instance().forget_wifi_network(ssid) = false;
+            bool success = PreferencesManager::get_instance().forget_wifi_network(ssid);
             SerialManager::get_instance().send_network_deleted_response(success);
             break;
         }

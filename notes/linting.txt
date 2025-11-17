@@ -1,5 +1,5 @@
 # Check all code for static analysis issues
-./scripts/lint.sh check
+./scripts/lint.sh check -e -local
 
 # Auto-fix a single file
 ./scripts/lint.sh fix src/utils/utils.cpp
