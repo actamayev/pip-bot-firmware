@@ -31,7 +31,7 @@ void TimeoutManager::update() {
 
 void TimeoutManager::enterConfirmationState() {
     // Stop bytecode and prepare for sleep (same as long press logic)
-    BytecodeVM::get_instance().stopProgram();
+    BytecodeVM::get_instance().stop_program();
     SensorDataBuffer::get_instance().stopPollingAllSensors();
     rgbLed.set_led_yellow();
 

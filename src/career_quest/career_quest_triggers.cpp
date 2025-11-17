@@ -20,7 +20,7 @@ constexpr unsigned long CareerQuestTriggers::S2P4_FLASH_INTERVAL;
 
 CareerQuestTriggers::CareerQuestTriggers(Adafruit_NeoPixel& strip) : strip(strip) {}
 
-void CareerQuestTriggers::startS2P1Sequence() {
+void CareerQuestTriggers::start_s2_p1_sequence() {
     // Turn off all LEDs first
     rgbLed.turn_all_leds_off();
 
@@ -34,14 +34,14 @@ void CareerQuestTriggers::startS2P1Sequence() {
     targetBrightness = 255;
 }
 
-void CareerQuestTriggers::stopS2P1Sequence() {
+void CareerQuestTriggers::stop_s2_p1_sequence() {
     if (!s2p1Active) return;
     // Start exit fade instead of immediately turning off
     isExitFading = true;
     isFadingOut = true;
 }
 
-void CareerQuestTriggers::startS2P4LightShow() {
+void CareerQuestTriggers::start_s2_p4_light_show() {
     // Turn off all LEDs first
     rgbLed.turn_all_leds_off();
     // Stop any existing LED animations
@@ -59,7 +59,7 @@ void CareerQuestTriggers::startS2P4LightShow() {
     s2p4PhaseStartTime = millis();
 }
 
-void CareerQuestTriggers::stopS2P4LightShow() {
+void CareerQuestTriggers::stop_s2_p4_light_show() {
     if (!s2p4Active) return;
     // Stop any breathing animation immediately
     ledAnimations.stop_animation();
@@ -69,13 +69,13 @@ void CareerQuestTriggers::stopS2P4LightShow() {
 }
 
 void CareerQuestTriggers::update() {
-    if (s2p1Active) updateS2P1Sequence();
-    if (s2p4Active) updateS2P4LightShow();
-    if (s7p4Active) updateS7P4ButtonDemo();
-    if (s5p4Active) updateS5P4LedVisualization();
+    if (s2p1Active) update_s2_p1_sequence();
+    if (s2p4Active) update_s2_p4_light_show();
+    if (s7p4Active) update_s7_p4_button_demo();
+    if (s5p4Active) update_s5_p4_led_visualization();
 }
 
-void CareerQuestTriggers::updateS2P1Sequence() {
+void CareerQuestTriggers::update_s2_p1_sequence() {
     unsigned long now = millis();
 
     if (now - lastS2P1Update < S2P1_UPDATE_INTERVAL) return;
@@ -137,7 +137,7 @@ void CareerQuestTriggers::updateS2P1Sequence() {
     lastS2P1Update = now;
 }
 
-void CareerQuestTriggers::updateS2P4LightShow() {
+void CareerQuestTriggers::update_s2_p4_light_show() {
     unsigned long now = millis();
 
     // Handle exit fading
@@ -152,7 +152,7 @@ void CareerQuestTriggers::updateS2P4LightShow() {
 
     // Check total duration
     if (now - s2p4StartTime >= S2P4_DURATION) {
-        stopS2P4LightShow();
+        stop_s2_p4_light_show();
         return;
     }
 
@@ -249,7 +249,7 @@ void CareerQuestTriggers::updateS2P4LightShow() {
     // No update needed here - ledAnimations.update() handles it
 }
 
-void CareerQuestTriggers::startS3P3DisplayDemo() {
+void CareerQuestTriggers::start_s3_p3_display_demo() {
     s3p3Active = true;
     s3p3StartTime = millis();
     lastS3P3Update = millis();
@@ -257,11 +257,11 @@ void CareerQuestTriggers::startS3P3DisplayDemo() {
     DisplayScreen::get_instance().displayOff = false;
 }
 
-void CareerQuestTriggers::stopS3P3DisplayDemo() {
+void CareerQuestTriggers::stop_s3_p3_display_demo() {
     s3p3Active = false;
 }
 
-void CareerQuestTriggers::renderS3P3Animation() {
+void CareerQuestTriggers::render_s3_p3_animation() {
     if (!s3p3Active) return;
 
     unsigned long now = millis();
@@ -446,7 +446,7 @@ void CareerQuestTriggers::renderS3P3Animation() {
     }
 }
 
-void CareerQuestTriggers::startS7P4ButtonDemo() {
+void CareerQuestTriggers::start_s7_p4_button_demo() {
     s7p4Active = true;
     s7p4ExitFading = false;
     s7p4CurrentBrightness = 255;
@@ -475,7 +475,7 @@ void CareerQuestTriggers::startS7P4ButtonDemo() {
     });
 }
 
-void CareerQuestTriggers::stopS7P4ButtonDemo() {
+void CareerQuestTriggers::stop_s7_p4_button_demo() {
     if (!s7p4Active) return;
 
     // Clear button handlers (set to nullptr)
@@ -488,7 +488,7 @@ void CareerQuestTriggers::stopS7P4ButtonDemo() {
     lastS7P4Update = millis();
 }
 
-void CareerQuestTriggers::updateS7P4ButtonDemo() {
+void CareerQuestTriggers::update_s7_p4_button_demo() {
     if (!s7p4ExitFading) return;
 
     unsigned long now = millis();
@@ -514,20 +514,20 @@ void CareerQuestTriggers::updateS7P4ButtonDemo() {
     lastS7P4Update = now;
 }
 
-void CareerQuestTriggers::startS5P4LedVisualization() {
+void CareerQuestTriggers::start_s5_p4_led_visualization() {
     rgbLed.turn_all_leds_off();
     s5p4Active = true;
     s5p4ExitFading = false;
     lastS5P4Update = millis();
 }
 
-void CareerQuestTriggers::stopS5P4LedVisualization() {
+void CareerQuestTriggers::stop_s5_p4_led_visualization() {
     if (!s5p4Active) return;
     s5p4ExitFading = true;
     lastS5P4Update = millis();
 }
 
-void CareerQuestTriggers::updateS5P4LedVisualization() {
+void CareerQuestTriggers::update_s5_p4_led_visualization() {
     unsigned long now = millis();
 
     if (now - lastS5P4Update < S5P4_UPDATE_INTERVAL) return;
@@ -543,8 +543,8 @@ void CareerQuestTriggers::updateS5P4LedVisualization() {
     }
 
     // Get IMU data
-    float pitch = SensorDataBuffer::get_instance().getLatestPitch();
-    float roll = SensorDataBuffer::get_instance().getLatestRoll();
+    float pitch = SensorDataBuffer::get_instance().get_latest_pitch();
+    float roll = SensorDataBuffer::get_instance().get_latest_roll();
 
     // Clear all LEDs first
     rgbLed.turn_all_leds_off();
@@ -611,13 +611,13 @@ void CareerQuestTriggers::updateS5P4LedVisualization() {
     lastS5P4Update = now;
 }
 
-void CareerQuestTriggers::stopAllCareerQuestTriggers(bool shouldTurnLedsOff) {
+void CareerQuestTriggers::stop_all_career_quest_triggers(bool shouldTurnLedsOff) {
     // Stop all active career quest triggers (these will start fade sequences)
-    stopS2P1Sequence();
-    stopS2P4LightShow();
-    stopS3P3DisplayDemo();
-    stopS7P4ButtonDemo();
-    stopS5P4LedVisualization();
+    stop_s2_p1_sequence();
+    stop_s2_p4_light_show();
+    stop_s3_p3_display_demo();
+    stop_s7_p4_button_demo();
+    stop_s5_p4_led_visualization();
 
     if (shouldTurnLedsOff) {
         // Stop all LED animations (but don't force LEDs off - let career quest fades complete)
@@ -629,20 +629,20 @@ void CareerQuestTriggers::stopAllCareerQuestTriggers(bool shouldTurnLedsOff) {
     Speaker::get_instance().stop_all_sounds();
 
     // Disable all sensor data sending
-    SendSensorData::get_instance().setSendSensorData(false);
-    SendSensorData::get_instance().setSendMultizoneData(false);
-    SendSensorData::get_instance().setEulerDataEnabled(false);
-    SendSensorData::get_instance().setAccelDataEnabled(false);
-    SendSensorData::get_instance().setGyroDataEnabled(false);
-    SendSensorData::get_instance().setMagnetometerDataEnabled(false);
-    SendSensorData::get_instance().setMultizoneTofDataEnabled(false);
-    SendSensorData::get_instance().setSideTofDataEnabled(false);
-    SendSensorData::get_instance().setColorSensorDataEnabled(false);
-    SendSensorData::get_instance().setEncoderDataEnabled(false);
+    SendSensorData::get_instance().set_send_sensor_data(false);
+    SendSensorData::get_instance().set_send_multizone_data(false);
+    SendSensorData::get_instance().set_euler_data_enabled(false);
+    SendSensorData::get_instance().set_accel_data_enabled(false);
+    SendSensorData::get_instance().set_gyro_data_enabled(false);
+    SendSensorData::get_instance().set_magnetometer_data_enabled(false);
+    SendSensorData::get_instance().set_multizone_tof_data_enabled(false);
+    SendSensorData::get_instance().set_side_tof_data_enabled(false);
+    SendSensorData::get_instance().set_color_sensor_data_enabled(false);
+    SendSensorData::get_instance().set_encoder_data_enabled(false);
 
     // Stop motors
     DanceManager::get_instance().stop_dance(false);
     GameManager::get_instance().stop_current_game();
     DisplayScreen::get_instance().show_start_screen();
-    SensorDataBuffer::get_instance().stopPollingAllSensors();
+    SensorDataBuffer::get_instance().stop_polling_all_sensors();
 }

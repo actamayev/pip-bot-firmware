@@ -186,7 +186,7 @@ void WebSocketManager::kill_wifi_processes() {
     // This method activates when the ESP has been disconnected from WS.
     // Should only run once.
     if (hasKilledWiFiProcesses) return;
-    careerQuestTriggers.stopAllCareerQuestTriggers(false);
+    careerQuestTriggers.stop_all_career_quest_triggers(false);
     motorDriver.reset_command_state(false);
 
     // Stop all sensor data transmission to reduce network load
@@ -228,5 +228,5 @@ void WebSocketManager::set_is_user_connected_to_this_pip(bool newIsUserConnected
     userConnectedToThisPip = newIsUserConnectedToThisPip;
     if (newIsUserConnectedToThisPip) return;
     motorDriver.reset_command_state(true);
-    careerQuestTriggers.stopAllCareerQuestTriggers(false);
+    careerQuestTriggers.stop_all_career_quest_triggers(false);
 }

@@ -12,29 +12,29 @@ const std::map<BytecodeOpCode, std::vector<BytecodeVM::SensorType>> BytecodeVM::
 BytecodeVM::BytecodeVM() {
     programMutex = xSemaphoreCreateMutex();
     if (programMutex == nullptr) {
-        SerialQueueManager::get_instance().queueMessage("Failed to create BytecodeVM mutex");
+        SerialQueueManager::get_instance().queue_message("Failed to create BytecodeVM mutex");
     }
 }
 
 BytecodeVM::~BytecodeVM() {
-    resetStateVariables(true);
+    reset_state_variables(true);
     if (programMutex != nullptr) {
         vSemaphoreDelete(programMutex);
         programMutex = nullptr;
     }
 }
 
-bool BytecodeVM::loadProgram(const uint8_t* byteCode, uint16_t size) {
+bool BytecodeVM::load_program(const uint8_t* byteCode, uint16_t size) {
     if (programMutex == nullptr) return false;
 
     // Acquire mutex with timeout to prevent deadlock
     if (xSemaphoreTake(programMutex, pdMS_TO_TICKS(100)) != pdTRUE) {
-        SerialQueueManager::get_instance().queueMessage("loadProgram: Failed to acquire mutex");
+        SerialQueueManager::get_instance().queue_message("load_program: Failed to acquire mutex");
         return false;
     }
 
     // Free any existing program (internal call - mutex already held)
-    resetStateVariables(true);
+    reset_state_variables(true);
 
     // Validate bytecode size (must be multiple of 20 now)
     if (size % INSTRUCTION_SIZE != 0 || size / INSTRUCTION_SIZE > MAX_PROGRAM_SIZE) {
@@ -76,8 +76,8 @@ bool BytecodeVM::loadProgram(const uint8_t* byteCode, uint16_t size) {
         waitingForButtonPressToStart = false;
     }
 
-    scanProgramForMotors();
-    activateSensorsForProgram();   // Activate sensors needed by the program
+    scan_program_for_motors();
+    activate_sensors_for_program();   // Activate sensors needed by the program
     stoppedDueToUsbSafety = false; // Reset safety flag on new program load
 
     xSemaphoreGive(programMutex);
@@ -92,7 +92,7 @@ void BytecodeVM::update() {
         return; // Skip this update cycle if mutex is locked
     }
 
-    checkUsbSafetyConditions();
+    check_usb_safety_conditions();
     if (!program || isPaused == PauseState::PAUSED || isPaused == PauseState::PROGRAM_FINISHED) {
         xSemaphoreGive(programMutex);
         return;
@@ -102,7 +102,7 @@ void BytecodeVM::update() {
     if (pc >= programSize) {
         if (isPaused != PROGRAM_FINISHED) {
             isPaused = PROGRAM_FINISHED;
-            resetStateVariables(false);
+            reset_state_variables(false);
         }
         xSemaphoreGive(programMutex);
         return;
@@ -118,26 +118,26 @@ void BytecodeVM::update() {
     }
 
     if (timedMotorMovementInProgress) {
-        updateTimedMotorMovement();
+        update_timed_motor_movement();
         xSemaphoreGive(programMutex);
         return; // Don't execute next instruction until movement is complete
     }
 
     // Handle turning operation if in progress
-    if (TurningManager::get_instance().isActive()) {
+    if (TurningManager::get_instance().is_active()) {
         TurningManager::get_instance().update();
         xSemaphoreGive(programMutex);
         return; // Don't execute next instruction until turn is complete
     }
 
     if (distanceMovementInProgress) {
-        updateDistanceMovement();
+        update_distance_movement();
         xSemaphoreGive(programMutex);
         return; // Don't execute next instruction until movement is complete
     }
 
     // Execute current instruction
-    executeInstruction(program[pc]);
+    execute_instruction(program[pc]);
     if (!waitingForButtonPressToStart) {
         pc++; // Move to next instruction
     }
@@ -145,7 +145,7 @@ void BytecodeVM::update() {
     xSemaphoreGive(programMutex);
 }
 
-bool BytecodeVM::compareValues(ComparisonOp op, float leftOperand, float rightOperand) {
+bool BytecodeVM::compare_values(ComparisonOp op, float leftOperand, float rightOperand) {
     float leftValue;
     float rightValue;
 
@@ -210,7 +210,7 @@ bool BytecodeVM::compareValues(ComparisonOp op, float leftOperand, float rightOp
     }
 }
 
-void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
+void BytecodeVM::execute_instruction(const BytecodeInstruction& instr) {
     switch (instr.opcode) {
         case OP_NOP:
             // No operation, do nothing
@@ -282,7 +282,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
                         value = SensorDataBuffer::get_instance().get_latest_magnetic_field_z();
                         break;
                     case SENSOR_SIDE_LEFT_PROXIMITY: {
-                        uint16_t counts = SensorDataBuffer::get_instance().getLatestLeftSideTofCounts();
+                        uint16_t counts = SensorDataBuffer::get_instance().get_latest_left_side_tof_counts();
                         registers[regId].asBool = (counts > LEFT_PROXIMITY_THRESHOLD);
                         registerTypes[regId] = VAR_BOOL;
                         registerInitialized[regId] = true;
@@ -290,7 +290,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
                         break;
                     }
                     case SENSOR_SIDE_RIGHT_PROXIMITY: {
-                        uint16_t counts = SensorDataBuffer::get_instance().getLatestRightSideTofCounts();
+                        uint16_t counts = SensorDataBuffer::get_instance().get_latest_right_side_tof_counts();
                         registers[regId].asBool = (counts > RIGHT_PROXIMITY_THRESHOLD);
                         registerTypes[regId] = VAR_BOOL;
                         registerInitialized[regId] = true;
@@ -361,7 +361,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
                     default: {
                         char logMessage[32];
                         snprintf(logMessage, sizeof(logMessage), "Unknown sensor type: %u", sensorType);
-                        SerialQueueManager::get_instance().queueMessage(logMessage);
+                        SerialQueueManager::get_instance().queue_message(logMessage);
                         break;
                     }
                 }
@@ -391,7 +391,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             float leftValue = instr.operand2;
             float rightValue = instr.operand3;
 
-            lastComparisonResult = compareValues(op, leftValue, rightValue);
+            lastComparisonResult = compare_values(op, leftValue, rightValue);
 
             break;
         }
@@ -501,7 +501,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
                 pc = pc - (offsetToStart / INSTRUCTION_SIZE);
             } else {
                 pc = programSize;
-                SerialQueueManager::get_instance().queueMessage("Invalid loop jump - stopping execution");
+                SerialQueueManager::get_instance().queue_message("Invalid loop jump - stopping execution");
             }
             break;
         }
@@ -599,8 +599,8 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
 
             // Use TurningManager for precise turning
             float signedDegrees = clockwise ? degrees : -degrees;
-            if (!TurningManager::get_instance().startTurn(signedDegrees)) {
-                SerialQueueManager::get_instance().queueMessage("Failed to start turn - turn already in progress");
+            if (!TurningManager::get_instance().start_turn(signedDegrees)) {
+                SerialQueueManager::get_instance().queue_message("Failed to start turn - turn already in progress");
             }
 
             // The actual turn progress will be monitored in update()
@@ -617,7 +617,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
 
             // Validate parameters
             if (seconds <= 0.0f) {
-                SerialQueueManager::get_instance().queueMessage("Invalid time value for timed movement");
+                SerialQueueManager::get_instance().queue_message("Invalid time value for timed movement");
                 break;
             }
 
@@ -652,7 +652,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
 
             // Validate parameters
             if (distanceIn <= 0.0f) {
-                SerialQueueManager::get_instance().queueMessage("Invalid distance value for distance movement");
+                SerialQueueManager::get_instance().queue_message("Invalid distance value for distance movement");
                 break;
             }
 
@@ -706,7 +706,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             uint8_t toneValue = static_cast<uint8_t>(instr.operand1);
 
             // ADD THESE DEBUG LINES:
-            SerialQueueManager::get_instance().queueMessage("PLAY_TONE opcode hit with value: " + String(toneValue));
+            SerialQueueManager::get_instance().queue_message("PLAY_TONE opcode hit with value: " + String(toneValue));
 
             // toneValue = 0 means stop, 1-7 are valid tones
             if (toneValue <= 7) {
@@ -715,7 +715,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
             } else if (toneValue == 8) {
                 Speaker::get_instance().stop_tone();
             } else {
-                SerialQueueManager::get_instance().queueMessage("Invalid tone value: " + String(toneValue));
+                SerialQueueManager::get_instance().queue_message("Invalid tone value: " + String(toneValue));
             }
             break;
         }
@@ -727,7 +727,7 @@ void BytecodeVM::executeInstruction(const BytecodeInstruction& instr) {
     }
 }
 
-void BytecodeVM::updateTimedMotorMovement() {
+void BytecodeVM::update_timed_motor_movement() {
     // Check if the timed movement has completed
     if (millis() < motorMovementEndTime) return;
     // Movement complete - brake motors
@@ -737,7 +737,7 @@ void BytecodeVM::updateTimedMotorMovement() {
     timedMotorMovementInProgress = false;
 }
 
-void BytecodeVM::updateDistanceMovement() {
+void BytecodeVM::update_distance_movement() {
     // Get distance traveled from sensor data buffer (relative to starting point)
     float totalDistance = SensorDataBuffer::get_instance().get_latest_distance_traveled_in();
     float currentDistance = abs(totalDistance - startingDistanceIn);
@@ -760,7 +760,7 @@ void BytecodeVM::updateDistanceMovement() {
     // Calculate braking distance using physics equation
     int16_t absPwm = abs(initialDistancePwm);
     float brakingDistance = (absPwm * absPwm - MIN_DECELERATION_PWM * MIN_DECELERATION_PWM) / (2.0f * DECELERATION_RATE);
-    SerialQueueManager::get_instance().queueMessage("brakingDistance" + String(brakingDistance));
+    SerialQueueManager::get_instance().queue_message("brakingDistance" + String(brakingDistance));
 
     // Ensure braking distance doesn't exceed total distance (edge case for short distances)
     if (brakingDistance > targetDistanceIn) {
@@ -786,8 +786,8 @@ void BytecodeVM::updateDistanceMovement() {
             targetPwm = -targetPwm;
         }
 
-        SerialQueueManager::get_instance().queueMessage("sigmoidValue" + String(sigmoidValue));
-        SerialQueueManager::get_instance().queueMessage("targetPwm" + String(targetPwm));
+        SerialQueueManager::get_instance().queue_message("sigmoidValue" + String(sigmoidValue));
+        SerialQueueManager::get_instance().queue_message("targetPwm" + String(targetPwm));
 
         // Set motor speeds directly without ramping
         motorDriver.set_motor_speeds(targetPwm, targetPwm, false);
@@ -795,28 +795,28 @@ void BytecodeVM::updateDistanceMovement() {
     // If not in deceleration zone, continue at initial speed (StraightLineDrive will handle heading)
 }
 
-void BytecodeVM::stopProgram() {
+void BytecodeVM::stop_program() {
     if (programMutex == nullptr) return;
 
     // Acquire mutex with timeout
     if (xSemaphoreTake(programMutex, pdMS_TO_TICKS(100)) != pdTRUE) {
-        SerialQueueManager::get_instance().queueMessage("stopProgram: Failed to acquire mutex");
+        SerialQueueManager::get_instance().queue_message("stop_program: Failed to acquire mutex");
         return;
     }
 
-    resetStateVariables(true);
+    reset_state_variables(true);
     xSemaphoreGive(programMutex);
     return;
 }
 
-void BytecodeVM::resetStateVariables(bool isFullReset) {
+void BytecodeVM::reset_state_variables(bool isFullReset) {
     pc = 0;
     delayUntil = 0;
     waitingForDelay = false;
     lastComparisonResult = false;
 
     // Reset TurningManager state
-    TurningManager::get_instance().completeNavigation();
+    TurningManager::get_instance().complete_navigation();
     timedMotorMovementInProgress = false;
     distanceMovementInProgress = false;
     initialDistancePwm = 0;
@@ -857,14 +857,14 @@ void BytecodeVM::resetStateVariables(bool isFullReset) {
     }
     rgbLed.turn_all_leds_off();
     Speaker::get_instance().stop_all_sounds();
-    SensorDataBuffer::get_instance().stopPollingAllSensors();
+    SensorDataBuffer::get_instance().stop_polling_all_sensors();
 }
 
-void BytecodeVM::pauseProgram() {
+void BytecodeVM::pause_program() {
     if (programMutex == nullptr) return;
 
     if (xSemaphoreTake(programMutex, pdMS_TO_TICKS(100)) != pdTRUE) {
-        SerialQueueManager::get_instance().queueMessage("pauseProgram: Failed to acquire mutex");
+        SerialQueueManager::get_instance().queue_message("pause_program: Failed to acquire mutex");
         return;
     }
 
@@ -873,44 +873,44 @@ void BytecodeVM::pauseProgram() {
         return;
     }
 
-    resetStateVariables();
+    reset_state_variables();
     isPaused = PAUSED;
     xSemaphoreGive(programMutex);
 }
 
-void BytecodeVM::resumeProgram() {
+void BytecodeVM::resume_program() {
     if (programMutex == nullptr) return;
 
     if (xSemaphoreTake(programMutex, pdMS_TO_TICKS(100)) != pdTRUE) {
-        SerialQueueManager::get_instance().queueMessage("resumeProgram: Failed to acquire mutex");
+        SerialQueueManager::get_instance().queue_message("resume_program: Failed to acquire mutex");
         return;
     }
 
     if (!program || isPaused == RUNNING) {
-        SerialQueueManager::get_instance().queueMessage("resumeProgram: Not paused or no program");
+        SerialQueueManager::get_instance().queue_message("resume_program: Not paused or no program");
         xSemaphoreGive(programMutex);
         return;
     }
 
-    if (!canStartProgram()) {
+    if (!can_start_program()) {
         xSemaphoreGive(programMutex);
         return;
     }
 
     // Reset state variables for finished programs to start fresh
     if (isPaused == PROGRAM_FINISHED) {
-        resetStateVariables();
+        reset_state_variables();
     }
 
     isPaused = RUNNING;
 
     // Check if the first instruction is a WAIT_FOR_BUTTON (start block)
     if (programSize > 0 && program[0].opcode == OP_WAIT_FOR_BUTTON) {
-        SerialQueueManager::get_instance().queueMessage("Resuming program - skipping initial wait for button");
+        SerialQueueManager::get_instance().queue_message("Resuming program - skipping initial wait for button");
         pc = 1;                               // Start after the wait for button instruction
         waitingForButtonPressToStart = false; // ← FIX: Clear the flag!
     } else {
-        SerialQueueManager::get_instance().queueMessage("Resuming program from beginning");
+        SerialQueueManager::get_instance().queue_message("Resuming program from beginning");
         pc = 0;                               // Start from the beginning for scripts without a start block
         waitingForButtonPressToStart = false; // ← FIX: Clear here too for consistency
     }
@@ -918,7 +918,7 @@ void BytecodeVM::resumeProgram() {
     xSemaphoreGive(programMutex);
 }
 
-void BytecodeVM::activateSensorsForProgram() {
+void BytecodeVM::activate_sensors_for_program() {
     if (!program || programSize == 0) return;
 
     // Track which sensors are needed
@@ -1013,35 +1013,35 @@ void BytecodeVM::activateSensorsForProgram() {
 
     if (needQuaternion) {
         timeouts.quaternion_last_request.store(currentTime);
-        SerialQueueManager::get_instance().queueMessage("Activated quaternion sensor for program");
+        SerialQueueManager::get_instance().queue_message("Activated quaternion sensor for program");
     }
     if (needAccelerometer) {
         timeouts.accelerometer_last_request.store(currentTime);
-        SerialQueueManager::get_instance().queueMessage("Activated accelerometer for program");
+        SerialQueueManager::get_instance().queue_message("Activated accelerometer for program");
     }
     if (needGyroscope) {
         timeouts.gyroscope_last_request.store(currentTime);
-        SerialQueueManager::get_instance().queueMessage("Activated gyroscope for program");
+        SerialQueueManager::get_instance().queue_message("Activated gyroscope for program");
     }
     if (needMagnetometer) {
         timeouts.magnetometer_last_request.store(currentTime);
-        SerialQueueManager::get_instance().queueMessage("Activated magnetometer for program");
+        SerialQueueManager::get_instance().queue_message("Activated magnetometer for program");
     }
     if (needTof) {
         timeouts.tof_last_request.store(currentTime);
-        SerialQueueManager::get_instance().queueMessage("Activated multizone TOF for program");
+        SerialQueueManager::get_instance().queue_message("Activated multizone TOF for program");
     }
     if (needSideTof) {
         timeouts.side_tof_last_request.store(currentTime);
-        SerialQueueManager::get_instance().queueMessage("Activated side TOF for program");
+        SerialQueueManager::get_instance().queue_message("Activated side TOF for program");
     }
     if (needColorSensor) {
         timeouts.color_last_request.store(currentTime);
-        SerialQueueManager::get_instance().queueMessage("Activated colors Sensors for program");
+        SerialQueueManager::get_instance().queue_message("Activated colors Sensors for program");
     }
 }
 
-void BytecodeVM::scanProgramForMotors() {
+void BytecodeVM::scan_program_for_motors() {
     programContainsMotors = false;
 
     if (!program || programSize == 0) return;
@@ -1060,30 +1060,30 @@ void BytecodeVM::scanProgramForMotors() {
     }
 }
 
-void BytecodeVM::checkUsbSafetyConditions() {
+void BytecodeVM::check_usb_safety_conditions() {
     bool currentUsbState = SerialManager::get_instance().is_serial_connected();
 
     // Detect USB connection change (disconnected -> connected)
     if (!lastUsbState && currentUsbState) {
-        handleUsbConnect();
+        handle_usb_connect();
     }
 
     lastUsbState = currentUsbState;
 }
 
-void BytecodeVM::handleUsbConnect() {
+void BytecodeVM::handle_usb_connect() {
     // If program contains motors and is currently running, stop it
     if (programContainsMotors && isPaused == RUNNING) {
-        stopProgram();
+        stop_program();
         stoppedDueToUsbSafety = true;
     }
 }
 
-bool BytecodeVM::canStartProgram() {
+bool BytecodeVM::can_start_program() {
     // Block start if program contains motors and USB is connected
     if (!programContainsMotors || !SerialManager::get_instance().is_serial_connected()) return true;
 
-    SerialManager::get_instance().sendJsonMessage(ToSerialMessage::MOTORS_DISABLED_USB,
+    SerialManager::get_instance().send_json_message(ToSerialMessage::MOTORS_DISABLED_USB,
                                                   "Cannot start motor program while USB connected - disconnect USB first");
     return false;
 }

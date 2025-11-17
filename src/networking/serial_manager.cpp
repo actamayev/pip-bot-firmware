@@ -6,7 +6,7 @@ void SerialManager::poll_serial() {
         if (isConnected && (millis() - lastActivityTime > SERIAL_CONNECTION_TIMEOUT)) {
             isConnected = false;
             if (!WebSocketManager::get_instance().is_ws_connected()) {
-                careerQuestTriggers.stopAllCareerQuestTriggers(false);
+                careerQuestTriggers.stop_all_career_quest_triggers(false);
             }
         }
         return;

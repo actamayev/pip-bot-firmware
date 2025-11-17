@@ -464,7 +464,7 @@ bool SensorDataBuffer::should_enable_quaternion_extended() const {
     bool serialConnected = SerialManager::get_instance().is_serial_connected();
 
     // Check if bytecode program is loaded (including paused)
-    bool programLoaded = BytecodeVM::get_instance().isProgramLoaded();
+    bool programLoaded = BytecodeVM::get_instance().is_program_loaded();
 
     // Check if user is connected via websocket
     bool userConnected = WebSocketManager::get_instance().isUserConnectedToThisPip();

@@ -26,14 +26,14 @@ class BytecodeVM : public Singleton<BytecodeVM> {
 
     public:
         // Load bytecode program into the VM
-        bool loadProgram(const uint8_t* byteCode, uint16_t size);
-        void stopProgram();
+        bool load_program(const uint8_t* byteCode, uint16_t size);
+        void stop_program();
         
         // Debug methods for distance movement
-        bool isDistanceMovementActive() const { return distanceMovementInProgress; }
-        float getTargetDistanceIn() const { return targetDistanceIn; }
-        float getStartingDistanceIn() const { return startingDistanceIn; }
-        bool isProgramLoaded() const { return program != nullptr; }
+        bool is_distance_movement_active() const { return distanceMovementInProgress; }
+        float get_target_distance_in() const { return targetDistanceIn; }
+        float get_starting_distance_in() const { return startingDistanceIn; }
+        bool is_program_loaded() const { return program != nullptr; }
 
     private:
         BytecodeVM();
@@ -80,33 +80,33 @@ class BytecodeVM : public Singleton<BytecodeVM> {
         PauseState isPaused = PauseState::PROGRAM_NOT_STARTED;
 
         bool waitingForButtonPressToStart = false;
-        bool canStartProgram();
+        bool can_start_program();
 
         // Execute instruction implementation
-        void executeInstruction(const BytecodeInstruction& instr);
+        void execute_instruction(const BytecodeInstruction& instr);
         
         // Helper method for comparisons
-        bool compareValues(ComparisonOp op, float leftOperand, float rightValue);
+        bool compare_values(ComparisonOp op, float leftOperand, float rightValue);
 
         bool timedMotorMovementInProgress = false;
         unsigned long motorMovementEndTime = 0;
         
         // Helper method for timed motor operations
-        void updateTimedMotorMovement();
+        void update_timed_motor_movement();
 
         bool distanceMovementInProgress = false;
         float targetDistanceIn = 0.0f;
         float startingDistanceIn = 0.0f;
         
         // Helper method for distance-based motor operations
-        void updateDistanceMovement();
+        void update_distance_movement();
 
-        void resetStateVariables(bool isFullReset = false);
+        void reset_state_variables(bool isFullReset = false);
 
-        void pauseProgram();
-        void resumeProgram();
+        void pause_program();
+        void resume_program();
 
-        void incrementPC() {
+        void increment_pc() {
             pc++;
         };
 
@@ -125,13 +125,13 @@ class BytecodeVM : public Singleton<BytecodeVM> {
             SENSOR_COLOR_SENSOR
         };
 
-        void activateSensorsForProgram();
+        void activate_sensors_for_program();
         static const std::map<BytecodeOpCode, std::vector<SensorType>> opcodeToSensors;
         
         // USB Safety Methods
-        void scanProgramForMotors();
-        void checkUsbSafetyConditions();
-        void handleUsbConnect();
+        void scan_program_for_motors();
+        void check_usb_safety_conditions();
+        void handle_usb_connect();
 
         // Add these with your other distance movement variables
         int16_t initialDistancePwm = 0;  // Store initial PWM for deceleration calculation

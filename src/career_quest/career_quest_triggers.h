@@ -14,17 +14,17 @@ class CareerQuestTriggers {
     public:
         CareerQuestTriggers(Adafruit_NeoPixel& strip);
 
-        void startS2P1Sequence();
-        void stopS2P1Sequence();
-        void startS2P4LightShow();
-        void stopS2P4LightShow();
-        void startS3P3DisplayDemo();
-        void stopS3P3DisplayDemo();
-        void startS7P4ButtonDemo();
-        void stopS7P4ButtonDemo();
-        void startS5P4LedVisualization();
-        void stopS5P4LedVisualization();
-        void stopAllCareerQuestTriggers(bool shouldTurnLedsOff);
+        void start_s2_p1_sequence();
+        void stop_s2_p1_sequence();
+        void start_s2_p4_light_show();
+        void stop_s2_p4_light_show();
+        void start_s3_p3_display_demo();
+        void stop_s3_p3_display_demo();
+        void start_s7_p4_button_demo();
+        void stop_s7_p4_button_demo();
+        void start_s5_p4_led_visualization();
+        void stop_s5_p4_led_visualization();
+        void stop_all_career_quest_triggers(bool shouldTurnLedsOff);
         void update();
         
         bool isS2P1Active() const { return s2p1Active; }
@@ -33,7 +33,7 @@ class CareerQuestTriggers {
         bool isS7P4Active() const { return s7p4Active; }
         bool isS5P4Active() const { return s5p4Active; }
         
-        void renderS3P3Animation();
+        void render_s3_p3_animation();
         
         // LED sequence order (back_right → middle_right → etc.) including headlights
         static constexpr uint8_t s2p1LedSequence[8] = {7, 0, 1, 2, 3, 4, 5, 6}; // Include headlights (2,3)
@@ -109,10 +109,10 @@ class CareerQuestTriggers {
         unsigned long lastS5P4Update = 0;
         static constexpr unsigned long S5P4_UPDATE_INTERVAL = 20; // 20ms for responsive visualization
         
-        void updateS2P1Sequence();
-        void updateS2P4LightShow();
-        void updateS7P4ButtonDemo();
-        void updateS5P4LedVisualization();
+        void update_s2_p1_sequence();
+        void update_s2_p4_light_show();
+        void update_s7_p4_button_demo();
+        void update_s5_p4_led_visualization();
 };
 
 extern CareerQuestTriggers careerQuestTriggers;

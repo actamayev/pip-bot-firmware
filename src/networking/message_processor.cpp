@@ -208,14 +208,14 @@ void MessageProcessor::process_binary_message(const uint8_t* data, uint16_t leng
             uint16_t bytecodeLength = length - 1;
 
             // Execute the bytecode
-            BytecodeVM::get_instance().loadProgram(bytecodeData, bytecodeLength);
+            BytecodeVM::get_instance().load_program(bytecodeData, bytecodeLength);
             break;
         }
         case DataMessageType::STOP_SANDBOX_CODE: {
             if (length != 1) {
                 SerialQueueManager::get_instance().queue_message("Invalid stop sandbox code message length");
             } else {
-                BytecodeVM::get_instance().stopProgram();
+                BytecodeVM::get_instance().stop_program();
             }
             break;
         }
@@ -380,22 +380,22 @@ void MessageProcessor::process_binary_message(const uint8_t* data, uint16_t leng
                                 rgbLed.turn_headlights_off();
                                 break;
                             case MeetPipTriggerType::S2_P1_ENTER:
-                                careerQuestTriggers.startS2P1Sequence();
+                                careerQuestTriggers.start_s2_p1_sequence();
                                 break;
                             case MeetPipTriggerType::S2_P1_EXIT:
-                                careerQuestTriggers.stopS2P1Sequence();
+                                careerQuestTriggers.stop_s2_p1_sequence();
                                 break;
                             case MeetPipTriggerType::S2_P4_ENTER:
-                                careerQuestTriggers.startS2P4LightShow();
+                                careerQuestTriggers.start_s2_p4_light_show();
                                 break;
                             case MeetPipTriggerType::S2_P4_EXIT:
-                                careerQuestTriggers.stopS2P4LightShow();
+                                careerQuestTriggers.stop_s2_p4_light_show();
                                 break;
                             case MeetPipTriggerType::S3_P3_ENTER:
-                                careerQuestTriggers.startS3P3DisplayDemo();
+                                careerQuestTriggers.start_s3_p3_display_demo();
                                 break;
                             case MeetPipTriggerType::S3_P3_EXIT:
-                                careerQuestTriggers.stopS3P3DisplayDemo();
+                                careerQuestTriggers.stop_s3_p3_display_demo();
                                 break;
                             case MeetPipTriggerType::S4_P4_EXIT:
                                 Speaker::get_instance().stop_all_sounds();
@@ -407,48 +407,48 @@ void MessageProcessor::process_binary_message(const uint8_t* data, uint16_t leng
                                 Speaker::get_instance().stop_all_sounds();
                                 break;
                             case MeetPipTriggerType::S5_P4_ENTER:
-                                SendSensorData::get_instance().setSendSensorData(true);
-                                SendSensorData::get_instance().setEulerDataEnabled(true);
-                                SendSensorData::get_instance().setAccelDataEnabled(true);
-                                careerQuestTriggers.startS5P4LedVisualization();
+                                SendSensorData::get_instance().set_send_sensor_data(true);
+                                SendSensorData::get_instance().set_euler_data_enabled(true);
+                                SendSensorData::get_instance().set_accel_data_enabled(true);
+                                careerQuestTriggers.start_s5_p4_led_visualization();
                                 break;
                             case MeetPipTriggerType::S5_P4_EXIT:
-                                SendSensorData::get_instance().setEulerDataEnabled(false);
-                                SendSensorData::get_instance().setAccelDataEnabled(false);
-                                SendSensorData::get_instance().setSendSensorData(false);
-                                careerQuestTriggers.stopS5P4LedVisualization();
+                                SendSensorData::get_instance().set_euler_data_enabled(false);
+                                SendSensorData::get_instance().set_accel_data_enabled(false);
+                                SendSensorData::get_instance().set_send_sensor_data(false);
+                                careerQuestTriggers.stop_s5_p4_led_visualization();
                                 break;
                             case MeetPipTriggerType::S5_P5_ENTER:
-                                SendSensorData::get_instance().setSendSensorData(true);
-                                SendSensorData::get_instance().setEulerDataEnabled(true);
+                                SendSensorData::get_instance().set_send_sensor_data(true);
+                                SendSensorData::get_instance().set_euler_data_enabled(true);
                                 break;
                             case MeetPipTriggerType::S5_P5_EXIT:
-                                SendSensorData::get_instance().setEulerDataEnabled(false);
-                                SendSensorData::get_instance().setSendSensorData(false);
+                                SendSensorData::get_instance().set_euler_data_enabled(false);
+                                SendSensorData::get_instance().set_send_sensor_data(false);
                                 break;
                             case MeetPipTriggerType::S6_P4_ENTER:
-                                SendSensorData::get_instance().setSendMultizoneData(true);
+                                SendSensorData::get_instance().set_send_multizone_data(true);
                                 rgbLed.turn_headlights_faint_blue();
                                 break;
                             case MeetPipTriggerType::S6_P4_EXIT:
-                                SendSensorData::get_instance().setSendMultizoneData(false);
+                                SendSensorData::get_instance().set_send_multizone_data(false);
                                 rgbLed.turn_headlights_off();
                                 break;
                             case MeetPipTriggerType::S6_P6_ENTER:
-                                SendSensorData::get_instance().setSendSensorData(true);
-                                SendSensorData::get_instance().setSideTofDataEnabled(true);
+                                SendSensorData::get_instance().set_send_sensor_data(true);
+                                SendSensorData::get_instance().set_side_tof_data_enabled(true);
                                 rgbLed.turn_front_middle_leds_faint_blue();
                                 break;
                             case MeetPipTriggerType::S6_P6_EXIT:
-                                SendSensorData::get_instance().setSideTofDataEnabled(false);
-                                SendSensorData::get_instance().setSendSensorData(false);
+                                SendSensorData::get_instance().set_side_tof_data_enabled(false);
+                                SendSensorData::get_instance().set_send_sensor_data(false);
                                 rgbLed.turn_front_middle_leds_off();
                                 break;
                             case MeetPipTriggerType::S7_P4_ENTER:
-                                careerQuestTriggers.startS7P4ButtonDemo();
+                                careerQuestTriggers.start_s7_p4_button_demo();
                                 break;
                             case MeetPipTriggerType::S7_P4_EXIT:
-                                careerQuestTriggers.stopS7P4ButtonDemo();
+                                careerQuestTriggers.stop_s7_p4_button_demo();
                                 break;
                             case MeetPipTriggerType::S7_P6_ENTER:
                                 GameManager::get_instance().start_game(Games::GameType::DINO_RUNNER);
@@ -457,12 +457,12 @@ void MessageProcessor::process_binary_message(const uint8_t* data, uint16_t leng
                                 GameManager::get_instance().stop_current_game();
                                 break;
                             case MeetPipTriggerType::S8_P3_ENTER:
-                                SendSensorData::get_instance().setSendSensorData(true);
-                                SendSensorData::get_instance().setColorSensorDataEnabled(true);
+                                SendSensorData::get_instance().set_send_sensor_data(true);
+                                SendSensorData::get_instance().set_color_sensor_data_enabled(true);
                                 break;
                             case MeetPipTriggerType::S8_P3_EXIT:
-                                SendSensorData::get_instance().setColorSensorDataEnabled(false);
-                                SendSensorData::get_instance().setSendSensorData(false);
+                                SendSensorData::get_instance().set_color_sensor_data_enabled(false);
+                                SendSensorData::get_instance().set_send_sensor_data(false);
                                 SensorDataBuffer::get_instance().stopPollingSensor(SensorDataBuffer::SensorType::COLOR);
                                 break;
                             case MeetPipTriggerType::S9_P3_ENTER:
@@ -473,13 +473,13 @@ void MessageProcessor::process_binary_message(const uint8_t* data, uint16_t leng
                                 break;
                             case MeetPipTriggerType::S9_P6_ENTER:
                                 motorDriver.stop_both_motors(); // We need this to prevent students from turning against the motors.
-                                SendSensorData::get_instance().setSendSensorData(true);
-                                SendSensorData::get_instance().setEncoderDataEnabled(true);
+                                SendSensorData::get_instance().set_send_sensor_data(true);
+                                SendSensorData::get_instance().set_encoder_data_enabled(true);
                                 rgbLed.turn_headlights_faint_blue();
                                 break;
                             case MeetPipTriggerType::S9_P6_EXIT:
-                                SendSensorData::get_instance().setEncoderDataEnabled(false);
-                                SendSensorData::get_instance().setSendSensorData(false);
+                                SendSensorData::get_instance().set_encoder_data_enabled(false);
+                                SendSensorData::get_instance().set_send_sensor_data(false);
                                 rgbLed.turn_back_leds_off();
                                 break;
                             default:
@@ -493,14 +493,14 @@ void MessageProcessor::process_binary_message(const uint8_t* data, uint16_t leng
 
                         switch (triggerType) {
                             case TurretArcadeTriggerType::ENTER_TURRET_ARCADE:
-                                SendSensorData::get_instance().setSendSensorData(true);
-                                SendSensorData::get_instance().setEulerDataEnabled(true);
-                                SendSensorData::get_instance().setSideTofDataEnabled(true);
+                                SendSensorData::get_instance().set_send_sensor_data(true);
+                                SendSensorData::get_instance().set_euler_data_enabled(true);
+                                SendSensorData::get_instance().set_side_tof_data_enabled(true);
                                 break;
                             case TurretArcadeTriggerType::EXIT_TURRET_ARCADE:
-                                SendSensorData::get_instance().setEulerDataEnabled(false);
-                                SendSensorData::get_instance().setSideTofDataEnabled(false);
-                                SendSensorData::get_instance().setSendSensorData(false);
+                                SendSensorData::get_instance().set_euler_data_enabled(false);
+                                SendSensorData::get_instance().set_side_tof_data_enabled(false);
+                                SendSensorData::get_instance().set_send_sensor_data(false);
                                 break;
                             default:
                                 SerialQueueManager::get_instance().queue_message("Unknown turret arcade trigger type");
@@ -519,7 +519,7 @@ void MessageProcessor::process_binary_message(const uint8_t* data, uint16_t leng
             if (length != 1) {
                 SerialQueueManager::get_instance().queue_message("Invalid stop career quest trigger message length");
             } else {
-                careerQuestTriggers.stopAllCareerQuestTriggers(true);
+                careerQuestTriggers.stop_all_career_quest_triggers(true);
             }
             break;
         }
