@@ -2,6 +2,7 @@
 #include "../lib/veml3328/veml3328.h"
 #include "networking/serial_queue_manager.h"
 #include "sensor_data_buffer.h"
+#include "utils/config.h"
 #include "utils/singleton.h"
 #include "utils/structs.h"
 

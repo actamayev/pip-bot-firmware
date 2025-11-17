@@ -1,7 +1,5 @@
 #include "color_sensor.h"
 
-#include "utils/config.h"
-
 bool ColorSensor::initialize() {
     pinMode(COLOR_SENSOR_LED_PIN, OUTPUT);
 
@@ -116,21 +114,21 @@ void ColorSensor::calibrate_black_point() {
     vTaskDelay(pdMS_TO_TICKS(500)); // Wait for sensor to stabilize
 
     // Take multiple readings and average them
-    const int num_readings = 5;
+    const int NUM_READINGS = 5;
     uint32_t sum_red = 0;
     uint32_t sum_green = 0;
     uint32_t sum_blue = 0;
 
-    for (int i = 0; i < num_readings; i++) {
+    for (int i = 0; i < NUM_READINGS; i++) {
         sum_red += Veml3328.getRed();
         sum_green += Veml3328.getGreen();
         sum_blue += Veml3328.getBlue();
         vTaskDelay(pdMS_TO_TICKS(100));
     }
 
-    _calibration.blackRed = sum_red / num_readings;
-    _calibration.blackGreen = sum_green / num_readings;
-    _calibration.blackBlue = sum_blue / num_readings;
+    _calibration.blackRed = sum_red / NUM_READINGS;
+    _calibration.blackGreen = sum_green / NUM_READINGS;
+    _calibration.blackBlue = sum_blue / NUM_READINGS;
 
     SerialQueueManager::get_instance().queue_message("Black point calibrated!");
     print_calibration_values();
@@ -146,21 +144,21 @@ void ColorSensor::calibrate_white_point() {
     vTaskDelay(pdMS_TO_TICKS(500)); // Wait for sensor to stabilize
 
     // Take multiple readings and average them
-    const int num_readings = 5;
+    const int NUM_READINGS = 5;
     uint32_t sum_red = 0;
     uint32_t sum_green = 0;
     uint32_t sum_blue = 0;
 
-    for (int i = 0; i < num_readings; i++) {
+    for (int i = 0; i < NUM_READINGS; i++) {
         sum_red += Veml3328.getRed();
         sum_green += Veml3328.getGreen();
         sum_blue += Veml3328.getBlue();
         vTaskDelay(pdMS_TO_TICKS(100));
     }
 
-    _calibration.whiteRed = sum_red / num_readings;
-    _calibration.whiteGreen = sum_green / num_readings;
-    _calibration.whiteBlue = sum_blue / num_readings;
+    _calibration.whiteRed = sum_red / NUM_READINGS;
+    _calibration.whiteGreen = sum_green / NUM_READINGS;
+    _calibration.whiteBlue = sum_blue / NUM_READINGS;
 
     SerialQueueManager::get_instance().queue_message("White point calibrated!");
     print_calibration_values();
