@@ -25,15 +25,15 @@ class MotorDriver {
         void brake_if_moving();
 
         // Motor command processing functions
-        void update_motor_pwm(int16_t leftPwm, int16_t rightPwm);
-        void reset_command_state(bool absoluteBrake);
+        void update_motor_pwm(int16_t left_pwm, int16_t right_pwm);
+        void reset_command_state(bool absolute_brake);
 
     private:
-        int16_t _targetLeftPwm = 0;
-        int16_t _targetRightPwm = 0;
-        int16_t _actualLeftPwm = 0;
-        int16_t _actualRightPwm = 0;
-        bool _shouldRampUp = true;
+        int16_t _target_left_pwm = 0;
+        int16_t _target_right_pwm = 0;
+        int16_t _actual_left_pwm = 0;
+        int16_t _actual_right_pwm = 0;
+        bool _should_ramp_up = true;
         static constexpr int16_t SPEED_RAMP_STEP = 600;
 
         void left_motor_forward(uint16_t speed = MAX_MOTOR_PWM);
@@ -46,36 +46,36 @@ class MotorDriver {
 
         void brake_right_motor();
         void brake_left_motor();
-        void execute_command(int16_t leftPwm, int16_t rightPwm);
+        void execute_command(int16_t left_pwm, int16_t right_pwm);
         
         // Private method for immediate motor control (used by friend classes)
-        void set_motor_speeds(int16_t leftTarget, int16_t rightTarget, bool shouldRampUp);
-        void set_motor_speeds_immediate(int16_t leftTarget, int16_t rightTarget);
+        void set_motor_speeds(int16_t left_target, int16_t right_target, bool should_ramp_up);
+        void set_motor_speeds_immediate(int16_t left_target, int16_t right_target);
 
         void process_pending_commands();
 
         static constexpr float MOTOR_STOPPED_THRESHOLD = 0.5; // RPM threshold for considering motor stopped
 
         // Command execution state variables
-        bool _isExecutingCommand = false;
-        int16_t _commandLeftPwm = 0;
-        int16_t _commandRightPwm = 0;
-        int64_t _startLeftCount = 0;
-        int64_t _startRightCount = 0;
+        bool _is_executing_command = false;
+        int16_t _command_left_pwm = 0;
+        int16_t _command_right_pwm = 0;
+        int64_t _start_left_count = 0;
+        int64_t _start_right_count = 0;
 
-        unsigned long _commandStartTime = 0;
+        unsigned long _command_start_time = 0;
         static constexpr unsigned long COMMAND_TIMEOUT_MS = 1000; // 1 second timeout
     
         // Next command (if any)
-        bool _hasNextCommand = false;
-        int16_t _nextLeftPwm = 0;
-        int16_t _nextRightPwm = 0;
+        bool _has_next_command = false;
+        int16_t _next_left_pwm = 0;
+        int16_t _next_right_pwm = 0;
 
         // Brake timer state variables
-        bool _leftBrakeActive = false;
-        bool _rightBrakeActive = false;
-        unsigned long _leftBrakeStartTime = 0;
-        unsigned long _rightBrakeStartTime = 0;
+        bool _left_brake_active = false;
+        bool _right_brake_active = false;
+        unsigned long _left_brake_start_time = 0;
+        unsigned long _right_brake_start_time = 0;
         static constexpr unsigned long BRAKE_RELEASE_TIME_MS = 1000; // 1 second brake hold time
 
         // Constants
