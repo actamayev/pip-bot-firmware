@@ -202,8 +202,8 @@ void TaskManager::network_management_task(void* parameter) {
     FirmwareVersionTracker::get_instance();
 
     // Create the sensor data transmission task now that management is initialized
-    bool comm_task_created = create_send_sensor_data_task();
-    if (!comm_task_created) {
+    const bool SENSOR_DATA_TASK_CREATED = create_send_sensor_data_task();
+    if (!SENSOR_DATA_TASK_CREATED) {
         SerialQueueManager::get_instance().queue_message("ERROR: Failed to create SendSensorData task!");
     }
 
@@ -335,8 +335,8 @@ void TaskManager::display_init_task(void* parameter) {
         vTaskDelay(pdMS_TO_TICKS(5));
 
         // Create the display task now that init is complete
-        bool display_task_created = create_display_task();
-        if (display_task_created) {
+        const bool DISPLAY_TASK_STARTED = create_display_task();
+        if (DISPLAY_TASK_STARTED) {
             SerialQueueManager::get_instance().queue_message("Display task created successfully");
         } else {
             SerialQueueManager::get_instance().queue_message("ERROR: Failed to create Display task!");
@@ -465,10 +465,10 @@ bool TaskManager::create_task(const char* name, TaskFunction_t task_function, ui
         return true; // Task exists, consider it success
     }
 
-    BaseType_t result = xTaskCreatePinnedToCore(task_function, name, stack_size, parameters, static_cast<uint8_t>(priority), task_handle,
-                                                static_cast<BaseType_t>(core_id));
+    const BaseType_t RESULT = xTaskCreatePinnedToCore(task_function, name, stack_size, parameters, static_cast<uint8_t>(priority), task_handle,
+                                                      static_cast<BaseType_t>(core_id));
 
-    return log_task_creation(name, result == pdPASS);
+    return log_task_creation(name, RESULT == pdPASS);
 }
 
 bool TaskManager::log_task_creation(const char* name, bool success) {
@@ -492,43 +492,43 @@ void TaskManager::print_stack_usage() {
         uint32_t allocated_size;
     };
 
-    TaskInfo tasks[] = {{button_task_handle, "Buttons", BUTTON_STACK_SIZE},
-                        {serial_input_task_handle, "SerialInput", SERIAL_INPUT_STACK_SIZE},
-                        {led_task_handle, "LED", LED_STACK_SIZE},
-                        {bytecode_vm_task_handle, "BytecodeVM", BYTECODE_VM_STACK_SIZE},
-                        {stack_monitor_task_handle, "StackMonitor", STACK_MONITOR_STACK_SIZE}, // May be NULL after self-delete
-                        // Individual sensor tasks
-                        {imu_sensor_task_handle, "IMUSensor", IMU_SENSOR_STACK_SIZE},
-                        {encoder_sensor_task_handle, "EncoderSensor", ENCODER_SENSOR_STACK_SIZE},
-                        {multizone_tof_sensor_task_handle, "MultizoneTOF", MULTIZONE_TOF_STACK_SIZE},
-                        {side_tof_sensor_task_handle, "SideTOF", SIDE_TOF_STACK_SIZE},
-                        {color_sensor_task_handle, "ColorSensor", COLOR_SENSOR_STACK_SIZE},
-                        // Other tasks
-                        {display_task_handle, "Display", DISPLAY_STACK_SIZE},
-                        {network_management_task_handle, "NetworkMgmt", NETWORK_MANAGEMENT_STACK_SIZE},
-                        {send_sensor_data_task_handle, "SendSensorData", SEND_SENSOR_DATA_STACK_SIZE},
-                        {web_socket_polling_task_handle, "WebSocketPoll", WEBSOCKET_POLLING_STACK_SIZE},
-                        {serial_queue_task_handle, "SerialQueue", SERIAL_QUEUE_STACK_SIZE},
-                        {battery_monitor_task_handle, "BatteryMonitor", BATTERY_MONITOR_STACK_SIZE},
-                        {speaker_task_handle, "Speaker", SPEAKER_STACK_SIZE},
-                        {motor_task_handle, "Motor", MOTOR_STACK_SIZE},
-                        {demo_manager_task_handle, "DemoManager", DEMO_MANAGER_STACK_SIZE},
-                        {game_manager_task_handle, "GameManager", GAME_MANAGER_STACK_SIZE},
-                        {career_quest_task_handle, "CareerQuest", CAREER_QUEST_STACK_SIZE},
-                        {display_init_task_handle, "DisplayInit", DISPLAY_INIT_STACK_SIZE}};
+    const TaskInfo TASKS[] = {{button_task_handle, "Buttons", BUTTON_STACK_SIZE},
+                              {serial_input_task_handle, "SerialInput", SERIAL_INPUT_STACK_SIZE},
+                              {led_task_handle, "LED", LED_STACK_SIZE},
+                              {bytecode_vm_task_handle, "BytecodeVM", BYTECODE_VM_STACK_SIZE},
+                              {stack_monitor_task_handle, "StackMonitor", STACK_MONITOR_STACK_SIZE}, // May be NULL after self-delete
+                              // Individual sensor tasks
+                              {imu_sensor_task_handle, "IMUSensor", IMU_SENSOR_STACK_SIZE},
+                              {encoder_sensor_task_handle, "EncoderSensor", ENCODER_SENSOR_STACK_SIZE},
+                              {multizone_tof_sensor_task_handle, "MultizoneTOF", MULTIZONE_TOF_STACK_SIZE},
+                              {side_tof_sensor_task_handle, "SideTOF", SIDE_TOF_STACK_SIZE},
+                              {color_sensor_task_handle, "ColorSensor", COLOR_SENSOR_STACK_SIZE},
+                              // Other tasks
+                              {display_task_handle, "Display", DISPLAY_STACK_SIZE},
+                              {network_management_task_handle, "NetworkMgmt", NETWORK_MANAGEMENT_STACK_SIZE},
+                              {send_sensor_data_task_handle, "SendSensorData", SEND_SENSOR_DATA_STACK_SIZE},
+                              {web_socket_polling_task_handle, "WebSocketPoll", WEBSOCKET_POLLING_STACK_SIZE},
+                              {serial_queue_task_handle, "SerialQueue", SERIAL_QUEUE_STACK_SIZE},
+                              {battery_monitor_task_handle, "BatteryMonitor", BATTERY_MONITOR_STACK_SIZE},
+                              {speaker_task_handle, "Speaker", SPEAKER_STACK_SIZE},
+                              {motor_task_handle, "Motor", MOTOR_STACK_SIZE},
+                              {demo_manager_task_handle, "DemoManager", DEMO_MANAGER_STACK_SIZE},
+                              {game_manager_task_handle, "GameManager", GAME_MANAGER_STACK_SIZE},
+                              {career_quest_task_handle, "CareerQuest", CAREER_QUEST_STACK_SIZE},
+                              {display_init_task_handle, "DisplayInit", DISPLAY_INIT_STACK_SIZE}};
 
-    for (const auto& task : tasks) {
+    for (const auto& task : TASKS) {
         if (task.handle != nullptr && eTaskGetState(task.handle) != eDeleted) {
-            UBaseType_t free_stack = uxTaskGetStackHighWaterMark(task.handle);
-            uint32_t used_stack = task.allocated_size - (free_stack * sizeof(StackType_t));
-            float percent_used = static_cast<float>(used_stack) / task.allocated_size * 100.0f;
+            const UBaseType_t FREE_STACK = uxTaskGetStackHighWaterMark(task.handle);
+            const uint32_t USED_STACK = task.allocated_size - (FREE_STACK * sizeof(StackType_t));
+            const float PERCENT_USED = static_cast<float>(USED_STACK) / task.allocated_size * 100.0f;
 
             // Format with fixed width for alignment
             char task_name[16];
             snprintf(task_name, sizeof(task_name), "%-15s", task.name);
 
             String message =
-                "║ " + String(task_name) + " " + String(used_stack, DEC) + "/" + String(task.allocated_size) + " (" + String(percent_used, 1) + "%)";
+                "║ " + String(task_name) + " " + String(USED_STACK, DEC) + "/" + String(task.allocated_size) + " (" + String(PERCENT_USED, 1) + "%)";
 
             // Pad to consistent width
             while (message.length() < 37) {
@@ -536,10 +536,10 @@ void TaskManager::print_stack_usage() {
             }
             message += "║";
 
-            if (percent_used > 90.0f) {
+            if (PERCENT_USED > 90.0f) {
                 message += " 🔴";
                 SerialQueueManager::get_instance().queue_message(message, SerialPriority::CRITICAL);
-            } else if (percent_used > 75.0f) {
+            } else if (PERCENT_USED > 75.0f) {
                 message += " 🟡";
                 SerialQueueManager::get_instance().queue_message(message, SerialPriority::CRITICAL);
             } else {

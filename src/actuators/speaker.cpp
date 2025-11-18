@@ -67,15 +67,15 @@ bool Speaker::recreate_audio_objects() {
     vTaskDelay(pdMS_TO_TICKS(100));
 
     // Recreate audio objects
-    bool success = initialize_audio();
+    const bool SUCCESS = initialize_audio();
 
-    if (success) {
+    if (SUCCESS) {
         SerialQueueManager::get_instance().queue_message("✓ Audio objects recreated");
     } else {
         SerialQueueManager::get_instance().queue_message("✗ Failed to recreate audio objects");
     }
 
-    return success;
+    return SUCCESS;
 }
 
 bool Speaker::validate_audio_objects() {
@@ -211,8 +211,8 @@ void Speaker::update_melody() {
 
     // LED sequence update (doesn't touch audio objects, but keep under mutex to keep state consistent)
     if (_is_led_sequence_playing) {
-        uint32_t current_time = millis();
-        if (current_time >= _led_step_start_time + ENTERTAINER_LED_SEQUENCE[_current_led_step].duration) {
+        const uint32_t CURRENT_TIME = millis();
+        if (CURRENT_TIME >= _led_step_start_time + ENTERTAINER_LED_SEQUENCE[_current_led_step].duration) {
             _current_led_step++;
             if (_current_led_step >= ENTERTAINER_LED_SEQUENCE_LENGTH) {
                 _is_led_sequence_playing = false;
@@ -220,7 +220,7 @@ void Speaker::update_melody() {
             } else {
                 const MelodyNote& note = ENTERTAINER_LED_SEQUENCE[_current_led_step];
                 rgb_led.set_main_board_leds_to_color(note.led_r, note.led_g, note.led_b);
-                _led_step_start_time = current_time;
+                _led_step_start_time = CURRENT_TIME;
             }
         }
     }

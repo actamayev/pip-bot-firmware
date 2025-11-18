@@ -16,16 +16,16 @@ void TimeoutManager::reset_activity() {
 }
 
 void TimeoutManager::update() {
-    uint32_t current_time = millis();
+    const uint32_t CURRENT_TIME = millis();
 
     if (!_inConfirmationState) {
         // Check for initial inactivity timeout
-        if (current_time - _last_activity_time >= INACTIVITY_TIMEOUT) {
+        if (CURRENT_TIME - _last_activity_time >= INACTIVITY_TIMEOUT) {
             enter_confirmation_state();
         }
     } else {
         // Check for confirmation timeout
-        if (current_time - _confirmationStartTime >= CONFIRMATION_TIMEOUT) {
+        if (CURRENT_TIME - _confirmationStartTime >= CONFIRMATION_TIMEOUT) {
             Buttons::get_instance().enter_deep_sleep();
         }
     }

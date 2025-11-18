@@ -157,14 +157,14 @@ void LedAnimations::update() {
 }
 
 void LedAnimations::update_breathing() {
-    uint32_t current_time = millis();
+    const uint32_t CURRENT_TIME = millis();
     uint32_t time_per_step = _breath_speed / 255;
     time_per_step = max(1U, time_per_step);
 
-    if (current_time - _last_breath_update < time_per_step) {
+    if (CURRENT_TIME - _last_breath_update < time_per_step) {
         return;
     }
-    _last_breath_update = current_time;
+    _last_breath_update = CURRENT_TIME;
 
     float factor = NAN;
 
@@ -172,16 +172,16 @@ void LedAnimations::update_breathing() {
     factor = (sin(_breath_progress * PI) + 1.0) / 2.0;
 
     // Interpolate between min and max for each color
-    uint8_t r = _breath_min[0] + (factor * (_breath_max[0] - _breath_min[0]));
-    uint8_t g = _breath_min[1] + (factor * (_breath_max[1] - _breath_min[1]));
-    uint8_t b = _breath_min[2] + (factor * (_breath_max[2] - _breath_min[2]));
+    const uint8_t R = _breath_min[0] + (factor * (_breath_max[0] - _breath_min[0]));
+    const uint8_t G = _breath_min[1] + (factor * (_breath_max[1] - _breath_min[1]));
+    const uint8_t B = _breath_min[2] + (factor * (_breath_max[2] - _breath_min[2]));
 
     // Set the color
-    set_all_leds(r, g, b);
+    set_all_leds(R, G, B);
 
     // Update progress
-    float progress_step = 1.0 / 255.0;
-    _breath_progress += progress_step;
+    const float PROGRESS_STEP = 1.0 / 255.0;
+    _breath_progress += PROGRESS_STEP;
 
     // Check if we're fading out and have reached the bottom of the cycle
     if (_is_fading_out && _breath_progress >= 1.0) {
@@ -199,10 +199,10 @@ void LedAnimations::update_breathing() {
 }
 
 void LedAnimations::update_strobing() {
-    uint32_t current_time = millis();
+    const uint32_t CURRENT_TIME = millis();
 
-    if (current_time - _last_strobe_update >= _strobe_speed) {
-        _last_strobe_update = current_time;
+    if (CURRENT_TIME - _last_strobe_update >= _strobe_speed) {
+        _last_strobe_update = CURRENT_TIME;
         _strobe_state = !_strobe_state;
 
         if (_strobe_state) {
@@ -216,12 +216,12 @@ void LedAnimations::update_strobing() {
 }
 
 void LedAnimations::update_rainbow() {
-    uint32_t current_time = millis();
+    const uint32_t CURRENT_TIME = millis();
 
-    if (current_time - _last_rainbow_update < _rainbow_step_time) {
+    if (CURRENT_TIME - _last_rainbow_update < _rainbow_step_time) {
         return;
     }
-    _last_rainbow_update = current_time;
+    _last_rainbow_update = CURRENT_TIME;
 
     // Slowly rotate the entire rainbow pattern
     _rainbow_hue = (_rainbow_hue + 1) % 256;

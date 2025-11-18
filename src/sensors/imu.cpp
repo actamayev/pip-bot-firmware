@@ -35,26 +35,26 @@ void ImuSensor::update_enabled_reports() {
     }
 
     // Enable/disable accelerometer reports (unchanged)
-    bool should_enable_accel = timeouts.should_enable_accelerometer();
-    if (should_enable_accel && !_enabledReports.accelerometer) {
+    const bool SHOULD_ENABLE_ACCEL = timeouts.should_enable_accelerometer();
+    if (SHOULD_ENABLE_ACCEL && !_enabledReports.accelerometer) {
         enable_accelerometer();
-    } else if (!should_enable_accel && _enabledReports.accelerometer) {
+    } else if (!SHOULD_ENABLE_ACCEL && _enabledReports.accelerometer) {
         disable_accelerometer();
     }
 
     // Enable/disable gyroscope reports (unchanged)
-    bool should_enable_gyro = timeouts.should_enable_gyroscope();
-    if (should_enable_gyro && !_enabledReports.gyroscope) {
+    const bool SHOULD_ENABLE_GYRO = timeouts.should_enable_gyroscope();
+    if (SHOULD_ENABLE_GYRO && !_enabledReports.gyroscope) {
         enable_gyroscope();
-    } else if (!should_enable_gyro && _enabledReports.gyroscope) {
+    } else if (!SHOULD_ENABLE_GYRO && _enabledReports.gyroscope) {
         disable_gyroscope();
     }
 
     // Enable/disable magnetometer reports (unchanged)
-    bool should_enable_mag = timeouts.should_enable_magnetometer();
-    if (should_enable_mag && !_enabledReports.magneticField) {
+    const bool SHOULD_ENABLE_MAG = timeouts.should_enable_magnetometer();
+    if (SHOULD_ENABLE_MAG && !_enabledReports.magneticField) {
         enable_magnetic_field();
-    } else if (!should_enable_mag && _enabledReports.magneticField) {
+    } else if (!SHOULD_ENABLE_MAG && _enabledReports.magneticField) {
         disable_magnetic_field();
     }
 }

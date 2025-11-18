@@ -253,11 +253,11 @@ float SensorDataBuffer::get_latest_magnetic_field_z() const {
 
 ImuSample SensorDataBuffer::get_latest_imu_sample() {
     // Mark all timeouts as accessed
-    uint32_t current_time = millis();
-    _timeouts.quaternion_last_request.store(current_time);
-    _timeouts.accelerometer_last_request.store(current_time);
-    _timeouts.gyroscope_last_request.store(current_time);
-    _timeouts.magnetometer_last_request.store(current_time);
+    const uint32_t CURRENT_TIME = millis();
+    _timeouts.quaternion_last_request.store(CURRENT_TIME);
+    _timeouts.accelerometer_last_request.store(CURRENT_TIME);
+    _timeouts.gyroscope_last_request.store(CURRENT_TIME);
+    _timeouts.magnetometer_last_request.store(CURRENT_TIME);
 
     return _current_sample;
 }
@@ -326,18 +326,18 @@ float SensorDataBuffer::get_imu_frequency() {
     static float last_frequency = 0.0f;
     static uint32_t last_update_count = 0;
 
-    uint32_t current_time = millis();
+    const uint32_t CURRENT_TIME = millis();
     uint32_t last_calc_time = _last_imu_frequency_calc_time.load();
     uint32_t current_update_count = _imu_update_count.load();
 
     // Initialize on first call
     if (last_calc_time == 0) {
-        _last_imu_frequency_calc_time.store(current_time);
+        _last_imu_frequency_calc_time.store(CURRENT_TIME);
         last_update_count = current_update_count;
         return 0.0f;
     }
 
-    uint32_t time_delta = current_time - last_calc_time;
+    uint32_t time_delta = CURRENT_TIME - last_calc_time;
 
     // Calculate frequency every second (1000ms)
     if (time_delta >= 1000) {
@@ -350,7 +350,7 @@ float SensorDataBuffer::get_imu_frequency() {
         SerialQueueManager::get_instance().queue_message(debug_buffer);
 
         // Update tracking variables
-        _last_imu_frequency_calc_time.store(current_time);
+        _last_imu_frequency_calc_time.store(CURRENT_TIME);
         last_update_count = current_update_count;
 
         return last_frequency;
@@ -364,18 +364,18 @@ float SensorDataBuffer::get_multizone_tof_frequency() {
     static float last_frequency = 0.0f;
     static uint32_t last_update_count = 0;
 
-    uint32_t current_time = millis();
+    const uint32_t CURRENT_TIME = millis();
     uint32_t last_calc_time = _last_multizone_tof_frequency_calc_time.load();
     uint32_t current_update_count = _multizone_tof_update_count.load();
 
     // Initialize on first call
     if (last_calc_time == 0) {
-        _last_multizone_tof_frequency_calc_time.store(current_time);
+        _last_multizone_tof_frequency_calc_time.store(CURRENT_TIME);
         last_update_count = current_update_count;
         return 0.0f;
     }
 
-    uint32_t time_delta = current_time - last_calc_time;
+    uint32_t time_delta = CURRENT_TIME - last_calc_time;
 
     // Calculate frequency every second (1000ms)
     if (time_delta >= 1000) {
@@ -383,7 +383,7 @@ float SensorDataBuffer::get_multizone_tof_frequency() {
         last_frequency = static_cast<float>(update_delta) * 1000.0f / static_cast<float>(time_delta);
 
         // Update tracking variables
-        _last_multizone_tof_frequency_calc_time.store(current_time);
+        _last_multizone_tof_frequency_calc_time.store(CURRENT_TIME);
         last_update_count = current_update_count;
 
         return last_frequency;
@@ -396,18 +396,18 @@ float SensorDataBuffer::get_side_tof_frequency() {
     static float last_frequency = 0.0f;
     static uint32_t last_update_count = 0;
 
-    uint32_t current_time = millis();
+    const uint32_t CURRENT_TIME = millis();
     uint32_t last_calc_time = _last_side_tof_frequency_calc_time.load();
     uint32_t current_update_count = _side_tof_update_count.load();
 
     // Initialize on first call
     if (last_calc_time == 0) {
-        _last_side_tof_frequency_calc_time.store(current_time);
+        _last_side_tof_frequency_calc_time.store(CURRENT_TIME);
         last_update_count = current_update_count;
         return 0.0f;
     }
 
-    uint32_t time_delta = current_time - last_calc_time;
+    uint32_t time_delta = CURRENT_TIME - last_calc_time;
 
     // Calculate frequency every second (1000ms)
     if (time_delta >= 1000) {
@@ -415,7 +415,7 @@ float SensorDataBuffer::get_side_tof_frequency() {
         last_frequency = static_cast<float>(update_delta) * 1000.0f / static_cast<float>(time_delta);
 
         // Update tracking variables
-        _last_side_tof_frequency_calc_time.store(current_time);
+        _last_side_tof_frequency_calc_time.store(CURRENT_TIME);
         last_update_count = current_update_count;
 
         return last_frequency;
@@ -428,18 +428,18 @@ float SensorDataBuffer::get_color_sensor_frequency() {
     static float last_frequency = 0.0f;
     static uint32_t last_update_count = 0;
 
-    uint32_t current_time = millis();
+    const uint32_t CURRENT_TIME = millis();
     uint32_t last_calc_time = _last_color_sensor_frequency_calc_time.load();
     uint32_t current_update_count = _color_sensor_update_count.load();
 
     // Initialize on first call
     if (last_calc_time == 0) {
-        _last_color_sensor_frequency_calc_time.store(current_time);
+        _last_color_sensor_frequency_calc_time.store(CURRENT_TIME);
         last_update_count = current_update_count;
         return 0.0f;
     }
 
-    uint32_t time_delta = current_time - last_calc_time;
+    uint32_t time_delta = CURRENT_TIME - last_calc_time;
 
     // Calculate frequency every second (1000ms)
     if (time_delta >= 1000) {
@@ -447,7 +447,7 @@ float SensorDataBuffer::get_color_sensor_frequency() {
         last_frequency = static_cast<float>(update_delta) * 1000.0f / static_cast<float>(time_delta);
 
         // Update tracking variables
-        _last_color_sensor_frequency_calc_time.store(current_time);
+        _last_color_sensor_frequency_calc_time.store(CURRENT_TIME);
         last_update_count = current_update_count;
 
         return last_frequency;
