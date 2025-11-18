@@ -48,11 +48,11 @@ void ColorSensor::update_sensor_data() {
 
     // Check if we should enable/disable the sensor based on timeouts (ALWAYS check this first)
     ReportTimeouts& timeouts = SensorDataBuffer::get_instance().get_report_timeouts();
-    bool should_enable = timeouts.should_enable_color();
+    const bool SHOULD_ENABLE = timeouts.should_enable_color();
 
-    if (should_enable && !_sensor_enabled) {
+    if (SHOULD_ENABLE && !_sensor_enabled) {
         enable_color_sensor();
-    } else if (!should_enable && _sensor_enabled) {
+    } else if (!SHOULD_ENABLE && _sensor_enabled) {
         disable_color_sensor();
         return; // Don't try to read data if sensor is disabled
     }
@@ -109,12 +109,14 @@ void ColorSensor::disable_color_sensor() {
 void ColorSensor::print_calibration_values() const {
     SerialQueueManager::get_instance().queue_message("Calibration Values:");
     SerialQueueManager::get_instance().queue_message("Black point:");
-    String black_msg = "R: " + String(_calibration.blackRed) + ", G: " + String(_calibration.blackGreen) + ", B: " + String(_calibration.blackBlue);
-    SerialQueueManager::get_instance().queue_message(black_msg.c_str());
+    const String BLACK_MESSAGE =
+        "R: " + String(_calibration.blackRed) + ", G: " + String(_calibration.blackGreen) + ", B: " + String(_calibration.blackBlue);
+    SerialQueueManager::get_instance().queue_message(BLACK_MESSAGE.c_str());
 
     SerialQueueManager::get_instance().queue_message("White point:");
-    String white_msg = "R: " + String(_calibration.whiteRed) + ", G: " + String(_calibration.whiteGreen) + ", B: " + String(_calibration.whiteBlue);
-    SerialQueueManager::get_instance().queue_message(white_msg.c_str());
+    const String WHITE_MESSAGE =
+        "R: " + String(_calibration.whiteRed) + ", G: " + String(_calibration.whiteGreen) + ", B: " + String(_calibration.whiteBlue);
+    SerialQueueManager::get_instance().queue_message(WHITE_MESSAGE.c_str());
 }
 
 void ColorSensor::calibrate_black_point() {
@@ -184,15 +186,15 @@ void ColorSensor::calibrate_white_point() {
 
 void ColorSensor::read_color_sensor() {
     // Use non-blocking state machine for maximum speed
-    color_read_state_t state = Veml3328.readColorNonBlocking();
+    const color_read_state_t STATE = Veml3328.readColorNonBlocking();
 
     // Only process when we have complete reading
-    if (state != COLOR_STATE_COMPLETE) {
+    if (STATE != COLOR_STATE_COMPLETE) {
         return;
     }
-    uint16_t red = Veml3328.getLastRed();
-    uint16_t green = Veml3328.getLastGreen();
-    uint16_t blue = Veml3328.getLastBlue();
+    const uint16_t RED = Veml3328.getLastRed();
+    const uint16_t GREEN = Veml3328.getLastGreen();
+    const uint16_t BLUE = Veml3328.getLastBlue();
 
     if (_is_calibrated) {
         // Use calibrated normalization
@@ -200,17 +202,17 @@ void ColorSensor::read_color_sensor() {
             if (white <= black) {
                 return 0; // Invalid calibration
             }
-            int32_t normalized = (static_cast<int32_t>(value - black) * 255L) / (white - black);
-            return static_cast<uint8_t> constrain(normalized, 0, 255);
+            const int32_t NORMALIZED = (static_cast<int32_t>(value - black) * 255L) / (white - black);
+            return static_cast<uint8_t> constrain(NORMALIZED, 0, 255);
         };
 
-        _color_sensor_data.redValue = safe_normalize(red, _calibration.blackRed, _calibration.whiteRed);
-        _color_sensor_data.greenValue = safe_normalize(green, _calibration.blackGreen, _calibration.whiteGreen);
-        _color_sensor_data.blueValue = safe_normalize(blue, _calibration.blackBlue, _calibration.whiteBlue);
+        _color_sensor_data.redValue = safe_normalize(RED, _calibration.blackRed, _calibration.whiteRed);
+        _color_sensor_data.greenValue = safe_normalize(GREEN, _calibration.blackGreen, _calibration.whiteGreen);
+        _color_sensor_data.blueValue = safe_normalize(BLUE, _calibration.blackBlue, _calibration.whiteBlue);
     } else {
         // Fallback to simple 8-bit conversion if not calibrated
-        _color_sensor_data.redValue = static_cast<uint8_t>(red >> 8);
-        _color_sensor_data.greenValue = static_cast<uint8_t>(green >> 8);
-        _color_sensor_data.blueValue = static_cast<uint8_t>(blue >> 8);
+        _color_sensor_data.redValue = static_cast<uint8_t>(RED >> 8);
+        _color_sensor_data.greenValue = static_cast<uint8_t>(GREEN >> 8);
+        _color_sensor_data.blueValue = static_cast<uint8_t>(BLUE >> 8);
     }
 }
