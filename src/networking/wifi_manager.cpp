@@ -19,9 +19,9 @@ WiFiManager::WiFiManager() {
 
 void WiFiManager::connect_to_stored_wifi() {
     // Try to connect directly to any saved network without scanning
-    bool connection_status = attempt_direct_connection_to_saved_networks();
+    const bool CONNECTION_STATUS = attempt_direct_connection_to_saved_networks();
 
-    if (!connection_status) {
+    if (!CONNECTION_STATUS) {
         start_async_scan();
     } else {
         WebSocketManager::get_instance().connect_to_websocket();
@@ -64,11 +64,11 @@ bool WiFiManager::attempt_new_wifi_connection(const WiFiCredentials& wifi_creden
 
     WiFi.begin(wifi_credentials.ssid, wifi_credentials.password);
 
-    uint32_t start_attempt_time = millis();
-    uint32_t last_print_time = start_attempt_time;
-    uint32_t last_check_time = start_attempt_time;
+    const uint32_t START_ATTEMPT_TIME = millis();
+    uint32_t last_print_time = START_ATTEMPT_TIME;
+    uint32_t last_check_time = START_ATTEMPT_TIME;
 
-    while (WiFiClass::status() != WL_CONNECTED && (millis() - start_attempt_time < CONNECT_TO_SINGLE_NETWORK_TIMEOUT)) {
+    while (WiFiClass::status() != WL_CONNECTED && (millis() - START_ATTEMPT_TIME < CONNECT_TO_SINGLE_NETWORK_TIMEOUT)) {
         // Give other tasks time to run - CRITICAL for sensor performance
         vTaskDelay(pdMS_TO_TICKS(250)); // 250ms delay reduces sensor impact
 
@@ -133,12 +133,12 @@ void WiFiManager::check_and_reconnect_wifi() {
     _isConnecting = true;
 
     // Try to reconnect to stored WiFi
-    bool connection_status = attempt_direct_connection_to_saved_networks();
+    const bool CONNECTION_STATUS = attempt_direct_connection_to_saved_networks();
 
     // Reset connecting flag
     _isConnecting = false;
 
-    if (connection_status) {
+    if (CONNECTION_STATUS) {
         WebSocketManager::get_instance().connect_to_websocket();
     }
 }
@@ -167,11 +167,11 @@ void WiFiManager::process_wifi_credential_test() {
         // Test WebSocket connection
         WebSocketManager::get_instance().connect_to_websocket();
 
-        uint32_t start_time = millis();
+        const uint32_t START_TIME = millis();
         const uint32_t WEBSOCKET_TIMEOUT = 10000;
         bool websocket_connected = false;
 
-        while (millis() - start_time < WEBSOCKET_TIMEOUT) {
+        while (millis() - START_TIME < WEBSOCKET_TIMEOUT) {
             WebSocketManager::get_instance().poll_websocket();
             if (WebSocketManager::get_instance().is_ws_connected()) {
                 websocket_connected = true;
@@ -203,10 +203,10 @@ bool WiFiManager::test_connection_only(const String& ssid, const String& passwor
     WiFiClass::mode(WIFI_STA);
     WiFi.begin(ssid, password);
 
-    uint32_t start_time = millis();
+    const uint32_t START_TIME = millis();
     uint32_t last_status_log = 0;
 
-    while (WiFiClass::status() != WL_CONNECTED && (millis() - start_time < CONNECT_TO_SINGLE_NETWORK_TIMEOUT)) {
+    while (WiFiClass::status() != WL_CONNECTED && (millis() - START_TIME < CONNECT_TO_SINGLE_NETWORK_TIMEOUT)) {
         // Log WiFi status every second for debugging
         if (millis() - last_status_log > 1000) {
             String status_str = "";
@@ -243,9 +243,9 @@ bool WiFiManager::test_connection_only(const String& ssid, const String& passwor
         vTaskDelay(pdMS_TO_TICKS(500)); // Increased delay - less aggressive polling for better sensor performance
     }
 
-    bool connected = WiFiClass::status() == WL_CONNECTED;
+    const bool CONNECTED = WiFiClass::status() == WL_CONNECTED;
 
-    if (connected) {
+    if (CONNECTED) {
         SerialQueueManager::get_instance().queue_message("✓ WiFi connection successful!");
         SerialQueueManager::get_instance().queue_message("IP Address: " + WiFi.localIP().toString());
     } else {
@@ -253,7 +253,7 @@ bool WiFiManager::test_connection_only(const String& ssid, const String& passwor
         SerialQueueManager::get_instance().queue_message("✗ WiFi connection failed after " + String(CONNECT_TO_SINGLE_NETWORK_TIMEOUT) + "ms");
     }
 
-    return connected;
+    return CONNECTED;
 }
 
 std::vector<WiFiCredentials> WiFiManager::get_saved_networks_for_response() {
@@ -290,9 +290,9 @@ bool WiFiManager::start_async_scan() {
     WiFiClass::mode(WIFI_STA);
 
     // Start async scan
-    int16_t result = WiFi.scanNetworks(true); // true = async
+    const int16_t RESULT = WiFi.scanNetworks(true); // true = async
 
-    if (result == WIFI_SCAN_RUNNING) {
+    if (RESULT == WIFI_SCAN_RUNNING) {
         _asyncScanInProgress = true;
         _asyncScanStartTime = millis();
         SerialQueueManager::get_instance().queue_message("Async scan initiated successfully");
@@ -314,16 +314,16 @@ void WiFiManager::check_async_scan_progress() {
     }
 
     const uint32_t CURRENT_TIME = millis();
-    uint32_t scan_duration = CURRENT_TIME - _asyncScanStartTime;
+    const uint32_t SCAN_DURATION = CURRENT_TIME - _asyncScanStartTime;
 
     // Don't check status too soon - give the scan time to actually start
-    if (scan_duration < ASYNC_SCAN_MIN_CHECK_DELAY) {
+    if (SCAN_DURATION < ASYNC_SCAN_MIN_CHECK_DELAY) {
         return; // Too early to check
     }
 
     // Check for timeout
-    if (scan_duration > ASYNC_SCAN_TIMEOUT_MS) {
-        SerialQueueManager::get_instance().queue_message("Async WiFi scan timed out after " + String(scan_duration) + "ms");
+    if (SCAN_DURATION > ASYNC_SCAN_TIMEOUT_MS) {
+        SerialQueueManager::get_instance().queue_message("Async WiFi scan timed out after " + String(SCAN_DURATION) + "ms");
         _asyncScanInProgress = false;
         rgb_led.turn_main_board_leds_off();
 
@@ -346,7 +346,7 @@ void WiFiManager::check_async_scan_progress() {
     }
     // Only handle completion (positive numbers) - ignore WIFI_SCAN_FAILED and WIFI_SCAN_RUNNING
     // Scan completed successfully
-    SerialQueueManager::get_instance().queue_message("Async WiFi scan completed in " + String(scan_duration) + "ms. Found " + String(SCAN_RESULT) +
+    SerialQueueManager::get_instance().queue_message("Async WiFi scan completed in " + String(SCAN_DURATION) + "ms. Found " + String(SCAN_RESULT) +
                                                      " networks");
     _asyncScanInProgress = false;
     rgb_led.turn_main_board_leds_off();
