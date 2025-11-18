@@ -59,17 +59,17 @@ void RgbLed::set_main_board_leds_to_color(uint8_t red, uint8_t green, uint8_t bl
     led_animations.stop_animation();
 
     // Set default color for selected LEDs (0, 1, 4-7)
-    int indices[] = {0, 1, 4, 5, 6, 7};
-    for (int i : indices) {
-        default_colors[i][0] = red;
-        default_colors[i][1] = green;
-        default_colors[i][2] = blue;
-        default_colors_set[i] = true;
+    const int INDICES[] = {0, 1, 4, 5, 6, 7};
+    for (const int I : INDICES) {
+        default_colors[I][0] = red;
+        default_colors[I][1] = green;
+        default_colors[I][2] = blue;
+        default_colors_set[I] = true;
     }
 
     // Set only LEDs 0, 1, 4-7 to the same color (skip 2 and 3)
-    for (int i : indices) {
-        strip.setPixelColor(i, Adafruit_NeoPixel::Color(red, green, blue));
+    for (const int I : INDICES) {
+        strip.setPixelColor(I, Adafruit_NeoPixel::Color(red, green, blue));
     }
     strip.show();
 }
@@ -81,7 +81,7 @@ bool RgbLed::process_led_update(int led_index, uint8_t red, uint8_t green, uint8
     }
 
     // Store the current animation type
-    led_types::AnimationType current_anim = led_animations.get_current_animation();
+    const led_types::AnimationType CURRENT_ANIMATION = led_animations.get_current_animation();
 
     // Update the default color for this LED
     default_colors[led_index][0] = red;
@@ -90,10 +90,10 @@ bool RgbLed::process_led_update(int led_index, uint8_t red, uint8_t green, uint8
     default_colors_set[led_index] = true;
 
     // If we're in breathing or strobing mode, update the animation colors
-    if (current_anim == led_types::AnimationType::BREATHING) {
+    if (CURRENT_ANIMATION == led_types::AnimationType::BREATHING) {
         led_animations.update_breathing_color();
         return (led_index == 0); // Only return true for back_left LED (now index 0), which controls breathing color
-    } else if (current_anim == led_types::AnimationType::STROBING) {
+    } else if (CURRENT_ANIMATION == led_types::AnimationType::STROBING) {
         led_animations.update_strobe_color();
         return (led_index == 0); // Only return true for back_left LED (now index 0), which controls strobe color
     } else {

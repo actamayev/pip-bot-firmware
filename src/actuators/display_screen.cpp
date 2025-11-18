@@ -41,13 +41,13 @@ void DisplayScreen::update() {
         return;
     }
 
-    uint32_t current_time = millis();
+    const uint32_t CURRENT_TIME = millis();
 
     // Only generate content at regular intervals
-    if (current_time - instance._lastContentGeneration < UPDATE_INTERVAL) {
+    if (CURRENT_TIME - instance._lastContentGeneration < UPDATE_INTERVAL) {
         return;
     }
-    instance._lastContentGeneration = current_time;
+    instance._lastContentGeneration = CURRENT_TIME;
 
     // Generate content to staging buffer
     generate_content_to_buffer();
@@ -66,7 +66,7 @@ void DisplayScreen::update() {
     copy_current_buffer();
 
     instance._displayUpdates++;
-    instance._lastDisplayUpdate = current_time;
+    instance._lastDisplayUpdate = CURRENT_TIME;
 }
 
 // Show the start screen

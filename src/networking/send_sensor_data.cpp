@@ -75,10 +75,10 @@ void SendSensorData::send_sensor_data_to_server() {
         return;
     }
 
-    uint32_t current_time = millis();
+    const uint32_t CURRENT_TIME = millis();
     // Use different intervals based on connection type
     uint32_t required_interval = serial_connected ? SERIAL_SEND_INTERVAL : WS_SEND_INTERVAL;
-    if (current_time - _lastSendTime < required_interval) {
+    if (CURRENT_TIME - _lastSendTime < required_interval) {
         return;
     }
 
@@ -125,7 +125,7 @@ void SendSensorData::send_sensor_data_to_server() {
         }
     }
 
-    _lastSendTime = current_time;
+    _lastSendTime = CURRENT_TIME;
 }
 
 void SendSensorData::send_multizone_data() {
@@ -142,10 +142,10 @@ void SendSensorData::send_multizone_data() {
         return;
     }
 
-    uint32_t current_time = millis();
+    const uint32_t CURRENT_TIME = millis();
     // Use different intervals based on connection type
     uint32_t required_mz_interval = serial_connected ? SERIAL_MZ_INTERVAL : WS_MZ_INTERVAL;
-    if (current_time - _lastMzSendTime < required_mz_interval) {
+    if (CURRENT_TIME - _lastMzSendTime < required_mz_interval) {
         return;
     }
 
@@ -176,5 +176,5 @@ void SendSensorData::send_multizone_data() {
         }
     }
 
-    _lastMzSendTime = current_time;
+    _lastMzSendTime = CURRENT_TIME;
 }

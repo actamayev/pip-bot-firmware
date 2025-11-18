@@ -73,13 +73,13 @@ bool WiFiManager::attempt_new_wifi_connection(const WiFiCredentials& wifi_creden
         vTaskDelay(pdMS_TO_TICKS(250)); // 250ms delay reduces sensor impact
 
         // Non-blocking print of dots
-        uint32_t current_time = millis();
-        if (current_time - last_print_time >= PRINT_INTERVAL) {
-            last_print_time = current_time;
+        const uint32_t CURRENT_TIME = millis();
+        if (CURRENT_TIME - last_print_time >= PRINT_INTERVAL) {
+            last_print_time = CURRENT_TIME;
             yield(); // Allow the ESP32 to handle background tasks
         }
-        if (current_time - last_check_time >= CHECK_INTERVAL) {
-            last_check_time = current_time;
+        if (CURRENT_TIME - last_check_time >= CHECK_INTERVAL) {
+            last_check_time = CURRENT_TIME;
 
             // Poll serial to update connection status
             SerialManager::get_instance().poll_serial();
@@ -119,15 +119,15 @@ void WiFiManager::check_and_reconnect_wifi() {
         return;
     }
 
-    uint32_t current_time = millis();
+    const uint32_t CURRENT_TIME = millis();
 
-    if (current_time - _lastReconnectAttempt < WIFI_RECONNECT_TIMEOUT) {
+    if (CURRENT_TIME - _lastReconnectAttempt < WIFI_RECONNECT_TIMEOUT) {
         return;
     }
     SerialQueueManager::get_instance().queue_message("WiFi disconnected, attempting to reconnect...");
 
     // Update last reconnect attempt time
-    _lastReconnectAttempt = current_time;
+    _lastReconnectAttempt = CURRENT_TIME;
 
     // Set connecting flag
     _isConnecting = true;
@@ -313,8 +313,8 @@ void WiFiManager::check_async_scan_progress() {
         return; // No scan in progress
     }
 
-    uint32_t current_time = millis();
-    uint32_t scan_duration = current_time - _asyncScanStartTime;
+    const uint32_t CURRENT_TIME = millis();
+    uint32_t scan_duration = CURRENT_TIME - _asyncScanStartTime;
 
     // Don't check status too soon - give the scan time to actually start
     if (scan_duration < ASYNC_SCAN_MIN_CHECK_DELAY) {
@@ -376,8 +376,8 @@ void WiFiManager::check_async_scan_progress() {
 }
 
 void WiFiManager::clear_networks_if_stale() {
-    uint32_t now = millis();
-    if (_availableNetworks.empty() || (now - _lastScanCompleteTime <= STALE_SCAN_TIMEOUT_MS)) {
+    const uint32_t NOW = millis();
+    if (_availableNetworks.empty() || (NOW - _lastScanCompleteTime <= STALE_SCAN_TIMEOUT_MS)) {
         return;
     }
     _availableNetworks.clear();

@@ -145,12 +145,12 @@ void WebSocketManager::send_battery_monitor_data() {
 
 void WebSocketManager::poll_websocket() {
     WebSocketManager& instance = WebSocketManager::get_instance();
-    uint32_t current_time = millis();
-    if (current_time - instance._lastPollTime < POLL_INTERVAL) {
+    const uint32_t CURRENT_TIME = millis();
+    if (CURRENT_TIME - instance._lastPollTime < POLL_INTERVAL) {
         return;
     }
 
-    instance._lastPollTime = current_time;
+    instance._lastPollTime = CURRENT_TIME;
 
     if (WiFiClass::status() != WL_CONNECTED) {
         if (instance._wsConnected) {
@@ -161,15 +161,15 @@ void WebSocketManager::poll_websocket() {
         return;
     }
 
-    if (instance._wsConnected && (current_time - instance._lastPingTime >= WS_TIMEOUT)) {
+    if (instance._wsConnected && (CURRENT_TIME - instance._lastPingTime >= WS_TIMEOUT)) {
         SerialQueueManager::get_instance().queue_message("WebSocket ping timeout - connection lost", SerialPriority::HIGH_PRIO);
         instance._wsConnected = false;
         kill_wifi_processes();
     }
 
     // Connection management - try to connect if not connected
-    if (!instance._wsConnected && (current_time - instance._lastConnectionAttempt >= CONNECTION_INTERVAL)) {
-        instance._lastConnectionAttempt = current_time;
+    if (!instance._wsConnected && (CURRENT_TIME - instance._lastConnectionAttempt >= CONNECTION_INTERVAL)) {
+        instance._lastConnectionAttempt = CURRENT_TIME;
 
         SerialQueueManager::get_instance().queue_message("Attempting to connect to WebSocket...");
 

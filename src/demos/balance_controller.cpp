@@ -49,11 +49,11 @@ void BalanceController::update() {
         return;
     }
 
-    // uint32_t current_time = millis();
-    // if (current_time - _lastUpdateTime < _UPDATE_INTERVAL) {
+    // const uint32_t CURRENT_TIME = millis();
+    // if (CURRENT_TIME - _lastUpdateTime < _UPDATE_INTERVAL) {
     //     return; // Maintain update rate
     // }
-    // _lastUpdateTime = current_time;
+    // _lastUpdateTime = CURRENT_TIME;
 
     // Get current pitch
     float raw_angle = SensorDataBuffer::get_instance().get_latest_pitch();

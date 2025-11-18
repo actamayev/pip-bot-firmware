@@ -118,10 +118,10 @@ void TurningManager::update() {
 void TurningManager::update_velocity() {
     TurningManager& instance = TurningManager::get_instance();
     float current_heading = -SensorDataBuffer::get_instance().get_latest_yaw();
-    uint32_t current_time = millis();
+    const uint32_t CURRENT_TIME = millis();
 
     if (instance._lastTime != 0) {
-        float delta_time = (current_time - instance._lastTime) / 1000.0f;
+        float delta_time = (CURRENT_TIME - instance._lastTime) / 1000.0f;
         if (delta_time > 0) {
             float delta_heading = current_heading - instance._lastHeading;
 
@@ -138,7 +138,7 @@ void TurningManager::update_velocity() {
     }
 
     instance._lastHeading = current_heading;
-    instance._lastTime = current_time;
+    instance._lastTime = CURRENT_TIME;
 }
 
 void TurningManager::update_cumulative_rotation() {
@@ -192,11 +192,11 @@ float TurningManager::calculate_velocity_error() const {
 uint16_t TurningManager::calculate_pwm(float velocity_error) {
     TurningManager& instance = TurningManager::get_instance();
     // Calculate deltaTime for integral term
-    uint32_t current_time = millis();
+    const uint32_t CURRENT_TIME = millis();
     float delta_time = 0.0f;
 
     if (instance._lastIntegralTime != 0) {
-        delta_time = (current_time - instance._lastIntegralTime) / 1000.0f;
+        delta_time = (CURRENT_TIME - instance._lastIntegralTime) / 1000.0f;
 
         // Accumulate integral term
         instance._integralTerm += velocity_error * delta_time;
@@ -206,7 +206,7 @@ uint16_t TurningManager::calculate_pwm(float velocity_error) {
         instance._integralTerm = constrain(instance._integralTerm, -max_integral, max_integral);
     }
 
-    instance._lastIntegralTime = current_time;
+    instance._lastIntegralTime = CURRENT_TIME;
 
     // Calculate individual contributions
     instance._kpContribution = KP_VELOCITY * velocity_error;
