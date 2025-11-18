@@ -1023,34 +1023,34 @@ void BytecodeVM::activate_sensors_for_program() {
     // Activate required sensors by setting their last_request timestamps
     SensorDataBuffer& buffer = SensorDataBuffer::get_instance();
     ReportTimeouts& timeouts = buffer.get_report_timeouts();
-    uint32_t current_time = millis();
+    const uint32_t CURRENT_TIME = millis();
 
     if (need_quaternion) {
-        timeouts.quaternion_last_request.store(current_time);
+        timeouts.quaternion_last_request.store(CURRENT_TIME);
         SerialQueueManager::get_instance().queue_message("Activated quaternion sensor for program");
     }
     if (need_accelerometer) {
-        timeouts.accelerometer_last_request.store(current_time);
+        timeouts.accelerometer_last_request.store(CURRENT_TIME);
         SerialQueueManager::get_instance().queue_message("Activated accelerometer for program");
     }
     if (need_gyroscope) {
-        timeouts.gyroscope_last_request.store(current_time);
+        timeouts.gyroscope_last_request.store(CURRENT_TIME);
         SerialQueueManager::get_instance().queue_message("Activated gyroscope for program");
     }
     if (need_magnetometer) {
-        timeouts.magnetometer_last_request.store(current_time);
+        timeouts.magnetometer_last_request.store(CURRENT_TIME);
         SerialQueueManager::get_instance().queue_message("Activated magnetometer for program");
     }
     if (need_tof) {
-        timeouts.tof_last_request.store(current_time);
+        timeouts.tof_last_request.store(CURRENT_TIME);
         SerialQueueManager::get_instance().queue_message("Activated multizone TOF for program");
     }
     if (need_side_tof) {
-        timeouts.side_tof_last_request.store(current_time);
+        timeouts.side_tof_last_request.store(CURRENT_TIME);
         SerialQueueManager::get_instance().queue_message("Activated side TOF for program");
     }
     if (need_color_sensor) {
-        timeouts.color_last_request.store(current_time);
+        timeouts.color_last_request.store(CURRENT_TIME);
         SerialQueueManager::get_instance().queue_message("Activated colors Sensors for program");
     }
 }

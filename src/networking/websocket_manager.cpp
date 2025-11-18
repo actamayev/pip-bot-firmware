@@ -18,18 +18,18 @@ WebSocketManager::WebSocketManager() {
 
 void WebSocketManager::handle_binary_message(WebsocketsMessage message) {
     const auto* data = reinterpret_cast<const uint8_t*>(message.c_str());
-    uint16_t length = message.length();
+    const uint16_t LENGTH = message.length();
 
     // Check if this is a framed message (starts with START_MARKER)
-    if (length >= 4 && data[0] == START_MARKER) {
+    if (LENGTH >= 4 && data[0] == START_MARKER) {
         // This is a framed message. Parse it.
-        uint8_t message_type = data[1];
-        bool use_long_format = (data[2] != 0);
+        const uint8_t MESSAGE_TYPE = data[1];
+        const bool USE_LONG_FORMAT = (data[2] != 0);
 
         uint16_t payload_length = 0;
         uint16_t header_size = 0;
 
-        if (use_long_format) {
+        if (USE_LONG_FORMAT) {
             // 16-bit length
             payload_length = data[3] | (data[4] << 8); // Little-endian
             header_size = 5;                           // START + TYPE + FORMAT + LENGTH(2)
@@ -40,10 +40,10 @@ void WebSocketManager::handle_binary_message(WebsocketsMessage message) {
         }
 
         // Verify end marker and total length
-        if (length == header_size + payload_length + 1 && data[header_size + payload_length] == END_MARKER) {
+        if (LENGTH == header_size + payload_length + 1 && data[header_size + payload_length] == END_MARKER) {
             // Extract just the message type and payload
             auto* processed_data = new uint8_t[payload_length + 1];
-            processed_data[0] = message_type; // Message type
+            processed_data[0] = MESSAGE_TYPE; // Message type
 
             // Copy the actual payload (if any)
             if (payload_length > 0) {
@@ -145,12 +145,12 @@ void WebSocketManager::send_battery_monitor_data() {
 
 void WebSocketManager::poll_websocket() {
     WebSocketManager& instance = WebSocketManager::get_instance();
-    uint32_t current_time = millis();
-    if (current_time - instance._lastPollTime < POLL_INTERVAL) {
+    const uint32_t CURRENT_TIME = millis();
+    if (CURRENT_TIME - instance._lastPollTime < POLL_INTERVAL) {
         return;
     }
 
-    instance._lastPollTime = current_time;
+    instance._lastPollTime = CURRENT_TIME;
 
     if (WiFiClass::status() != WL_CONNECTED) {
         if (instance._wsConnected) {
@@ -161,15 +161,15 @@ void WebSocketManager::poll_websocket() {
         return;
     }
 
-    if (instance._wsConnected && (current_time - instance._lastPingTime >= WS_TIMEOUT)) {
+    if (instance._wsConnected && (CURRENT_TIME - instance._lastPingTime >= WS_TIMEOUT)) {
         SerialQueueManager::get_instance().queue_message("WebSocket ping timeout - connection lost", SerialPriority::HIGH_PRIO);
         instance._wsConnected = false;
         kill_wifi_processes();
     }
 
     // Connection management - try to connect if not connected
-    if (!instance._wsConnected && (current_time - instance._lastConnectionAttempt >= CONNECTION_INTERVAL)) {
-        instance._lastConnectionAttempt = current_time;
+    if (!instance._wsConnected && (CURRENT_TIME - instance._lastConnectionAttempt >= CONNECTION_INTERVAL)) {
+        instance._lastConnectionAttempt = CURRENT_TIME;
 
         SerialQueueManager::get_instance().queue_message("Attempting to connect to WebSocket...");
 

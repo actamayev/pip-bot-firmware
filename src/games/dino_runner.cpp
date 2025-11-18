@@ -80,9 +80,9 @@ void DinoRunner::update() {
         return;
     }
 
-    uint32_t now = millis();
-    uint32_t dt_ms = now - instance._last_frame_ms;
-    instance._last_frame_ms = now;
+    const uint32_t NOW = millis();
+    uint32_t dt_ms = NOW - instance._last_frame_ms;
+    instance._last_frame_ms = NOW;
     float dt = dt_ms / 16.0f; // normalize relative to ~60FPS
 
     if (instance._game_state == GameState::MENU) {

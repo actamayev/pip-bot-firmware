@@ -104,14 +104,14 @@ void MotorDriver::set_motor_speeds(int16_t left_target, int16_t right_target, bo
 
 void MotorDriver::update() {
     // Check brake timers first
-    uint32_t current_time = millis();
+    const uint32_t CURRENT_TIME = millis();
 
-    if (_left_brake_active && (current_time - _left_brake_start_time >= BRAKE_RELEASE_TIME_MS)) {
+    if (_left_brake_active && (CURRENT_TIME - _left_brake_start_time >= BRAKE_RELEASE_TIME_MS)) {
         left_motor_stop();
         _left_brake_active = false;
     }
 
-    if (_right_brake_active && (current_time - _right_brake_start_time >= BRAKE_RELEASE_TIME_MS)) {
+    if (_right_brake_active && (CURRENT_TIME - _right_brake_start_time >= BRAKE_RELEASE_TIME_MS)) {
         right_motor_stop();
         _right_brake_active = false;
     }

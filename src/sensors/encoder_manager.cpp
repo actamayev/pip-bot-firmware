@@ -37,8 +37,8 @@ bool EncoderManager::initialize() {
 }
 
 void EncoderManager::update() {
-    uint32_t current_time = millis();
-    uint32_t elapsed_time = current_time - _lastUpdateTime;
+    const uint32_t CURRENT_TIME = millis();
+    uint32_t elapsed_time = CURRENT_TIME - _lastUpdateTime;
 
     // Only update if enough time has passed
     if (elapsed_time < RPM_CALC_INTERVAL) {
@@ -64,7 +64,7 @@ void EncoderManager::update() {
     _leftLastCount = left_current_count;
     _rightLastCount = right_current_count;
 
-    _lastUpdateTime = current_time;
+    _lastUpdateTime = CURRENT_TIME;
 }
 
 // Standard sensor interface methods

@@ -91,9 +91,9 @@ void CareerQuestTriggers::update() {
 }
 
 void CareerQuestTriggers::update_s2_p1_sequence() {
-    uint32_t now = millis();
+    const uint32_t NOW = millis();
 
-    if (now - career_quest_triggers._lastS2P1Update < S2P1_UPDATE_INTERVAL) {
+    if (NOW - career_quest_triggers._lastS2P1Update < S2P1_UPDATE_INTERVAL) {
         return;
     }
     uint8_t current_led = S2P1_LED_SEQUENCE[career_quest_triggers._currentLedIndex];
@@ -151,11 +151,11 @@ void CareerQuestTriggers::update_s2_p1_sequence() {
         }
     }
 
-    career_quest_triggers._lastS2P1Update = now;
+    career_quest_triggers._lastS2P1Update = NOW;
 }
 
 void CareerQuestTriggers::update_s2_p4_light_show() {
-    uint32_t now = millis();
+    const uint32_t NOW = millis();
 
     // Handle exit fading
     if (career_quest_triggers._s2p4ExitFading) {
@@ -168,25 +168,25 @@ void CareerQuestTriggers::update_s2_p4_light_show() {
     }
 
     // Check total duration
-    if (now - career_quest_triggers._s2p4StartTime >= S2P4_DURATION) {
+    if (NOW - career_quest_triggers._s2p4StartTime >= S2P4_DURATION) {
         stop_s2_p4_light_show();
         return;
     }
 
-    uint32_t phase_elapsed = now - career_quest_triggers._s2p4PhaseStartTime;
+    uint32_t phase_elapsed = NOW - career_quest_triggers._s2p4PhaseStartTime;
 
     // Phase transitions
     if (career_quest_triggers._s2p4Phase == 0 && phase_elapsed >= S2P4_SNAKE_DURATION) {
         // Transition to flash phase
         career_quest_triggers._s2p4Phase = 1;
-        career_quest_triggers._s2p4PhaseStartTime = now;
+        career_quest_triggers._s2p4PhaseStartTime = NOW;
         career_quest_triggers._s2p4FlashColorIndex = 0;
         rgb_led.turn_all_leds_off();
         return;
     } else if (career_quest_triggers._s2p4Phase == 1 && phase_elapsed >= S2P4_FLASH_DURATION) {
         // Transition to breathing phase
         career_quest_triggers._s2p4Phase = 2;
-        career_quest_triggers._s2p4PhaseStartTime = now;
+        career_quest_triggers._s2p4PhaseStartTime = NOW;
         rgb_led.turn_all_leds_off();
         // Start breathing animation with first S2P1 color (red)
         uint8_t r = S2P1_COLOR_SEQUENCE[0][0];
@@ -199,7 +199,7 @@ void CareerQuestTriggers::update_s2_p4_light_show() {
 
     // Phase 0: Snake animation
     if (career_quest_triggers._s2p4Phase == 0) {
-        if (now - career_quest_triggers._lastS2P4Update >= S2P4_SNAKE_INTERVAL) {
+        if (NOW - career_quest_triggers._lastS2P4Update >= S2P4_SNAKE_INTERVAL) {
             rgb_led.turn_all_leds_off();
 
             // Use S2P1 color sequence for snake
@@ -229,12 +229,12 @@ void CareerQuestTriggers::update_s2_p4_light_show() {
                 }
             }
 
-            career_quest_triggers._lastS2P4Update = now;
+            career_quest_triggers._lastS2P4Update = NOW;
         }
     }
     // Phase 1: Flash all LEDs with ROY G BIV colors
     else if (career_quest_triggers._s2p4Phase == 1) {
-        if (now - career_quest_triggers._lastS2P4Update >= S2P4_FLASH_INTERVAL) {
+        if (NOW - career_quest_triggers._lastS2P4Update >= S2P4_FLASH_INTERVAL) {
             // ROY G BIV color sequence
             uint8_t roygbiv_colors[][3] = {
                 {255, 0, 0},   // Red
@@ -258,7 +258,7 @@ void CareerQuestTriggers::update_s2_p4_light_show() {
             career_quest_triggers._strip.show();
 
             career_quest_triggers._s2p4FlashColorIndex++;
-            career_quest_triggers._lastS2P4Update = now;
+            career_quest_triggers._lastS2P4Update = NOW;
         }
     }
     // Phase 2: Breathing animation (handled by LED animations system)
@@ -282,8 +282,8 @@ void CareerQuestTriggers::render_s3_p3_animation() {
         return;
     }
 
-    uint32_t now = millis();
-    if (now - career_quest_triggers._lastS3P3Update >= S3P3_UPDATE_INTERVAL) {
+    const uint32_t NOW = millis();
+    if (NOW - career_quest_triggers._lastS3P3Update >= S3P3_UPDATE_INTERVAL) {
         DisplayScreen& display_screen = DisplayScreen::get_instance();
         Adafruit_SSD1306& display = display_screen._display;
 
@@ -293,7 +293,7 @@ void CareerQuestTriggers::render_s3_p3_animation() {
         // Phase1: 0-5s  -> HAFTR scroll
         // Phase2: 5-10s -> 3D cube
         // Phase3: 10-15s -> speed gauge (5s: 2.5s up, 2.5s down)
-        uint32_t elapsed_time = now - career_quest_triggers._s3p3StartTime;
+        uint32_t elapsed_time = NOW - career_quest_triggers._s3p3StartTime;
         const uint32_t PH1 = 5000UL;
         const uint32_t PH2 = 5000UL;
         const uint32_t PH3 = 5000UL;
@@ -472,7 +472,7 @@ void CareerQuestTriggers::render_s3_p3_animation() {
         }
 
         career_quest_triggers._s3p3AnimationStep++;
-        career_quest_triggers._lastS3P3Update = now;
+        career_quest_triggers._lastS3P3Update = NOW;
     }
 }
 
@@ -525,8 +525,8 @@ void CareerQuestTriggers::update_s7_p4_button_demo() {
         return;
     }
 
-    uint32_t now = millis();
-    if (now - career_quest_triggers._lastS7P4Update < S2P1_UPDATE_INTERVAL) {
+    const uint32_t NOW = millis();
+    if (NOW - career_quest_triggers._lastS7P4Update < S2P1_UPDATE_INTERVAL) {
         return;
     }
 
@@ -547,7 +547,7 @@ void CareerQuestTriggers::update_s7_p4_button_demo() {
         rgb_led.turn_all_leds_off();
     }
 
-    career_quest_triggers._lastS7P4Update = now;
+    career_quest_triggers._lastS7P4Update = NOW;
 }
 
 void CareerQuestTriggers::start_s5_p4_led_visualization() {
@@ -566,9 +566,9 @@ void CareerQuestTriggers::stop_s5_p4_led_visualization() {
 }
 
 void CareerQuestTriggers::update_s5_p4_led_visualization() {
-    uint32_t now = millis();
+    const uint32_t NOW = millis();
 
-    if (now - career_quest_triggers._lastS5P4Update < S5P4_UPDATE_INTERVAL) {
+    if (NOW - career_quest_triggers._lastS5P4Update < S5P4_UPDATE_INTERVAL) {
         return;
     }
 
@@ -578,7 +578,7 @@ void CareerQuestTriggers::update_s5_p4_led_visualization() {
         rgb_led.turn_all_leds_off();
         career_quest_triggers._s5p4Active = false;
         career_quest_triggers._s5p4ExitFading = false;
-        career_quest_triggers._lastS5P4Update = now;
+        career_quest_triggers._lastS5P4Update = NOW;
         return;
     }
 
@@ -648,7 +648,7 @@ void CareerQuestTriggers::update_s5_p4_led_visualization() {
     }
 
     career_quest_triggers._strip.show();
-    career_quest_triggers._lastS5P4Update = now;
+    career_quest_triggers._lastS5P4Update = NOW;
 }
 
 void CareerQuestTriggers::stop_all_career_quest_triggers(bool should_turn_leds_off) {

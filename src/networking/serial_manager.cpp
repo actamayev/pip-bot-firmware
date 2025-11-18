@@ -147,9 +147,9 @@ void SerialManager::send_saved_networks_response(const std::vector<WiFiCredentia
     JsonArray payload = doc.createNestedArray("payload");
 
     for (size_t i = 0; i < networks.size(); i++) {
-        JsonObject network = payload.createNestedObject();
-        network["ssid"] = networks[i].ssid;
-        network["index"] = i;
+        const JsonObject NETWORK = payload.createNestedObject();
+        NETWORK["ssid"] = networks[i].ssid;
+        NETWORK["index"] = i;
     }
 
     String json_string;
