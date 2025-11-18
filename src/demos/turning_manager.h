@@ -52,7 +52,7 @@ class TurningManager : public Singleton<TurningManager> {
     static uint16_t calculate_pwm(float velocity_error);
     bool check_completion();
     static bool check_overshoot(float remaining_angle);
-    static void apply_motor_control(uint16_t pwm, float velocity_error);
+    static void apply_motor_control(uint16_t pwm);
     void reset_turn_state();
 
     // State variables
