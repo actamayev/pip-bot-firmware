@@ -550,3 +550,32 @@ void TaskManager::print_stack_usage() {
     SerialQueueManager::get_instance().queue_message("╚══════════════════════════════════════╝", SerialPriority::CRITICAL);
     SerialQueueManager::get_instance().queue_message("", SerialPriority::CRITICAL);
 }
+
+// Add to static member initialization section
+TaskHandle_t TaskManager::heartbeat_task_handle = nullptr;
+
+// Add the task implementation
+void TaskManager::heartbeat_task(void* parameter) {
+    (void)parameter;
+
+    for (;;) {
+        // Only send if WebSocket is connected
+        if (WebSocketManager::get_instance().is_ws_connected()) {
+            // Create JSON heartbeat message
+            auto doc = make_base_message_common<64>(ToCommonMessage::HEARTBEAT);
+            // No payload needed for heartbeat
+
+            String json_string;
+            serializeJson(doc, json_string);
+            WebSocketManager::get_instance()._wsClient.send(json_string);
+        }
+
+        // Send heartbeat every 1 second
+        vTaskDelay(pdMS_TO_TICKS(1000));
+    }
+}
+
+// Add the task creation function
+bool TaskManager::create_heartbeat_task() {
+    return create_task("Heartbeat", heartbeat_task, HEARTBEAT_STACK_SIZE, Priority::COMMUNICATION, Core::CORE_1, &heartbeat_task_handle);
+}

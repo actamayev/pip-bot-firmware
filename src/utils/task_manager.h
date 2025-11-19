@@ -44,6 +44,8 @@ class TaskManager {
     static bool create_color_sensor_task();
     static bool create_sensor_logger_task();
 
+    static bool create_heartbeat_task();
+
   private:
     static bool log_task_creation(const char* name, bool success);
     static void button_task(void* parameter);
@@ -150,4 +152,12 @@ class TaskManager {
     static TaskHandle_t career_quest_task_handle;
 
     static void print_stack_usage();
+
+    static void heartbeat_task(void* parameter);
+
+    // ... existing stack sizes ...
+    static constexpr uint32_t HEARTBEAT_STACK_SIZE = 4096;
+
+    // ... existing task handles ...
+    static TaskHandle_t heartbeat_task_handle;
 };

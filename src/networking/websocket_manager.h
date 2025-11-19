@@ -19,6 +19,7 @@ using namespace websockets;
 class WebSocketManager : public Singleton<WebSocketManager> {
     friend class Singleton<WebSocketManager>;
     friend class SendSensorData;
+    friend class TaskManager;
 
   public:
     void connect_to_websocket();

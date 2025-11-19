@@ -108,6 +108,8 @@ const char* route_to_string_common(ToCommonMessage route) {
             return "/dino-score";
         case ToCommonMessage::PIP_TURNING_OFF:
             return "/pip-turning-off";
+        case ToCommonMessage::HEARTBEAT:
+            return "/heartbeat";
         default:
             return "";
     }

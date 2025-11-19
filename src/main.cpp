@@ -76,6 +76,8 @@ void setup() {
     // 8. WebSocket polling (separate from communication for non-blocking sensor data)
     TaskManager::create_web_socket_polling_task();
 
+    TaskManager::create_heartbeat_task();
+
     // 9. LEDs (moved later in sequence)
     rgb_led.turn_all_leds_off(); // Still turn off LEDs early for safety
     TaskManager::create_led_task();
