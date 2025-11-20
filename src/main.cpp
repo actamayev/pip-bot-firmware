@@ -74,7 +74,9 @@ void setup() {
     TaskManager::create_network_management_task();
 
     // 8. WebSocket polling (separate from communication for non-blocking sensor data)
-    TaskManager::create_web_socket_polling_task();
+    TaskManager::create_sensor_web_socket_task();  // NEW: For sensor data only
+    TaskManager::create_command_web_socket_task(); // NEW: For commands + ping/pong
+    TaskManager::create_heartbeat_task();          // Sends through command connection
 
     TaskManager::create_heartbeat_task();
 

@@ -2,8 +2,9 @@
 
 #include <ArduinoJson.h>
 
+#include "networking/command_websocket_manager.h"
+#include "networking/sensor_websocket_manager.h" // NEW
 #include "networking/serial_manager.h"
-#include "networking/websocket_manager.h"
 #include "sensors/color_sensor.h"
 #include "sensors/imu.h"
 #include "sensors/sensor_data_buffer.h"

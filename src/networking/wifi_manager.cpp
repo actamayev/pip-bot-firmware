@@ -18,13 +18,14 @@ WiFiManager::WiFiManager() {
 }
 
 void WiFiManager::connect_to_stored_wifi() {
-    // Try to connect directly to any saved network without scanning
     const bool CONNECTION_STATUS = attempt_direct_connection_to_saved_networks();
 
     if (!CONNECTION_STATUS) {
         start_async_scan();
     } else {
-        WebSocketManager::get_instance().connect_to_websocket();
+        // Connect BOTH websocket managers
+        SensorWebSocketManager::get_instance().connect_to_websocket();  // NEW
+        CommandWebSocketManager::get_instance().connect_to_websocket(); // CHANGED
     }
 }
 
@@ -139,7 +140,9 @@ void WiFiManager::check_and_reconnect_wifi() {
     _isConnecting = false;
 
     if (CONNECTION_STATUS) {
-        WebSocketManager::get_instance().connect_to_websocket();
+        // Connect BOTH websocket managers
+        SensorWebSocketManager::get_instance().connect_to_websocket();  // NEW
+        CommandWebSocketManager::get_instance().connect_to_websocket(); // CHANGED
     }
 }
 
@@ -164,23 +167,30 @@ void WiFiManager::process_wifi_credential_test() {
     } else {
         SerialQueueManager::get_instance().queue_message("WiFi connection successful - testing WebSocket...");
 
-        // Test WebSocket connection
-        WebSocketManager::get_instance().connect_to_websocket();
+        // Test BOTH WebSocket connections
+        CommandWebSocketManager::get_instance().connect_to_websocket();
+        SensorWebSocketManager::get_instance().connect_to_websocket();
 
         const uint32_t START_TIME = millis();
         const uint32_t WEBSOCKET_TIMEOUT = 10000;
-        bool websocket_connected = false;
+        bool command_ws_connected = false;
+        bool sensor_ws_connected = false;
 
         while (millis() - START_TIME < WEBSOCKET_TIMEOUT) {
-            WebSocketManager::get_instance().poll_websocket();
-            if (WebSocketManager::get_instance().is_ws_connected()) {
-                websocket_connected = true;
+            CommandWebSocketManager::get_instance().poll_websocket();
+            SensorWebSocketManager::get_instance().poll_websocket();
+
+            command_ws_connected = CommandWebSocketManager::get_instance().is_ws_connected();
+            sensor_ws_connected = SensorWebSocketManager::get_instance().is_ws_connected();
+
+            // Both connections must be established
+            if (command_ws_connected && sensor_ws_connected) {
                 break;
             }
             vTaskDelay(pdMS_TO_TICKS(100));
         }
 
-        if (websocket_connected) {
+        if (command_ws_connected && sensor_ws_connected) {
             store_wifi_credentials(_testSSID, _testPassword, 0);
             SerialManager::get_instance().send_json_message(ToSerialMessage::WIFI_CONNECTION_RESULT, "success");
         } else {

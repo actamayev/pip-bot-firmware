@@ -6,13 +6,13 @@
 #include <vector>
 
 #include "actuators/led/rgb_led.h"
+#include "command_websocket_manager.h"
 #include "esp_wifi.h"
 #include "sensors/encoder_manager.h"
 #include "serial_queue_manager.h"
 #include "utils/config.h"
 #include "utils/singleton.h"
 #include "utils/structs.h"
-#include "websocket_manager.h"
 
 class WiFiManager : public Singleton<WiFiManager> {
     friend class Singleton<WiFiManager>;

@@ -3,9 +3,9 @@
 #include <Wire.h>
 
 #include "../lib/bq27441_monitor/SparkFunBQ27441.h"
+#include "networking/command_websocket_manager.h"
 #include "networking/serial_manager.h"
 #include "networking/serial_queue_manager.h"
-#include "networking/websocket_manager.h"
 #include "utils/config.h"
 #include "utils/singleton.h"
 #include "utils/structs.h"

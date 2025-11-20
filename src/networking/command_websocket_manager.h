@@ -8,18 +8,14 @@
 #include "firmware_version_tracker.h"
 #include "message_processor.h"
 #include "protocol.h"
-#include "send_sensor_data.h"
 #include "sensors/battery_monitor.h"
-#include "sensors/sensor_data_buffer.h"
 #include "utils/preferences_manager.h"
 #include "utils/singleton.h"
 
 using namespace websockets;
 
-class WebSocketManager : public Singleton<WebSocketManager> {
-    friend class Singleton<WebSocketManager>;
-    friend class SendSensorData;
-    friend class TaskManager;
+class CommandWebSocketManager : public Singleton<CommandWebSocketManager> {
+    friend class Singleton<CommandWebSocketManager>;
 
   public:
     void connect_to_websocket();
@@ -28,19 +24,21 @@ class WebSocketManager : public Singleton<WebSocketManager> {
     bool is_ws_connected() const {
         return _wsConnected;
     }
+
     static void send_battery_monitor_data();
     static void send_pip_turning_off();
     static void send_dino_score(int score);
+
     bool is_user_connected_to_this_pip() const {
         return _userConnectedToThisPip;
     }
     static void set_is_user_connected_to_this_pip(bool new_is_user_connected_to_this_pip);
 
-  private:
-    // Make constructor private for singleton
-    WebSocketManager();
+    websockets::WebsocketsClient _wsClient; // Made public for binary message sending
 
-    websockets::WebsocketsClient _wsClient;
+  private:
+    CommandWebSocketManager();
+
     static void handle_binary_message(WebsocketsMessage message);
     static void send_initial_data();
     static void add_battery_data_to_payload(JsonObject& payload);
@@ -54,7 +52,6 @@ class WebSocketManager : public Singleton<WebSocketManager> {
 
     static void kill_wifi_processes();
     uint32_t _lastPingTime = 0;
-    // NOTE: The WS_TIMEOUT must be greater than the PING_INTERVAL in SingleESP32Connection.
     const uint32_t WS_TIMEOUT = 3000; // 3 seconds timeout
     bool _hasKilledWiFiProcesses = false;
     bool _userConnectedToThisPip = false;

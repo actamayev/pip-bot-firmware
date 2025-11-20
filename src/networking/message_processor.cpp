@@ -144,7 +144,7 @@ void MessageProcessor::process_binary_message(const uint8_t* data, uint16_t leng
                 uint16_t new_version = data[1] | (data[2] << 8); // Little-endian conversion
 
                 // SerialQueueManager::get_instance().queue_message("New firmware version available: %d\n", new_version);
-                FirmwareVersionTracker::get_instance().retrieve_latest_firmware_from_server(new_version);
+                // FirmwareVersionTracker::get_instance().retrieve_latest_firmware_from_server(new_version);
             }
             break;
         }
@@ -547,9 +547,9 @@ void MessageProcessor::process_binary_message(const uint8_t* data, uint16_t leng
             } else {
                 auto status = static_cast<UserConnectedStatus>(data[1]);
                 if (status == UserConnectedStatus::NOT_CONNECTED) {
-                    WebSocketManager::get_instance().set_is_user_connected_to_this_pip(false);
+                    CommandWebSocketManager::get_instance().set_is_user_connected_to_this_pip(false);
                 } else {
-                    WebSocketManager::get_instance().set_is_user_connected_to_this_pip(true);
+                    CommandWebSocketManager::get_instance().set_is_user_connected_to_this_pip(true);
                     BatteryMonitor::get_instance().send_battery_monitor_data_over_websocket();
                 }
             }

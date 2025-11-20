@@ -20,7 +20,6 @@ TaskHandle_t TaskManager::sensor_logger_task_handle = nullptr;
 TaskHandle_t TaskManager::display_task_handle = nullptr;
 TaskHandle_t TaskManager::network_management_task_handle = nullptr;
 TaskHandle_t TaskManager::send_sensor_data_task_handle = nullptr;
-TaskHandle_t TaskManager::web_socket_polling_task_handle = nullptr;
 TaskHandle_t TaskManager::serial_queue_task_handle = nullptr;
 TaskHandle_t TaskManager::battery_monitor_task_handle = nullptr;
 TaskHandle_t TaskManager::speaker_task_handle = nullptr;
@@ -29,6 +28,10 @@ TaskHandle_t TaskManager::demo_manager_task_handle = nullptr;
 TaskHandle_t TaskManager::game_manager_task_handle = nullptr;
 TaskHandle_t TaskManager::career_quest_task_handle = nullptr;
 TaskHandle_t TaskManager::display_init_task_handle = nullptr;
+
+TaskHandle_t TaskManager::sensor_web_socket_task_handle = nullptr;
+TaskHandle_t TaskManager::command_web_socket_task_handle = nullptr;
+TaskHandle_t TaskManager::heartbeat_task_handle = nullptr;
 
 void TaskManager::button_task(void* parameter) {
     (void)parameter; // Mark as intentionally unused
@@ -226,22 +229,6 @@ void TaskManager::network_management_task(void* parameter) {
     }
 }
 
-void TaskManager::web_socket_polling_task(void* parameter) {
-    (void)parameter; // Mark as intentionally unused
-    SerialQueueManager::get_instance().queue_message("WebSocket polling task started");
-
-    // Main WebSocket polling loop
-    for (;;) {
-        // Only poll WebSocket if WiFi is connected
-        if (WiFiClass::status() == WL_CONNECTED) {
-            WebSocketManager::get_instance().poll_websocket();
-        }
-
-        // Fast update rate for real-time WebSocket communication
-        vTaskDelay(pdMS_TO_TICKS(5));
-    }
-}
-
 void TaskManager::send_sensor_data_task(void* parameter) {
     (void)parameter; // Mark as intentionally unused
     SerialQueueManager::get_instance().queue_message("Send sensor data task started");
@@ -383,11 +370,6 @@ bool TaskManager::create_send_sensor_data_task() {
                        &send_sensor_data_task_handle);
 }
 
-bool TaskManager::create_web_socket_polling_task() {
-    return create_task("WebSocketPoll", web_socket_polling_task, WEBSOCKET_POLLING_STACK_SIZE, Priority::REALTIME_COMM, Core::CORE_1,
-                       &web_socket_polling_task_handle);
-}
-
 bool TaskManager::create_serial_queue_task() {
     // Pass the SerialQueueManager instance as parameter
     SerialQueueManager::get_instance().initialize();
@@ -507,7 +489,9 @@ void TaskManager::print_stack_usage() {
                               {display_task_handle, "Display", DISPLAY_STACK_SIZE},
                               {network_management_task_handle, "NetworkMgmt", NETWORK_MANAGEMENT_STACK_SIZE},
                               {send_sensor_data_task_handle, "SendSensorData", SEND_SENSOR_DATA_STACK_SIZE},
-                              {web_socket_polling_task_handle, "WebSocketPoll", WEBSOCKET_POLLING_STACK_SIZE},
+                              {sensor_web_socket_task_handle, "SensorWebsocketPoll", SENSOR_WEBSOCKET_STACK_SIZE},
+                              {command_web_socket_task_handle, "CommandWebSocketPoll", COMMAND_WEBSOCKET_STACK_SIZE},
+                              {heartbeat_task_handle, "HeartbeatPoll", HEARTBEAT_STACK_SIZE},
                               {serial_queue_task_handle, "SerialQueue", SERIAL_QUEUE_STACK_SIZE},
                               {battery_monitor_task_handle, "BatteryMonitor", BATTERY_MONITOR_STACK_SIZE},
                               {speaker_task_handle, "Speaker", SPEAKER_STACK_SIZE},
@@ -551,31 +535,61 @@ void TaskManager::print_stack_usage() {
     SerialQueueManager::get_instance().queue_message("", SerialPriority::CRITICAL);
 }
 
-// Add to static member initialization section
-TaskHandle_t TaskManager::heartbeat_task_handle = nullptr;
+// NEW: Sensor WebSocket task
+void TaskManager::sensor_web_socket_task(void* parameter) {
+    (void)parameter;
+    SerialQueueManager::get_instance().queue_message("[WS_SENSOR] Task started");
 
-// Add the task implementation
+    for (;;) {
+        if (WiFiClass::status() == WL_CONNECTED) {
+            SensorWebSocketManager::get_instance().poll_websocket();
+        }
+        vTaskDelay(pdMS_TO_TICKS(5)); // Fast polling for sensor data
+    }
+}
+
+// RENAMED: Command WebSocket task
+void TaskManager::command_web_socket_task(void* parameter) {
+    (void)parameter;
+    SerialQueueManager::get_instance().queue_message("[WS_CMD] Task started");
+
+    for (;;) {
+        if (WiFiClass::status() == WL_CONNECTED) {
+            CommandWebSocketManager::get_instance().poll_websocket();
+        }
+        vTaskDelay(pdMS_TO_TICKS(40)); // Slower polling for commands
+    }
+}
+
 void TaskManager::heartbeat_task(void* parameter) {
     (void)parameter;
 
     for (;;) {
-        // Only send if WebSocket is connected
-        if (WebSocketManager::get_instance().is_ws_connected()) {
-            // Create JSON heartbeat message
+        // Send heartbeat through command connection
+        if (CommandWebSocketManager::get_instance().is_ws_connected()) {
             auto doc = make_base_message_common<64>(ToCommonMessage::HEARTBEAT);
-            // No payload needed for heartbeat
 
             String json_string;
             serializeJson(doc, json_string);
-            WebSocketManager::get_instance()._wsClient.send(json_string);
+
+            CommandWebSocketManager::get_instance()._wsClient.send(json_string);
         }
 
-        // Send heartbeat every 1 second
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }
 
-// Add the task creation function
+bool TaskManager::create_sensor_web_socket_task() {
+    return create_task("SensorWS", sensor_web_socket_task, SENSOR_WEBSOCKET_STACK_SIZE, Priority::REALTIME_COMM, Core::CORE_1,
+                       &sensor_web_socket_task_handle);
+}
+
+// RENAMED
+bool TaskManager::create_command_web_socket_task() {
+    return create_task("CommandWS", command_web_socket_task, COMMAND_WEBSOCKET_STACK_SIZE, Priority::REALTIME_COMM, Core::CORE_1,
+                       &command_web_socket_task_handle);
+}
+
 bool TaskManager::create_heartbeat_task() {
     return create_task("Heartbeat", heartbeat_task, HEARTBEAT_STACK_SIZE, Priority::COMMUNICATION, Core::CORE_1, &heartbeat_task_handle);
 }

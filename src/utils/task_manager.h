@@ -27,7 +27,6 @@ class TaskManager {
     static bool is_display_initialized();   // NEW: Check if display init is done or in progress
     static bool create_network_management_task();
     static bool create_send_sensor_data_task();
-    static bool create_web_socket_polling_task();
     static bool create_serial_queue_task();
     static bool create_battery_monitor_task();
     static bool create_speaker_task();
@@ -44,6 +43,8 @@ class TaskManager {
     static bool create_color_sensor_task();
     static bool create_sensor_logger_task();
 
+    static bool create_sensor_web_socket_task();  // NEW
+    static bool create_command_web_socket_task(); // RENAMED from create_web_socket_polling_task
     static bool create_heartbeat_task();
 
   private:
@@ -66,7 +67,6 @@ class TaskManager {
     static void display_init_task(void* parameter); // NEW: Display init task
     static void network_management_task(void* parameter);
     static void send_sensor_data_task(void* parameter);
-    static void web_socket_polling_task(void* parameter);
     static void serial_queue_task(void* parameter);
     static void battery_monitor_task(void* parameter);
     static void speaker_task(void* parameter);
@@ -74,6 +74,9 @@ class TaskManager {
     static void demo_manager_task(void* parameter);
     static void game_manager_task(void* parameter);
     static void career_quest_task(void* parameter);
+    static void sensor_web_socket_task(void* parameter);  // NEW
+    static void command_web_socket_task(void* parameter); // RENAMED
+    static void heartbeat_task(void* parameter);
 
     static constexpr uint32_t BUTTON_STACK_SIZE = 4096;
     static constexpr uint32_t SERIAL_INPUT_STACK_SIZE = 10240;
@@ -94,7 +97,9 @@ class TaskManager {
     static constexpr uint32_t DISPLAY_INIT_STACK_SIZE = 8192;       // Reduced from 30KB - should be sufficient with optimizations
     static constexpr uint32_t NETWORK_MANAGEMENT_STACK_SIZE = 8192; // Heavy WiFi operations
     static constexpr uint32_t SEND_SENSOR_DATA_STACK_SIZE = 8192;   // Sensor data transmission
-    static constexpr uint32_t WEBSOCKET_POLLING_STACK_SIZE = 6144;  // Lightweight WebSocket polling
+    static constexpr uint32_t SENSOR_WEBSOCKET_STACK_SIZE = 6144;   // NEW
+    static constexpr uint32_t COMMAND_WEBSOCKET_STACK_SIZE = 6144;  // RENAMED from WEBSOCKET_POLLING_STACK_SIZE
+    static constexpr uint32_t HEARTBEAT_STACK_SIZE = 4096;
     static constexpr uint32_t SERIAL_QUEUE_STACK_SIZE = 10240;
     static constexpr uint32_t BATTERY_MONITOR_STACK_SIZE = 6144;
     static constexpr uint32_t SPEAKER_STACK_SIZE = 12288;
@@ -142,7 +147,6 @@ class TaskManager {
     static TaskHandle_t display_init_task_handle; // NEW: Display init task handle
     static TaskHandle_t network_management_task_handle;
     static TaskHandle_t send_sensor_data_task_handle;
-    static TaskHandle_t web_socket_polling_task_handle;
     static TaskHandle_t serial_queue_task_handle;
     static TaskHandle_t battery_monitor_task_handle;
     static TaskHandle_t speaker_task_handle;
@@ -153,11 +157,7 @@ class TaskManager {
 
     static void print_stack_usage();
 
-    static void heartbeat_task(void* parameter);
-
-    // ... existing stack sizes ...
-    static constexpr uint32_t HEARTBEAT_STACK_SIZE = 4096;
-
-    // ... existing task handles ...
+    static TaskHandle_t sensor_web_socket_task_handle;  // NEW
+    static TaskHandle_t command_web_socket_task_handle; // RENAMED from web_socket_polling_task_handle
     static TaskHandle_t heartbeat_task_handle;
 };
