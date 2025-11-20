@@ -108,7 +108,7 @@ void BatteryMonitor::handle_battery_logging() {
     }
 
     // Only log if connected to serial
-    if (!SerialManager::get_instance().is_serial_connected() && !WebSocketManager::get_instance().is_ws_connected()) {
+    if (!SerialManager::get_instance().is_serial_connected() && !CommandWebSocketManager::get_instance().is_ws_connected()) {
         return;
     }
 
@@ -140,9 +140,9 @@ void BatteryMonitor::send_battery_monitor_data_over_serial() {
 }
 
 void BatteryMonitor::send_battery_monitor_data_over_websocket() {
-    if (!WebSocketManager::get_instance().is_ws_connected()) {
+    if (!CommandWebSocketManager::get_instance().is_ws_connected()) {
         return;
     }
-    WebSocketManager::get_instance().send_battery_monitor_data();
+    CommandWebSocketManager::get_instance().send_battery_monitor_data();
     _lastBatteryLogTime = millis();
 }

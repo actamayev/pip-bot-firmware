@@ -103,7 +103,7 @@ struct BatteryState {
 };
 
 // Can go to both Serial and Server
-enum class ToCommonMessage : uint8_t { SENSOR_DATA, SENSOR_DATA_MZ, DINO_SCORE, PIP_TURNING_OFF };
+enum class ToCommonMessage : uint8_t { SENSOR_DATA, SENSOR_DATA_MZ, DINO_SCORE, PIP_TURNING_OFF, HEARTBEAT };
 
 enum class ToServerMessage : uint8_t {
     DEVICE_INITIAL_DATA,

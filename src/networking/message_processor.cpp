@@ -547,9 +547,9 @@ void MessageProcessor::process_binary_message(const uint8_t* data, uint16_t leng
             } else {
                 auto status = static_cast<UserConnectedStatus>(data[1]);
                 if (status == UserConnectedStatus::NOT_CONNECTED) {
-                    WebSocketManager::get_instance().set_is_user_connected_to_this_pip(false);
+                    CommandWebSocketManager::get_instance().set_is_user_connected_to_this_pip(false);
                 } else {
-                    WebSocketManager::get_instance().set_is_user_connected_to_this_pip(true);
+                    CommandWebSocketManager::get_instance().set_is_user_connected_to_this_pip(true);
                     BatteryMonitor::get_instance().send_battery_monitor_data_over_websocket();
                 }
             }

@@ -3,8 +3,8 @@
 #include <algorithm>
 #include <cmath>
 
+#include "networking/command_websocket_manager.h"
 #include "networking/serial_manager.h"
-#include "networking/websocket_manager.h"
 
 void DinoRunner::start_game() {
     DinoRunner& instance = DinoRunner::get_instance();
@@ -238,8 +238,8 @@ void DinoRunner::game_over() {
     SerialQueueManager::get_instance().queue_message("Dino game over - Score: " + String(instance._score));
 
     // Send score via available communication channels
-    if (WebSocketManager::get_instance().is_ws_connected()) {
-        WebSocketManager::get_instance().send_dino_score(instance._score);
+    if (CommandWebSocketManager::get_instance().is_ws_connected()) {
+        CommandWebSocketManager::get_instance().send_dino_score(instance._score);
     } else if (SerialManager::get_instance().is_serial_connected()) {
         SerialManager::get_instance().send_dino_score(instance._score);
     }
