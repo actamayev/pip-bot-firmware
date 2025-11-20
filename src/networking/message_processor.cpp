@@ -144,7 +144,7 @@ void MessageProcessor::process_binary_message(const uint8_t* data, uint16_t leng
                 uint16_t new_version = data[1] | (data[2] << 8); // Little-endian conversion
 
                 // SerialQueueManager::get_instance().queue_message("New firmware version available: %d\n", new_version);
-                // FirmwareVersionTracker::get_instance().retrieve_latest_firmware_from_server(new_version);
+                FirmwareVersionTracker::get_instance().retrieve_latest_firmware_from_server(new_version);
             }
             break;
         }
