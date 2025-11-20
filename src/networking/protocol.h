@@ -48,7 +48,7 @@ enum class LightAnimationStatus : uint8_t { NO_ANIMATION = 0, BREATHING = 1, RAI
 
 enum class WiFiConnectionStatus : uint8_t { FAILED = 0, WIFI_ONLY = 1, WIFI_AND_WEBSOCKET_SUCCESS = 2 };
 
-enum class CareerType : uint8_t { MEET_PIP = 1, TURRET_ARCADE = 2 };
+enum class CareerType : uint8_t { MEET_PIP = 1, TURRET_ARCADE = 2, FLAPPY_BIRD_ARCADE = 3, CITY_DRIVING_ARCADE = 4 };
 
 enum class MeetPipTriggerType : uint8_t {
     ENTER_CAREER = 0,
@@ -82,6 +82,10 @@ enum class MeetPipTriggerType : uint8_t {
 };
 
 enum class TurretArcadeTriggerType : uint8_t { ENTER_TURRET_ARCADE = 0, EXIT_TURRET_ARCADE = 1 };
+
+enum class FlappyBirdArcadeTriggerType : uint8_t { ENTER_FLAPPY_BIRD_ARCADE = 0, EXIT_FLAPPY_BIRD_ARCADE = 1 };
+
+enum class CityDrivingArcadeTriggerType : uint8_t { ENTER_CITY_DRIVING_ARCADE = 0, EXIT_CITY_DRIVING_ARCADE = 1 };
 
 struct NewBalancePids {
     float pValue;                // 4 bytes
