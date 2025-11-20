@@ -66,29 +66,22 @@ void SendSensorData::send_sensor_data_to_server() {
         return;
     }
 
-    // Check available connections - prioritize serial over websocket
     bool serial_connected = SerialManager::get_instance().is_serial_connected();
-    bool websocket_connected = WebSocketManager::get_instance().is_ws_connected();
+    bool websocket_connected = SensorWebSocketManager::get_instance().is_ws_connected(); // CHANGED
 
-    // Must have at least one connection
     if (!serial_connected && !websocket_connected) {
         return;
     }
 
     const uint32_t CURRENT_TIME = millis();
-    // Use different intervals based on connection type
     uint32_t required_interval = serial_connected ? SERIAL_SEND_INTERVAL : WS_SEND_INTERVAL;
     if (CURRENT_TIME - _lastSendTime < required_interval) {
         return;
     }
 
-    // Create a JSON document with both routing information and payload
     auto doc = make_base_message_common<256>(ToCommonMessage::SENSOR_DATA);
-
-    // Add the actual payload
     JsonObject payload = doc.createNestedObject("payload");
 
-    // Attach different types of sensor data based on current flags
     if (_sendEncoderData) {
         attach_rpm_data(payload);
     }
@@ -110,19 +103,14 @@ void SendSensorData::send_sensor_data_to_server() {
     if (_sendSideTofData) {
         attach_side_tof_data(payload);
     }
-    // Multizone ToF data is now sent separately via send_multizone_data()
 
-    // Serialize JSON
     String json_string;
     serializeJson(doc, json_string);
 
-    // Send via serial if connected (preferred), otherwise websocket
     if (serial_connected) {
         SerialQueueManager::get_instance().queue_message(json_string, SerialPriority::CRITICAL);
     } else if (websocket_connected) {
-        if (WebSocketManager::get_instance().is_ws_connected()) {
-            WebSocketManager::get_instance()._wsClient.send(json_string);
-        }
+        SensorWebSocketManager::get_instance()._wsClient.send(json_string); // CHANGED
     }
 
     _lastSendTime = CURRENT_TIME;
@@ -133,17 +121,14 @@ void SendSensorData::send_multizone_data() {
         return;
     }
 
-    // Check available connections - prioritize serial over websocket
     bool serial_connected = SerialManager::get_instance().is_serial_connected();
-    bool websocket_connected = WebSocketManager::get_instance().is_ws_connected();
+    bool websocket_connected = SensorWebSocketManager::get_instance().is_ws_connected(); // CHANGED
 
-    // Must have at least one connection
     if (!serial_connected && !websocket_connected) {
         return;
     }
 
     const uint32_t CURRENT_TIME = millis();
-    // Use different intervals based on connection type
     uint32_t required_mz_interval = serial_connected ? SERIAL_MZ_INTERVAL : WS_MZ_INTERVAL;
     if (CURRENT_TIME - _lastMzSendTime < required_mz_interval) {
         return;
@@ -151,7 +136,6 @@ void SendSensorData::send_multizone_data() {
 
     TofData tof_data = SensorDataBuffer::get_instance().get_latest_tof_data();
 
-    // Send 8 messages (one per row) in burst mode
     for (int row = 0; row < 8; row++) {
         auto doc = make_base_message_common<128>(ToCommonMessage::SENSOR_DATA_MZ);
         JsonObject payload = doc.createNestedObject("payload");
@@ -166,13 +150,10 @@ void SendSensorData::send_multizone_data() {
         String json_string;
         serializeJson(doc, json_string);
 
-        // Send via serial if connected (preferred), otherwise websocket
         if (serial_connected) {
             SerialQueueManager::get_instance().queue_message(json_string, SerialPriority::CRITICAL);
         } else if (websocket_connected) {
-            if (WebSocketManager::get_instance().is_ws_connected()) {
-                WebSocketManager::get_instance()._wsClient.send(json_string);
-            }
+            SensorWebSocketManager::get_instance()._wsClient.send(json_string); // CHANGED
         }
     }
 

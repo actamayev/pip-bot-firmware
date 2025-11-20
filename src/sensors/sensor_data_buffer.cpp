@@ -1,8 +1,8 @@
 #include "sensor_data_buffer.h"
 
 #include "custom_interpreter/bytecode_vm.h"
+#include "networking/command_websocket_manager.h"
 #include "networking/serial_manager.h"
-#include "networking/websocket_manager.h"
 
 // Use ColorType from ColorTypes namespace
 using color_types::ColorType;
@@ -467,7 +467,7 @@ bool SensorDataBuffer::should_enable_quaternion_extended() {
     bool program_loaded = BytecodeVM::get_instance().is_program_loaded();
 
     // Check if user is connected via websocket
-    bool user_connected = WebSocketManager::get_instance().is_user_connected_to_this_pip();
+    bool user_connected = CommandWebSocketManager::get_instance().is_user_connected_to_this_pip();
 
     return within_timeout || serial_connected || program_loaded || user_connected;
 }

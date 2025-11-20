@@ -200,8 +200,8 @@ void Buttons::setup_deep_sleep() {
 void Buttons::enter_deep_sleep() {
     if (SerialManager::get_instance().is_serial_connected()) {
         SerialManager::get_instance().send_pip_turning_off();
-    } else if (WebSocketManager::get_instance().is_ws_connected()) {
-        WebSocketManager::get_instance().send_pip_turning_off();
+    } else if (CommandWebSocketManager::get_instance().is_ws_connected()) {
+        CommandWebSocketManager::get_instance().send_pip_turning_off();
     }
 
     digitalWrite(PWR_EN, LOW);
