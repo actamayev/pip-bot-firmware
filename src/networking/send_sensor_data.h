@@ -47,6 +47,9 @@ class SendSensorData : public Singleton<SendSensorData> {
     void set_encoder_data_enabled(bool enabled) {
         _sendEncoderData = enabled;
     }
+    void set_front_distance_data_enabled(bool enabled) {
+        _sendFrontDistanceData = enabled;
+    }
 
   private:
     SendSensorData() = default;
@@ -60,6 +63,7 @@ class SendSensorData : public Singleton<SendSensorData> {
     bool _sendSideTofData = false;
     bool _sendColorSensorData = false;
     bool _sendEncoderData = false;
+    bool _sendFrontDistanceData = false;
 
     static void attach_rpm_data(JsonObject& payload);
     static void attach_color_sensor_data(JsonObject& payload);
@@ -69,13 +73,14 @@ class SendSensorData : public Singleton<SendSensorData> {
     static void attach_magnetometer_data(JsonObject& payload);
     static void attach_multizone_tof_data(JsonObject& payload);
     static void attach_side_tof_data(JsonObject& payload);
+    static void attach_front_distance_data(JsonObject& payload);
     void send_sensor_data_to_server();
     void send_multizone_data();
 
     uint32_t _lastSendTime = 0;
     uint32_t _lastMzSendTime = 0;
     const uint32_t SERIAL_SEND_INTERVAL = 50; // Serial: 50ms intervals (20Hz)
-    const uint32_t WS_SEND_INTERVAL = 100;    // WebSocket: 100ms intervals (10Hz)
+    const uint32_t WS_SEND_INTERVAL = 50;     // WebSocket: 100ms intervals (10Hz)
     const uint32_t SERIAL_MZ_INTERVAL = 200;  // Serial MZ: 200ms intervals
     const uint32_t WS_MZ_INTERVAL = 400;      // WebSocket MZ: 400ms intervals
 };

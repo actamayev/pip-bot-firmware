@@ -61,6 +61,11 @@ void SendSensorData::attach_side_tof_data(JsonObject& payload) {
     payload["rightSideTofCounts"] = side_tof_data.right_counts;
 }
 
+void SendSensorData::attach_front_distance_data(JsonObject& payload) {
+    float front_tof_distance = SensorDataBuffer::get_instance().get_front_tof_distance();
+    payload["frontTofDistance"] = front_tof_distance;
+}
+
 void SendSensorData::send_sensor_data_to_server() {
     if (!_sendSensorData) {
         return;
@@ -102,6 +107,9 @@ void SendSensorData::send_sensor_data_to_server() {
     }
     if (_sendSideTofData) {
         attach_side_tof_data(payload);
+    }
+    if (_sendFrontDistanceData) {
+        attach_front_distance_data(payload);
     }
 
     String json_string;

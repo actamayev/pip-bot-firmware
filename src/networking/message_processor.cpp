@@ -518,6 +518,42 @@ void MessageProcessor::process_binary_message(const uint8_t* data, uint16_t leng
                         }
                         break;
                     }
+                    case CareerType::FLAPPY_BIRD_ARCADE: {
+                        auto trigger_type = static_cast<FlappyBirdArcadeTriggerType>(data[2]);
+
+                        switch (trigger_type) {
+                            case FlappyBirdArcadeTriggerType::ENTER_FLAPPY_BIRD_ARCADE:
+                                SendSensorData::get_instance().set_send_sensor_data(true);
+                                SendSensorData::get_instance().set_front_distance_data_enabled(true);
+                                break;
+                            case FlappyBirdArcadeTriggerType::EXIT_FLAPPY_BIRD_ARCADE:
+                                SendSensorData::get_instance().set_front_distance_data_enabled(false);
+                                SendSensorData::get_instance().set_send_sensor_data(false);
+                                break;
+                            default:
+                                SerialQueueManager::get_instance().queue_message("Unknown flappy bird arcade trigger type");
+                                break;
+                        }
+                        break;
+                    }
+                    case CareerType::CITY_DRIVING_ARCADE: {
+                        auto trigger_type = static_cast<CityDrivingArcadeTriggerType>(data[2]);
+
+                        switch (trigger_type) {
+                            case CityDrivingArcadeTriggerType::ENTER_CITY_DRIVING_ARCADE:
+                                SendSensorData::get_instance().set_send_sensor_data(true);
+                                SendSensorData::get_instance().set_encoder_data_enabled(true);
+                                break;
+                            case CityDrivingArcadeTriggerType::EXIT_CITY_DRIVING_ARCADE:
+                                SendSensorData::get_instance().set_encoder_data_enabled(false);
+                                SendSensorData::get_instance().set_send_sensor_data(false);
+                                break;
+                            default:
+                                SerialQueueManager::get_instance().queue_message("Unknown city driving arcade trigger type");
+                                break;
+                        }
+                        break;
+                    }
                     default:
                         SerialQueueManager::get_instance().queue_message("Unknown career type");
                         break;
