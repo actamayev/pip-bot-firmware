@@ -74,8 +74,6 @@ inline const char* get_server_firmware_endpoint() {
     std::string env = get_environment();
     if (env == "local") {
         return "http://10.213.255.40:8080/pip/firmware-update";
-    } else if (env == "staging") {
-        return "https://staging-api.leverlabs.com/pip/firmware-update";
     }
     return "https://production-api.leverlabs.com/pip/firmware-update";
 }
@@ -84,8 +82,6 @@ inline const char* get_ws_server_url() {
     std::string env = get_environment();
     if (env == "local") {
         return "ws://10.213.255.40:8080/esp32";
-    } else if (env == "staging") {
-        return "wss://staging-api.leverlabs.com/esp32";
     }
     return "wss://production-api.leverlabs.com/esp32";
 }

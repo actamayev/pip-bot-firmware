@@ -31,9 +31,8 @@ LEFT_BUTTON_PIN = 11, RIGHT_BUTTON_PIN = 12;
 ```cpp
 // Dynamic endpoint selection
 const char* get_ws_server_url() {
-    // Returns local/staging/production URLs based on build
+    // Returns local/production URLs based on build
     if (env == "local") return "ws://10.76.59.40:8080/esp32"; // Changes with my local IP
-    if (env == "staging") return "wss://staging-api.leverlab.com/esp32";
     return "wss://production-api.leverlabs.com/esp32";
 }
 ```
@@ -188,8 +187,6 @@ protected:
 // Environment-based debug levels
 #if defined(LOCAL_ENVIRONMENT)
     #define CORE_DEBUG_LEVEL 5    // Verbose debugging
-#elif defined(STAGING_ENVIRONMENT)  
-    #define CORE_DEBUG_LEVEL 3    // Warning level
 #else
     #define CORE_DEBUG_LEVEL 1    // Error only
 #endif

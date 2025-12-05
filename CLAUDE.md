@@ -64,9 +64,6 @@ POWER_EN=38
 # Development (full debugging)
 pio run -e local
 
-# Staging (reduced logging)  
-pio run -e staging
-
 # Production (minimal logging)
 pio run -e production
 ```
@@ -124,7 +121,7 @@ pio run -t upload -t monitor -e local --upload-port /dev/cu.usbmodem101
 - **Partition Layout**: Custom CSV for OTA + NVS storage
 
 ### Networking
-- **Environment URLs**: Local/staging/production endpoints
+- **Environment URLs**: Local/production endpoints
 - **Certificate Pinning**: Embedded root CA for HTTPS
 - **Connection States**: WiFi-only vs full WebSocket connectivity
 
@@ -149,4 +146,4 @@ pio run -t upload -t monitor -e local --upload-port /dev/cu.usbmodem101
 Each build environment has unique:
 - `DEFAULT_PIP_ID`: Robot identification
 - `CORE_DEBUG_LEVEL`: Logging verbosity
-- API endpoints for staging/production deployment
+- API endpoints for production deployment

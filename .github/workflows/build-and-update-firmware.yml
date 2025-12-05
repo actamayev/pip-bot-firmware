@@ -42,16 +42,8 @@ jobs:
           echo "S3_BUCKET=${{ secrets.PRODUCTION_S3_BUCKET }}" >> "$GITHUB_ENV"
           echo "API_ENDPOINT=${{ secrets.PRODUCTION_API_ENDPOINT }}" >> "$GITHUB_ENV"
 
-      - name: Set staging environment
-        if: github.ref == 'refs/heads/staging'
-        run: |
-          echo "Setting staging environment"
-          echo "BUILD_ENV=staging" >> "$GITHUB_ENV"
-          echo "S3_BUCKET=${{ secrets.STAGING_S3_BUCKET }}" >> "$GITHUB_ENV"
-          echo "API_ENDPOINT=${{ secrets.STAGING_API_ENDPOINT }}" >> "$GITHUB_ENV"
-
       - name: Set local environment
-        if: github.ref != 'refs/heads/main' && github.ref != 'refs/heads/staging'
+        if: github.ref != 'refs/heads/main'
         run: |
           echo "Setting local environment"
           echo "BUILD_ENV=local" >> "$GITHUB_ENV"
@@ -107,7 +99,7 @@ jobs:
 
       # Notify server about new firmware
       - name: Notify server about new firmware
-        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging'
+        if: github.ref == 'refs/heads/main'
         run: |
           response=$(curl -X POST ${{ env.API_ENDPOINT }}/internal/firmware-update \
             -H "Content-Type: application/json")

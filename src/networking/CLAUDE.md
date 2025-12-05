@@ -8,7 +8,7 @@ Comprehensive communication system handling WiFi, WebSocket, and serial protocol
 - **Local communication**: Serial USB for development and programming
 - **Remote communication**: WiFi + WebSocket for wireless control
 - **Protocol bridge**: Messages route between serial and network
-- **Environment switching**: Local/staging/production endpoints
+- **Environment switching**: Local/production endpoints
 
 ## Core Components
 
@@ -24,7 +24,6 @@ Comprehensive communication system handling WiFi, WebSocket, and serial protocol
 - **Connection resilience**: Automatic reconnection with backoff
 - **Certificate validation**: Pinned root CA for secure connections
 - **Environment URLs**: 
-  - Staging: `wss://staging-api.leverlabs.com/esp32`
   - Production: `wss://production-api.leverlabs.com/esp32`
 
 ### Serial Communication
@@ -136,10 +135,6 @@ enum class RouteType {
 DEFAULT_ENVIRONMENT = "local"
 DEFAULT_PIP_ID = "9YhsJ"
 
-// Staging deployment  
-DEFAULT_ENVIRONMENT = "staging"
-DEFAULT_PIP_ID = "bax2P"
-
 // Production release
 DEFAULT_ENVIRONMENT = "production" 
 DEFAULT_PIP_ID = "PmKJZ"
@@ -148,7 +143,7 @@ DEFAULT_PIP_ID = "PmKJZ"
 ### Endpoint Management
 - **Dynamic URLs**: Environment-based server selection
 - **Local override**: Development server on local network
-- **Secure connections**: HTTPS/WSS for staging and production
+- **Secure connections**: HTTPS/WSS for production
 - **Certificate matching**: Environment-specific validation
 
 ## Usage Examples
