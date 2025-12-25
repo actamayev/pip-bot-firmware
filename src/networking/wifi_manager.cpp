@@ -4,7 +4,6 @@ WiFiManager::WiFiManager() {
     // Hard-coding Wifi creds during initialization
     // store_wifi_credentials("MSTest", "!haftr2024!", 0);
     // store_wifi_credentials("Another Dimension", "Iforgotit123", 1);
-    // store_wifi_credentials("NETGEAR08", "breezyshoe123", 1);
     // store_wifi_credentials("iPhone", "12345678", 1);
 
     WiFi.setSleep(false);                // Disable WiFi sleep mode
