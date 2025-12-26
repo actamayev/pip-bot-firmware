@@ -110,7 +110,7 @@ struct ReportTimeouts {
     std::atomic<uint32_t> side_tof_last_request{0};
     std::atomic<uint32_t> color_last_request{0};
 
-    static constexpr uint32_t TIMEOUT_MS = 300000; // 5 minutes
+    static constexpr uint32_t TIMEOUT_MS = 60 * 60 * 1000; // 60 minutes (for testing (should be something more realistic, like 5 minutes))
 
     bool should_enable_quaternion() const {
         uint32_t last_request = quaternion_last_request.load();
